@@ -82,8 +82,7 @@ As a governance or analytics stakeholder, I can trace ingested data to source an
 - **FR-006**: System MUST preserve revision lineage when updated values supersede previously accepted observations for the same series and reference period.
 - **FR-007**: System MUST expose per-run and per-source operational outcomes including counts of accepted, quarantined, failed, duplicate no-op, and data-quality conflict records.
 - **FR-008**: System MUST support deterministic rerun behavior for the same source and reference period boundaries.
-- **FR-009**: System MUST prevent concurrent conflicting execution for the same source workflow within the same ingestion scope.
-- **FR-013**: System MUST enforce per-source concurrency control where at most one run is active and at most one additional pending run is queued per source.
+- **FR-009**: System MUST prevent concurrent conflicting execution for the same source workflow within the same ingestion scope by enforcing at most one active run and one deduplicated queued pending run per source.
 - **FR-010**: System MUST continue processing unaffected source workflows when one source workflow fails and MUST report the overall run outcome as partial success.
 - **FR-011**: System MUST ensure ingestion operations can be executed in local development workflows using documented commands and expected environment defaults.
 - **FR-012**: System MUST define documentation updates for onboarding a new source workflow, operating ingestion runs, and interpreting ingest outcomes.
