@@ -52,3 +52,15 @@ When a source revises prior values, system MUST create a RevisionRecord containi
 
 - Provenance field additions are additive and backward compatible.
 - Changes to immutability or revision semantics require major version change and migration guidance.
+
+## Runtime Mapping Notes
+
+- Runtime provenance enforcement is implemented in `apps/pipeline/src/contract/schemas/provenance_record.py` and `libs/db/src/db/repositories/provenance_repository.py`.
+- Runtime revision linkage enforcement is implemented in `apps/pipeline/src/contract/schemas/revision_record.py` and `apps/pipeline/src/contract/services/revision_lineage_service.py`.
+- Backend audit retrieval is exposed through `apps/backend/src/contract/query/provenance_audit_query.py`.
+
+## Migration Guidance
+
+- Provenance/revision table changes must be made only through Alembic revisions in `libs/db/alembic/versions/`.
+- For immutability-related changes, add forward-compatible columns first, backfill with deterministic scripts, then enforce constraints in a follow-up revision.
+- Revision lineage migrations must preserve bidirectional audit queryability for both superseded and current observation ids.

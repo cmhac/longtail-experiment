@@ -124,6 +124,8 @@ Local stack and duplication:
 
 ## Recent Changes
 
+- 003-define-data-contract: Implemented US1-US3 contract modules for canonical observations, provenance/revision lineage, hierarchy mapping, and backend query filters with contract test coverage.
+
 - 003-define-data-contract: Added Python 3.12 (pipeline and backend), TypeScript 5.x (frontend unchanged) + Nx workspace tooling, uv, ruff, ty, pytest, dagster baseline package, SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, structlog, OpenTelemetry SDK/API
 
 - 003-define-data-contract: Added Python 3.12 (backend and pipeline contract implementation), TypeScript 5.x (no feature scope changes) + Nx workspace tooling, uv, ruff, ty, pytest, baseline dagster package, contract documentation set under specs
@@ -137,5 +139,6 @@ Local stack and duplication:
 <!-- MANUAL ADDITIONS START -->
 
 - AGENTS.md is mandatory maintained documentation. Update this file whenever repository
-structure, toolchain, or canonical developer commands change.
+  structure, toolchain, or canonical developer commands change.
+- Canonical contract verification commands: - `uv run --project apps/pipeline pytest apps/pipeline/tests/contract` - `uv run --project apps/backend pytest apps/backend/tests/contract` - `PYTHONPATH=libs/db/src uv run --project apps/backend pytest libs/db/tests`
 <!-- MANUAL ADDITIONS END -->

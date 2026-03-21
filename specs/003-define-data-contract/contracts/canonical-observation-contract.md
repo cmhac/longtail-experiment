@@ -47,3 +47,15 @@ Define the required structure and validation behavior for all accepted time-seri
 - New fields MUST be additive and documented.
 - Breaking field semantics require contract version bump and migration notes.
 - Historical accepted records remain valid under their original contract version metadata.
+
+## Runtime Mapping Notes
+
+- Runtime schema authority is `apps/pipeline/src/contract/schemas/canonical_observation.py`.
+- Canonical runtime field names currently implemented are: `source_name`, `source_type`, `series_key`, `metric_name`, `frequency_granularity`, `observed_on`, `reported_at`, `value`, `unit`, `attributes`.
+- `source_type` is constrained to `external|internal` and normalized in `apps/pipeline/src/contract/normalizers/source_payload_mapper.py`.
+
+## Migration Guidance
+
+- Relational persistence changes for canonical observations must be introduced through `libs/db/alembic/versions/` revisions.
+- New non-null canonical fields require one migration that backfills existing rows before adding constraints.
+- Migration revisions should preserve read compatibility for `apps/backend/src/contract/query/canonical_query.py` projections during rollout.

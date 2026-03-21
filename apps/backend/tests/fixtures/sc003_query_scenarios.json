@@ -1,0 +1,8 @@
+{
+  "target_ms": 2000,
+  "scenarios": [
+    { "name": "category-parent-filter", "elapsed_ms": 842 },
+    { "name": "geography-parent-filter", "elapsed_ms": 1175 },
+    { "name": "source-type-plus-series", "elapsed_ms": 936 }
+  ]
+}

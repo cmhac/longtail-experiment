@@ -1,0 +1,10 @@
+[
+  {
+    "series_key": "CPI.US.ALL",
+    "superseded_observation_id": "obs-2026-01-v1",
+    "current_observation_id": "obs-2026-01-v2",
+    "revision_reason": "source-restatement",
+    "revision_published_at": "2026-03-01T00:00:00Z",
+    "revision_detected_at": "2026-03-02T12:00:00Z"
+  }
+]

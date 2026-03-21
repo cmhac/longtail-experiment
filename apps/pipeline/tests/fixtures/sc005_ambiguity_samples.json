@@ -1,0 +1,14 @@
+{
+  "samples": [
+    { "source": "BLS", "ambiguous": false },
+    { "source": "FRED", "ambiguous": false },
+    { "source": "CENSUS", "ambiguous": false },
+    { "source": "INTERNAL_ETL", "ambiguous": false },
+    { "source": "STATE_PORTAL", "ambiguous": false },
+    { "source": "CITY_FEED", "ambiguous": false },
+    { "source": "FEDERAL_RESERVE", "ambiguous": false },
+    { "source": "BEA", "ambiguous": false },
+    { "source": "USDA", "ambiguous": false },
+    { "source": "UNLABELED_FEED", "ambiguous": true }
+  ]
+}

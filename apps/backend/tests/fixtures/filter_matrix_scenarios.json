@@ -1,0 +1,41 @@
+{
+  "rows": [
+    {
+      "series_key": "CPI.US.ALL",
+      "source_type": "external",
+      "category_id": "inflation",
+      "geography_id": "usa"
+    },
+    {
+      "series_key": "PAYROLL.US.TOTAL",
+      "source_type": "external",
+      "category_id": "labor",
+      "geography_id": "usa"
+    },
+    {
+      "series_key": "PIPELINE.INGEST.SUCCESS_RATE",
+      "source_type": "internal",
+      "category_id": "operations",
+      "geography_id": "__non_geographic__"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "external-us-series",
+      "source_types": ["external"],
+      "geography_ids": ["usa"],
+      "expected_series": ["CPI.US.ALL", "PAYROLL.US.TOTAL"]
+    },
+    {
+      "name": "internal-operations",
+      "source_types": ["internal"],
+      "category_ids": ["operations"],
+      "expected_series": ["PIPELINE.INGEST.SUCCESS_RATE"]
+    },
+    {
+      "name": "single-series-overrides",
+      "series_keys": ["CPI.US.ALL"],
+      "expected_series": ["CPI.US.ALL"]
+    }
+  ]
+}

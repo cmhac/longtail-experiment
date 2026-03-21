@@ -1,0 +1,21 @@
+{
+  "categories": [
+    { "category_id": "economy", "parent_id": null, "label": "Economy" },
+    { "category_id": "labor", "parent_id": "economy", "label": "Labor" },
+    {
+      "category_id": "inflation",
+      "parent_id": "economy",
+      "label": "Inflation"
+    }
+  ],
+  "geographies": [
+    { "geo_id": "world", "parent_id": null, "kind": "region" },
+    { "geo_id": "usa", "parent_id": "world", "kind": "country" },
+    { "geo_id": "ca", "parent_id": "usa", "kind": "state" },
+    {
+      "geo_id": "__non_geographic__",
+      "parent_id": null,
+      "kind": "non_geographic"
+    }
+  ]
+}

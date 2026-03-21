@@ -1,0 +1,14 @@
+{
+  "samples": [
+    { "source": "BLS", "onboarded": true },
+    { "source": "FRED", "onboarded": true },
+    { "source": "CENSUS", "onboarded": true },
+    { "source": "INTERNAL_ETL", "onboarded": true },
+    { "source": "STATE_PORTAL", "onboarded": true },
+    { "source": "CITY_FEED", "onboarded": true },
+    { "source": "FEDERAL_RESERVE", "onboarded": true },
+    { "source": "BEA", "onboarded": true },
+    { "source": "USDA", "onboarded": true },
+    { "source": "UNSTABLE_FEED", "onboarded": false }
+  ]
+}

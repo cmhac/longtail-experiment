@@ -18,3 +18,10 @@ Define ownership and separation boundaries for baseline monorepo projects.
 - Pipeline is upstream of backend placeholders, and frontend only consumes backend boundaries.
 - Cross-project dependencies must be explicit and minimal.
 - Quality targets must remain project-scoped and affected-aware.
+
+## Contract Workflow Boundaries
+
+- `apps/pipeline/src/contract/**` owns canonical validation, source normalization, provenance guards, lineage creation, and taxonomy/geography mapping.
+- `apps/backend/src/contract/query/**` owns read-side projections, audit retrieval, and hierarchy-aware filter expansion.
+- `libs/db/src/db/models/**` and `libs/db/src/db/repositories/**` own shared persistence entities and repository interfaces/adapters consumed by both apps.
+- `libs/db/alembic/**` is the sole migration authority for shared contract persistence.

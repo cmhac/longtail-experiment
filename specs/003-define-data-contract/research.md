@@ -80,3 +80,28 @@
 - Alternatives considered:
   - Rely on manual QA for contract validation: rejected due to repeatability and coverage risk.
   - Add tests after implementation complete: rejected because contract-first approach requires early guardrails.
+
+## Quickstart Validation Evidence (2026-03-21)
+
+- Workspace bootstrap commands were previously completed for backend and pipeline uv projects.
+- Contract verification commands passed:
+  - `PYTHONPATH=libs/db/src uv run --project apps/pipeline pytest apps/pipeline/tests/contract`
+  - `PYTHONPATH=libs/db/src uv run --project apps/backend pytest apps/backend/tests/contract`
+- Affected quality suite passed:
+  - `pnpm run affected:lint`
+  - `pnpm run affected:format`
+  - `pnpm run affected:typecheck`
+  - `pnpm run affected:test`
+  - `pnpm run affected:coverage`
+  - `pnpm run affected:duplication`
+- Local stack verification passed:
+  - `docker compose up -d`
+  - `docker compose ps`
+  - `bash tools/quality/local-stack/test-compose-stack.sh`
+  - `docker compose down`
+
+## Success Criteria Evidence
+
+- SC-001 onboarding-rate verification: PASS via `apps/pipeline/tests/contract/test_sc001_onboarding_rate.py` with fixture `apps/pipeline/tests/fixtures/sc001_onboarding_samples.json` (`9/10 = 90%`).
+- SC-003 manual-workflow timing verification: PASS via `apps/backend/tests/contract/test_sc003_query_time.py` with fixture `apps/backend/tests/fixtures/sc003_query_scenarios.json` (all scenarios <= 2000 ms target).
+- SC-005 ambiguity-rate verification: PASS via `apps/pipeline/tests/contract/test_sc005_ambiguity_rate.py` with fixture `apps/pipeline/tests/fixtures/sc005_ambiguity_samples.json` (`1/10 = 10%`).
