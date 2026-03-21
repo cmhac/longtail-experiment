@@ -80,14 +80,14 @@ flow and confirm all placeholder services report healthy status.
 
 ### Edge Cases
 
-- What happens when backend tooling and frontend tooling require conflicting global
-  versions or settings?
-- How does the workspace behave when a developer runs local stack startup with one
-  placeholder service missing configuration?
-- How are quality checks handled when a project is intentionally empty but still subject
-  to strict lint/type/test gates?
-- What happens if a contributor attempts to add production dependencies during baseline
-  setup, violating the barebones scope?
+- If backend and frontend tooling versions conflict, setup MUST fail fast with an
+  actionable remediation message.
+- If local stack startup is attempted with missing service configuration, the stack
+  verification flow MUST fail and surface service-specific diagnostics.
+- If a project is intentionally empty, quality checks MUST still execute and return
+  deterministic pass/fail outcomes.
+- If a contributor introduces product-level dependencies during baseline setup, review
+  validation MUST flag the change as out-of-scope for this feature.
 
 ## Requirements _(mandatory)_
 
@@ -99,10 +99,10 @@ flow and confirm all placeholder services report healthy status.
   and MUST NOT include product/business implementation behavior.
 - **FR-003**: The baseline MUST define developer environment setup instructions that allow
   a new contributor to prepare both backend and frontend environments from scratch.
-- **FR-004**: The baseline MUST include quality gates for linting, formatting,
-  type-checking, and automated tests for both backend and frontend.
-- **FR-005**: Quality gates MUST be executable through local developer workflows and
-  repository automation workflows before code review.
+- **FR-004**: The baseline MUST define mandatory quality gates for lint, format,
+  typecheck, test, coverage, and duplication for backend and frontend scopes.
+- **FR-005**: The baseline MUST provide local and automation execution paths for all
+  mandatory quality gates and produce deterministic pass/fail results before code review.
 - **FR-006**: The baseline MUST enforce the rule that no lint/type/test suppressions,
   bypasses, or workaround-only changes are introduced without explicit owner approval.
 - **FR-007**: The baseline MUST define and enforce a minimum of 90% automated test
@@ -111,8 +111,9 @@ flow and confirm all placeholder services report healthy status.
   launch all placeholder full-stack components end-to-end.
 - **FR-009**: The local stack flow MUST include clear success/failure signals so
   contributors can verify stack health without inspecting implementation internals.
-- **FR-010**: The baseline MUST preserve a clean path for future feature development by
-  documenting assumptions, constraints, and intentionally out-of-scope items.
+- **FR-010**: The baseline MUST include assumptions, dependencies, and out-of-scope
+  sections in spec/plan artifacts, and each section MUST map to at least one
+  verification task in tasks.md.
 
 ### Key Entities _(include if feature involves data)_
 
