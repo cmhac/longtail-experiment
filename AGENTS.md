@@ -4,6 +4,9 @@ Auto-generated from all feature plans. Last updated: 2026-03-21
 
 ## Active Technologies
 
+- Python 3.12 (backend and pipeline tooling), shell scripts for local verification + Docker Compose, PostgreSQL 16 image for local DB service, SQLAlchemy 2.x, Alembic, psycopg 3.x, uv, pytest, Nx quality scripts (004-local-dev-db)
+- PostgreSQL 16 local development database with persistent volume by default (004-local-dev-db)
+
 - Python 3.12 (pipeline and backend), TypeScript 5.x (frontend unchanged) + Nx workspace tooling, uv, ruff, ty, pytest, dagster baseline package, SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, structlog, OpenTelemetry SDK/API (003-define-data-contract)
 - PostgreSQL 16 with TimescaleDB 2.14 extension for hypertable time-series partitioning and relational integrity (003-define-data-contract)
 
@@ -124,6 +127,8 @@ Local stack and duplication:
 
 ## Recent Changes
 
+- 004-local-dev-db: Added Python 3.12 (backend and pipeline tooling), shell scripts for local verification + Docker Compose, PostgreSQL 16 image for local DB service, SQLAlchemy 2.x, Alembic, psycopg 3.x, uv, pytest, Nx quality scripts
+
 - 003-define-data-contract: Implemented US1-US3 contract modules for canonical observations, provenance/revision lineage, hierarchy mapping, and backend query filters with contract test coverage.
 
 - 003-define-data-contract: Added Python 3.12 (pipeline and backend), TypeScript 5.x (frontend unchanged) + Nx workspace tooling, uv, ruff, ty, pytest, dagster baseline package, SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, structlog, OpenTelemetry SDK/API
@@ -139,6 +144,5 @@ Local stack and duplication:
 <!-- MANUAL ADDITIONS START -->
 
 - AGENTS.md is mandatory maintained documentation. Update this file whenever repository
-  structure, toolchain, or canonical developer commands change.
-- Canonical contract verification commands: - `uv run --project apps/pipeline pytest apps/pipeline/tests/contract` - `uv run --project apps/backend pytest apps/backend/tests/contract` - `PYTHONPATH=libs/db/src uv run --project apps/backend pytest libs/db/tests`
+structure, toolchain, or canonical developer commands change.
 <!-- MANUAL ADDITIONS END -->
