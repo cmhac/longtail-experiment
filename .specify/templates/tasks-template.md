@@ -100,7 +100,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T020 [US1] Add validation and error handling
 - [ ] T021 [US1] Add logging for user story 1 operations
 - [ ] T022 [US1] Verify US1 coverage contribution maintains >= 90% threshold
-- [ ] T0XX [US1] Update/create relevant documentation for US1 behavior changes in docs/
+- [ ] T0XX [US1] Update/create relevant documentation for US1 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -125,7 +125,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T028 [US2] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T029 [US2] Integrate with User Story 1 components (if needed)
 - [ ] T030 [US2] Verify US2 coverage contribution maintains >= 90% threshold
-- [ ] T0XX [US2] Update/create relevant documentation for US2 behavior changes in docs/
+- [ ] T0XX [US2] Update/create relevant documentation for US2 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -149,7 +149,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T035 [US3] Implement [Service] in src/services/[service].py
 - [ ] T036 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T037 [US3] Verify US3 coverage contribution maintains >= 90% threshold
-- [ ] T0XX [US3] Update/create relevant documentation for US3 behavior changes in docs/
+- [ ] T0XX [US3] Update/create relevant documentation for US3 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -262,6 +262,7 @@ With multiple developers:
 - Each user story should be independently completable and testable
 - Coverage MUST remain >= 90% in every affected project
 - Relevant documentation MUST be updated in the same change as impacted code
+- AGENTS.md MUST be updated when repository structure, workflows, or canonical commands change
 - Verify tests fail before implementing
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently

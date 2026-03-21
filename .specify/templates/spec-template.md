@@ -132,4 +132,5 @@ _Example of marking unclear requirements:_
   (Yes/No)
 - **CA-005 Documentation Fidelity**: Relevant documentation is identified and will be
   created or updated in the same change for any impacted behavior, contracts, setup, or
-  runbooks. (Yes/No)
+  runbooks, including AGENTS.md when repository structure/workflows/tooling change.
+  (Yes/No)

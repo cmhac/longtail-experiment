@@ -1,9 +1,8 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 -> 1.1.0
+- Version change: 1.1.0 -> 1.1.1
 - Modified principles:
-  - V. Long-Tail Data Integrity and Trend Reliability -> V. Long-Tail Data Integrity and Trend Reliability
-  - Added VI. Documentation Fidelity and Change Traceability
+  - VI. Documentation Fidelity and Change Traceability -> VI. Documentation Fidelity and Change Traceability
 - Added sections:
   - None
 - Removed sections:
@@ -72,6 +71,8 @@ When new code, interfaces, workflows, commands, or operational behaviors are int
 the relevant documentation MUST be created or expanded in the same change. When changes
 affect existing behavior, contracts, setup, runbooks, or developer workflows, the
 corresponding existing documentation MUST be updated in the same change.
+`AGENTS.md` is a mandatory maintained document and MUST be updated regularly to reflect
+the current repository structure, active toolchain, and canonical developer commands.
 Rationale: The repository must remain understandable and operable as it evolves;
 documentation drift causes onboarding friction, operational mistakes, and review blind
 spots.
@@ -102,7 +103,8 @@ spots.
 - Work items MUST include test updates and, when relevant, Docker Compose integration
   updates.
 - Work items MUST include documentation impact assessment and required updates before
-  merge; documentation omissions for impacted areas are non-compliant.
+  merge; documentation omissions for impacted areas are non-compliant, including stale
+  or missing updates to AGENTS.md when repository behavior or workflows change.
 - Constitution compliance MUST be checked during plan review and before merge.
 
 ## Governance
@@ -121,4 +123,4 @@ spots.
 - This constitution is expected to evolve with the product; refinements that tighten
   standards across backend, frontend, data pipelines, and operations are encouraged.
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-21
+**Version**: 1.1.1 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-21
