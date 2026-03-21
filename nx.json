@@ -1,0 +1,48 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": [
+      "{projectRoot}/**/*",
+      "!{projectRoot}/dist/**",
+      "!{projectRoot}/build/**",
+      "!{projectRoot}/coverage/**"
+    ],
+    "production": [
+      "default",
+      "!{projectRoot}/**/*.test.*",
+      "!{projectRoot}/tests/**"
+    ],
+    "workspaceConfig": [
+      "{workspaceRoot}/nx.json",
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/pnpm-workspace.yaml",
+      "{workspaceRoot}/.pre-commit-config.yaml"
+    ]
+  },
+  "targetDefaults": {
+    "lint": {
+      "inputs": ["default", "^default", "workspaceConfig"],
+      "cache": true
+    },
+    "format": {
+      "inputs": ["default", "^default", "workspaceConfig"],
+      "cache": true
+    },
+    "typecheck": {
+      "inputs": ["default", "^default", "workspaceConfig"],
+      "cache": true
+    },
+    "test": {
+      "inputs": ["default", "^default", "workspaceConfig"],
+      "cache": true
+    },
+    "coverage": {
+      "inputs": ["default", "^default", "workspaceConfig"],
+      "cache": true
+    },
+    "duplication": {
+      "inputs": ["default", "workspaceConfig"],
+      "cache": false
+    }
+  }
+}

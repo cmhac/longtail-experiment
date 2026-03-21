@@ -1,0 +1,39 @@
+{
+  "name": "backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/backend/src",
+  "projectType": "application",
+  "tags": ["scope:backend", "type:placeholder"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend ruff check apps/backend"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend ruff format --check apps/backend"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend ty check apps/backend"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend pytest apps/backend/tests"
+      }
+    },
+    "coverage": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend pytest apps/backend/tests --cov=apps/backend/src --cov-fail-under=90"
+      }
+    }
+  }
+}

@@ -40,10 +40,10 @@ uv sync --frozen
 Backend quality commands:
 
 ```bash
-uv run ruff check apps/backend
-uv run ruff format --check apps/backend
-uv run ty check apps/backend
-uv run pytest apps/backend/tests
+uv run --project apps/backend ruff check apps/backend
+uv run --project apps/backend ruff format --check apps/backend
+uv run --project apps/backend ty check apps/backend
+uv run --project apps/backend pytest apps/backend/tests
 ```
 
 Backend `pyproject.toml` lint policy MUST include exactly:
@@ -139,3 +139,44 @@ docker compose down
 - PMD CPD runs with `--minimum-tokens 50`.
 - Nx affected commands execute only relevant checks for changed projects.
 - Unified local stack starts and reports healthy placeholder services.
+
+## 9. Workspace Listing Verification
+
+Run these commands to verify project registration and affected execution wiring:
+
+```bash
+pnpm nx show projects
+pnpm nx graph --file tmp/nx-graph.html
+```
+
+## 10. Evidence Capture Template
+
+- Full quality pipeline result: PASS/FAIL
+- Affected lint runtime (seconds):
+- Affected test runtime (seconds):
+- Local stack startup status: PASS/FAIL
+- Local stack shutdown status: PASS/FAIL
+
+## 11. Latest Verification Evidence (2026-03-21)
+
+Command executed:
+
+```bash
+pnpm run quality:all && bash tools/quality/local-stack/test-compose-stack.sh
+```
+
+Observed outputs summary:
+
+- Full quality pipeline result: PASS
+- Affected lint runtime (seconds): Nx cached in latest run
+- Affected test runtime (seconds): Nx cached in latest run
+- Local stack startup status: PASS
+- Local stack shutdown status: PASS
+
+Compose verification output excerpt:
+
+```text
+NAME                             IMAGE                SERVICE    STATUS
+longtail-experiment-backend-1    python:3.12-alpine   backend    Up (health: starting)
+longtail-experiment-frontend-1   node:22-alpine       frontend   Up (health: starting)
+```

@@ -1,0 +1,54 @@
+repos:
+  - repo: local
+    hooks:
+      - id: backend-lint
+        name: backend-lint
+        entry: uv run --project apps/backend ruff check apps/backend
+        language: system
+        pass_filenames: false
+      - id: backend-format-check
+        name: backend-format-check
+        entry: uv run --project apps/backend ruff format --check apps/backend
+        language: system
+        pass_filenames: false
+      - id: backend-typecheck
+        name: backend-typecheck
+        entry: uv run --project apps/backend ty check apps/backend
+        language: system
+        pass_filenames: false
+      - id: backend-tests
+        name: backend-tests
+        entry: uv run --project apps/backend pytest apps/backend/tests
+        language: system
+        pass_filenames: false
+      - id: frontend-lint
+        name: frontend-lint
+        entry: pnpm --dir apps/frontend lint
+        language: system
+        pass_filenames: false
+      - id: frontend-format-check
+        name: frontend-format-check
+        entry: pnpm --dir apps/frontend exec biome check .
+        language: system
+        pass_filenames: false
+      - id: frontend-typecheck
+        name: frontend-typecheck
+        entry: pnpm --dir apps/frontend typecheck
+        language: system
+        pass_filenames: false
+      - id: frontend-tests
+        name: frontend-tests
+        entry: pnpm --dir apps/frontend test
+        language: system
+        pass_filenames: false
+      - id: duplication-check
+        name: duplication-check
+        entry: bash tools/quality/cpd/run-cpd.sh
+        language: system
+        pass_filenames: false
+      - id: disallow-inline-suppression
+        name: disallow-inline-suppression
+        entry: |
+          bash -c "! rg -n 'noqa|eslint-disable|type: ignore|ruff: noqa|ts-ignore|ts-expect-error' apps tools"
+        language: system
+        pass_filenames: false

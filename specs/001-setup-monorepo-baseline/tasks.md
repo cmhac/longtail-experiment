@@ -23,14 +23,14 @@
 
 **Purpose**: Initialize Nx monorepo skeleton, baseline project layout, and root workspace config.
 
-- [ ] T001 Initialize Nx workspace root configuration in nx.json
-- [ ] T002 Create pnpm workspace definition in pnpm-workspace.yaml
-- [ ] T003 Create backend project skeleton in apps/backend/src/**init**.py
-- [ ] T004 [P] Create backend tests package skeleton in apps/backend/tests/test_smoke.py
-- [ ] T005 [P] Create frontend project skeleton in apps/frontend/src/main.ts
-- [ ] T006 [P] Create frontend test skeleton in apps/frontend/tests/smoke.test.ts
-- [ ] T007 Create root local stack file in docker-compose.yml
-- [ ] T008 [P] Create compose environment baseline in docker/compose/stack.env
+- [x] T001 Initialize Nx workspace root configuration in nx.json
+- [x] T002 Create pnpm workspace definition in pnpm-workspace.yaml
+- [x] T003 Create backend project skeleton in apps/backend/src/**init**.py
+- [x] T004 [P] Create backend tests package skeleton in apps/backend/tests/test_smoke.py
+- [x] T005 [P] Create frontend project skeleton in apps/frontend/src/main.ts
+- [x] T006 [P] Create frontend test skeleton in apps/frontend/tests/smoke.test.ts
+- [x] T007 Create root local stack file in docker-compose.yml
+- [x] T008 [P] Create compose environment baseline in docker/compose/stack.env
 
 ---
 
@@ -40,22 +40,22 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 Create backend dependency manifest with uv metadata in apps/backend/pyproject.toml
-- [ ] T010 [P] Generate and pin backend lockfile in apps/backend/uv.lock
-- [ ] T011 Configure exact ruff lint selectors and ignore list in apps/backend/pyproject.toml
-- [ ] T012 [P] Add backend type-check and test tool config in apps/backend/pyproject.toml
-- [ ] T013 Create frontend package manifest with pnpm scripts in apps/frontend/package.json
-- [ ] T014 [P] Configure strict TypeScript compiler settings in apps/frontend/tsconfig.json
-- [ ] T015 [P] Configure Vitest runner and coverage thresholds in apps/frontend/vitest.config.ts
-- [ ] T016 [P] Configure Biome lint/format policy in apps/frontend/biome.json
-- [ ] T017 Create PMD installation script with pinned 7.22.0 commands in tools/quality/pmd/install-pmd.sh
-- [ ] T018 [P] Create PMD CPD execution script with minimum token threshold 50 in tools/quality/cpd/run-cpd.sh
-- [ ] T019 Define Nx named inputs and target defaults for affected-only execution in nx.json
-- [ ] T020 [P] Register backend project targets (lint, format, typecheck, test, coverage) in apps/backend/project.json
-- [ ] T021 [P] Register frontend project targets (lint, format, typecheck, test, coverage) in apps/frontend/project.json
-- [ ] T022 Register workspace duplication target and affected integration in tools/quality/project.json
-- [ ] T023 Define pre-commit hook pipeline for required gates in .pre-commit-config.yaml
-- [ ] T024 Add root quality orchestration scripts for affected checks in package.json
+- [x] T009 Create backend dependency manifest with uv metadata in apps/backend/pyproject.toml
+- [x] T010 [P] Generate and pin backend lockfile in apps/backend/uv.lock
+- [x] T011 Configure exact ruff lint selectors and ignore list in apps/backend/pyproject.toml
+- [x] T012 [P] Add backend type-check and test tool config in apps/backend/pyproject.toml
+- [x] T013 Create frontend package manifest with pnpm scripts in apps/frontend/package.json
+- [x] T014 [P] Configure strict TypeScript compiler settings in apps/frontend/tsconfig.json
+- [x] T015 [P] Configure Vitest runner and coverage thresholds in apps/frontend/vitest.config.ts
+- [x] T016 [P] Configure Biome lint/format policy in apps/frontend/biome.json
+- [x] T017 Create PMD installation script with pinned 7.22.0 commands in tools/quality/pmd/install-pmd.sh
+- [x] T018 [P] Create PMD CPD execution script with minimum token threshold 50 in tools/quality/cpd/run-cpd.sh
+- [x] T019 Define Nx named inputs and target defaults for affected-only execution in nx.json
+- [x] T020 [P] Register backend project targets (lint, format, typecheck, test, coverage) in apps/backend/project.json
+- [x] T021 [P] Register frontend project targets (lint, format, typecheck, test, coverage) in apps/frontend/project.json
+- [x] T022 Register workspace duplication target and affected integration in tools/quality/project.json
+- [x] T023 Define pre-commit hook pipeline for required gates in .pre-commit-config.yaml
+- [x] T024 Add root quality orchestration scripts for affected checks in package.json
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -69,18 +69,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T025 [P] [US1] Add workspace discovery smoke test for backend registration in apps/backend/tests/test_workspace_registration.py
-- [ ] T026 [P] [US1] Add workspace discovery smoke test for frontend registration in apps/frontend/tests/workspace-registration.test.ts
+- [x] T025 [P] [US1] Add workspace discovery smoke test for backend registration in apps/backend/tests/test_workspace_registration.py
+- [x] T026 [P] [US1] Add workspace discovery smoke test for frontend registration in apps/frontend/tests/workspace-registration.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T027 [US1] Add integration verification command doc for workspace listing in specs/001-setup-monorepo-baseline/quickstart.md
-- [ ] T028 [P] [US1] Add backend placeholder module declaration in apps/backend/src/**init**.py
-- [ ] T029 [P] [US1] Add frontend placeholder bootstrap export in apps/frontend/src/main.ts
-- [ ] T030 [US1] Add Nx project tagging and boundary metadata for backend in apps/backend/project.json
-- [ ] T031 [US1] Add Nx project tagging and boundary metadata for frontend in apps/frontend/project.json
-- [ ] T032 [US1] Add monorepo project boundary notes in docs/architecture/monorepo-boundaries.md
-- [ ] T033 [US1] Verify no product endpoints/workflows exist and document evidence in specs/001-setup-monorepo-baseline/research.md
+- [x] T027 [US1] Add integration verification command doc for workspace listing in specs/001-setup-monorepo-baseline/quickstart.md
+- [x] T028 [P] [US1] Add backend placeholder module declaration in apps/backend/src/**init**.py
+- [x] T029 [P] [US1] Add frontend placeholder bootstrap export in apps/frontend/src/main.ts
+- [x] T030 [US1] Add Nx project tagging and boundary metadata for backend in apps/backend/project.json
+- [x] T031 [US1] Add Nx project tagging and boundary metadata for frontend in apps/frontend/project.json
+- [x] T032 [US1] Add monorepo project boundary notes in docs/architecture/monorepo-boundaries.md
+- [x] T033 [US1] Verify no product endpoints/workflows exist and document evidence in specs/001-setup-monorepo-baseline/research.md
 
 **Checkpoint**: User Story 1 is fully functional and independently testable.
 
@@ -94,20 +94,20 @@
 
 ### Tests for User Story 2
 
-- [ ] T034 [P] [US2] Add backend gate command smoke tests in apps/backend/tests/test_quality_commands.py
-- [ ] T035 [P] [US2] Add frontend gate command smoke tests in apps/frontend/tests/quality-commands.test.ts
-- [ ] T036 [P] [US2] Add duplication gate smoke test script in tools/quality/cpd/test-cpd.sh
+- [x] T034 [P] [US2] Add backend gate command smoke tests in apps/backend/tests/test_quality_commands.py
+- [x] T035 [P] [US2] Add frontend gate command smoke tests in apps/frontend/tests/quality-commands.test.ts
+- [x] T036 [P] [US2] Add duplication gate smoke test script in tools/quality/cpd/test-cpd.sh
 
 ### Implementation for User Story 2
 
-- [ ] T037 [US2] Enforce backend coverage threshold >= 90 in apps/backend/pyproject.toml
-- [ ] T038 [US2] Enforce frontend coverage threshold >= 90 in apps/frontend/vitest.config.ts
-- [ ] T039 [US2] Enforce TypeScript strict mode and strict companion flags in apps/frontend/tsconfig.json
-- [ ] T040 [US2] Wire Biome lint and format scripts in apps/frontend/package.json
-- [ ] T041 [US2] Wire uv-based lint/format/type/test scripts in apps/backend/pyproject.toml
-- [ ] T042 [US2] Add no-suppression policy checks to pre-commit hooks in .pre-commit-config.yaml
-- [ ] T043 [US2] Wire PMD CPD command into Nx duplication target in tools/quality/project.json
-- [ ] T044 [US2] Add affected-only quality command examples in specs/001-setup-monorepo-baseline/quickstart.md
+- [x] T037 [US2] Enforce backend coverage threshold >= 90 in apps/backend/pyproject.toml
+- [x] T038 [US2] Enforce frontend coverage threshold >= 90 in apps/frontend/vitest.config.ts
+- [x] T039 [US2] Enforce TypeScript strict mode and strict companion flags in apps/frontend/tsconfig.json
+- [x] T040 [US2] Wire Biome lint and format scripts in apps/frontend/package.json
+- [x] T041 [US2] Wire uv-based lint/format/type/test scripts in apps/backend/pyproject.toml
+- [x] T042 [US2] Add no-suppression policy checks to pre-commit hooks in .pre-commit-config.yaml
+- [x] T043 [US2] Wire PMD CPD command into Nx duplication target in tools/quality/project.json
+- [x] T044 [US2] Add affected-only quality command examples in specs/001-setup-monorepo-baseline/quickstart.md
 
 **Checkpoint**: User Stories 1 and 2 both work independently.
 
@@ -121,17 +121,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T045 [P] [US3] Add backend container health smoke check test in apps/backend/tests/test_container_health.py
-- [ ] T046 [P] [US3] Add frontend container health smoke check test in apps/frontend/tests/container-health.test.ts
-- [ ] T047 [P] [US3] Add compose startup verification script in tools/quality/local-stack/test-compose-stack.sh
+- [x] T045 [P] [US3] Add backend container health smoke check test in apps/backend/tests/test_container_health.py
+- [x] T046 [P] [US3] Add frontend container health smoke check test in apps/frontend/tests/container-health.test.ts
+- [x] T047 [P] [US3] Add compose startup verification script in tools/quality/local-stack/test-compose-stack.sh
 
 ### Implementation for User Story 3
 
-- [ ] T048 [US3] Define backend placeholder service and healthcheck in docker-compose.yml
-- [ ] T049 [US3] Define frontend placeholder service and healthcheck in docker-compose.yml
-- [ ] T050 [US3] Add shared compose environment variables for stack startup in docker/compose/stack.env
-- [ ] T051 [US3] Add stack startup/shutdown verification steps in specs/001-setup-monorepo-baseline/quickstart.md
-- [ ] T052 [US3] Add failure troubleshooting guidance for unhealthy services in docs/runbooks/local-stack-baseline.md
+- [x] T048 [US3] Define backend placeholder service and healthcheck in docker-compose.yml
+- [x] T049 [US3] Define frontend placeholder service and healthcheck in docker-compose.yml
+- [x] T050 [US3] Add shared compose environment variables for stack startup in docker/compose/stack.env
+- [x] T051 [US3] Add stack startup/shutdown verification steps in specs/001-setup-monorepo-baseline/quickstart.md
+- [x] T052 [US3] Add failure troubleshooting guidance for unhealthy services in docs/runbooks/local-stack-baseline.md
 
 **Checkpoint**: All user stories are independently functional.
 
@@ -141,14 +141,14 @@
 
 **Purpose**: Final validation, documentation cleanup, and baseline acceptance checks.
 
-- [ ] T053 [P] Validate Nx affected behavior for backend-only changes in tools/quality/verification/affected-backend.sh
-- [ ] T054 [P] Validate Nx affected behavior for frontend-only changes in tools/quality/verification/affected-frontend.sh
-- [ ] T055 [P] Validate Nx affected behavior for root-config changes in tools/quality/verification/affected-workspace.sh
-- [ ] T056 Run full baseline quality pipeline and capture evidence in specs/001-setup-monorepo-baseline/research.md
-- [ ] T057 Finalize onboarding instructions and command matrix in docs/onboarding/monorepo-baseline.md
-- [ ] T058 Run full local stack baseline verification and capture outputs in specs/001-setup-monorepo-baseline/quickstart.md
-- [ ] T059 [P] Validate affected lint runtime under 3 minutes for backend-only changes in tools/quality/verification/benchmark-affected-lint.sh
-- [ ] T060 [P] Validate affected test runtime under 3 minutes for frontend-only changes in tools/quality/verification/benchmark-affected-test.sh
+- [x] T053 [P] Validate Nx affected behavior for backend-only changes in tools/quality/verification/affected-backend.sh
+- [x] T054 [P] Validate Nx affected behavior for frontend-only changes in tools/quality/verification/affected-frontend.sh
+- [x] T055 [P] Validate Nx affected behavior for root-config changes in tools/quality/verification/affected-workspace.sh
+- [x] T056 Run full baseline quality pipeline and capture evidence in specs/001-setup-monorepo-baseline/research.md
+- [x] T057 Finalize onboarding instructions and command matrix in docs/onboarding/monorepo-baseline.md
+- [x] T058 Run full local stack baseline verification and capture outputs in specs/001-setup-monorepo-baseline/quickstart.md
+- [x] T059 [P] Validate affected lint runtime under 3 minutes for backend-only changes in tools/quality/verification/benchmark-affected-lint.sh
+- [x] T060 [P] Validate affected test runtime under 3 minutes for frontend-only changes in tools/quality/verification/benchmark-affected-test.sh
 
 ---
 

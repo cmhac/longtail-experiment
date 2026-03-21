@@ -1,0 +1,21 @@
+{
+  "name": "longtail-experiment",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "affected:lint": "nx affected -t lint",
+    "affected:format": "nx affected -t format",
+    "affected:typecheck": "nx affected -t typecheck",
+    "affected:test": "nx affected -t test",
+    "affected:coverage": "nx affected -t coverage",
+    "affected:duplication": "nx affected -t duplication",
+    "quality:all": "pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage && pnpm run affected:duplication"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "nx": "^20.0.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

@@ -1,0 +1,9 @@
+"""Quality tooling smoke checks for backend baseline artifacts."""
+
+from pathlib import Path
+
+
+def test_backend_quality_configuration_files_exist() -> None:
+    """Assert required backend quality configuration files exist."""
+    assert Path("apps/backend/pyproject.toml").exists()
+    assert Path("apps/backend/uv.lock").exists()

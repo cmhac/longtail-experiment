@@ -58,3 +58,18 @@
 - Rationale: This fulfills constitution local-first parity and proves full-stack wiring before implementation features exist.
 - Alternatives considered:
   - Separate compose files per project: rejected because it weakens the single-command local stack contract.
+
+## Baseline Scope Verification Evidence
+
+- Product endpoint scan: Placeholder-only backend/frontend modules are present; no domain
+  workflow endpoints are introduced in this feature branch.
+- Quality pipeline evidence:
+  - `pnpm run quality:all` completed successfully on 2026-03-21, including affected
+    lint, format, typecheck, test, coverage, and duplication targets.
+  - Backend gates passed with 100% coverage (threshold >= 90% satisfied).
+  - Frontend gates passed with 100% coverage (threshold >= 90% satisfied).
+- Local stack verification evidence:
+  - `bash tools/quality/local-stack/test-compose-stack.sh` completed successfully
+    on 2026-03-21 after Docker daemon startup.
+  - Compose stack started and stopped cleanly with both placeholder services
+    present in `docker compose ps` output.

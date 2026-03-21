@@ -1,0 +1,38 @@
+# Node / TypeScript
+node_modules/
+dist/
+build/
+coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.coverage
+.venv/
+venv/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Nx generated cache and workspace data
+.nx/
+
+# Docker and containers
+.docker/
+
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

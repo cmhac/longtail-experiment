@@ -1,0 +1,21 @@
+{
+  "name": "quality-tools",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/quality",
+  "projectType": "library",
+  "tags": ["scope:workspace", "type:quality"],
+  "targets": {
+    "duplication": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bash tools/quality/cpd/run-cpd.sh"
+      }
+    },
+    "validate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run quality:all"
+      }
+    }
+  }
+}
