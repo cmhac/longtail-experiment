@@ -91,8 +91,8 @@
 - [ ] T031 [US2] Implement fail-fast migration apply flow and actionable recovery output in tools/quality/local-stack/run-db-migrations.sh
 - [ ] T032 [US2] Implement revision baseline check command and mismatch exit behavior in tools/quality/local-stack/check-db-revision.sh
 - [ ] T033 [US2] Document canonical migration apply/check command sequence in specs/004-local-dev-db/quickstart.md
-- [ ] T034 [US2] Add migration readiness command guidance to docs/onboarding/monorepo-baseline.md and docs/runbooks/local-stack-baseline.md
-- [ ] T035 [US2] Record migration verification evidence (apply + current) in specs/004-local-dev-db/research.md
+- [ ] T034 [US2] Add migration readiness command guidance and development-only warning language to docs/onboarding/monorepo-baseline.md, docs/runbooks/local-stack-baseline.md, and specs/004-local-dev-db/quickstart.md
+- [ ] T035 [US2] Record migration verification evidence from at least 20 fresh-run attempts (apply + current) and computed success rate target (>=95%) in specs/004-local-dev-db/research.md
 - [ ] T036 [US2] Verify US2 quality gates and coverage in libs/db/tests/test_migration_fail_fast.py and libs/db/tests/test_migration_revision_status.py
 
 **Checkpoint**: User Story 2 independently verifies migration readiness and baseline schema alignment

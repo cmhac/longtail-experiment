@@ -76,12 +76,12 @@ As a developer, I can rely on local setup and migration documentation to include
 
 ### Edge Cases
 
-- What happens when migration history exists in code but the local database was partially migrated from an earlier run?
-- How does the setup flow handle invalid or missing local environment variables for database credentials and ports?
-- How is failure handled when the configured database port is already in use by another local process?
-- What happens when migration execution is interrupted mid-run and the next run must recover cleanly?
+- If migration history exists in code but the local database is partially migrated, the migration flow MUST detect current state, apply only pending revisions, and report the final revision baseline.
+- If required environment variables for database credentials or ports are missing or invalid, setup MUST fail with actionable messages identifying each invalid input.
+- If the configured database port is already in use, setup MUST fail with explicit conflict details and remediation instructions.
+- If migration execution is interrupted mid-run, rerun MUST be explicit and MUST safely converge to the expected baseline revision.
 - Migration failure MUST stop immediately and provide actionable recovery output; rerun occurs only via explicit developer command.
-- How does the process behave when a developer has stale local containers, volumes, or cached configuration from older specs?
+- If stale local containers, volumes, or cached configuration are present, documented reset guidance MUST provide deterministic cleanup and restart steps.
 
 ## Requirements _(mandatory)_
 

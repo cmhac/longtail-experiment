@@ -54,6 +54,7 @@ specs/004-local-dev-db/
 ├── plan.md
 ├── research.md
 ├── data-model.md
+├── defect-log.md
 ├── quickstart.md
 ├── contracts/
 │   ├── local-db-bootstrap-contract.md
@@ -88,9 +89,20 @@ docs/
 ├── architecture/
 ├── onboarding/
 └── runbooks/
+
+apps/
+├── backend/
+│   └── tests/
+│       ├── test_local_db_bootstrap.py
+│       ├── test_local_db_migration_commands.py
+│       └── test_local_db_defect_regressions.py
+└── pipeline/
+    └── tests/
+        ├── test_local_db_profile_defaults.py
+        └── test_local_db_defect_regressions.py
 ```
 
-**Structure Decision**: Keep all implementation inside existing compose, shared DB, and quality-tooling surfaces. No new application package is introduced; the feature hardens local runtime/migration readiness across current infrastructure boundaries.
+**Structure Decision**: Keep all implementation inside existing compose, shared DB, and quality-tooling surfaces. No new application package is introduced; the feature hardens local runtime/migration readiness across current infrastructure boundaries while story verification is implemented across shared DB tests and app-level tests under `apps/backend/tests` and `apps/pipeline/tests`.
 
 ## Complexity Tracking
 
@@ -106,3 +118,4 @@ docs/
 - Migration execution is fail-fast with recovery guidance and explicit rerun trigger.
 - All reproducible local setup defects found during implementation are in scope for fixes.
 - Non-development usage protection is warning-based via documentation, aligned with clarified spec decisions.
+- Defect tracking evidence is maintained in `specs/004-local-dev-db/defect-log.md` and summarized in readiness research evidence.
