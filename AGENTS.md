@@ -4,6 +4,12 @@ Auto-generated from all feature plans. Last updated: 2026-03-21
 
 ## Active Technologies
 
+- Python 3.12 (pipeline and backend), TypeScript 5.x (frontend unchanged) + Nx workspace tooling, uv, ruff, ty, pytest, dagster baseline package, SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, structlog, OpenTelemetry SDK/API (003-define-data-contract)
+- PostgreSQL 16 with TimescaleDB 2.14 extension for hypertable time-series partitioning and relational integrity (003-define-data-contract)
+
+- Python 3.12 (backend and pipeline contract implementation), TypeScript 5.x (no feature scope changes) + Nx workspace tooling, uv, ruff, ty, pytest, baseline dagster package, contract documentation set under specs (003-define-data-contract)
+- Contract-target storage is relational time-series persistence with immutable provenance and revision linkage (exact engine selected in implementation phase) (003-define-data-contract)
+
 - Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD (002-pipeline-app-baseline)
 - N/A (scaffolding-only feature; no production persistence design) (002-pipeline-app-baseline)
 
@@ -117,6 +123,10 @@ Local stack and duplication:
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
+- 003-define-data-contract: Added Python 3.12 (pipeline and backend), TypeScript 5.x (frontend unchanged) + Nx workspace tooling, uv, ruff, ty, pytest, dagster baseline package, SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, structlog, OpenTelemetry SDK/API
+
+- 003-define-data-contract: Added Python 3.12 (backend and pipeline contract implementation), TypeScript 5.x (no feature scope changes) + Nx workspace tooling, uv, ruff, ty, pytest, baseline dagster package, contract documentation set under specs
 
 - 002-pipeline-app-baseline: Added Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD
 
