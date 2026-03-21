@@ -29,9 +29,18 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+- Monorepo cohesion: Does the plan preserve clear Nx project boundaries and include
+  cross-layer contract updates for vertical-slice changes?
+- Quality gate enforcement: Are lint, format, type-check, and test gates defined with no
+  suppression, bypass, or workaround strategy?
+- Test and coverage discipline: Does the plan include automated tests needed to maintain
+  > = 90% coverage across affected backend/frontend projects?
+- Local-first parity: Can the complete impacted flow run locally via unified Docker
+  Compose, and are compose/healthcheck updates identified?
+- Data integrity and reliability: Are data provenance, schema/contract versioning, and
+  trend/alert regression protections explicitly designed?
 
 ## Project Structure
 
@@ -48,6 +57,7 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -98,7 +108,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
