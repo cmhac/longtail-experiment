@@ -13,8 +13,15 @@
 1. pnpm install
 2. uv sync --project apps/backend --frozen
 3. uv sync --project apps/pipeline --frozen
-4. Run backend, pipeline, and frontend quality checks
-5. Install PMD and run duplication check
+4. Start local stack: docker compose up -d
+5. Verify local DB bootstrap: bash tools/quality/local-stack/test-local-db-bootstrap.sh
+6. Run backend, pipeline, and frontend quality checks
+7. Install PMD and run duplication check
+
+## Development-only Warning
+
+- Local DB commands and scripts in this repository are for development environments only.
+- Do not run local-stack reset/bootstrap workflows against shared, staging, or production databases.
 
 ## Quality Command Matrix
 
@@ -31,6 +38,13 @@
 - Frontend typecheck: pnpm --dir apps/frontend typecheck
 - Frontend test: pnpm --dir apps/frontend test
 - Duplication: bash tools/quality/cpd/run-cpd.sh
+
+## Local DB Migration Commands (Development-only)
+
+- Bootstrap DB service: bash tools/quality/local-stack/test-local-db-bootstrap.sh
+- Apply migrations: bash tools/quality/local-stack/run-db-migrations.sh
+- Verify current revision: bash tools/quality/local-stack/check-db-revision.sh
+- Full readiness verification: bash tools/quality/local-stack/test-db-readiness.sh
 
 ## Affected-only Checks
 

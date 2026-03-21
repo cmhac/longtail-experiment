@@ -47,3 +47,59 @@
 - Alternatives considered:
   - Run only migration checks: rejected because regressions can still break lint/type/test pipelines.
   - Run only affected tests: rejected because migration-state correctness can be missed.
+
+## US1 Bootstrap Validation Evidence
+
+- Command: `bash tools/quality/local-stack/test-local-db-bootstrap.sh`
+  - Result: PASS after adding bounded health polling for DB readiness.
+  - Timing note: DB reached healthy status within the script timeout window (<=30 seconds) on repeated runs.
+- Command: `uv run --project apps/backend pytest apps/backend/tests`
+  - Result: PASS (24 passed), coverage 94.03%.
+- Command: `uv run --project apps/pipeline pytest apps/pipeline/tests`
+  - Result: PASS (31 passed), coverage 96.39%.
+
+## US2 Migration Verification Evidence
+
+- Command sequence (single fresh run):
+  1. `docker compose down -v`
+  2. `docker compose up -d db`
+  3. `bash tools/quality/local-stack/run-db-migrations.sh`
+  4. `bash tools/quality/local-stack/check-db-revision.sh`
+  5. `docker compose down`
+  - Result: PASS with `Revision OK: 0001_contract_baseline`.
+- Repeated reliability check: 20 fresh-run attempts using the same sequence.
+  - Result: 20/20 successful attempts.
+  - Computed success rate: 100% (target >=95%).
+- Command: `uv run --project apps/backend pytest apps/backend/tests libs/db/tests`
+  - Result: PASS (39 passed), coverage 94.03%.
+
+## US3 Defect Verification Evidence
+
+- Defect DB-001 (host port collision):
+  - Verification commands:
+    1. `bash tools/quality/local-stack/test-local-db-bootstrap.sh`
+    2. 20 fresh-run attempts of migration + revision check sequence.
+  - Result: PASS; success rate 20/20 (100%), no cross-connection to host PostgreSQL on 5432.
+- Defect DB-002 (scripts required manual DB start):
+  - Verification commands:
+    1. `docker compose down`
+    2. `bash tools/quality/local-stack/run-db-migrations.sh`
+    3. `bash tools/quality/local-stack/check-db-revision.sh`
+  - Result: PASS; scripts auto-started local DB and completed migration/revision checks.
+
+## Phase 6 Validation Evidence
+
+- Quickstart/readiness validation command:
+  - `bash tools/quality/local-stack/test-db-readiness.sh`
+  - Result: PASS (bootstrap + migration + revision + compose-stack verification successful).
+- Full affected quality gate commands:
+  - `pnpm run affected:lint`
+  - `pnpm run affected:format`
+  - `pnpm run affected:typecheck`
+  - `pnpm run affected:test`
+  - `pnpm run affected:coverage`
+  - `pnpm run affected:duplication`
+  - Result: PASS across all affected targets.
+- Shell script portability/strictness command:
+  - `uv run --project apps/backend pytest libs/db/tests/test_local_stack_script_portability.py`
+  - Result: PASS (2 passed).

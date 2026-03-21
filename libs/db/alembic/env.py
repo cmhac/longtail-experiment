@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from db.models import Base
+from db.settings import resolve_database_url
 
 config = context.config
 
@@ -19,7 +21,10 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in offline mode."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = resolve_database_url(
+        explicit_url=config.get_main_option("sqlalchemy.url"),
+        environment=os.environ,
+    )
     context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
 
     with context.begin_transaction():
@@ -28,8 +33,15 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in online mode."""
+    resolved_url = resolve_database_url(
+        explicit_url=config.get_main_option("sqlalchemy.url"),
+        environment=os.environ,
+    )
+    section = config.get_section(config.config_ini_section, {})
+    section["sqlalchemy.url"] = resolved_url
+
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

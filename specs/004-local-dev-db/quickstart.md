@@ -35,8 +35,8 @@ Expected outcome:
 ## 3. Apply Shared DB Migrations
 
 ```bash
-# Canonical migration command path for this feature
-PYTHONPATH=libs/db/src uv run --project apps/backend alembic -c libs/db/alembic.ini upgrade head
+# Canonical migration apply command for this feature
+bash tools/quality/local-stack/run-db-migrations.sh
 ```
 
 Expected outcome:
@@ -47,12 +47,13 @@ Expected outcome:
 ## 4. Verify Migration Baseline
 
 ```bash
-PYTHONPATH=libs/db/src uv run --project apps/backend alembic -c libs/db/alembic.ini current
+bash tools/quality/local-stack/check-db-revision.sh
 ```
 
 Expected outcome:
 
 - Current revision matches expected latest shared-db revision.
+- Command output includes `Revision OK: <revision>` when baseline matches.
 
 ## 5. Run Local Readiness Verification
 
@@ -84,6 +85,11 @@ docker compose up -d
 Expected outcome:
 
 - Local database state is reset only because developer explicitly requested reset.
+
+## Development-only Warning
+
+- Local DB bootstrap and migration scripts are development-only commands.
+- Do not execute these scripts against staging or production databases.
 
 ## 7. Shutdown
 

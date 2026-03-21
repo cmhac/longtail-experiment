@@ -1,4 +1,26 @@
 services:
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - docker/compose/stack.env
+    environment:
+      POSTGRES_DB: ${LOCAL_DB_NAME:-longtail_local}
+      POSTGRES_USER: ${LOCAL_DB_USER:-longtail}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
+    ports:
+      - "${LOCAL_DB_PORT:-55432}:5432"
+    volumes:
+      - local_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${LOCAL_DB_USER:-longtail} -d ${LOCAL_DB_NAME:-longtail_local}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   pipeline:
     image: python:3.12-alpine
     command: ["sh", "-c", "python -m http.server 8090"]
@@ -42,3 +64,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 6
+
+volumes:
+  local_db_data:

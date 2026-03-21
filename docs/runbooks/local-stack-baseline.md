@@ -4,28 +4,49 @@
 
 1. Run docker compose up -d
 2. Run docker compose ps
+3. Optional: verify DB bootstrap only with bash tools/quality/local-stack/test-local-db-bootstrap.sh
 
 ## Healthy State
 
 - pipeline service is listed and healthy.
 - backend service is listed and healthy.
 - frontend service is listed and healthy.
+- db service is listed and healthy.
+
+## Local DB Persistence Policy
+
+- The local DB is persistent by default using the `local_db_data` volume.
+- Do not reset the DB during normal development loops.
+- Use explicit reset only when you intentionally need a clean database baseline:
+  1.  Run `docker compose down -v`
+  2.  Run `docker compose up -d db`
 
 ## Troubleshooting
 
 - If backend is unhealthy, inspect: docker compose logs backend
 - If frontend is unhealthy, inspect: docker compose logs frontend
 - If pipeline is unhealthy, inspect: docker compose logs pipeline
+- If db is unhealthy, inspect: docker compose logs db
 - If any service fails health checks, stop stack with docker compose down and fix configuration before retry.
+- If migrations fail with role/auth errors on port 5432, verify local defaults from `docker/compose/stack.env` and ensure commands target `LOCAL_DB_PORT=55432`.
+- If migration or revision scripts fail while DB is stopped, rerun the same command; scripts now auto-start `db` and then wait for healthy status.
 
 ## Contract Verification After Startup
 
 1. Run pipeline contract tests: `uv run --project apps/pipeline pytest apps/pipeline/tests/contract`
 2. Run backend contract tests: `uv run --project apps/backend pytest apps/backend/tests/contract`
-3. Verify quality gates for affected changes:
+3. Apply shared DB migrations: `bash tools/quality/local-stack/run-db-migrations.sh`
+4. Verify revision baseline: `bash tools/quality/local-stack/check-db-revision.sh`
+5. Run end-to-end readiness helper: `bash tools/quality/local-stack/test-db-readiness.sh`
+6. Verify quality gates for affected changes:
    - `pnpm run affected:lint`
    - `pnpm run affected:test`
    - `pnpm run affected:coverage`
+
+## Development-only Warning
+
+- Local DB migration scripts are for local development environments only.
+- Do not run these commands against non-development databases.
 
 ## Contract-Specific Troubleshooting
 

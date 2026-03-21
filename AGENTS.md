@@ -111,6 +111,10 @@ Frontend quality commands:
 Local stack and duplication:
 
 - bash tools/quality/cpd/run-cpd.sh
+- bash tools/quality/local-stack/test-local-db-bootstrap.sh
+- bash tools/quality/local-stack/run-db-migrations.sh
+- bash tools/quality/local-stack/check-db-revision.sh
+- bash tools/quality/local-stack/test-db-readiness.sh
 - bash tools/quality/local-stack/test-compose-stack.sh
 - docker compose up -d
 - docker compose ps
