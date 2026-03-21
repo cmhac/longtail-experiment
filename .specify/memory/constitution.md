@@ -1,22 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: N/A (template) -> 1.0.0
+- Version change: 1.0.0 -> 1.1.0
 - Modified principles:
-	- Template Principle 1 -> I. Monorepo Full-Stack Cohesion
-	- Template Principle 2 -> II. Uniform Quality Gates (Non-Negotiable)
-	- Template Principle 3 -> III. Test-Driven Verification and Coverage Floor
-	- Template Principle 4 -> IV. Local-First Runtime Parity
-	- Template Principle 5 -> V. Long-Tail Data Integrity and Trend Reliability
+  - V. Long-Tail Data Integrity and Trend Reliability -> V. Long-Tail Data Integrity and Trend Reliability
+  - Added VI. Documentation Fidelity and Change Traceability
 - Added sections:
-	- Architecture and Delivery Constraints
-	- Development Workflow and Enforcement
+  - None
 - Removed sections:
 	- None
 - Templates requiring updates:
 	- .specify/templates/plan-template.md: ✅ updated
 	- .specify/templates/spec-template.md: ✅ updated
 	- .specify/templates/tasks-template.md: ✅ updated
-	- .specify/templates/commands/*.md: ⚠ pending (directory not present)
+  - .specify/templates/commands/*.md: ⚠ pending (directory not present)
 - Follow-up TODOs:
 	- None
 -->
@@ -70,6 +66,16 @@ prevent silent regressions.
 Rationale: The core product value depends on trustworthy long-horizon analytics and
 timely, reliable signal detection.
 
+### VI. Documentation Fidelity and Change Traceability
+
+When new code, interfaces, workflows, commands, or operational behaviors are introduced,
+the relevant documentation MUST be created or expanded in the same change. When changes
+affect existing behavior, contracts, setup, runbooks, or developer workflows, the
+corresponding existing documentation MUST be updated in the same change.
+Rationale: The repository must remain understandable and operable as it evolves;
+documentation drift causes onboarding friction, operational mistakes, and review blind
+spots.
+
 ## Architecture and Delivery Constraints
 
 - Repository structure MUST support Nx orchestration across backend, frontend, shared
@@ -95,6 +101,8 @@ timely, reliable signal detection.
   are disallowed.
 - Work items MUST include test updates and, when relevant, Docker Compose integration
   updates.
+- Work items MUST include documentation impact assessment and required updates before
+  merge; documentation omissions for impacted areas are non-compliant.
 - Constitution compliance MUST be checked during plan review and before merge.
 
 ## Governance
@@ -108,8 +116,9 @@ timely, reliable signal detection.
   - MINOR: New principle/section or materially expanded guidance.
   - PATCH: Clarifications, wording improvements, or non-semantic edits.
 - Compliance review is mandatory for every pull request; reviewers MUST confirm
-  constitution alignment, including quality gates and local-stack runability.
+  constitution alignment, including quality gates, local-stack runability, and required
+  documentation updates.
 - This constitution is expected to evolve with the product; refinements that tighten
   standards across backend, frontend, data pipelines, and operations are encouraged.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-21
+**Version**: 1.1.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-21

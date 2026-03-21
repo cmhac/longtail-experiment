@@ -130,3 +130,6 @@ _Example of marking unclear requirements:_
 - **CA-004 Contracts and Data Integrity**: Data/interface contract changes,
   provenance/timestamp impacts, and trend-alert reliability safeguards are defined.
   (Yes/No)
+- **CA-005 Documentation Fidelity**: Relevant documentation is identified and will be
+  created or updated in the same change for any impacted behavior, contracts, setup, or
+  runbooks. (Yes/No)

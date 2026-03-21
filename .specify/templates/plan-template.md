@@ -41,6 +41,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
   Compose, and are compose/healthcheck updates identified?
 - Data integrity and reliability: Are data provenance, schema/contract versioning, and
   trend/alert regression protections explicitly designed?
+- Documentation fidelity: Does the plan identify all documentation that MUST be added or
+  updated for the proposed code and behavior changes?
 
 ## Project Structure
 
