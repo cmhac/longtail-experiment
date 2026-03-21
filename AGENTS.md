@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-03-21
 
 ## Active Technologies
+- Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD (002-pipeline-app-baseline)
+- N/A (scaffolding-only feature; no production persistence design) (002-pipeline-app-baseline)
 
 - Python 3.12 (backend), TypeScript 5.x (frontend), Node.js 22 LTS
 - Nx workspace orchestration
@@ -100,6 +102,7 @@ Local stack and duplication:
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 002-pipeline-app-baseline: Added Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD
 
 - 001-setup-monorepo-baseline: Established Nx monorepo baseline with backend/frontend
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
