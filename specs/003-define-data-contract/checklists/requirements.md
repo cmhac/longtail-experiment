@@ -32,4 +32,5 @@
 ## Notes
 
 - Validation iteration 1: all checklist items passed.
+- Validation iteration 2: status/wording polish applied; all checklist items remain passed.
 - Specification is ready for `/speckit.plan`.

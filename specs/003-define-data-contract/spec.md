@@ -2,7 +2,7 @@
 
 **Feature Branch**: `003-define-data-contract`  
 **Created**: 2026-03-21  
-**Status**: Draft  
+**Status**: Ready for Planning  
 **Input**: User description: "Define the primary objective and core data contract for backend/pipeline ingestion of multi-source time series data, with normalization, provenance, and hierarchical classification."
 
 ## User Scenarios & Testing _(mandatory)_
@@ -114,7 +114,7 @@ As an analyst, I need series to be categorized by geography and thematic hierarc
 
 - **SC-001**: 95% of in-scope source series can be onboarded to the canonical contract without custom case-by-case exception handling.
 - **SC-002**: 100% of accepted observations include complete required provenance fields at ingest validation.
-- **SC-003**: Analysts can retrieve relevant series for a category-and-geography query in under 2 minutes of manual search time using available metadata filters, measured from filter selection to first complete result set display on a standard benchmark dataset.
+- **SC-003**: Analysts can retrieve relevant series for a category-and-geography query in under 2 minutes of manual search time using available search filters, measured from filter selection to first complete result set display on a standard benchmark dataset.
 - **SC-004**: For sampled revised publications, 100% of revision events retain a traceable link between prior and current values.
 - **SC-005**: Data quality review identifies fewer than 2% of accepted observations as ambiguous in unit meaning or classification after normalization.
 

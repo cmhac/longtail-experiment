@@ -17,10 +17,10 @@
 
 **Purpose**: Create contract-focused module structure and workspace verification entry points.
 
-- [ ] T001 Create contract package layout in apps/pipeline/src/contract/**init**.py and apps/backend/src/contract/**init**.py
-- [ ] T002 [P] Create schema package layout in apps/pipeline/src/contract/schemas/**init**.py and apps/backend/src/contract/schemas/**init**.py
-- [ ] T003 [P] Create repository package layout in apps/backend/src/contract/repositories/**init**.py and apps/pipeline/src/contract/repositories/**init**.py
-- [ ] T004 [P] Create shared test package layout in apps/pipeline/tests/contract/**init**.py and apps/backend/tests/contract/**init**.py
+- [ ] T001 Create contract package layout in apps/pipeline/src/contract/__init__.py and apps/backend/src/contract/__init__.py
+- [ ] T002 [P] Create schema package layout in apps/pipeline/src/contract/schemas/__init__.py and libs/db/src/db/models/__init__.py
+- [ ] T003 [P] Create shared DB package layout in libs/db/src/db/__init__.py and libs/db/src/db/repositories/__init__.py
+- [ ] T004 [P] Create shared test package layout in apps/pipeline/tests/contract/__init__.py and apps/backend/tests/contract/__init__.py
 - [ ] T005 Add contract verification command documentation to tools/quality/verification/affected-backend.sh and tools/quality/verification/affected-workspace.sh
 
 ---
@@ -31,15 +31,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create shared source profile and series entities in apps/pipeline/src/contract/models/source_profile.py and apps/pipeline/src/contract/models/data_series.py
-- [ ] T007 [P] Create shared observation, provenance, revision entities in apps/pipeline/src/contract/models/observation.py and apps/pipeline/src/contract/models/lineage.py
-- [ ] T008 [P] Create shared category and geography hierarchy entities in apps/pipeline/src/contract/models/taxonomy.py
-- [ ] T009 Define storage repository interfaces in apps/pipeline/src/contract/repositories/interfaces.py and apps/backend/src/contract/repositories/interfaces.py
-- [ ] T010 [P] Implement contract validation error types in apps/pipeline/src/contract/errors.py and apps/backend/src/contract/errors.py
-- [ ] T011 [P] Implement structured logging and tracing modules in apps/pipeline/src/contract/observability/logging.py and apps/pipeline/src/contract/observability/tracing.py
-- [ ] T012 [P] Add observability contract tests for ingest trace propagation in apps/pipeline/tests/contract/test_observability_contract.py
-- [ ] T013 [P] Add foundational unit tests for shared entities and invariants in apps/pipeline/tests/contract/test_models_foundation.py
-- [ ] T014 Add foundational repository interface tests in apps/backend/tests/contract/test_repository_interfaces.py
+- [ ] T006 Create shared source profile and series ORM entities in libs/db/src/db/models/source_profile.py and libs/db/src/db/models/data_series.py
+- [ ] T007 [P] Create shared observation, provenance, revision ORM entities in libs/db/src/db/models/observation.py and libs/db/src/db/models/lineage.py
+- [ ] T008 [P] Create shared category and geography hierarchy ORM entities in libs/db/src/db/models/taxonomy.py
+- [ ] T009 Define DB engine/session lifecycle and repository interfaces in libs/db/src/db/engine.py, libs/db/src/db/session.py, and libs/db/src/db/repositories/interfaces.py
+- [ ] T010 [P] Implement Alembic migration environment and base revision scaffolding in libs/db/alembic/env.py and libs/db/alembic/versions/0001_contract_baseline.py
+- [ ] T011 [P] Implement contract validation error types in apps/pipeline/src/contract/errors.py and apps/backend/src/contract/errors.py
+- [ ] T012 [P] Implement structured logging and tracing modules in apps/pipeline/src/contract/observability/logging.py and apps/pipeline/src/contract/observability/tracing.py
+- [ ] T013 [P] Add observability contract tests for ingest trace propagation in apps/pipeline/tests/contract/test_observability_contract.py
+- [ ] T014 [P] Add foundational unit tests for shared entities and invariants in libs/db/tests/test_models_foundation.py
+- [ ] T015 Add foundational repository interface, session lifecycle, and migration smoke tests in libs/db/tests/test_repository_interfaces.py and libs/db/tests/test_migrations.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -53,19 +54,19 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T015 [P] [US1] Create canonical contract schema validation tests in apps/pipeline/tests/contract/test_canonical_schema_validation.py
-- [ ] T016 [P] [US1] Create mixed-frequency ingest integration tests in apps/pipeline/tests/contract/test_ingest_frequency_handling.py
-- [ ] T017 [P] [US1] Create backend canonical read contract tests in apps/backend/tests/contract/test_canonical_observation_reads.py
+- [ ] T016 [P] [US1] Create canonical contract schema validation tests in apps/pipeline/tests/contract/test_canonical_schema_validation.py
+- [ ] T017 [P] [US1] Create mixed-frequency ingest integration tests in apps/pipeline/tests/contract/test_ingest_frequency_handling.py
+- [ ] T018 [P] [US1] Create backend canonical read contract tests in apps/backend/tests/contract/test_canonical_observation_reads.py
 
 ### Implementation for User Story 1
 
-- [ ] T018 [P] [US1] Implement canonical observation schema and validators in apps/pipeline/src/contract/schemas/canonical_observation.py
-- [ ] T019 [P] [US1] Implement source payload normalization mappers in apps/pipeline/src/contract/normalizers/source_payload_mapper.py
-- [ ] T020 [US1] Implement ingest contract service in apps/pipeline/src/contract/services/canonical_ingest_service.py
-- [ ] T021 [US1] Implement quarantine/reject handling for invalid payloads in apps/pipeline/src/contract/services/ingest_outcome_service.py
-- [ ] T022 [US1] Implement backend query projection for canonical fields in apps/backend/src/contract/services/canonical_query_service.py
-- [ ] T023 [US1] Add contract fixtures for economic, budget, polling, and demographic samples in apps/pipeline/tests/fixtures/canonical_sources.json
-- [ ] T024 [US1] Verify US1 quality gates and coverage in apps/pipeline/tests/contract/test_canonical_schema_validation.py and apps/backend/tests/contract/test_canonical_observation_reads.py
+- [ ] T019 [P] [US1] Implement canonical observation schema and validators in apps/pipeline/src/contract/schemas/canonical_observation.py
+- [ ] T020 [P] [US1] Implement source payload normalization mappers in apps/pipeline/src/contract/normalizers/source_payload_mapper.py
+- [ ] T021 [US1] Implement ingest contract service using shared DB session boundaries in apps/pipeline/src/contract/services/canonical_ingest_service.py
+- [ ] T022 [US1] Implement quarantine/reject handling and invalid-payload fixtures in apps/pipeline/src/contract/services/ingest_outcome_service.py and apps/pipeline/tests/fixtures/canonical_sources.json
+- [ ] T023 [US1] Implement shared observation persistence repository in libs/db/src/db/repositories/observation_repository.py
+- [ ] T024 [US1] Implement backend query projection for canonical fields via shared repositories in apps/backend/src/contract/query/canonical_query.py
+- [ ] T025 [US1] Verify US1 quality gates and coverage in apps/pipeline/tests/contract/test_canonical_schema_validation.py and apps/backend/tests/contract/test_canonical_observation_reads.py
 
 **Checkpoint**: User Story 1 is independently ingesting and validating canonical observations
 
@@ -79,19 +80,19 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T025 [P] [US2] Create provenance immutability tests in apps/pipeline/tests/contract/test_provenance_immutability.py
-- [ ] T026 [P] [US2] Create revision lineage integrity tests in apps/pipeline/tests/contract/test_revision_lineage.py
-- [ ] T027 [P] [US2] Create backend audit retrieval tests in apps/backend/tests/contract/test_provenance_audit_queries.py
+- [ ] T026 [P] [US2] Create provenance immutability tests in apps/pipeline/tests/contract/test_provenance_immutability.py
+- [ ] T027 [P] [US2] Create revision lineage integrity tests in apps/pipeline/tests/contract/test_revision_lineage.py
+- [ ] T028 [P] [US2] Create backend audit retrieval tests in apps/backend/tests/contract/test_provenance_audit_queries.py
 
 ### Implementation for User Story 2
 
-- [ ] T028 [P] [US2] Implement provenance schema and write guards in apps/pipeline/src/contract/schemas/provenance_record.py
-- [ ] T029 [P] [US2] Implement revision record schema and linkage rules in apps/pipeline/src/contract/schemas/revision_record.py
-- [ ] T030 [US2] Implement lineage service for supersede and replace workflows in apps/pipeline/src/contract/services/revision_lineage_service.py
-- [ ] T031 [US2] Implement provenance persistence adapter with immutable field enforcement in apps/pipeline/src/contract/repositories/provenance_repository.py
-- [ ] T032 [US2] Implement backend audit query service for provenance and revisions in apps/backend/src/contract/services/provenance_audit_service.py
-- [ ] T033 [US2] Add revised-publication fixtures and restatement scenarios in apps/pipeline/tests/fixtures/revision_events.json
-- [ ] T034 [US2] Verify US2 quality gates and coverage in apps/pipeline/tests/contract/test_revision_lineage.py and apps/backend/tests/contract/test_provenance_audit_queries.py
+- [ ] T029 [P] [US2] Implement provenance schema and write guards in apps/pipeline/src/contract/schemas/provenance_record.py
+- [ ] T030 [P] [US2] Implement revision record schema and linkage rules in apps/pipeline/src/contract/schemas/revision_record.py
+- [ ] T031 [US2] Implement lineage service for supersede and replace workflows in apps/pipeline/src/contract/services/revision_lineage_service.py
+- [ ] T032 [US2] Implement provenance persistence adapter with immutable field enforcement in libs/db/src/db/repositories/provenance_repository.py
+- [ ] T033 [US2] Implement backend audit query service for provenance and revisions in apps/backend/src/contract/query/provenance_audit_query.py
+- [ ] T034 [US2] Add revised-publication fixtures and restatement scenarios in apps/pipeline/tests/fixtures/revision_events.json
+- [ ] T035 [US2] Verify US2 quality gates and coverage in apps/pipeline/tests/contract/test_revision_lineage.py and apps/backend/tests/contract/test_provenance_audit_queries.py
 
 **Checkpoint**: User Story 2 is independently preserving immutable provenance and revision lineage
 
@@ -105,18 +106,18 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T035 [P] [US3] Create taxonomy hierarchy validation tests in apps/pipeline/tests/contract/test_taxonomy_hierarchy_validation.py
-- [ ] T036 [P] [US3] Create geography hierarchy and non-geographic tests in apps/pipeline/tests/contract/test_geography_hierarchy_validation.py
-- [ ] T037 [P] [US3] Create backend hierarchical query filter tests in apps/backend/tests/contract/test_hierarchy_filter_queries.py
+- [ ] T036 [P] [US3] Create taxonomy hierarchy validation tests in apps/pipeline/tests/contract/test_taxonomy_hierarchy_validation.py
+- [ ] T037 [P] [US3] Create geography hierarchy and non-geographic tests in apps/pipeline/tests/contract/test_geography_hierarchy_validation.py
+- [ ] T038 [P] [US3] Create backend hierarchical query filter tests in apps/backend/tests/contract/test_hierarchy_filter_queries.py
 
 ### Implementation for User Story 3
 
-- [ ] T038 [P] [US3] Implement category hierarchy schema and integrity checks in apps/pipeline/src/contract/schemas/category_hierarchy.py
-- [ ] T039 [P] [US3] Implement geography hierarchy schema and non-geographic marker rules in apps/pipeline/src/contract/schemas/geography_hierarchy.py
-- [ ] T040 [US3] Implement taxonomy mapping service for series onboarding in apps/pipeline/src/contract/services/taxonomy_mapping_service.py
-- [ ] T041 [US3] Implement hierarchy-aware backend query filters in apps/backend/src/contract/services/hierarchy_query_service.py
-- [ ] T042 [US3] Add taxonomy and geography fixture trees in apps/pipeline/tests/fixtures/hierarchy_trees.json
-- [ ] T043 [US3] Verify US3 quality gates and coverage in apps/pipeline/tests/contract/test_taxonomy_hierarchy_validation.py and apps/backend/tests/contract/test_hierarchy_filter_queries.py
+- [ ] T039 [P] [US3] Implement category hierarchy schema and integrity checks in apps/pipeline/src/contract/schemas/category_hierarchy.py
+- [ ] T040 [P] [US3] Implement geography hierarchy schema and non-geographic marker rules in apps/pipeline/src/contract/schemas/geography_hierarchy.py
+- [ ] T041 [US3] Implement taxonomy mapping service for series onboarding in apps/pipeline/src/contract/services/taxonomy_mapping_service.py
+- [ ] T042 [US3] Implement hierarchy-aware backend query filters and shared hierarchy repositories in apps/backend/src/contract/query/hierarchy_query.py and libs/db/src/db/repositories/hierarchy_repository.py
+- [ ] T043 [US3] Add taxonomy and geography fixture trees in apps/pipeline/tests/fixtures/hierarchy_trees.json
+- [ ] T044 [US3] Verify US3 quality gates and coverage in apps/pipeline/tests/contract/test_taxonomy_hierarchy_validation.py and apps/backend/tests/contract/test_hierarchy_filter_queries.py
 
 **Checkpoint**: User Story 3 is independently providing hierarchical search and filtering behavior
 
@@ -126,17 +127,17 @@
 
 **Purpose**: Final consistency, contract evolution guidance, and full-system verification.
 
-- [ ] T044 [P] Update contract implementation notes and migration guidance in specs/003-define-data-contract/contracts/canonical-observation-contract.md and specs/003-define-data-contract/contracts/provenance-and-revision-contract.md
-- [ ] T045 [P] Update architecture and runbook docs for contract workflows in docs/architecture/monorepo-boundaries.md and docs/runbooks/local-stack-baseline.md
-- [ ] T046 [P] Update onboarding guidance and canonical commands in docs/onboarding/monorepo-baseline.md and AGENTS.md
-- [ ] T047 [P] Implement backend and pipeline observability integration checks in apps/backend/tests/contract/test_observability_queries.py and apps/pipeline/tests/contract/test_observability_contract.py
-- [ ] T048 [P] Add SC-001 onboarding-rate verification tests in apps/pipeline/tests/contract/test_sc001_onboarding_rate.py and apps/pipeline/tests/fixtures/sc001_onboarding_samples.json
-- [ ] T049 [P] Add SC-003 manual-workflow timing verification tests (from filter selection to first complete result set display) in apps/backend/tests/contract/test_sc003_query_time.py and apps/backend/tests/fixtures/sc003_query_scenarios.json
-- [ ] T050 [P] Add SC-005 ambiguity-rate verification tests in apps/pipeline/tests/contract/test_sc005_ambiguity_rate.py and apps/pipeline/tests/fixtures/sc005_ambiguity_samples.json
-- [ ] T051 Run quickstart validation flow in specs/003-define-data-contract/quickstart.md and record SC evidence in specs/003-define-data-contract/research.md
-- [ ] T052 Run full affected quality suite and local stack verification via package.json scripts and tools/quality/local-stack/test-compose-stack.sh
-- [ ] T053 [P] Add FR-009 source-type labeling contract tests in apps/pipeline/tests/contract/test_source_type_labeling.py and apps/backend/tests/contract/test_source_type_query_filters.py
-- [ ] T054 [P] Add FR-010 full filter-matrix contract tests in apps/backend/tests/contract/test_filter_matrix_queries.py and apps/backend/tests/fixtures/filter_matrix_scenarios.json
+- [ ] T045 [P] Update contract implementation notes and migration guidance for libs/db Alembic flow in specs/003-define-data-contract/contracts/canonical-observation-contract.md and specs/003-define-data-contract/contracts/provenance-and-revision-contract.md
+- [ ] T046 [P] Update architecture and runbook docs for contract workflows in docs/architecture/monorepo-boundaries.md and docs/runbooks/local-stack-baseline.md
+- [ ] T047 [P] Update onboarding guidance and canonical commands in docs/onboarding/monorepo-baseline.md and AGENTS.md
+- [ ] T048 [P] Implement backend and pipeline observability integration checks in apps/backend/tests/contract/test_observability_queries.py and apps/pipeline/tests/contract/test_observability_contract.py
+- [ ] T049 [P] Add SC-001 onboarding-rate verification tests in apps/pipeline/tests/contract/test_sc001_onboarding_rate.py and apps/pipeline/tests/fixtures/sc001_onboarding_samples.json
+- [ ] T050 [P] Add SC-003 manual-workflow timing verification tests (from filter selection to first complete result set display) in apps/backend/tests/contract/test_sc003_query_time.py and apps/backend/tests/fixtures/sc003_query_scenarios.json
+- [ ] T051 [P] Add SC-005 ambiguity-rate verification tests in apps/pipeline/tests/contract/test_sc005_ambiguity_rate.py and apps/pipeline/tests/fixtures/sc005_ambiguity_samples.json
+- [ ] T052 Run quickstart validation flow in specs/003-define-data-contract/quickstart.md and record SC evidence in specs/003-define-data-contract/research.md
+- [ ] T053 Run full affected quality suite and local stack verification via package.json scripts and tools/quality/local-stack/test-compose-stack.sh
+- [ ] T054 [P] Add FR-009 source-type labeling contract tests in apps/pipeline/tests/contract/test_source_type_labeling.py and apps/backend/tests/contract/test_source_type_query_filters.py
+- [ ] T055 [P] Add FR-010 full filter-matrix contract tests in apps/backend/tests/contract/test_filter_matrix_queries.py and apps/backend/tests/fixtures/filter_matrix_scenarios.json
 
 ---
 
@@ -222,7 +223,7 @@ Task: "Implement geography hierarchy schema and non-geographic marker rules in a
 1. Complete Phase 1: Setup.
 2. Complete Phase 2: Foundational.
 3. Complete Phase 3: User Story 1.
-4. Validate US1 independently with T015-T017 and T024.
+4. Validate US1 independently with T016-T018 and T025.
 5. Demo MVP ingest/validation behavior before expanding scope.
 
 ### Incremental Delivery
