@@ -73,10 +73,12 @@
   - healthChecks: health criteria keyed by service (map)
   - startupCommand: canonical startup command (string)
   - shutdownCommand: canonical shutdown command (string)
+  - servicePorts: baseline service port mapping (map)
 - Validation rules:
   - services MUST include pipeline, backend, and frontend.
   - each service MUST have a health check.
   - startup and shutdown commands MUST be documented in quickstart.
+  - servicePorts MUST map pipeline=8090, backend=8080, frontend=3000.
 
 ## State Transitions
 

@@ -32,6 +32,7 @@ pnpm nx graph --file tmp/nx-graph.html
 Expected outcome:
 
 - Project list includes backend, frontend, and pipeline.
+- Project graph contains a dedicated `pipeline` node under `apps/pipeline`.
 
 ## 3. Run Pipeline Quality Gates
 
@@ -65,6 +66,7 @@ docker compose down
 Expected outcome:
 
 - Pipeline, backend, and frontend placeholders all report healthy status.
+- Compose output contains `pipeline`, `backend`, and `frontend` service entries.
 
 ## 6. Definition of Done for This Baseline
 
@@ -73,6 +75,15 @@ Expected outcome:
 - Affected-only workspace checks include pipeline behavior.
 - Three-app local stack starts, verifies health, and shuts down cleanly.
 - No business data processing logic exists in pipeline app scope.
+
+## 8. Verification Evidence Template
+
+- Workspace registration status: PASS/FAIL
+- Pipeline quality gates status: PASS/FAIL
+- Affected-only pipeline lint runtime (seconds):
+- Affected-only pipeline test runtime (seconds):
+- Three-app local stack startup status: PASS/FAIL
+- Three-app local stack shutdown status: PASS/FAIL
 
 ## 7. Documentation Impact Checklist
 

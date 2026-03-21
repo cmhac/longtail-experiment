@@ -4,13 +4,19 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "pipeline:lint": "uv run --project apps/pipeline ruff check apps/pipeline",
+    "pipeline:format": "uv run --project apps/pipeline ruff format --check apps/pipeline",
+    "pipeline:typecheck": "uv run --project apps/pipeline ty check apps/pipeline",
+    "pipeline:test": "uv run --project apps/pipeline pytest apps/pipeline/tests",
+    "pipeline:coverage": "uv run --project apps/pipeline pytest apps/pipeline/tests --cov=apps/pipeline/src --cov-fail-under=90",
     "affected:lint": "nx affected -t lint",
     "affected:format": "nx affected -t format",
     "affected:typecheck": "nx affected -t typecheck",
     "affected:test": "nx affected -t test",
     "affected:coverage": "nx affected -t coverage",
     "affected:duplication": "nx affected -t duplication",
-    "quality:all": "pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage && pnpm run affected:duplication"
+    "quality:pipeline": "pnpm run pipeline:lint && pnpm run pipeline:format && pnpm run pipeline:typecheck && pnpm run pipeline:test && pnpm run pipeline:coverage",
+    "quality:all": "pnpm run quality:pipeline && pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage && pnpm run affected:duplication"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

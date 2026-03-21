@@ -7,4 +7,5 @@ def test_compose_contains_backend_service() -> None:
     """Assert compose file includes backend service and healthcheck stanza."""
     compose = Path("docker-compose.yml").read_text(encoding="utf-8")
     assert "backend:" in compose
+    assert "pipeline:" in compose
     assert "healthcheck:" in compose

@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-21
 
 ## Active Technologies
+
 - Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD (002-pipeline-app-baseline)
 - N/A (scaffolding-only feature; no production persistence design) (002-pipeline-app-baseline)
 
@@ -18,6 +19,12 @@ Auto-generated from all feature plans. Last updated: 2026-03-21
 ```text
 apps/
 	backend/
+		src/
+		tests/
+		pyproject.toml
+		uv.lock
+		project.json
+	pipeline/
 		src/
 		tests/
 		pyproject.toml
@@ -58,6 +65,7 @@ Workspace bootstrap and validation:
 
 - pnpm install
 - uv sync --project apps/backend --frozen
+- uv sync --project apps/pipeline --frozen
 - pnpm run quality:all
 
 Affected-only quality checks:
@@ -75,6 +83,13 @@ Backend quality commands:
 - uv run --project apps/backend ruff format --check apps/backend
 - uv run --project apps/backend ty check apps/backend
 - uv run --project apps/backend pytest apps/backend/tests
+
+Pipeline quality commands:
+
+- uv run --project apps/pipeline ruff check apps/pipeline
+- uv run --project apps/pipeline ruff format --check apps/pipeline
+- uv run --project apps/pipeline ty check apps/pipeline
+- uv run --project apps/pipeline pytest apps/pipeline/tests
 
 Frontend quality commands:
 
@@ -94,14 +109,15 @@ Local stack and duplication:
 
 ## Code Style
 
-- Python: ruff rules configured in apps/backend/pyproject.toml; no inline suppression
-  bypasses are allowed.
+- Python: ruff rules configured in apps/backend/pyproject.toml and
+  apps/pipeline/pyproject.toml; no inline suppression bypasses are allowed.
 - TypeScript: strict compiler settings in apps/frontend/tsconfig.json; Biome check is the
   lint/format authority.
 - Quality gates: lint, format, typecheck, test, coverage, and duplication must pass via
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
 - 002-pipeline-app-baseline: Added Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD
 
 - 001-setup-monorepo-baseline: Established Nx monorepo baseline with backend/frontend

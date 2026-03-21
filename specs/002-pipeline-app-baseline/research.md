@@ -66,3 +66,12 @@
     parity is a constitution requirement for new components.
   - Separate compose files per app: rejected because repository baseline uses a unified
     compose startup path.
+
+## Baseline Scope Verification Evidence
+
+- Placeholder-only verification: pipeline module exports static health message and does
+  not include Dagster jobs, schedules, sensors, or business transforms.
+- Workspace registration verification: backend/frontend/pipeline tests assert pipeline
+  project discovery from monorepo baseline state.
+- Runtime verification: compose verification script requires pipeline, backend, and
+  frontend services to be present before reporting success.

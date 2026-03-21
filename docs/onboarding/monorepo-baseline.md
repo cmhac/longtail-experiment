@@ -11,9 +11,10 @@
 ## Initial Setup
 
 1. pnpm install
-2. uv sync --frozen
-3. Run backend and frontend quality checks
-4. Install PMD and run duplication check
+2. uv sync --project apps/backend --frozen
+3. uv sync --project apps/pipeline --frozen
+4. Run backend, pipeline, and frontend quality checks
+5. Install PMD and run duplication check
 
 ## Quality Command Matrix
 
@@ -21,6 +22,10 @@
 - Backend format: uv run --project apps/backend ruff format --check apps/backend
 - Backend typecheck: uv run --project apps/backend ty check apps/backend
 - Backend test: uv run --project apps/backend pytest apps/backend/tests
+- Pipeline lint: uv run --project apps/pipeline ruff check apps/pipeline
+- Pipeline format: uv run --project apps/pipeline ruff format --check apps/pipeline
+- Pipeline typecheck: uv run --project apps/pipeline ty check apps/pipeline
+- Pipeline test: uv run --project apps/pipeline pytest apps/pipeline/tests
 - Frontend lint: pnpm --dir apps/frontend lint
 - Frontend format: pnpm --dir apps/frontend exec biome check .
 - Frontend typecheck: pnpm --dir apps/frontend typecheck

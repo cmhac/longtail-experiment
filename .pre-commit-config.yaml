@@ -21,6 +21,26 @@ repos:
         entry: uv run --project apps/backend pytest apps/backend/tests
         language: system
         pass_filenames: false
+      - id: pipeline-lint
+        name: pipeline-lint
+        entry: uv run --project apps/pipeline ruff check apps/pipeline
+        language: system
+        pass_filenames: false
+      - id: pipeline-format-check
+        name: pipeline-format-check
+        entry: uv run --project apps/pipeline ruff format --check apps/pipeline
+        language: system
+        pass_filenames: false
+      - id: pipeline-typecheck
+        name: pipeline-typecheck
+        entry: uv run --project apps/pipeline ty check apps/pipeline
+        language: system
+        pass_filenames: false
+      - id: pipeline-tests
+        name: pipeline-tests
+        entry: uv run --project apps/pipeline pytest apps/pipeline/tests
+        language: system
+        pass_filenames: false
       - id: frontend-lint
         name: frontend-lint
         entry: pnpm --dir apps/frontend lint

@@ -25,7 +25,7 @@
 **Purpose**: Initialize the pipeline app skeleton and baseline workspace registration entry points.
 
 - [ ] T001 Create pipeline project directories in apps/pipeline/src and apps/pipeline/tests
-- [ ] T002 Create pipeline placeholder module in apps/pipeline/src/__init__.py
+- [ ] T002 Create pipeline placeholder module in apps/pipeline/src/**init**.py
 - [ ] T003 [P] Create pipeline smoke test scaffold in apps/pipeline/tests/test_smoke.py
 - [ ] T004 [P] Create pipeline workspace registration test scaffold in apps/pipeline/tests/test_workspace_registration.py
 - [ ] T005 [P] Create pipeline quality command test scaffold in apps/pipeline/tests/test_quality_commands.py
@@ -77,7 +77,7 @@
 ### Implementation for User Story 1
 
 - [ ] T028 [US1] Finalize pipeline project metadata and tags in apps/pipeline/project.json
-- [ ] T029 [US1] Add pipeline placeholder package markers in apps/pipeline/src/__init__.py
+- [ ] T029 [US1] Add pipeline placeholder package markers in apps/pipeline/src/**init**.py
 - [ ] T030 [US1] Add workspace registration quickstart steps in specs/002-pipeline-app-baseline/quickstart.md
 - [ ] T031 [US1] Document pipeline app boundary and ownership in docs/architecture/monorepo-boundaries.md
 - [ ] T032 [US1] Update feature contracts for registration verification in specs/002-pipeline-app-baseline/contracts/pipeline-quality-contract.md

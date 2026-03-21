@@ -10,4 +10,4 @@ else
   exit 1
 fi
 
-"$PMD_CMD" cpd --minimum-tokens 50 --dir apps/backend/src --dir apps/frontend/src
+"$PMD_CMD" cpd --minimum-tokens 50 --dir apps/backend/src --dir apps/frontend/src --dir apps/pipeline/src

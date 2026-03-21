@@ -1,4 +1,17 @@
 services:
+  pipeline:
+    image: python:3.12-alpine
+    command: ["sh", "-c", "python -m http.server 8090"]
+    working_dir: /workspace
+    ports:
+      - "8090:8090"
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8090 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
   backend:
     image: python:3.12-alpine
     command: ["sh", "-c", "python -m http.server 8080"]

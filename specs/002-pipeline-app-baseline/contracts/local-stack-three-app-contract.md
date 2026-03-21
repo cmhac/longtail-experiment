@@ -16,6 +16,7 @@ Define the local Docker Compose baseline contract after adding the pipeline app.
 - Pipeline placeholder service MUST start with baseline environment profile.
 - Backend placeholder service MUST start and remain the frontend-serving boundary.
 - Frontend placeholder service MUST start and rely on backend boundary only.
+- Baseline service ports are 8090 (pipeline), 8080 (backend), and 3000 (frontend).
 
 ## Verification Contract
 

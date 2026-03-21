@@ -7,6 +7,7 @@
 
 ## Healthy State
 
+- pipeline service is listed and healthy.
 - backend service is listed and healthy.
 - frontend service is listed and healthy.
 
@@ -14,4 +15,5 @@
 
 - If backend is unhealthy, inspect: docker compose logs backend
 - If frontend is unhealthy, inspect: docker compose logs frontend
-- If either service fails health checks, stop stack with docker compose down and fix configuration before retry.
+- If pipeline is unhealthy, inspect: docker compose logs pipeline
+- If any service fails health checks, stop stack with docker compose down and fix configuration before retry.

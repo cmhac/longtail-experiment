@@ -133,3 +133,9 @@ quality/compose orchestration, while preserving existing backend/frontend bounda
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 | --------- | ---------- | ------------------------------------ |
 | None      | N/A        | N/A                                  |
+
+## Implementation Consistency Notes
+
+- Pipeline app scaffolding mirrors backend quality model via uv, ruff, ty, and pytest.
+- Workspace quality and duplication tooling include pipeline-aware affected checks.
+- Local stack and documentation updates preserve backend-serving boundary for frontend.

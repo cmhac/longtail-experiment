@@ -2,7 +2,7 @@
 set -euo pipefail
 
 start=$(date +%s)
-pnpm nx affected -t lint --files=apps/backend/src/__init__.py
+pnpm nx affected -t lint --files=apps/pipeline/src/__init__.py
 end=$(date +%s)
 elapsed=$((end - start))
 if [[ "$elapsed" -gt 180 ]]; then

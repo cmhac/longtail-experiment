@@ -6,4 +6,9 @@ describe("frontend quality files", () => {
     expect(existsSync(new URL("../tsconfig.json", import.meta.url))).toBe(true);
     expect(existsSync(new URL("../vitest.config.ts", import.meta.url))).toBe(true);
   });
+
+  it("has pipeline python quality config", () => {
+    expect(existsSync(new URL("../../pipeline/pyproject.toml", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../../pipeline/project.json", import.meta.url))).toBe(true);
+  });
 });

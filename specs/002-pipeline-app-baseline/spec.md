@@ -36,9 +36,9 @@ placeholder-only.
 **Acceptance Scenarios**:
 
 1. **Given** a clean clone, **When** a contributor runs workspace discovery commands,
-  **Then** the pipeline project appears alongside backend and frontend.
+   **Then** the pipeline project appears alongside backend and frontend.
 2. **Given** the pipeline project is registered, **When** quality command discovery is
-  executed, **Then** pipeline quality targets are visible and runnable.
+   executed, **Then** pipeline quality targets are visible and runnable.
 
 ---
 
@@ -58,8 +58,8 @@ suppression paths.
 **Acceptance Scenarios**:
 
 1. **Given** the pipeline baseline exists, **When** the contributor runs all pipeline
-  quality gate commands, **Then** each gate completes with deterministic pass/fail
-  behavior.
+   quality gate commands, **Then** each gate completes with deterministic pass/fail
+   behavior.
 
 ---
 
@@ -79,8 +79,8 @@ requiring real data processing.
 **Acceptance Scenarios**:
 
 1. **Given** the baseline local stack, **When** the contributor starts and verifies the
-  stack, **Then** pipeline, backend, and frontend placeholder services report healthy
-  status.
+   stack, **Then** pipeline, backend, and frontend placeholder services report healthy
+   status.
 
 ---
 

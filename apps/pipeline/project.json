@@ -1,0 +1,39 @@
+{
+  "name": "pipeline",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/pipeline/src",
+  "projectType": "application",
+  "tags": ["scope:pipeline", "type:placeholder"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline ruff check apps/pipeline"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline ruff format --check apps/pipeline"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline ty check apps/pipeline"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests"
+      }
+    },
+    "coverage": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests --cov=apps/pipeline/src --cov-fail-under=90"
+      }
+    }
+  }
+}

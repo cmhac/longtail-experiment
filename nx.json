@@ -17,27 +17,31 @@
       "{workspaceRoot}/package.json",
       "{workspaceRoot}/pnpm-workspace.yaml",
       "{workspaceRoot}/.pre-commit-config.yaml"
+    ],
+    "pythonAppConfig": [
+      "{workspaceRoot}/apps/backend/pyproject.toml",
+      "{workspaceRoot}/apps/pipeline/pyproject.toml"
     ]
   },
   "targetDefaults": {
     "lint": {
-      "inputs": ["default", "^default", "workspaceConfig"],
+      "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
       "cache": true
     },
     "format": {
-      "inputs": ["default", "^default", "workspaceConfig"],
+      "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
       "cache": true
     },
     "typecheck": {
-      "inputs": ["default", "^default", "workspaceConfig"],
+      "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
       "cache": true
     },
     "test": {
-      "inputs": ["default", "^default", "workspaceConfig"],
+      "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
       "cache": true
     },
     "coverage": {
-      "inputs": ["default", "^default", "workspaceConfig"],
+      "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
       "cache": true
     },
     "duplication": {

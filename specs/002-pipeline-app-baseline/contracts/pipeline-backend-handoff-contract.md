@@ -17,6 +17,8 @@ serves frontend, without implementing production data logic.
 - Backend MUST remain the only serving interface to frontend in this baseline phase.
 - Any future handoff payload/schema details MUST be versioned and documented before
   implementation.
+- Baseline placeholder connectivity uses service-level health and startup verification,
+  not production payload exchange.
 
 ## Verification Contract
 

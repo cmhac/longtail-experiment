@@ -17,6 +17,11 @@ Pipeline project MUST expose these targets:
 
 Workspace quality orchestration MUST include pipeline in affected target resolution.
 
+## Registration Verification Contract
+
+- Workspace smoke tests MUST verify `apps/pipeline/project.json` is discoverable.
+- Backend and frontend workspace registration tests MUST assert pipeline visibility.
+
 ## Tooling Contract
 
 - Pipeline dependency/environment management MUST use uv.
