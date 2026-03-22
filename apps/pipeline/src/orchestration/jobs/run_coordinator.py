@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any, Literal, TypedDict, cast
 from uuid import uuid4
@@ -69,6 +70,15 @@ class RunCoordinator:
         run_id = str(uuid4())
         started_at = datetime.now(tz=UTC)
         registrations = self._filter_registrations(source_keys)
+
+        if self._run_repository is not None:
+            read_policies = getattr(self._run_repository, "read_all_schedule_policies", None)
+            if callable(read_policies):
+                typed_read_policies = cast(Callable[[], dict[str, dict[str, Any]]], read_policies)
+                registrations = self._hydrate_schedule_policies(
+                    registrations=registrations,
+                    db_policies=typed_read_policies(),
+                )
 
         eligibility_decisions = self._build_eligibility_decisions(
             trigger_type=trigger_type,
@@ -139,6 +149,25 @@ class RunCoordinator:
                         self._decision_to_snapshot(decision) for decision in eligibility_decisions
                     ],
                 )
+
+            upsert_policy = getattr(self._run_repository, "upsert_schedule_policy", None)
+            if callable(upsert_policy):
+                typed_upsert_policy = cast(Callable[..., Any], upsert_policy)
+                registrations_by_key = {
+                    registration.source_key: registration for registration in registrations
+                }
+                for source_result in source_results:
+                    if source_result.status != "success":
+                        continue
+                    registration = registrations_by_key.get(source_result.source_key)
+                    if registration is None or registration.schedule_policy is None:
+                        continue
+                    typed_upsert_policy(
+                        source_key=registration.source_key,
+                        cadence_type=registration.schedule_policy.cadence_type,
+                        last_successful_at=completed_at,
+                        updated_at=completed_at,
+                    )
         return payload
 
     def _filter_registrations(
@@ -201,3 +230,24 @@ class RunCoordinator:
             "due_at": decision.due_at,
             "selected_for_execution": decision.selected_for_execution,
         }
+
+    @staticmethod
+    def _hydrate_schedule_policies(
+        *,
+        registrations: list[SourceWorkflowRegistration],
+        db_policies: dict[str, dict[str, Any]],
+    ) -> list[SourceWorkflowRegistration]:
+        """Patch persisted last_successful_at onto in-memory schedule policies."""
+        hydrated: list[SourceWorkflowRegistration] = []
+        for registration in registrations:
+            policy = registration.schedule_policy
+            db_policy = db_policies.get(registration.source_key)
+            if policy is None or db_policy is None:
+                hydrated.append(registration)
+                continue
+
+            hydrated_policy = policy.model_copy(
+                update={"last_successful_at": db_policy.get("last_successful_at")}
+            )
+            hydrated.append(replace(registration, schedule_policy=hydrated_policy))
+        return hydrated

@@ -61,6 +61,7 @@ def test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward() 
     except Exception as exc:  # pragma: no cover - environment-dependent integration guard
         pytest.skip(f"postgres runtime DB unavailable for integration test: {exc}")
 
+    run_repo.clear_all()
     runtime.source_lock_service.acquire("dummy_source", "active-token")
     runtime.source_lock_service.acquire("dummy_source", "queued-token")
 
@@ -78,3 +79,31 @@ def test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward() 
     finally:
         runtime.source_lock_service.release("dummy_source", "active-token")
         runtime.source_lock_service.release("dummy_source", "queued-token")
+
+
+def test_ingest_job_persists_schedule_policy_rows_for_registered_sources() -> None:
+    """Successful ingest run should persist schedule state for registered sources."""
+    runtime = get_ingest_runtime()
+    run_repo = runtime.run_repository
+
+    probe_run_id = f"run-probe-{uuid4()}"
+    try:
+        run_repo.fetch_run(probe_run_id)
+    except Exception as exc:  # pragma: no cover - environment-dependent integration guard
+        pytest.skip(f"postgres runtime DB unavailable for integration test: {exc}")
+
+    run_repo.clear_all()
+
+    result = defs.get_job_def("ingest_job").execute_in_process(
+        run_config={},
+        tags={"trigger_type": "on_demand", "requested_by": "schedule-policy-test"},
+    )
+
+    assert result.success
+
+    rows = run_repo.read_all_schedule_policies()
+
+    assert "dummy_source" in rows
+    assert "example_source" in rows
+    assert rows["dummy_source"]["last_successful_at"] is not None
+    assert rows["example_source"]["last_successful_at"] is not None

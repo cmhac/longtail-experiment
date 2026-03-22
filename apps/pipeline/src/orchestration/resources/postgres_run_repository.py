@@ -284,6 +284,73 @@ class PostgresRunRepository:
             )
         return [dict(row) for row in rows]
 
+    def read_all_schedule_policies(self) -> dict[str, dict[str, Any]]:
+        """Read all persisted schedule policies keyed by source key."""
+        with self._engine.begin() as connection:
+            rows = (
+                connection.execute(
+                    text(
+                        """
+                    SELECT
+                        source_key,
+                        cadence_type,
+                        last_successful_at,
+                        next_eligible_at,
+                        is_active,
+                        priority_class
+                    FROM source_schedule_policies
+                    ORDER BY source_key ASC
+                    """
+                    )
+                )
+                .mappings()
+                .all()
+            )
+
+        return {str(row["source_key"]): dict(row) for row in rows}
+
+    def upsert_schedule_policy(
+        self,
+        *,
+        source_key: str,
+        cadence_type: str,
+        last_successful_at: datetime,
+        updated_at: datetime,
+    ) -> None:
+        """Upsert schedule state for one source key."""
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO source_schedule_policies (
+                        id,
+                        source_key,
+                        cadence_type,
+                        last_successful_at,
+                        updated_at
+                    ) VALUES (
+                        :id,
+                        :source_key,
+                        :cadence_type,
+                        :last_successful_at,
+                        :updated_at
+                    )
+                    ON CONFLICT (source_key) DO UPDATE
+                    SET
+                        cadence_type = EXCLUDED.cadence_type,
+                        last_successful_at = EXCLUDED.last_successful_at,
+                        updated_at = EXCLUDED.updated_at
+                    """
+                ),
+                {
+                    "id": uuid4(),
+                    "source_key": source_key,
+                    "cadence_type": cadence_type,
+                    "last_successful_at": last_successful_at,
+                    "updated_at": updated_at,
+                },
+            )
+
     @staticmethod
     def _as_datetime(value: object) -> datetime:
         if isinstance(value, datetime):
@@ -408,6 +475,7 @@ class PostgresRunRepository:
     def clear_all(self) -> None:
         """Delete all persisted runtime rows for local integration checks."""
         with self._engine.begin() as connection:
+            connection.execute(text("DELETE FROM source_schedule_policies"))
             connection.execute(text("DELETE FROM source_eligibility_snapshots"))
             connection.execute(text("DELETE FROM source_run_outcomes"))
             connection.execute(text("DELETE FROM ingestion_runs"))

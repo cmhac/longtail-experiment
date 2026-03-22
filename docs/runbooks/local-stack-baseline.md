@@ -67,13 +67,32 @@
 ## Bounded Parallel Ingestion Validation (Feature 006)
 
 1. Run cadence eligibility verification:
-  - `nx run pipeline:test:orchestration:cadence`
+
+- `nx run pipeline:test:orchestration:cadence`
+
 2. Run bounded concurrency verification:
-  - `nx run pipeline:test:orchestration:parallel`
+
+- `nx run pipeline:test:orchestration:parallel`
+
 3. Run full orchestration suite if either command fails:
-  - `nx run pipeline:test:orchestration`
+
+- `nx run pipeline:test:orchestration`
 
 Expected operator signals:
 
 - Deferred sources are recorded when due work exceeds configured active-source capacity.
 - Not-due and invalid-policy sources are excluded from scheduled execution with explicit reasons.
+
+## Schedule State Inspection and Reset (Feature 007)
+
+Use these SQL helpers to inspect and control schedule persistence in local troubleshooting loops.
+
+1. Inspect persisted schedule state:
+   `SELECT source_key, cadence_type, last_successful_at, updated_at FROM source_schedule_policies ORDER BY source_key;`
+2. Force one source to become due by backdating last success:
+   `UPDATE source_schedule_policies SET last_successful_at = NOW() - INTERVAL '2 days' WHERE source_key = 'fred_fedfunds';`
+3. Hard reset schedule state for all sources:
+   `DELETE FROM source_schedule_policies;`
+
+After changing schedule state manually, trigger a new run and confirm eligibility outcomes in
+`source_eligibility_snapshots` for the latest `run_id`.

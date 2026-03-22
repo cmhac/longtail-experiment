@@ -19,12 +19,12 @@
 
 **Purpose**: Prepare repository structure and spec artifacts for feature implementation.
 
-- [ ] T001 Create spec directory structure for feature 007 in specs/007-schedule-state-persistence/
-- [ ] T002 [P] Create data-model.md documenting the source_schedule_policies entity in specs/007-schedule-state-persistence/data-model.md
-- [ ] T003 [P] Create research.md documenting technical decisions and rationale in specs/007-schedule-state-persistence/research.md
-- [ ] T004 [P] Create quickstart.md with real-world verification steps for local DB schedule state checks in specs/007-schedule-state-persistence/quickstart.md
-- [ ] T005 [P] Create schedule-state-persistence-contract.md in specs/007-schedule-state-persistence/contracts/schedule-state-persistence-contract.md
-- [ ] T006 [P] Create checklists/requirements.md with specification quality validation in specs/007-schedule-state-persistence/checklists/requirements.md
+- [x] T001 Create spec directory structure for feature 007 in specs/007-schedule-state-persistence/
+- [x] T002 [P] Create data-model.md documenting the source_schedule_policies entity in specs/007-schedule-state-persistence/data-model.md
+- [x] T003 [P] Create research.md documenting technical decisions and rationale in specs/007-schedule-state-persistence/research.md
+- [x] T004 [P] Create quickstart.md with real-world verification steps for local DB schedule state checks in specs/007-schedule-state-persistence/quickstart.md
+- [x] T005 [P] Create schedule-state-persistence-contract.md in specs/007-schedule-state-persistence/contracts/schedule-state-persistence-contract.md
+- [x] T006 [P] Create checklists/requirements.md with specification quality validation in specs/007-schedule-state-persistence/checklists/requirements.md
 
 ---
 
@@ -34,9 +34,9 @@
 
 **⚠️ CRITICAL**: No user story phase should start until this phase is complete.
 
-- [ ] T007 Add `read_all_schedule_policies() -> dict[str, dict[str, Any]]` method to PostgresRunRepository that SELECT all rows from source_schedule_policies keyed by source_key in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
-- [ ] T008 Add `upsert_schedule_policy(source_key, cadence_type, last_successful_at, updated_at)` method to PostgresRunRepository using INSERT ON CONFLICT (source_key) DO UPDATE in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
-- [ ] T009 Extend `clear_all()` in PostgresRunRepository to also DELETE FROM source_schedule_policies for test isolation in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T007 Add `read_all_schedule_policies() -> dict[str, dict[str, Any]]` method to PostgresRunRepository that SELECT all rows from source_schedule_policies keyed by source_key in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T008 Add `upsert_schedule_policy(source_key, cadence_type, last_successful_at, updated_at)` method to PostgresRunRepository using INSERT ON CONFLICT (source_key) DO UPDATE in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T009 Extend `clear_all()` in PostgresRunRepository to also DELETE FROM source_schedule_policies for test isolation in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
 
 **Checkpoint**: Repository methods exist and are callable; user stories can begin.
 
@@ -50,16 +50,16 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T010 [P] [US1] Add unit test asserting coordinator marks source not_due when DB reports a recent last_successful_at within cadence window in apps/pipeline/tests/orchestration/test_run_coordinator.py
-- [ ] T011 [P] [US1] Add unit test asserting coordinator marks source due when DB reports a stale last_successful_at outside cadence window in apps/pipeline/tests/orchestration/test_run_coordinator.py
-- [ ] T012 [P] [US1] Add integration test for read_all_schedule_policies returning empty dict when table has no rows in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
-- [ ] T013 [P] [US1] Add integration test for read_all_schedule_policies returning all inserted source keys in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
+- [x] T010 [P] [US1] Add unit test asserting coordinator marks source not_due when DB reports a recent last_successful_at within cadence window in apps/pipeline/tests/orchestration/test_run_coordinator.py
+- [x] T011 [P] [US1] Add unit test asserting coordinator marks source due when DB reports a stale last_successful_at outside cadence window in apps/pipeline/tests/orchestration/test_run_coordinator.py
+- [x] T012 [P] [US1] Add integration test for read_all_schedule_policies returning empty dict when table has no rows in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
+- [x] T013 [P] [US1] Add integration test for read_all_schedule_policies returning all inserted source keys in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Add `dataclasses.replace` import to run_coordinator.py in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T015 [US1] Add `_hydrate_schedule_policies(registrations, db_policies)` static method to RunCoordinator that patches last_successful_at from DB rows onto each registration's schedule policy using model_copy and dataclasses.replace in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T016 [US1] Wire DB policy read path into RunCoordinator.run() before \_build_eligibility_decisions(): call read_all_schedule_policies via getattr, then call \_hydrate_schedule_policies with the result in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T014 [US1] Add `dataclasses.replace` import to run_coordinator.py in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T015 [US1] Add `_hydrate_schedule_policies(registrations, db_policies)` static method to RunCoordinator that patches last_successful_at from DB rows onto each registration's schedule policy using model_copy and dataclasses.replace in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T016 [US1] Wire DB policy read path into RunCoordinator.run() before \_build_eligibility_decisions(): call read_all_schedule_policies via getattr, then call \_hydrate_schedule_policies with the result in apps/pipeline/src/orchestration/jobs/run_coordinator.py
 
 **Checkpoint**: US1 is independently functional — second immediate run produces all not_due outcomes.
 
@@ -73,13 +73,13 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T017 [P] [US2] Add unit test asserting coordinator calls upsert_schedule_policy once per successful source result after execution in apps/pipeline/tests/orchestration/test_run_coordinator.py
-- [ ] T018 [P] [US2] Add integration test asserting upsert_schedule_policy inserts a new row for a new source_key in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
-- [ ] T019 [P] [US2] Add integration test asserting upsert_schedule_policy overwrites last_successful_at on a second call for the same source_key in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
+- [x] T017 [P] [US2] Add unit test asserting coordinator calls upsert_schedule_policy once per successful source result after execution in apps/pipeline/tests/orchestration/test_run_coordinator.py
+- [x] T018 [P] [US2] Add integration test asserting upsert_schedule_policy inserts a new row for a new source_key in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
+- [x] T019 [P] [US2] Add integration test asserting upsert_schedule_policy overwrites last_successful_at on a second call for the same source_key in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Wire DB policy write path into RunCoordinator.run() after execution: for each source_result with status "success" and a non-None schedule_policy, call upsert_schedule_policy via getattr with completed_at as last_successful_at in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T020 [US2] Wire DB policy write path into RunCoordinator.run() after execution: for each source_result with status "success" and a non-None schedule_policy, call upsert_schedule_policy via getattr with completed_at as last_successful_at in apps/pipeline/src/orchestration/jobs/run_coordinator.py
 
 **Checkpoint**: US1 and US2 are independently functional — schedule state survives process restart.
 
@@ -93,13 +93,13 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T021 [P] [US3] Add integration test asserting clear_all() removes source_schedule_policies rows alongside other runtime tables in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
-- [ ] T022 [P] [US3] Add integration test: run full Dagster ingest_job, confirm source_schedule_policies rows are created for all registered sources in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T021 [P] [US3] Add integration test asserting clear_all() removes source_schedule_policies rows alongside other runtime tables in apps/pipeline/tests/orchestration/test_schedule_policy_persistence.py
+- [x] T022 [P] [US3] Add integration test: run full Dagster ingest_job, confirm source_schedule_policies rows are created for all registered sources in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Update test_ingest_job_runtime.py carry-forward test to call clear_all() before acquiring locks so prior schedule state does not cause sources to appear not_due instead of deferred in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
-- [ ] T024 [US3] Document SQL commands for inspecting, backdating, and clearing source schedule state in specs/007-schedule-state-persistence/quickstart.md
+- [x] T023 [US3] Update test_ingest_job_runtime.py carry-forward test to call clear_all() before acquiring locks so prior schedule state does not cause sources to appear not_due instead of deferred in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T024 [US3] Document SQL commands for inspecting, backdating, and clearing source schedule state in specs/007-schedule-state-persistence/quickstart.md
 
 **Checkpoint**: All user stories functional; operator reset workflow documented and verified.
 
@@ -109,10 +109,10 @@
 
 **Purpose**: Final validation, documentation sync, and quality gate confirmation.
 
-- [ ] T025 [P] Update quickstart.md with real verification output from live DB runs (run 1 all-due, run 2 all not_due, backdate + run 3 selective due) in specs/007-schedule-state-persistence/quickstart.md
-- [ ] T026 [P] Update docs/runbooks/local-stack-baseline.md with schedule state inspection and reset procedures in docs/runbooks/local-stack-baseline.md
-- [ ] T027 Run full pipeline quality gate suite and confirm ≥90% coverage in apps/pipeline
-- [ ] T028 Update AGENTS.md if any new canonical commands or workflows are introduced in AGENTS.md
+- [x] T025 [P] Update quickstart.md with real verification output from live DB runs (run 1 all-due, run 2 all not_due, backdate + run 3 selective due) in specs/007-schedule-state-persistence/quickstart.md
+- [x] T026 [P] Update docs/runbooks/local-stack-baseline.md with schedule state inspection and reset procedures in docs/runbooks/local-stack-baseline.md
+- [x] T027 Run full pipeline quality gate suite and confirm ≥90% coverage in apps/pipeline
+- [x] T028 Update AGENTS.md if any new canonical commands or workflows are introduced in AGENTS.md
 
 ---
 
