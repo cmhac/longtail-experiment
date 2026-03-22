@@ -39,6 +39,20 @@ class _ObservationRepo:
         return list(self._rows)
 
 
+class _DualModeObservationRepo:
+    """Repository exposing both write methods to assert upsert_observation precedence."""
+
+    def __init__(self) -> None:
+        self.observation_calls = 0
+        self.value_calls = 0
+
+    def upsert_observation(self, observation: _Observation) -> None:
+        self.observation_calls += 1
+
+    def upsert_value(self, _series_key: object, _observed_on: object, _value: object) -> None:
+        self.value_calls += 1
+
+
 def test_mixed_frequency_payloads_are_ingested_to_canonical_store() -> None:
     """Daily and monthly payloads should persist as canonical rows."""
     repo = _ObservationRepo()
@@ -98,3 +112,25 @@ def test_invalid_payload_raises_contract_validation_error() -> None:
                 "value": "4.3",
             }
         )
+
+
+def test_canonical_ingest_prefers_upsert_observation_when_available() -> None:
+    """Canonical service should use upsert_observation when repository supports both APIs."""
+    repo = _DualModeObservationRepo()
+    service = CanonicalIngestService(repository=repo)
+
+    service.ingest_payload(
+        {
+            "source_name": "FRED",
+            "source_type": "external",
+            "series_key": "INT.US.FEDFUNDS",
+            "metric_name": "Effective Federal Funds Rate",
+            "frequency": "daily",
+            "date": "2026-01-02",
+            "reported_at": "2026-01-02T12:00:00Z",
+            "value": "4.3",
+        }
+    )
+
+    assert repo.observation_calls == 1
+    assert repo.value_calls == 0

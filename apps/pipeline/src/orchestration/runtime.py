@@ -13,16 +13,14 @@ from .jobs.source_ingest_runner import SourceIngestRunner
 from .jobs.source_schedule_policy import SourceSchedulePolicy
 from .jobs.sources.dummy_source import build_dummy_source_workflow
 from .jobs.sources.example_source import build_example_source_workflow
+from .jobs.sources.fred_fedfunds_source import (
+    FRED_FEDFUNDS_SOURCE_KEY,
+    build_fred_fedfunds_source_workflow,
+)
 from .jobs.workflow_registry import SourceWorkflowRegistry
+from .resources.postgres_observation_repository import PostgresObservationRepository
 from .resources.postgres_run_repository import PostgresRunRepository
 from .resources.source_lock_service import SourceLockService
-
-
-class _DiscardingObservationRepository:
-    """No-op observation repository used until canonical DB tables are migrated."""
-
-    def upsert_observation(self, _observation: object) -> None:
-        """Accept validated observations without retaining in-memory runtime state."""
 
 
 @dataclass(frozen=True)
@@ -39,7 +37,8 @@ class IngestRuntime:
 def build_ingest_runtime() -> IngestRuntime:
     """Build the default ingest runtime used by Dagster definitions."""
     run_repository = PostgresRunRepository()
-    canonical_service = CanonicalIngestService(repository=_DiscardingObservationRepository())
+    observation_repository = PostgresObservationRepository()
+    canonical_service = CanonicalIngestService(repository=observation_repository)
     runner = SourceIngestRunner(canonical_ingest_service=canonical_service)
 
     registry = SourceWorkflowRegistry()
@@ -57,6 +56,16 @@ def build_ingest_runtime() -> IngestRuntime:
             runner,
             schedule_policy=SourceSchedulePolicy(
                 source_key="example_source",
+                cadence_type="daily",
+            ),
+        )
+    )
+    registry.register(
+        build_fred_fedfunds_source_workflow(
+            runner,
+            observation_repository=observation_repository,
+            schedule_policy=SourceSchedulePolicy(
+                source_key=FRED_FEDFUNDS_SOURCE_KEY,
                 cadence_type="daily",
             ),
         )

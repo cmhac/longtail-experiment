@@ -1,10 +1,13 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-21
+Auto-generated from all feature plans. Last updated: 2026-03-22
 
 ## Active Technologies
+
 - Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling (006-parallel-source-scheduling)
 - PostgreSQL 16 local runtime DB persisted via `ingestion_runs` and `source_run_outcomes` tables (006-parallel-source-scheduling)
+- Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, requests/httpx adapter for external provider calls, uv, pytes (008-add-fred-source)
+- PostgreSQL 16 local runtime DB; existing runtime tables plus new canonical observation persistence path (currently missing in runtime wiring) (008-add-fred-source)
 
 - Python 3.12 (pipeline and shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, structlog, OpenTelemetry API/SDK, Nx workspace tooling (005-dagster-ingest-pipeline)
 - PostgreSQL 16 local dev database with relational time-series persistence and migration authority under `libs/db/alembic` (005-dagster-ingest-pipeline)
@@ -130,7 +133,7 @@ Local stack and duplication:
 - docker compose ps
 - docker compose down
 
-Current migration head expected by local revision checks: `0003_sched_eligibility`.
+Current migration head expected by local revision checks: `0004_observation_store`.
 
 ## Code Style
 
@@ -142,12 +145,11 @@ Current migration head expected by local revision checks: `0003_sched_eligibilit
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
+- 008-add-fred-source: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, requests/httpx adapter for external provider calls, uv, pytes
 - 006-parallel-source-scheduling: Added Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling
 
 - 005-dagster-ingest-pipeline: Added Python 3.12 (pipeline and shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, structlog, OpenTelemetry API/SDK, Nx workspace tooling
-
-- 004-local-dev-db: Added Python 3.12 (backend and pipeline tooling), shell scripts for local verification + Docker Compose, PostgreSQL 16 image for local DB service, SQLAlchemy 2.x, Alembic, psycopg 3.x, uv, pytest, Nx quality scripts
-
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.

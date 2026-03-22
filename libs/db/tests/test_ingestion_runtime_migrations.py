@@ -70,3 +70,46 @@ def test_schedule_eligibility_migration_creates_expected_tables() -> None:
         "source_eligibility_snapshots",
     ):
         assert f'"{table_name}"' in migration_text
+
+
+def test_observation_store_migration_metadata() -> None:
+    file_path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0004_observation_store.py"
+    )
+    spec = spec_from_file_location("observation_store", file_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.revision == "0004_observation_store"
+    assert module.down_revision == "0003_sched_eligibility"
+
+
+def test_observation_store_migration_creates_expected_tables() -> None:
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0004_observation_store.py"
+    ).read_text(encoding="utf-8")
+
+    for table_name in (
+        "data_series",
+        "observations",
+    ):
+        assert f'"{table_name}"' in migration_text
+
+    for required_fragment in (
+        '"source_profiles"',
+        '"frequency_granularity"',
+        '"created_at"',
+        '"source_profile_id"',
+        '"series_id"',
+        '"attributes"',
+        '"uq_observation_series_date"',
+    ):
+        assert required_fragment in migration_text

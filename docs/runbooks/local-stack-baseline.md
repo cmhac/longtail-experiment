@@ -96,3 +96,29 @@ Use these SQL helpers to inspect and control schedule persistence in local troub
 
 After changing schedule state manually, trigger a new run and confirm eligibility outcomes in
 `source_eligibility_snapshots` for the latest `run_id`.
+
+## Feature Gap Triage and Escalation (Feature 008)
+
+Use this when implementation reveals a blocker that prevents expected FRED ingest behavior.
+
+1. Confirm the blocker is reproducible with one exact command and one exact failure signal.
+2. Add or update a row in `specs/008-add-fred-source/spec.md` under the Gap Log table.
+3. Update `specs/008-add-fred-source/plan.md` if architecture, migration, or contract scope changes.
+4. Add corresponding test and implementation tasks in `specs/008-add-fred-source/tasks.md`.
+5. Escalate to the feature owner if the blocker affects migration safety, contract integrity,
+   or local-stack runability.
+
+Escalation package must include:
+
+- Failing command and abbreviated output
+- Reproduction preconditions (env vars, migration head, trigger type)
+- Proposed owner and resolution target
+- Deferral rationale if immediate fix is not possible
+
+Feature 008 implementation delta (resolved):
+
+- Symptom: `column "series_key" does not exist` while reading observations.
+- Cause: repository query expected `observations.series_key`, but contract schema uses
+  `observations.series_id` with `data_series.series_key` join.
+- Resolution: use repository code that writes/reads through
+  `source_profiles` -> `data_series` -> `observations(series_id)` and query series key via join.
