@@ -67,3 +67,29 @@
 
 - Introduce a dedicated standalone Dagit test suite: rejected because it duplicates existing orchestration coverage and increases maintenance cost.
 - Skip automated checks and rely on manual validation: rejected due to coverage and reliability constraints.
+
+---
+
+### Decision 6: Install dagster-webserver as a required local Dagit dependency
+
+**Decision**: Add `dagster-webserver` to `apps/pipeline` dependencies so `dagster dev` can launch the local Dagit UI.
+
+**Rationale**: Startup validation showed `dagster dev` fails without this package, blocking the core feature outcome.
+
+**Alternatives considered**:
+
+- Keep dependency undocumented and require manual local installation: rejected because it breaks repeatability across developer environments.
+- Replace Dagit startup with a custom placeholder UI process: rejected because it does not validate real orchestration workspace behavior.
+
+---
+
+### Decision 7: Surface deterministic local failure categories and remediation hints in helper scripts
+
+**Decision**: Emit stable failure categories and remediation hints from startup and endpoint verification helpers.
+
+**Rationale**: Deterministic categories (`prerequisite_missing`, `endpoint_unavailable`, `workspace_load_failed`, `partial_environment`) enable repeatable troubleshooting and direct mapping to runbook guidance.
+
+**Alternatives considered**:
+
+- Keep free-form error messages only: rejected because they are harder to automate and compare across runs.
+- Restrict failure signaling to exit codes alone: rejected because operators need actionable context without log deep-dives.

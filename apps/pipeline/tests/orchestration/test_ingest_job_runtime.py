@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 from uuid import uuid4
@@ -13,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.definitions import defs, get_ingest_runtime
 from src.orchestration.jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
+from src.orchestration.jobs.workflow_result import map_dagit_failure_category
 from src.orchestration.resources.postgres_observation_repository import (
     PostgresObservationRepository,
 )
@@ -177,3 +179,60 @@ def test_ingest_job_second_run_adds_no_duplicate_fred_observations() -> None:
     after_second = observation_repo.read_series_observations(series_key="INT.US.FEDFUNDS")
 
     assert len(after_second) == len(after_first)
+
+
+def test_dagit_start_helper_reports_ready_for_existing_live_pid() -> None:
+    """Startup helper should report ready when a live pid file already exists."""
+    repo_root = Path(__file__).resolve().parents[4]
+    tmp_dir = repo_root / ".tmp"
+    pid_file = tmp_dir / "dagit-local.pid"
+
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    pid_file.write_text(f"{os.getpid()}\n", encoding="utf-8")
+
+    try:
+        completed = subprocess.run(
+            ["bash", "tools/quality/local-stack/start-dagit-local.sh"],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        assert completed.returncode == 0
+        assert "DAGIT_START_STATUS=ready" in completed.stdout
+    finally:
+        pid_file.unlink(missing_ok=True)
+
+
+def test_definitions_detail_navigation_readiness_for_ingest_job() -> None:
+    """Definitions should expose ingest job detail metadata for Dagit detail views."""
+    ingest_def = defs.get_job_def("ingest_job")
+    node_names = {node.name for node in ingest_def.graph.node_defs}
+
+    assert ingest_def.name == "ingest_job"
+    assert "execute_ingest_run" in node_names
+
+
+def test_workspace_load_failure_category_mapping() -> None:
+    """Workspace mismatch should map to workspace_load_failed category."""
+    assert (
+        map_dagit_failure_category(
+            prerequisites_ready=True,
+            endpoint_reachable=True,
+            workspace_loaded=False,
+        )
+        == "workspace_load_failed"
+    )
+
+
+def test_partial_environment_failure_category_mapping() -> None:
+    """Degraded state fallback should map to partial_environment category."""
+    assert (
+        map_dagit_failure_category(
+            prerequisites_ready=True,
+            endpoint_reachable=True,
+            workspace_loaded=True,
+        )
+        == "partial_environment"
+    )

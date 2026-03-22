@@ -14,7 +14,10 @@ from src.orchestration.jobs.workflow_registry import (
     SourceWorkflowRegistry,
 )
 from src.orchestration.jobs.workflow_request import SourceWorkflowRequest
-from src.orchestration.jobs.workflow_result import SourceWorkflowResult
+from src.orchestration.jobs.workflow_result import (
+    SourceWorkflowResult,
+    map_dagit_failure_category,
+)
 
 
 def _handler(request: SourceWorkflowRequest) -> SourceWorkflowResult:
@@ -75,3 +78,51 @@ def test_registry_rejects_unknown_source_execution() -> None:
                 run_context={},
             )
         )
+
+
+def test_map_dagit_failure_category_for_missing_prerequisites() -> None:
+    """Prerequisite probe failure should map to prerequisite_missing category."""
+    assert (
+        map_dagit_failure_category(
+            prerequisites_ready=False,
+            endpoint_reachable=False,
+            workspace_loaded=False,
+        )
+        == "prerequisite_missing"
+    )
+
+
+def test_map_dagit_failure_category_for_unreachable_endpoint() -> None:
+    """Endpoint probe failure should map to endpoint_unavailable category."""
+    assert (
+        map_dagit_failure_category(
+            prerequisites_ready=True,
+            endpoint_reachable=False,
+            workspace_loaded=False,
+        )
+        == "endpoint_unavailable"
+    )
+
+
+def test_map_dagit_failure_category_for_workspace_load_failure() -> None:
+    """Loaded endpoint with missing workspace should map to workspace_load_failed category."""
+    assert (
+        map_dagit_failure_category(
+            prerequisites_ready=True,
+            endpoint_reachable=True,
+            workspace_loaded=False,
+        )
+        == "workspace_load_failed"
+    )
+
+
+def test_map_dagit_failure_category_for_fallback_partial_environment() -> None:
+    """Unexpected degraded state should map to partial_environment category."""
+    assert (
+        map_dagit_failure_category(
+            prerequisites_ready=True,
+            endpoint_reachable=True,
+            workspace_loaded=True,
+        )
+        == "partial_environment"
+    )

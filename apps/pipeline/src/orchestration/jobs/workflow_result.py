@@ -6,6 +6,29 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+DagitFailureCategory = Literal[
+    "prerequisite_missing",
+    "endpoint_unavailable",
+    "workspace_load_failed",
+    "partial_environment",
+]
+
+
+def map_dagit_failure_category(
+    *,
+    prerequisites_ready: bool,
+    endpoint_reachable: bool,
+    workspace_loaded: bool,
+) -> DagitFailureCategory:
+    """Map startup probe state into stable local Dagit failure categories."""
+    if not prerequisites_ready:
+        return "prerequisite_missing"
+    if not endpoint_reachable:
+        return "endpoint_unavailable"
+    if not workspace_loaded:
+        return "workspace_load_failed"
+    return "partial_environment"
+
 
 class SourceWorkflowResult(BaseModel):
     """Source-scoped terminal execution result with outcome counters."""

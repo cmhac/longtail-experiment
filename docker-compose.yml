@@ -71,5 +71,46 @@ services:
       timeout: 3s
       retries: 6
 
+  dagit:
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm
+    env_file:
+      - docker/compose/stack.env
+    environment:
+      UV_HTTP_TIMEOUT: "180"
+      UV_HTTP_RETRIES: "5"
+      LOCAL_DB_HOST: db
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${LOCAL_DB_NAME:-longtail_local}
+      LOCAL_DB_USER: ${LOCAL_DB_USER:-longtail}
+      LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
+      DAGSTER_HOME: /workspace/.tmp/dagster-home
+    working_dir: /workspace
+    command:
+      [
+        "sh",
+        "-c",
+        'mkdir -p "$${DAGSTER_HOME}" && uv sync --project apps/pipeline --frozen && uv run --project apps/pipeline dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
+      ]
+    volumes:
+      - ./:/workspace
+      - dagit_pipeline_venv:/workspace/apps/pipeline/.venv
+      - dagit_uv_cache:/root/.cache/uv
+    ports:
+      - "${DAGIT_PORT:-3001}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:3000'', timeout=2)" || exit 1',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
 volumes:
   local_db_data:
+  dagit_pipeline_venv:
+  dagit_uv_cache:

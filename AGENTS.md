@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-22
 
 ## Active Technologies
+
 - Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling (009-dagit-local-dev)
 - PostgreSQL 16 local runtime DB (existing local stack) for orchestration-backed views where required; no new production storage introduced (009-dagit-local-dev)
 
@@ -127,6 +128,10 @@ Local stack and duplication:
 - bash tools/quality/local-stack/test-local-db-bootstrap.sh
 - bash tools/quality/local-stack/run-db-migrations.sh
 - bash tools/quality/local-stack/check-db-revision.sh
+- bash tools/quality/local-stack/start-dagit-local.sh
+- bash tools/quality/local-stack/test-dagit-endpoint.sh
+- bash tools/quality/local-stack/stop-dagit-local.sh
+- VERIFY_DAGIT_ENDPOINT=1 bash tools/quality/local-stack/test-compose-stack.sh
 - uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_ingest_job_runtime.py::test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward
 - bash tools/quality/local-stack/test-db-readiness.sh
 - uv run --project apps/backend pytest apps/backend/tests/contract/test_ingest_audit_query_contract.py apps/backend/tests/contract/test_revision_lineage_traceability.py
@@ -147,11 +152,11 @@ Current migration head expected by local revision checks: `0004_observation_stor
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
 - 009-dagit-local-dev: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling
 
 - 008-add-fred-source: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, requests/httpx adapter for external provider calls, uv, pytes
 - 006-parallel-source-scheduling: Added Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling
-
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.

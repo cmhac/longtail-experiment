@@ -10,7 +10,7 @@ Enable a reliable local developer workflow to start the Dagit UI, load existing 
 ## Technical Context
 
 **Language/Version**: Python 3.12 (pipeline/backend), TypeScript 5.x unchanged  
-**Primary Dependencies**: Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling  
+**Primary Dependencies**: Dagster 1.x with Dagit UI (`dagster-webserver`), existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling  
 **Storage**: PostgreSQL 16 local runtime DB (existing local stack) for orchestration-backed views where required; no new production storage introduced  
 **Testing**: pytest + pytest-cov for pipeline tests; existing quality commands under Nx/pnpm and local-stack verification scripts  
 **Target Platform**: macOS/Linux local development environments  
@@ -125,3 +125,9 @@ See `quickstart.md` for prerequisites, startup commands, verification flow, and 
 2. Definition visibility and smoke/integration test coverage.
 3. Troubleshooting diagnostics and operator-facing documentation updates.
 4. End-to-end local quality and acceptance verification commands.
+
+## Implementation Finalization Notes
+
+- Local Dagit startup required adding `dagster-webserver` to the pipeline project dependencies.
+- Runtime now exposes explicit Dagit verification helpers for resource and source registration checks.
+- Local stack verification accepts `VERIFY_DAGIT_ENDPOINT=1` to include Dagit endpoint/workspace checks.

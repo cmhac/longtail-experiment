@@ -25,11 +25,11 @@
 
 **Purpose**: Prepare local Dagit command entrypoints and documentation scaffolding.
 
-- [ ] T001 Add Dagit local startup helper script in tools/quality/local-stack/start-dagit-local.sh
-- [ ] T002 [P] Add Dagit local stop helper script in tools/quality/local-stack/stop-dagit-local.sh
-- [ ] T003 [P] Add Dagit endpoint readiness probe helper in tools/quality/local-stack/test-dagit-endpoint.sh
-- [ ] T004 [P] Add Dagit quickstart placeholders aligned to this feature in specs/009-dagit-local-dev/quickstart.md
-- [ ] T005 [P] Add runbook section stub for Dagit local workflow in docs/runbooks/local-stack-baseline.md
+- [x] T001 Add Dagit local startup helper script in tools/quality/local-stack/start-dagit-local.sh
+- [x] T002 [P] Add Dagit local stop helper script in tools/quality/local-stack/stop-dagit-local.sh
+- [x] T003 [P] Add Dagit endpoint readiness probe helper in tools/quality/local-stack/test-dagit-endpoint.sh
+- [x] T004 [P] Add Dagit quickstart placeholders aligned to this feature in specs/009-dagit-local-dev/quickstart.md
+- [x] T005 [P] Add runbook section stub for Dagit local workflow in docs/runbooks/local-stack-baseline.md
 
 ---
 
@@ -39,14 +39,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Wire Dagit workspace entrypoint to existing definitions in apps/pipeline/src/orchestration/definitions.py
-- [ ] T007 Add Dagit runtime resource wiring verification in apps/pipeline/src/orchestration/runtime.py
-- [ ] T008 [P] Add foundational package export coverage for Dagit entrypoint in apps/pipeline/tests/orchestration/test_orchestration_package_exports.py
-- [ ] T009 [P] Add foundational definitions smoke checks for Dagit loadability in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T010 Implement failure category mapping utility for local Dagit startup checks in apps/pipeline/src/orchestration/jobs/workflow_result.py
-- [ ] T011 [P] Add unit tests for Dagit failure category mapping in apps/pipeline/tests/orchestration/test_workflow_registry.py
-- [ ] T012 Add local-stack verification command for Dagit endpoint checks in tools/quality/local-stack/test-compose-stack.sh
-- [ ] T013 Run foundational quality gates and capture verified commands in specs/009-dagit-local-dev/quickstart.md
+- [x] T006 Wire Dagit workspace entrypoint to existing definitions in apps/pipeline/src/orchestration/definitions.py
+- [x] T007 Add Dagit runtime resource wiring verification in apps/pipeline/src/orchestration/runtime.py
+- [x] T008 [P] Add foundational package export coverage for Dagit entrypoint in apps/pipeline/tests/orchestration/test_orchestration_package_exports.py
+- [x] T009 [P] Add foundational definitions smoke checks for Dagit loadability in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T010 Implement failure category mapping utility for local Dagit startup checks in apps/pipeline/src/orchestration/jobs/workflow_result.py
+- [x] T011 [P] Add unit tests for Dagit failure category mapping in apps/pipeline/tests/orchestration/test_workflow_registry.py
+- [x] T012 Add local-stack verification command for Dagit endpoint checks in tools/quality/local-stack/test-compose-stack.sh
+- [x] T013 Run foundational quality gates and capture verified commands in specs/009-dagit-local-dev/quickstart.md
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
 
@@ -60,18 +60,18 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T014 [P] [US1] Add integration test for Dagit startup command success path in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
-- [ ] T015 [P] [US1] Add integration test for endpoint readiness probe behavior in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T016 [P] [US1] Add failure-path test for incorrect working directory startup in apps/pipeline/tests/orchestration/test_orchestration_package_exports.py
+- [x] T014 [P] [US1] Add integration test for Dagit startup command success path in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T015 [P] [US1] Add integration test for endpoint readiness probe behavior in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T016 [P] [US1] Add failure-path test for incorrect working directory startup in apps/pipeline/tests/orchestration/test_orchestration_package_exports.py
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement startup command invocation flow for local Dagit in tools/quality/local-stack/start-dagit-local.sh
-- [ ] T018 [US1] Implement startup readiness output and exit semantics in tools/quality/local-stack/start-dagit-local.sh
-- [ ] T019 [US1] Implement stop command behavior for local Dagit process cleanup in tools/quality/local-stack/stop-dagit-local.sh
-- [ ] T020 [US1] Implement endpoint probe retry and timeout behavior in tools/quality/local-stack/test-dagit-endpoint.sh
-- [ ] T021 [US1] Document startup and endpoint verification workflow in specs/009-dagit-local-dev/quickstart.md
-- [ ] T022 [US1] Verify US1 coverage contribution maintains >= 90% in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T017 [US1] Implement startup command invocation flow for local Dagit in tools/quality/local-stack/start-dagit-local.sh
+- [x] T018 [US1] Implement startup readiness output and exit semantics in tools/quality/local-stack/start-dagit-local.sh
+- [x] T019 [US1] Implement stop command behavior for local Dagit process cleanup in tools/quality/local-stack/stop-dagit-local.sh
+- [x] T020 [US1] Implement endpoint probe retry and timeout behavior in tools/quality/local-stack/test-dagit-endpoint.sh
+- [x] T021 [US1] Document startup and endpoint verification workflow in specs/009-dagit-local-dev/quickstart.md
+- [x] T022 [US1] Verify US1 coverage contribution maintains >= 90% in apps/pipeline/tests/orchestration/test_definitions_smoke.py
 
 **Checkpoint**: User Story 1 is independently functional and demo-ready.
 
@@ -85,17 +85,17 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T023 [P] [US2] Add integration test asserting definitions listing visibility in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T024 [P] [US2] Add integration test asserting definition detail navigation success in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
-- [ ] T025 [P] [US2] Add regression test for empty-workspace detection in apps/pipeline/tests/orchestration/test_orchestration_package_exports.py
+- [x] T023 [P] [US2] Add integration test asserting definitions listing visibility in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T024 [P] [US2] Add integration test asserting definition detail navigation success in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T025 [P] [US2] Add regression test for empty-workspace detection in apps/pipeline/tests/orchestration/test_orchestration_package_exports.py
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Ensure definitions catalog registration includes existing jobs and schedules in apps/pipeline/src/orchestration/definitions.py
-- [ ] T027 [US2] Ensure runtime startup surfaces workspace load state for local UI checks in apps/pipeline/src/orchestration/runtime.py
-- [ ] T028 [US2] Implement definition visibility verification helper for local workflow in tools/quality/local-stack/test-dagit-endpoint.sh
-- [ ] T029 [US2] Document definition visibility and detail-view verification steps in specs/009-dagit-local-dev/quickstart.md
-- [ ] T030 [US2] Verify US2 coverage contribution maintains >= 90% in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T026 [US2] Ensure definitions catalog registration includes existing jobs and schedules in apps/pipeline/src/orchestration/definitions.py
+- [x] T027 [US2] Ensure runtime startup surfaces workspace load state for local UI checks in apps/pipeline/src/orchestration/runtime.py
+- [x] T028 [US2] Implement definition visibility verification helper for local workflow in tools/quality/local-stack/test-dagit-endpoint.sh
+- [x] T029 [US2] Document definition visibility and detail-view verification steps in specs/009-dagit-local-dev/quickstart.md
+- [x] T030 [US2] Verify US2 coverage contribution maintains >= 90% in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
 
 **Checkpoint**: User Stories 1 and 2 are independently functional with local UI visibility verified.
 
@@ -109,17 +109,17 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T031 [P] [US3] Add test coverage for prerequisite-missing failure categorization in apps/pipeline/tests/orchestration/test_workflow_registry.py
-- [ ] T032 [P] [US3] Add test coverage for endpoint-unavailable failure categorization in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T033 [P] [US3] Add test coverage for workspace-load-failed and partial-environment categorization in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T031 [P] [US3] Add test coverage for prerequisite-missing failure categorization in apps/pipeline/tests/orchestration/test_workflow_registry.py
+- [x] T032 [P] [US3] Add test coverage for endpoint-unavailable failure categorization in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T033 [P] [US3] Add test coverage for workspace-load-failed and partial-environment categorization in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Implement troubleshooting classification output in tools/quality/local-stack/start-dagit-local.sh
-- [ ] T035 [US3] Implement remediation hint output per failure category in tools/quality/local-stack/test-dagit-endpoint.sh
-- [ ] T036 [US3] Add complete troubleshooting matrix and recovery verification steps in docs/runbooks/local-stack-baseline.md
-- [ ] T037 [US3] Add troubleshooting validation walkthrough in specs/009-dagit-local-dev/quickstart.md
-- [ ] T038 [US3] Verify US3 coverage contribution maintains >= 90% in apps/pipeline/tests/orchestration/test_workflow_registry.py
+- [x] T034 [US3] Implement troubleshooting classification output in tools/quality/local-stack/start-dagit-local.sh
+- [x] T035 [US3] Implement remediation hint output per failure category in tools/quality/local-stack/test-dagit-endpoint.sh
+- [x] T036 [US3] Add complete troubleshooting matrix and recovery verification steps in docs/runbooks/local-stack-baseline.md
+- [x] T037 [US3] Add troubleshooting validation walkthrough in specs/009-dagit-local-dev/quickstart.md
+- [x] T038 [US3] Verify US3 coverage contribution maintains >= 90% in apps/pipeline/tests/orchestration/test_workflow_registry.py
 
 **Checkpoint**: All user stories are independently functional with repeatable troubleshooting.
 
@@ -129,15 +129,15 @@
 
 **Purpose**: Final hardening, documentation fidelity, and quality verification across all stories.
 
-- [ ] T039 [P] Align plan and research artifacts with implementation-final decisions in specs/009-dagit-local-dev/plan.md
-- [ ] T040 [P] Capture final verified startup/verification command outputs in specs/009-dagit-local-dev/quickstart.md
-- [ ] T041 [P] Update onboarding notes for local Dagit workflow in docs/onboarding/monorepo-baseline.md
-- [ ] T042 [P] Ensure command/toolchain references remain current in AGENTS.md
-- [ ] T043 Run full affected quality suite and record pass outcomes in specs/009-dagit-local-dev/quickstart.md
-- [ ] T044 Run local stack verification including Dagit startup and endpoint checks in tools/quality/local-stack/test-compose-stack.sh
-- [ ] T045 Execute timed startup benchmark (5 runs) and record median and p95 startup-to-landing-page duration against the <=10 minute criterion in specs/009-dagit-local-dev/quickstart.md
-- [ ] T046 Execute and document one uninterrupted end-to-end validation (start UI, confirm listing, open one detail page) with pass/fail evidence in specs/009-dagit-local-dev/quickstart.md
-- [ ] T047 Define troubleshooting validation sample protocol (issue set, pass criteria, denominator) and record measured resolution rate in specs/009-dagit-local-dev/quickstart.md
+- [x] T039 [P] Align plan and research artifacts with implementation-final decisions in specs/009-dagit-local-dev/plan.md
+- [x] T040 [P] Capture final verified startup/verification command outputs in specs/009-dagit-local-dev/quickstart.md
+- [x] T041 [P] Update onboarding notes for local Dagit workflow in docs/onboarding/monorepo-baseline.md
+- [x] T042 [P] Ensure command/toolchain references remain current in AGENTS.md
+- [x] T043 Run full affected quality suite and record pass outcomes in specs/009-dagit-local-dev/quickstart.md
+- [x] T044 Run local stack verification including Dagit startup and endpoint checks in tools/quality/local-stack/test-compose-stack.sh
+- [x] T045 Execute timed startup benchmark (5 runs) and record median and p95 startup-to-landing-page duration against the <=10 minute criterion in specs/009-dagit-local-dev/quickstart.md
+- [x] T046 Execute and document one uninterrupted end-to-end validation (start UI, confirm listing, open one detail page) with pass/fail evidence in specs/009-dagit-local-dev/quickstart.md
+- [x] T047 Define troubleshooting validation sample protocol (issue set, pass criteria, denominator) and record measured resolution rate in specs/009-dagit-local-dev/quickstart.md
 
 ---
 

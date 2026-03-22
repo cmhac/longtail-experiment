@@ -6,11 +6,42 @@
 2. Run docker compose ps
 3. Optional: verify DB bootstrap only with bash tools/quality/local-stack/test-local-db-bootstrap.sh
 
+## Dagit Local Workflow (Feature 009)
+
+Dagit is available as a Docker Compose service in this stack. Use these helpers from repository root to run and verify the local orchestration UI.
+
+0. Start stack services (includes Dagit):
+   - `docker compose up -d`
+
+1. Start Dagit:
+   - `bash tools/quality/local-stack/start-dagit-local.sh`
+2. Verify endpoint and workspace load:
+   - `bash tools/quality/local-stack/test-dagit-endpoint.sh`
+3. Stop Dagit:
+   - `bash tools/quality/local-stack/stop-dagit-local.sh`
+
+If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
+
+- `prerequisite_missing`: missing local prerequisites or wrong command context.
+- `endpoint_unavailable`: process started but endpoint is unreachable.
+- `workspace_load_failed`: UI endpoint responds but workspace definitions are not loaded.
+- `partial_environment`: startup failed due to incomplete local runtime context.
+
+### Dagit Failure Matrix
+
+| Failure Category        | Observable Symptom                                  | Likely Root Cause                                                         | Recovery Steps                                                                     | Verification Step                                                                           |
+| ----------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `prerequisite_missing`  | Helper exits immediately before endpoint probe      | Missing `uv`, wrong working directory, or incomplete dependency setup     | Install prerequisites, switch to repository root, rerun startup helper             | `bash tools/quality/local-stack/start-dagit-local.sh` returns `DAGIT_START_STATUS=ready`    |
+| `endpoint_unavailable`  | Startup reports running but endpoint check fails    | Port conflict, webserver startup failure, or process crash                | Stop conflicting process, inspect `.tmp/dagit-local.log`, restart helper           | `bash tools/quality/local-stack/test-dagit-endpoint.sh` returns `DAGIT_HEALTH_STATUS=ready` |
+| `workspace_load_failed` | Endpoint reachable but workspace verification fails | Definitions module load error or empty workspace location entries         | Validate `src.orchestration.definitions` imports and runtime wiring, restart Dagit | `DAGIT_VERIFY_WORKSPACE=1 bash tools/quality/local-stack/test-dagit-endpoint.sh` passes     |
+| `partial_environment`   | Startup helper emits fallback degraded category     | Mixed env state, stale pid/log state, or partial local stack availability | Run stop helper, clear stale state, ensure compose stack healthy, restart          | Stop/start cycle and endpoint probe both succeed                                            |
+
 ## Healthy State
 
 - pipeline service is listed and healthy.
 - backend service is listed and healthy.
 - frontend service is listed and healthy.
+- dagit service is listed and healthy.
 - db service is listed and healthy.
 
 ## Local DB Persistence Policy

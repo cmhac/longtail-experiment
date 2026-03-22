@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TypedDict
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
 
@@ -22,6 +23,20 @@ from .resources.postgres_observation_repository import PostgresObservationReposi
 from .resources.postgres_run_repository import PostgresRunRepository
 from .resources.source_lock_service import SourceLockService
 
+EXPECTED_RUNTIME_SOURCE_KEYS = (
+    "dummy_source",
+    "example_source",
+    FRED_FEDFUNDS_SOURCE_KEY,
+)
+
+
+class RuntimeWorkspaceLoadState(TypedDict):
+    """Serialized runtime state used by local Dagit verification workflows."""
+
+    workspace_loaded: bool
+    errors: list[str]
+    source_keys: tuple[str, ...]
+
 
 @dataclass(frozen=True)
 class IngestRuntime:
@@ -32,6 +47,52 @@ class IngestRuntime:
     run_repository: PostgresRunRepository
     due_source_selector: DueSourceSelector
     parallel_source_executor: ParallelSourceExecutor
+
+    def dagit_resources(self) -> dict[str, object]:
+        """Return resource bindings exposed by Dagster definitions for local UI use."""
+        return {
+            "source_lock_service": self.source_lock_service,
+            "run_coordinator": self.run_coordinator,
+            "run_repository": self.run_repository,
+            "due_source_selector": self.due_source_selector,
+            "parallel_source_executor": self.parallel_source_executor,
+        }
+
+
+def verify_runtime_wiring_for_dagit(runtime: IngestRuntime) -> tuple[bool, list[str]]:
+    """Validate that runtime wiring exposes resources and expected source registrations."""
+    errors: list[str] = []
+
+    resources = runtime.dagit_resources()
+    for key in (
+        "source_lock_service",
+        "run_coordinator",
+        "run_repository",
+        "due_source_selector",
+        "parallel_source_executor",
+    ):
+        if key not in resources:
+            errors.append(f"Missing Dagit resource: {key}")
+
+    registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - runtime validation helper
+    registered = tuple(registry.list_source_keys())
+    for key in EXPECTED_RUNTIME_SOURCE_KEYS:
+        if key not in registered:
+            errors.append(f"Missing source workflow registration: {key}")
+
+    return (len(errors) == 0, errors)
+
+
+def get_runtime_workspace_load_state(runtime: IngestRuntime) -> RuntimeWorkspaceLoadState:
+    """Expose a compact runtime load-state summary for local Dagit verification."""
+    is_valid, errors = verify_runtime_wiring_for_dagit(runtime)
+    registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - verification helper
+
+    return {
+        "workspace_loaded": is_valid,
+        "errors": errors,
+        "source_keys": tuple(registry.list_source_keys()),
+    }
 
 
 def build_ingest_runtime() -> IngestRuntime:

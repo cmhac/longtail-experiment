@@ -46,6 +46,16 @@
 - Verify current revision: bash tools/quality/local-stack/check-db-revision.sh
 - Full readiness verification: bash tools/quality/local-stack/test-db-readiness.sh
 
+## Local Dagit Commands (Feature 009)
+
+- Start Dagit compose service: docker compose up -d dagit
+- View Dagit logs: docker compose logs dagit
+- Stop Dagit compose service: docker compose stop dagit
+- Start local Dagit UI: bash tools/quality/local-stack/start-dagit-local.sh
+- Verify Dagit endpoint/workspace: bash tools/quality/local-stack/test-dagit-endpoint.sh
+- Stop local Dagit UI: bash tools/quality/local-stack/stop-dagit-local.sh
+- Run compose stack with Dagit endpoint verification: VERIFY_DAGIT_ENDPOINT=1 bash tools/quality/local-stack/test-compose-stack.sh
+
 ## Affected-only Checks
 
 - pnpm run affected:lint
