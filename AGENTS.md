@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-03-22
 
 ## Active Technologies
+- Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling (009-dagit-local-dev)
+- PostgreSQL 16 local runtime DB (existing local stack) for orchestration-backed views where required; no new production storage introduced (009-dagit-local-dev)
 
 - Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling (006-parallel-source-scheduling)
 - PostgreSQL 16 local runtime DB persisted via `ingestion_runs` and `source_run_outcomes` tables (006-parallel-source-scheduling)
@@ -145,11 +147,11 @@ Current migration head expected by local revision checks: `0004_observation_stor
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 009-dagit-local-dev: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling
 
 - 008-add-fred-source: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, requests/httpx adapter for external provider calls, uv, pytes
 - 006-parallel-source-scheduling: Added Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling
 
-- 005-dagster-ingest-pipeline: Added Python 3.12 (pipeline and shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, structlog, OpenTelemetry API/SDK, Nx workspace tooling
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.
