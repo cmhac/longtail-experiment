@@ -58,6 +58,12 @@ On-demand trigger validation:
 uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration -k ondemand
 ```
 
+Definitions wiring smoke check:
+
+```bash
+uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_definitions_smoke.py
+```
+
 Expected outcome:
 
 - Both trigger modes are supported by one orchestration entry point.
@@ -66,6 +72,12 @@ Expected outcome:
 
 ```bash
 uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration -k "partial_success or concurrency"
+```
+
+Queue and deduplicated rerun behavior:
+
+```bash
+uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_queue_policy.py
 ```
 
 Expected outcome:
@@ -77,6 +89,12 @@ Expected outcome:
 
 ```bash
 uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration -k "duplicate or conflict"
+```
+
+Backend audit projection compatibility:
+
+```bash
+uv run --project apps/backend pytest apps/backend/tests/contract/test_ingest_audit_query_contract.py apps/backend/tests/contract/test_revision_lineage_traceability.py
 ```
 
 Expected outcome:

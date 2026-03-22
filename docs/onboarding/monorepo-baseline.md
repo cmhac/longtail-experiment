@@ -62,3 +62,10 @@
 - Shared DB model tests: PYTHONPATH=libs/db/src uv run --project apps/backend pytest libs/db/tests
 - US1-US3 targeted pipeline checks: PYTHONPATH=libs/db/src uv run --project apps/pipeline pytest apps/pipeline/tests/contract/test_canonical_schema_validation.py apps/pipeline/tests/contract/test_ingest_frequency_handling.py apps/pipeline/tests/contract/test_provenance_immutability.py apps/pipeline/tests/contract/test_revision_lineage.py apps/pipeline/tests/contract/test_taxonomy_hierarchy_validation.py apps/pipeline/tests/contract/test_geography_hierarchy_validation.py
 - US1-US3 targeted backend checks: PYTHONPATH=libs/db/src uv run --project apps/backend pytest apps/backend/tests/contract/test_canonical_observation_reads.py apps/backend/tests/contract/test_provenance_audit_queries.py apps/backend/tests/contract/test_hierarchy_filter_queries.py
+
+## Ingestion Operations Guide
+
+- Run orchestration test bundle: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration
+- Validate scheduled trigger mode: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k scheduled
+- Validate on-demand trigger mode: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k ondemand
+- Validate queue and partial-success behavior: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_partial_success_status.py apps/pipeline/tests/orchestration/test_source_queue_policy.py

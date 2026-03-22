@@ -17,11 +17,11 @@
 
 **Purpose**: Establish orchestration module skeleton, test directories, and command wiring.
 
-- [ ] T001 Create orchestration package skeleton in apps/pipeline/src/orchestration/**init**.py
-- [ ] T002 [P] Create Dagster definitions entrypoint in apps/pipeline/src/orchestration/definitions.py
-- [ ] T003 [P] Add orchestration test package bootstrap in apps/pipeline/tests/orchestration/**init**.py
-- [ ] T004 [P] Add orchestration smoke test scaffold in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T005 [P] Register orchestration test target and run command wiring in apps/pipeline/project.json
+- [X] T001 Create orchestration package skeleton in apps/pipeline/src/orchestration/**init**.py
+- [X] T002 [P] Create Dagster definitions entrypoint in apps/pipeline/src/orchestration/definitions.py
+- [X] T003 [P] Add orchestration test package bootstrap in apps/pipeline/tests/orchestration/**init**.py
+- [X] T004 [P] Add orchestration smoke test scaffold in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [X] T005 [P] Register orchestration test target and run command wiring in apps/pipeline/project.json
 
 ---
 
@@ -31,16 +31,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Create run-state schema models in libs/db/src/db/models/ingestion_runtime.py
-- [ ] T007 [P] Export new runtime models in libs/db/src/db/models/**init**.py
-- [ ] T008 Create conflict persistence repository adapter in libs/db/src/db/repositories/conflict_repository.py
-- [ ] T009 [P] Create run outcome repository adapter in libs/db/src/db/repositories/run_repository.py
-- [ ] T010 [P] Export new repository adapters in libs/db/src/db/repositories/**init**.py
-- [ ] T011 Add Alembic migration for run-state and conflict tables in libs/db/alembic/versions/0002_ingestion_runtime_and_conflicts.py
-- [ ] T012 Add migration repeatability tests for new runtime tables in libs/db/tests/test_ingestion_runtime_migrations.py
-- [ ] T013 [P] Add foundational repository unit tests in libs/db/tests/test_ingestion_runtime_repositories.py
-- [ ] T014 Add source lock service for one-active-one-queued policy in apps/pipeline/src/orchestration/resources/source_lock_service.py
-- [ ] T015 [P] Add concurrency policy tests in apps/pipeline/tests/orchestration/test_source_lock_service.py
+- [X] T006 Create run-state schema models in libs/db/src/db/models/ingestion_runtime.py
+- [X] T007 [P] Export new runtime models in libs/db/src/db/models/**init**.py
+- [X] T008 Create conflict persistence repository adapter in libs/db/src/db/repositories/conflict_repository.py
+- [X] T009 [P] Create run outcome repository adapter in libs/db/src/db/repositories/run_repository.py
+- [X] T010 [P] Export new repository adapters in libs/db/src/db/repositories/**init**.py
+- [X] T011 Add Alembic migration for run-state and conflict tables in libs/db/alembic/versions/0002_ingestion_runtime_and_conflicts.py
+- [X] T012 Add migration repeatability tests for new runtime tables in libs/db/tests/test_ingestion_runtime_migrations.py
+- [X] T013 [P] Add foundational repository unit tests in libs/db/tests/test_ingestion_runtime_repositories.py
+- [X] T014 Add source lock service for one-active-one-queued policy in apps/pipeline/src/orchestration/resources/source_lock_service.py
+- [X] T015 [P] Add concurrency policy tests in apps/pipeline/tests/orchestration/test_source_lock_service.py
 
 **Checkpoint**: Foundation ready; user story implementation can begin.
 
@@ -54,19 +54,19 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T016 [P] [US1] Add source workflow contract tests in apps/pipeline/tests/orchestration/test_source_workflow_contract.py
-- [ ] T017 [P] [US1] Add source onboarding integration test in apps/pipeline/tests/orchestration/test_source_onboarding_flow.py
-- [ ] T018 [P] [US1] Add unit tests for workflow registry behavior in apps/pipeline/tests/orchestration/test_workflow_registry.py
+- [X] T016 [P] [US1] Add source workflow contract tests in apps/pipeline/tests/orchestration/test_source_workflow_contract.py
+- [X] T017 [P] [US1] Add source onboarding integration test in apps/pipeline/tests/orchestration/test_source_onboarding_flow.py
+- [X] T018 [P] [US1] Add unit tests for workflow registry behavior in apps/pipeline/tests/orchestration/test_workflow_registry.py
 
 ### Implementation for User Story 1
 
-- [ ] T019 [US1] Implement source workflow registry in apps/pipeline/src/orchestration/jobs/workflow_registry.py
-- [ ] T020 [P] [US1] Implement source execution request schema in apps/pipeline/src/orchestration/jobs/workflow_request.py
-- [ ] T021 [US1] Implement source execution result schema in apps/pipeline/src/orchestration/jobs/workflow_result.py
-- [ ] T022 [US1] Implement reusable source ingest runner in apps/pipeline/src/orchestration/jobs/source_ingest_runner.py
-- [ ] T023 [US1] Add reference source adapter example in apps/pipeline/src/orchestration/jobs/sources/example_source.py
-- [ ] T024 [US1] Wire canonical validation and quarantine mapping in apps/pipeline/src/orchestration/jobs/source_ingest_runner.py
-- [ ] T025 [US1] Add onboarding runbook section for adding a new source workflow in docs/runbooks/local-stack-baseline.md
+- [X] T019 [US1] Implement source workflow registry in apps/pipeline/src/orchestration/jobs/workflow_registry.py
+- [X] T020 [P] [US1] Implement source execution request schema in apps/pipeline/src/orchestration/jobs/workflow_request.py
+- [X] T021 [US1] Implement source execution result schema in apps/pipeline/src/orchestration/jobs/workflow_result.py
+- [X] T022 [US1] Implement reusable source ingest runner in apps/pipeline/src/orchestration/jobs/source_ingest_runner.py
+- [X] T023 [US1] Add reference source adapter example in apps/pipeline/src/orchestration/jobs/sources/example_source.py
+- [X] T024 [US1] Wire canonical validation and quarantine mapping in apps/pipeline/src/orchestration/jobs/source_ingest_runner.py
+- [X] T025 [US1] Add onboarding runbook section for adding a new source workflow in docs/runbooks/local-stack-baseline.md
 
 **Checkpoint**: User Story 1 is independently functional and testable.
 
@@ -80,19 +80,19 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T026 [P] [US2] Add trigger mode tests for scheduled and on-demand runs in apps/pipeline/tests/orchestration/test_trigger_modes.py
-- [ ] T027 [P] [US2] Add partial-success run aggregation test in apps/pipeline/tests/orchestration/test_partial_success_status.py
-- [ ] T028 [P] [US2] Add deduplicated queued trigger and deterministic three-rerun test in apps/pipeline/tests/orchestration/test_source_queue_policy.py
+- [X] T026 [P] [US2] Add trigger mode tests for scheduled and on-demand runs in apps/pipeline/tests/orchestration/test_trigger_modes.py
+- [X] T027 [P] [US2] Add partial-success run aggregation test in apps/pipeline/tests/orchestration/test_partial_success_status.py
+- [X] T028 [P] [US2] Add deduplicated queued trigger and deterministic three-rerun test in apps/pipeline/tests/orchestration/test_source_queue_policy.py
 
 ### Implementation for User Story 2
 
-- [ ] T029 [US2] Implement orchestration run coordinator in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T030 [P] [US2] Implement scheduled job definition in apps/pipeline/src/orchestration/schedules/ingest_schedule.py
-- [ ] T031 [P] [US2] Implement on-demand trigger sensor in apps/pipeline/src/orchestration/sensors/ondemand_sensor.py
-- [ ] T032 [US2] Implement run outcome aggregation service in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
-- [ ] T033 [US2] Wire source failure continuation and partial-success status in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T034 [US2] Register jobs, schedules, sensors, and resources in apps/pipeline/src/orchestration/definitions.py
-- [ ] T035 [US2] Add operations guide for scheduled and on-demand trigger usage in docs/onboarding/monorepo-baseline.md
+- [X] T029 [US2] Implement orchestration run coordinator in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [X] T030 [P] [US2] Implement scheduled job definition in apps/pipeline/src/orchestration/schedules/ingest_schedule.py
+- [X] T031 [P] [US2] Implement on-demand trigger sensor in apps/pipeline/src/orchestration/sensors/ondemand_sensor.py
+- [X] T032 [US2] Implement run outcome aggregation service in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
+- [X] T033 [US2] Wire source failure continuation and partial-success status in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [X] T034 [US2] Register jobs, schedules, sensors, and resources in apps/pipeline/src/orchestration/definitions.py
+- [X] T035 [US2] Add operations guide for scheduled and on-demand trigger usage in docs/onboarding/monorepo-baseline.md
 
 **Checkpoint**: User Stories 1 and 2 work independently with standardized operations.
 
@@ -106,19 +106,19 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T036 [P] [US3] Add conflict lifecycle contract tests in apps/pipeline/tests/orchestration/test_conflict_lifecycle_contract.py
-- [ ] T037 [P] [US3] Add duplicate drift classification tests in apps/pipeline/tests/orchestration/test_duplicate_drift_policy.py
-- [ ] T038 [P] [US3] Add provenance persistence and backend audit query compatibility integration test in apps/backend/tests/contract/test_ingest_audit_query_contract.py
-- [ ] T051 [P] [US3] Add sampled revision-lineage traceability integration test in apps/backend/tests/contract/test_revision_lineage_traceability.py
+- [X] T036 [P] [US3] Add conflict lifecycle contract tests in apps/pipeline/tests/orchestration/test_conflict_lifecycle_contract.py
+- [X] T037 [P] [US3] Add duplicate drift classification tests in apps/pipeline/tests/orchestration/test_duplicate_drift_policy.py
+- [X] T038 [P] [US3] Add provenance persistence and backend audit query compatibility integration test in apps/backend/tests/contract/test_ingest_audit_query_contract.py
+- [X] T051 [P] [US3] Add sampled revision-lineage traceability integration test in apps/backend/tests/contract/test_revision_lineage_traceability.py
 
 ### Implementation for User Story 3
 
-- [ ] T039 [US3] Implement duplicate drift classifier in apps/pipeline/src/orchestration/jobs/duplicate_drift_classifier.py
-- [ ] T040 [US3] Implement conflict record persistence service in apps/pipeline/src/orchestration/jobs/conflict_persistence_service.py
-- [ ] T041 [US3] Implement record outcome and provenance/run-context persistence service in apps/pipeline/src/orchestration/jobs/record_outcome_service.py
-- [ ] T042 [US3] Add conflict and duplicate outcome counters to run summaries in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
-- [ ] T043 [US3] Extend backend audit projection for conflict identifiers in apps/backend/src/contract/query/provenance_audit_query.py
-- [ ] T044 [US3] Add architecture documentation for conflict queryability in docs/architecture/monorepo-boundaries.md
+- [X] T039 [US3] Implement duplicate drift classifier in apps/pipeline/src/orchestration/jobs/duplicate_drift_classifier.py
+- [X] T040 [US3] Implement conflict record persistence service in apps/pipeline/src/orchestration/jobs/conflict_persistence_service.py
+- [X] T041 [US3] Implement record outcome and provenance/run-context persistence service in apps/pipeline/src/orchestration/jobs/record_outcome_service.py
+- [X] T042 [US3] Add conflict and duplicate outcome counters to run summaries in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
+- [X] T043 [US3] Extend backend audit projection for conflict identifiers in apps/backend/src/contract/query/provenance_audit_query.py
+- [X] T044 [US3] Add architecture documentation for conflict queryability in docs/architecture/monorepo-boundaries.md
 
 **Checkpoint**: All user stories are independently functional and auditable.
 
@@ -128,12 +128,12 @@
 
 **Purpose**: Final verification, documentation consistency, and quality gate completion.
 
-- [ ] T045 [P] Run pipeline quality suite for changed scope using package scripts in package.json
-- [ ] T046 [P] Run backend contract tests for changed audit paths in apps/backend/tests/contract
-- [ ] T047 Run local DB readiness and migration verification scripts in tools/quality/local-stack/test-db-readiness.sh
-- [ ] T048 [P] Update feature-specific quickstart validation steps in specs/005-dagster-ingest-pipeline/quickstart.md
-- [ ] T049 [P] Sync canonical command/toolchain updates in AGENTS.md
-- [ ] T050 Confirm affected coverage remains >=90% and validate operator visibility <=5 minutes in apps/pipeline/tests/orchestration/test_operator_visibility_slo.py
+- [X] T045 [P] Run pipeline quality suite for changed scope using package scripts in package.json
+- [X] T046 [P] Run backend contract tests for changed audit paths in apps/backend/tests/contract
+- [X] T047 Run local DB readiness and migration verification scripts in tools/quality/local-stack/test-db-readiness.sh
+- [X] T048 [P] Update feature-specific quickstart validation steps in specs/005-dagster-ingest-pipeline/quickstart.md
+- [X] T049 [P] Sync canonical command/toolchain updates in AGENTS.md
+- [X] T050 Confirm affected coverage remains >=90% and validate operator visibility <=5 minutes in apps/pipeline/tests/orchestration/test_operator_visibility_slo.py
 
 ---
 

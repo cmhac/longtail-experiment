@@ -1,0 +1,22 @@
+"""Execution result schema for source workflows."""
+
+from __future__ import annotations
+
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class SourceWorkflowResult(BaseModel):
+    """Source-scoped terminal execution result with outcome counters."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source_key: str = Field(min_length=1)
+    status: Literal["success", "partial_success", "failure"]
+    accepted_count: int = Field(default=0, ge=0)
+    quarantined_count: int = Field(default=0, ge=0)
+    failed_count: int = Field(default=0, ge=0)
+    duplicate_no_op_count: int = Field(default=0, ge=0)
+    conflict_count: int = Field(default=0, ge=0)
+    message: str | None = None

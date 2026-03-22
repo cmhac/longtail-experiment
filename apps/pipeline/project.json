@@ -29,6 +29,12 @@
         "command": "uv run --project apps/pipeline pytest apps/pipeline/tests"
       }
     },
+    "test:orchestration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration"
+      }
+    },
     "coverage": {
       "executor": "nx:run-commands",
       "options": {

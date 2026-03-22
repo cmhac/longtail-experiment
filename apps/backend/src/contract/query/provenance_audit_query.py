@@ -21,4 +21,18 @@ class ProvenanceAuditQueryService:
         rows = self._repository.fetch_provenance_and_revisions(series_key)
         if not isinstance(rows, list):
             raise ContractQueryError("Audit repository response must be a list")
-        return rows
+
+        conflict_ids: list[str] = []
+        if hasattr(self._repository, "fetch_conflict_ids_for_series"):
+            fetched = self._repository.fetch_conflict_ids_for_series(series_key)
+            if not isinstance(fetched, list):
+                raise ContractQueryError("Conflict identifiers response must be a list")
+            conflict_ids = [str(item) for item in fetched]
+
+        return [
+            {
+                **row,
+                "conflict_ids": list(conflict_ids),
+            }
+            for row in rows
+        ]

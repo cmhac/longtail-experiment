@@ -53,3 +53,13 @@
 - If canonical validation tests fail, inspect `apps/pipeline/src/contract/schemas/canonical_observation.py` and `apps/pipeline/src/contract/normalizers/source_payload_mapper.py`.
 - If provenance/revision audit tests fail, inspect `apps/pipeline/src/contract/services/revision_lineage_service.py` and `apps/backend/src/contract/query/provenance_audit_query.py`.
 - If hierarchy filter tests fail, inspect `apps/pipeline/src/contract/services/taxonomy_mapping_service.py` and `apps/backend/src/contract/query/hierarchy_query.py`.
+
+## Source Workflow Onboarding
+
+1. Add a new source adapter under `apps/pipeline/src/orchestration/jobs/sources/`.
+2. Build a `SourceWorkflowRegistration` using `build_example_source_workflow` as the reference pattern.
+3. Register the workflow in orchestration bootstrap wiring before execution.
+4. Validate onboarding behavior with:
+
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_workflow_contract.py`
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_onboarding_flow.py`

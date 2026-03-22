@@ -21,7 +21,7 @@ set +a
 : "${LOCAL_DB_PASSWORD:?LOCAL_DB_PASSWORD is required}"
 
 DB_URL="postgresql+psycopg://${LOCAL_DB_USER}:${LOCAL_DB_PASSWORD}@${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_NAME}"
-EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0001_contract_baseline}"
+EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0002_ingestion_runtime_conflicts}"
 
 cd "$REPO_ROOT"
 
