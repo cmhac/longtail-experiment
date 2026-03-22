@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-03-21
 
 ## Active Technologies
+- Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling (006-parallel-source-scheduling)
+- PostgreSQL 16 local runtime DB persisted via `ingestion_runs` and `source_run_outcomes` tables (006-parallel-source-scheduling)
 
 - Python 3.12 (pipeline and shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, structlog, OpenTelemetry API/SDK, Nx workspace tooling (005-dagster-ingest-pipeline)
 - PostgreSQL 16 local dev database with relational time-series persistence and migration authority under `libs/db/alembic` (005-dagster-ingest-pipeline)
@@ -135,12 +137,12 @@ Local stack and duplication:
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 006-parallel-source-scheduling: Added Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling
 
 - 005-dagster-ingest-pipeline: Added Python 3.12 (pipeline and shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, structlog, OpenTelemetry API/SDK, Nx workspace tooling
 
 - 004-local-dev-db: Added Python 3.12 (backend and pipeline tooling), shell scripts for local verification + Docker Compose, PostgreSQL 16 image for local DB service, SQLAlchemy 2.x, Alembic, psycopg 3.x, uv, pytest, Nx quality scripts
 
-- 003-define-data-contract: Implemented US1-US3 contract modules for canonical observations, provenance/revision lineage, hierarchy mapping, and backend query filters with contract test coverage.
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.
