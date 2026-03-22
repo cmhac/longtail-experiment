@@ -59,7 +59,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - Post-Design Gate Review (PASS)
 - Monorepo cohesion: PASS. Data model and contracts keep source policy metadata in orchestration registration boundaries and persistence in shared DB boundaries.
 - Quality gate enforcement: PASS. No suppression strategy introduced.
-- Test and coverage discipline: PASS. Planned tests map directly to FR-001..FR-010 and SC-001..SC-004.
+- Test and coverage discipline: PASS. Planned tests map directly to FR-001..FR-015 and SC-001..SC-004.
 - Local-first parity: PASS. Design includes local scheduling verification and on-demand subset execution checks.
 - Data integrity and reliability: PASS. Due-state snapshots, deterministic launch ordering, and overlap safety are modeled.
 - Documentation fidelity: PASS. Feature artifacts and run instructions are included for same-change delivery.
@@ -145,5 +145,9 @@ runtime DB tables consumed by pipeline and backend operational checks.
 - Scheduled runs evaluate due-state per source and include only due sources by default.
 - On-demand runs may explicitly select source subsets and bypass cadence exclusion for
   selected sources only.
-- Source launch order remains deterministic for equal eligibility state.
+- Source launch order remains strict FIFO by earliest due timestamp.
 - Overlapping run safety remains source-scoped to prevent duplicate concurrent execution.
+- When scheduled runs exceed a tick boundary, active work completes and remaining due
+  sources are carried forward as deferred with warning-level signals.
+- Missing or malformed cadence policy metadata is treated as `skipped_invalid_policy`
+  with warning-level operational signals.

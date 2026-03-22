@@ -37,7 +37,7 @@
 - [ ] T009 [P] Extend run repository persistence contract for due/executed/deferred/not-due counts in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
 - [ ] T010 [P] Add runtime repository helper methods for eligibility snapshot writes/reads in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
 - [ ] T011 Add schedule policy schema and validation helpers in apps/pipeline/src/orchestration/jobs/source_schedule_policy.py
-- [ ] T012 Add due-source selection service with deterministic ordering in apps/pipeline/src/orchestration/jobs/due_source_selector.py
+- [ ] T012 Add due-source selection service with strict FIFO ordering by earliest due timestamp in apps/pipeline/src/orchestration/jobs/due_source_selector.py
 - [ ] T013 Add bounded parallel execution service interface in apps/pipeline/src/orchestration/jobs/parallel_source_executor.py
 - [ ] T014 Wire foundational services into runtime container in apps/pipeline/src/orchestration/runtime.py
 - [ ] T015 Update orchestration package exports for new foundational modules in apps/pipeline/src/orchestration/jobs/**init**.py
@@ -58,17 +58,17 @@
 
 - [ ] T018 [P] [US1] Add bounded parallelism integration test for max-active-source ceiling in apps/pipeline/tests/orchestration/test_bounded_parallel_execution.py
 - [ ] T019 [P] [US1] Add failure-isolation integration test for mixed source outcomes under bounded parallel execution in apps/pipeline/tests/orchestration/test_bounded_parallel_execution.py
-- [ ] T020 [P] [US1] Add deterministic launch-order unit test for equal-eligibility sources in apps/pipeline/tests/orchestration/test_bounded_parallel_execution.py
+- [ ] T020 [P] [US1] Add strict FIFO earliest-due ordering unit test for equal-capacity contention in apps/pipeline/tests/orchestration/test_bounded_parallel_execution.py
 
 ### Implementation for User Story 1
 
-- [ ] T021 [US1] Implement bounded parallel source launch loop in apps/pipeline/src/orchestration/jobs/parallel_source_executor.py
+- [ ] T021 [US1] Implement bounded parallel source launch loop with strict FIFO earliest-due queue policy in apps/pipeline/src/orchestration/jobs/parallel_source_executor.py
 - [ ] T022 [US1] Integrate bounded parallel executor into run coordinator flow in apps/pipeline/src/orchestration/jobs/run_coordinator.py
 - [ ] T023 [US1] Extend run summary counters for due/executed/deferred/failed source counts in apps/pipeline/src/orchestration/jobs/run_coordinator.py
 - [ ] T024 [US1] Persist per-source terminal states for deferred and failure cases in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
 - [ ] T025 [US1] Ensure source-level overlap guard is enforced during parallel launches in apps/pipeline/src/orchestration/jobs/run_coordinator.py
 - [ ] T026 [US1] Update ingest job output payload to include bounded-execution aggregate counters in apps/pipeline/src/orchestration/jobs/ingest_job.py
-- [ ] T027 [US1] Add runtime integration test validating persisted bounded-execution counters in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [ ] T027 [US1] Add runtime integration test validating persisted bounded-execution counters and tick-boundary carry-forward behavior in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
 
 **Checkpoint**: US1 is independently functional and testable (MVP).
 
@@ -83,15 +83,15 @@
 ### Tests for User Story 2 (REQUIRED)
 
 - [ ] T028 [P] [US2] Add due/not-due selection tests across hourly/daily/weekly/monthly cadence policies in apps/pipeline/tests/orchestration/test_source_cadence_selection.py
-- [ ] T029 [P] [US2] Add invalid policy handling test for malformed cadence metadata in apps/pipeline/tests/orchestration/test_source_cadence_selection.py
-- [ ] T030 [P] [US2] Add scheduler tick integration test asserting only due sources are requested in apps/pipeline/tests/orchestration/test_ingest_schedule_due_sources.py
+- [ ] T029 [P] [US2] Add invalid policy handling test for malformed cadence metadata, including skipped_invalid_policy warning assertions, in apps/pipeline/tests/orchestration/test_source_cadence_selection.py
+- [ ] T030 [P] [US2] Add trigger-mode integration test asserting scheduled runs include only due sources and on-demand selected sources bypass due-state in apps/pipeline/tests/orchestration/test_ingest_schedule_due_sources.py
 
 ### Implementation for User Story 2
 
 - [ ] T031 [US2] Extend workflow registration metadata to include source schedule policy in apps/pipeline/src/orchestration/jobs/workflow_registry.py
 - [ ] T032 [US2] Implement due-source filtering for scheduled runs in apps/pipeline/src/orchestration/jobs/due_source_selector.py
 - [ ] T033 [US2] Update scheduled trigger wiring to pass due-source subset context in apps/pipeline/src/orchestration/schedules/ingest_schedule.py
-- [ ] T034 [US2] Apply due-source subset execution path in run coordinator for scheduled triggers in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [ ] T034 [US2] Apply due-source subset execution path in run coordinator for scheduled triggers and due-state bypass for on-demand selected subsets in apps/pipeline/src/orchestration/jobs/run_coordinator.py
 - [ ] T035 [US2] Persist eligibility snapshots and not-due reasons per source per run in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
 - [ ] T036 [US2] Register cadence metadata for existing example and dummy sources in apps/pipeline/src/orchestration/runtime.py
 - [ ] T037 [US2] Add DB persistence test for eligibility snapshot records in apps/pipeline/tests/orchestration/test_run_eligibility_persistence.py
@@ -116,7 +116,7 @@
 
 - [ ] T041 [US3] Extend run repository read API to return eligibility and outcome reason details in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
 - [ ] T042 [US3] Include due/executed/deferred/not-due counters in run summary aggregation service in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
-- [ ] T043 [US3] Update ingest job logging fields for operator triage visibility in apps/pipeline/src/orchestration/jobs/ingest_job.py
+- [ ] T043 [US3] Update ingest job logging fields for operator triage visibility, including warning-level carry-forward and invalid-policy signals, in apps/pipeline/src/orchestration/jobs/ingest_job.py
 - [ ] T044 [US3] Update backend audit projection for new run visibility fields in apps/backend/src/contract/query/provenance_audit_query.py
 - [ ] T045 [US3] Add orchestration definitions smoke assertion for visibility resources in apps/pipeline/tests/orchestration/test_definitions_smoke.py
 
@@ -132,7 +132,7 @@
 - [ ] T047 [P] Update repository operation docs for per-source scheduling behavior in docs/runbooks/local-stack-baseline.md
 - [ ] T048 [P] Update architecture and onboarding docs for source schedule policy ownership in docs/architecture/monorepo-boundaries.md
 - [ ] T049 Run full pipeline quality gate suite and capture results in specs/006-parallel-source-scheduling/quickstart.md
-- [ ] T050 Run local DB migration and scheduled-run verification commands and document outputs in specs/006-parallel-source-scheduling/quickstart.md
+- [ ] T050 Run local DB migration, scheduled-run verification, and two-week backlog replay checks for missed due-window risk and document outputs in specs/006-parallel-source-scheduling/quickstart.md
 - [ ] T051 Update AGENTS.md with canonical commands/workflow changes introduced by feature 006 in AGENTS.md
 
 ---

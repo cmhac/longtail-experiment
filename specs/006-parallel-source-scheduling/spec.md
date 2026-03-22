@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Add bounded parallel source execution and explicit per-source scheduling cadences to orchestration"
 
+## Clarifications
+
+### Session 2026-03-21
+
+- Q: When an operator triggers an on-demand run for specific sources, should those sources run even if they are not currently due by cadence? -> A: On-demand runs execute explicitly selected sources regardless of due-state.
+- Q: If due sources exceed parallel capacity for extended periods, which fairness rule should govern deferred source selection across subsequent runs? -> A: Strict FIFO by earliest due timestamp only.
+- Q: If source X is due in a new run but already actively executing in another run, how should the new run classify X? -> A: Wait for the active run to finish and do not execute a duplicate run.
+- Q: If a single scheduled run cannot finish all due sources before the next scheduler tick, what should happen at the run boundary? -> A: Let active work finish and carry remaining due sources forward as deferred, with warnings logged for scaling visibility.
+- Q: When a source has malformed or missing cadence policy metadata, what should scheduled execution do? -> A: Skip source, mark skipped_invalid_policy, and emit warning.
+
 ## User Scenarios & Testing _(mandatory)_
 
 <!--
@@ -89,8 +99,6 @@ verify run records expose source eligibility and final outcomes clearly.
 
 ---
 
-[Add more user stories as needed, each with an assigned priority]
-
 ### Edge Cases
 
 <!--
@@ -129,13 +137,25 @@ verify run records expose source eligibility and final outcomes clearly.
 - **FR-006**: System MUST persist per-run source eligibility and outcome states,
   including executed, not-due, succeeded, failed, and skipped-by-policy conditions.
 - **FR-007**: Operators MUST be able to trigger on-demand execution for a selected
-  subset of sources without modifying cadence metadata.
+  subset of sources regardless of due-state, without modifying cadence metadata.
 - **FR-008**: System MUST keep source-level coordination rules that prevent duplicate
   execution of the same source in overlapping runs.
 - **FR-009**: System MUST expose run-level summaries that report counts for due,
   executed, succeeded, failed, and deferred sources.
 - **FR-010**: System MUST apply deterministic source selection and launch behavior so
   repeated runs with identical eligibility state produce the same launch ordering.
+- **FR-011**: When due sources exceed execution capacity, system MUST defer and later
+  schedule sources using strict FIFO order by earliest due timestamp.
+- **FR-012**: If a source is already active in another run, system MUST wait for that
+  active run to finish and MUST NOT launch a duplicate execution for the same source.
+- **FR-013**: If a scheduled run reaches the next scheduler tick with due work
+  remaining, system MUST allow active executions to finish and carry remaining due
+  sources forward as deferred for subsequent runs.
+- **FR-014**: System MUST emit warning-level operational signals whenever due sources
+  are carried forward because run capacity or run duration was insufficient.
+- **FR-015**: If cadence policy metadata is missing or malformed, system MUST skip
+  source execution, classify the source as `skipped_invalid_policy`, and emit
+  warning-level operational signals for operator follow-up.
 
 ### Key Entities _(include if feature involves data)_
 
