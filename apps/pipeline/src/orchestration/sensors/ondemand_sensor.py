@@ -12,4 +12,11 @@ def ondemand_sensor(context):
     if token is None or not token.strip():
         return SkipReason("no queued on-demand trigger")
     context.update_cursor("")
-    return RunRequest(run_key=token, tags={"trigger_type": "on_demand"})
+    return RunRequest(
+        run_key=token,
+        tags={
+            "trigger_type": "on_demand",
+            "requested_by": "ondemand_sensor",
+            "source_selection_mode": "operator_requested",
+        },
+    )

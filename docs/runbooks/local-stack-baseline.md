@@ -140,6 +140,27 @@ Expected operator signals:
 - Deferred sources are recorded when due work exceeds configured active-source capacity.
 - Not-due and invalid-policy sources are excluded from scheduled execution with explicit reasons.
 
+## Per-Source Schedule Cutover Verification (Feature 011)
+
+1. Verify no shared all-source schedule exists:
+   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_definitions_smoke.py -k "no_shared"`
+
+2. Verify per-source schedules are registered:
+   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_definitions_smoke.py -k "per_source_schedules"`
+
+3. Verify trigger attribution for source-owned schedules:
+   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k "source_schedule_trigger"`
+
+4. Verify historical artifact non-authority:
+   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_run_visibility_audit.py -k "historical_artifacts"`
+
+5. Apply cutover migration and verify:
+   `bash tools/quality/local-stack/run-db-migrations.sh`
+   `bash tools/quality/local-stack/check-db-revision.sh`
+
+6. Full orchestration test suite:
+   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration --no-cov`
+
 ## Schedule State Inspection and Reset (Feature 007)
 
 Use these SQL helpers to inspect and control schedule persistence in local troubleshooting loops.

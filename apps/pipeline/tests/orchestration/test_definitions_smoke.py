@@ -85,7 +85,11 @@ def test_workspace_definition_catalog_lists_existing_definitions() -> None:
 
     assert catalog["jobs"] == ("ingest_job",)
     assert catalog["assets"] == ("dummy_source", "example_source", "fred_fedfunds")
-    assert catalog["schedules"] == ("ingest_schedule",)
+    assert catalog["schedules"] == (
+        "dummy_source_schedule",
+        "example_source_schedule",
+        "fred_fedfunds_schedule",
+    )
     assert catalog["sensors"] == ("ondemand_sensor",)
 
 
@@ -176,3 +180,17 @@ def test_dagit_endpoint_probe_reports_unavailable_for_unreachable_endpoint() -> 
 
     assert completed.returncode == 1
     assert "DAGIT_FAILURE_CATEGORY=endpoint_unavailable" in completed.stdout
+
+
+def test_no_shared_all_source_schedule_in_definitions() -> None:
+    """Feature 011 regression: shared ingest_schedule must not exist in definitions."""
+    schedule_names = {schedule_def.name for schedule_def in (defs.schedules or [])}
+    assert "ingest_schedule" not in schedule_names
+
+
+def test_per_source_schedules_registered_in_definitions() -> None:
+    """Feature 011: each active source should have its own schedule in definitions."""
+    schedule_names = {schedule_def.name for schedule_def in (defs.schedules or [])}
+    assert "dummy_source_schedule" in schedule_names
+    assert "example_source_schedule" in schedule_names
+    assert "fred_fedfunds_schedule" in schedule_names

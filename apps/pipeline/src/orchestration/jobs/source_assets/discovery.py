@@ -1,4 +1,10 @@
-"""Source discovery utilities for source-asset runtime registration."""
+"""
+Source discovery utilities for source-asset runtime registration.
+
+NOTE (Feature 011): Source cadence metadata in SourceSchedulePolicy attached to
+registrations is now used for operator visibility only. Active scheduling authority
+is owned by per-source Dagster schedule definitions in source_asset_schedules.py.
+"""
 
 from __future__ import annotations
 

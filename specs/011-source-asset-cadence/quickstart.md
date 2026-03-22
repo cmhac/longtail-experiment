@@ -52,3 +52,12 @@ Validate hard-cutover behavior where each source asset owns its cadence and no s
 - No active shared all-source schedule path exists.
 - Source-level trigger attribution and run outcomes remain operator-visible.
 - Quality gates pass with no suppressions or bypasses.
+
+## 8. Implementation Notes (Feature 011 Cutover Complete)
+
+- Shared `ingest_schedule` retired; replaced by per-source schedules in `source_asset_schedules.py`.
+- Per-source schedules: `dummy_source_schedule` (hourly), `example_source_schedule` (daily), `fred_fedfunds_schedule` (daily).
+- Coordinator now bypasses due-evaluation when explicit `source_keys` are provided by per-source schedules.
+- Migration `0005_source_asset_schedule_cutover` marks legacy tables as historical-only.
+- `trigger_origin` field added to `ingestion_runs` for attribution.
+- On-demand sensor aligned with source-owned trigger attribution tags.

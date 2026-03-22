@@ -80,6 +80,14 @@
 - Validate on-demand trigger mode: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k ondemand
 - Validate queue and partial-success behavior: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_partial_success_status.py apps/pipeline/tests/orchestration/test_source_queue_policy.py
 
+## Per-Source Schedule Ownership (Feature 011)
+
+- After cutover, each source asset owns its own Dagster schedule definition.
+- No shared all-source schedule remains active in runtime.
+- Validate per-source schedule registration: `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_definitions_smoke.py`
+- Validate source cadence selection: `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_cadence_selection.py`
+- Validate trigger attribution: `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py`
+
 ## Source Schedule Metadata Maintenance (Feature 006)
 
 - Keep source cadence metadata with each `SourceWorkflowRegistration` entry in orchestration runtime wiring.

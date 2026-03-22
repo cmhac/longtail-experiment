@@ -5,6 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 PID_FILE="${REPO_ROOT}/.tmp/dagit-local.pid"
 LOG_FILE="${REPO_ROOT}/.tmp/dagit-local.log"
+LOCAL_DAGSTER_HOME="${REPO_ROOT}/.tmp/dagster_home"
+PIPELINE_WORKDIR="apps/pipeline"
+PIPELINE_PYTHONPATH="${REPO_ROOT}/apps/pipeline"
 HOST="${DAGIT_HOST:-127.0.0.1}"
 PORT="${DAGIT_PORT:-3001}"
 ENDPOINT="http://${HOST}:${PORT}"
@@ -43,7 +46,7 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 1
 fi
 
-mkdir -p "${REPO_ROOT}/.tmp"
+mkdir -p "${REPO_ROOT}/.tmp" "${LOCAL_DAGSTER_HOME}"
 
 if [[ -f "$PID_FILE" ]]; then
   existing_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
@@ -57,7 +60,14 @@ if [[ -f "$PID_FILE" ]]; then
 fi
 
 set +e
-nohup uv run --project apps/pipeline dagster dev -m src.orchestration.definitions --host "$HOST" --port "$PORT" >"$LOG_FILE" 2>&1 &
+nohup env \
+  DAGSTER_HOME="${LOCAL_DAGSTER_HOME}" \
+  PYTHONPATH="${PIPELINE_PYTHONPATH}${PYTHONPATH:+:${PYTHONPATH}}" \
+  uv run --project apps/pipeline dagster dev \
+    -d "${PIPELINE_WORKDIR}" \
+    -m src.orchestration.definitions \
+    --host "$HOST" \
+    --port "$PORT" >"$LOG_FILE" 2>&1 &
 pid=$!
 set -e
 

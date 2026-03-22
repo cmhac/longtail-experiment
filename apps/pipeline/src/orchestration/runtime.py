@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import TypedDict
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
@@ -39,6 +39,9 @@ RETIRED_LEGACY_CADENCE_ENTRYPOINTS = (
     "legacy_scheduler",
     "legacy_coordinator",
 )
+
+ACTIVE_SCHEDULE_MODEL = "per_source"
+"""Post-cutover schedule model: each source asset owns its own Dagster schedule."""
 
 
 class RuntimeWorkspaceLoadState(TypedDict):
@@ -85,6 +88,8 @@ class IngestRuntime:
 
 def map_source_outcomes_to_persistence_records(
     source_results: list[dict[str, object]],
+    *,
+    trigger_origin: str | None = None,
 ) -> list[SourceOutcomePersistenceRecord]:
     """Normalize run source outcomes into persistence-view records."""
     mapped: list[SourceOutcomePersistenceRecord] = []

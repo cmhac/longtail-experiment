@@ -42,3 +42,11 @@ Define ownership and separation boundaries for baseline monorepo projects.
 - `apps/pipeline/src/orchestration/jobs/due_source_selector.py` owns due/not-due eligibility decisions and deterministic source ordering for scheduled runs.
 - `apps/pipeline/src/orchestration/jobs/parallel_source_executor.py` owns bounded active-source launch policy.
 - `apps/pipeline/src/orchestration/resources/postgres_run_repository.py` owns persistence of run-level due/executed/deferred/not-due counters and per-source eligibility snapshots.
+
+## Per-Source Schedule Ownership Boundary (Feature 011)
+
+- `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py` owns per-source Dagster schedule definitions.
+- Each source asset schedule directly targets `ingest_job` with source-specific tags.
+- The shared `ingest_schedule` (hourly all-source trigger) is retired and not active post-cutover.
+- `apps/pipeline/src/orchestration/definitions.py` registers per-source schedules and no shared schedule.
+- Legacy `source_schedule_policies` and `source_eligibility_snapshots` tables are historical-only after migration `0005_source_asset_schedule_cutover`.

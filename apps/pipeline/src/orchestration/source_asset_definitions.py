@@ -6,6 +6,8 @@ from typing import Any
 
 from dagster import asset
 
+from .schedules.source_asset_schedules import SOURCE_CADENCE_DEFINITIONS
+
 
 def _run_single_source(
     *,
@@ -18,12 +20,15 @@ def _run_single_source(
         requested_by="dagit_asset_materialization",
         source_keys=[source_key],
     )
+    cadence_def = SOURCE_CADENCE_DEFINITIONS.get(source_key)
     return {
         "run_id": summary["run_id"],
         "source_key": source_key,
         "outcome_state": summary["outcome_state"],
         "executed_source_count": summary["executed_source_count"],
         "failed_source_count": summary["failed_source_count"],
+        "schedule_cadence": cadence_def[1] if cadence_def else "unknown",
+        "schedule_owner": f"{source_key}_schedule",
     }
 
 

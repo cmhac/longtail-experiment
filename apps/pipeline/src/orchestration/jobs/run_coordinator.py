@@ -24,6 +24,7 @@ class RunSummary(TypedDict):
     run_id: str
     trigger_type: str
     requested_by: str
+    trigger_origin: str
     started_at: datetime
     completed_at: datetime
     source_results: list[dict[str, object]]
@@ -120,6 +121,7 @@ class RunCoordinator:
             "run_id": run_id,
             "trigger_type": trigger_type,
             "requested_by": requested_by,
+            "trigger_origin": requested_by,
             "started_at": started_at,
             "completed_at": completed_at,
             "source_results": [result.model_dump() for result in source_results],
@@ -199,13 +201,21 @@ class RunCoordinator:
         source_keys: list[str] | None,
         evaluated_at: datetime,
     ) -> list[SourceEligibilityDecision]:
+        # Per-source schedule ownership: when source_keys are explicitly provided
+        # by a source-owned schedule, treat them as due (schedule already decided).
+        if source_keys is not None:
+            return self._due_source_selector.evaluate_on_demand(
+                source_keys=source_keys,
+                evaluated_at=evaluated_at,
+            )
+
         if trigger_type == "scheduled":
             return self._due_source_selector.evaluate_scheduled(
                 registrations=registrations,
                 evaluated_at=evaluated_at,
             )
 
-        selected = source_keys or [registration.source_key for registration in registrations]
+        selected = [registration.source_key for registration in registrations]
         return self._due_source_selector.evaluate_on_demand(
             source_keys=selected,
             evaluated_at=evaluated_at,

@@ -77,4 +77,5 @@ fi
 
 echo "DAGIT_HEALTH_STATUS=ready"
 echo "DAGIT_LOCATION_ENTRIES=${location_entry_count}"
+echo "DAGIT_SCHEDULE_MODEL=per_source"
 echo "DAGIT_MESSAGE=Endpoint and workspace checks passed"

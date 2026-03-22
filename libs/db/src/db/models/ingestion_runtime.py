@@ -59,10 +59,17 @@ class IngestionRun(Base):
     )
     conflict_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     due_source_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    executed_source_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    deferred_source_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    not_due_source_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    executed_source_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    deferred_source_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
+    not_due_source_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
     failed_source_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    trigger_origin: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class SourceSchedulePolicy(Base):
@@ -84,8 +91,15 @@ class SourceSchedulePolicy(Base):
     next_eligible_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    priority_class: Mapped[str] = mapped_column(String(32), nullable=False, default="normal")
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    priority_class: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="normal"
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    lifecycle_state: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="historical_only"
+    )
 
 
 class SourceEligibilitySnapshot(Base):
@@ -105,9 +119,18 @@ class SourceEligibilitySnapshot(Base):
     source_key: Mapped[str] = mapped_column(String(255), nullable=False)
     eligibility_state: Mapped[str] = mapped_column(String(32), nullable=False)
     reason_code: Mapped[str] = mapped_column(String(64), nullable=False)
-    evaluated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    selected_for_execution: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    evaluated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    due_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    selected_for_execution: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    lifecycle_state: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="historical_only"
+    )
 
 
 class SourceRunOutcome(Base):

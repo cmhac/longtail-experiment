@@ -113,3 +113,34 @@ def test_observation_store_migration_creates_expected_tables() -> None:
         '"uq_observation_series_date"',
     ):
         assert required_fragment in migration_text
+
+
+def test_source_asset_schedule_cutover_migration_metadata() -> None:
+    """Feature 011: cutover migration should chain from observation_store."""
+    file_path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0005_source_asset_schedule_cutover.py"
+    )
+    spec = spec_from_file_location("source_asset_schedule_cutover", file_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.revision == "0005_source_asset_schedule_cutover"
+    assert module.down_revision == "0004_observation_store"
+
+
+def test_source_asset_schedule_cutover_rationalizes_legacy_tables() -> None:
+    """Feature 011: cutover migration should add historical marker to legacy tables."""
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0005_source_asset_schedule_cutover.py"
+    ).read_text(encoding="utf-8")
+
+    assert "source_schedule_policies" in migration_text
+    assert "source_eligibility_snapshots" in migration_text

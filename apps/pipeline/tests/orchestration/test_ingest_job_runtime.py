@@ -244,3 +244,13 @@ def test_ingest_runtime_exposes_dagster_only_scheduling_authority() -> None:
 
     assert runtime.authority_state.authority_mode == "dagster_only"
     assert runtime.authority_state.legacy_paths_disabled is True
+
+
+def test_no_shared_schedule_trigger_path_in_definitions() -> None:
+    """Feature 011 US3: no shared all-source schedule should exist in definitions."""
+    schedule_names = {s.name for s in (defs.schedules or [])}
+    assert "ingest_schedule" not in schedule_names
+    # Verify per-source schedules are present instead
+    assert "dummy_source_schedule" in schedule_names
+    assert "example_source_schedule" in schedule_names
+    assert "fred_fedfunds_schedule" in schedule_names

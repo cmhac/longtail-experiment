@@ -17,10 +17,10 @@
 
 **Purpose**: Prepare baseline scaffolding for schedule ownership migration.
 
-- [ ] T001 Capture feature baseline and impacted modules in specs/011-source-asset-cadence/plan.md
-- [ ] T002 Create migration notes skeleton in docs/runbooks/source-asset-scheduling-cutover.md
-- [ ] T003 [P] Add schedule-ownership verification section placeholder in docs/onboarding/monorepo-baseline.md
-- [ ] T004 [P] Add architecture delta placeholder for scheduling model in docs/architecture/monorepo-boundaries.md
+- [x] T001 Capture feature baseline and impacted modules in specs/011-source-asset-cadence/plan.md
+- [x] T002 Create migration notes skeleton in docs/runbooks/source-asset-scheduling-cutover.md
+- [x] T003 [P] Add schedule-ownership verification section placeholder in docs/onboarding/monorepo-baseline.md
+- [x] T004 [P] Add architecture delta placeholder for scheduling model in docs/architecture/monorepo-boundaries.md
 
 ---
 
@@ -30,14 +30,14 @@
 
 **CRITICAL**: No user story work begins until this phase is complete.
 
-- [ ] T005 Remove shared ingest schedule definition from apps/pipeline/src/orchestration/schedules/ingest_schedule.py
-- [ ] T006 Remove shared schedule wiring from apps/pipeline/src/orchestration/definitions.py
-- [ ] T007 Refactor scheduled-path cadence ownership logic in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T008 Remove due-selector dependency from runtime assembly in apps/pipeline/src/orchestration/runtime.py
-- [ ] T009 [P] Deprecate due-evaluation helper for scheduled flow in apps/pipeline/src/orchestration/jobs/due_source_selector.py
-- [ ] T010 [P] Deprecate source cadence policy helper for active scheduling decisions in apps/pipeline/src/orchestration/jobs/source_schedule_policy.py
-- [ ] T011 Add foundational regression test for absence of shared all-source schedule in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T012 Add foundational regression test for runtime without shared due-filter scheduled path in apps/pipeline/tests/orchestration/test_run_coordinator.py
+- [x] T005 Remove shared ingest schedule definition from apps/pipeline/src/orchestration/schedules/ingest_schedule.py
+- [x] T006 Remove shared schedule wiring from apps/pipeline/src/orchestration/definitions.py
+- [x] T007 Refactor scheduled-path cadence ownership logic in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T008 Remove due-selector dependency from runtime assembly in apps/pipeline/src/orchestration/runtime.py
+- [x] T009 [P] Deprecate due-evaluation helper for scheduled flow in apps/pipeline/src/orchestration/jobs/due_source_selector.py
+- [x] T010 [P] Deprecate source cadence policy helper for active scheduling decisions in apps/pipeline/src/orchestration/jobs/source_schedule_policy.py
+- [x] T011 Add foundational regression test for absence of shared all-source schedule in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T012 Add foundational regression test for runtime without shared due-filter scheduled path in apps/pipeline/tests/orchestration/test_run_coordinator.py
 
 **Checkpoint**: Shared-schedule architecture is retired and source-schedule foundations are ready.
 
@@ -51,19 +51,19 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T013 [P] [US1] Add schedule registration test for per-source cadence definitions in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T014 [P] [US1] Add integration test for independent source cadence triggering in apps/pipeline/tests/orchestration/test_ingest_schedule_due_sources.py
-- [ ] T015 [P] [US1] Add source asset schedule ownership test in apps/pipeline/tests/orchestration/test_source_cadence_selection.py
+- [x] T013 [P] [US1] Add schedule registration test for per-source cadence definitions in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T014 [P] [US1] Add integration test for independent source cadence triggering in apps/pipeline/tests/orchestration/test_ingest_schedule_due_sources.py
+- [x] T015 [P] [US1] Add source asset schedule ownership test in apps/pipeline/tests/orchestration/test_source_cadence_selection.py
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Implement source-specific schedule definitions for dummy, example, and fred assets in apps/pipeline/src/orchestration/schedules/source_asset_schedules.py
-- [ ] T017 [US1] Wire per-source schedules into Dagster definitions in apps/pipeline/src/orchestration/definitions.py
-- [ ] T018 [US1] Update source asset definitions to align scheduled execution entrypoint with source ownership in apps/pipeline/src/orchestration/source_asset_definitions.py
-- [ ] T019 [US1] Update runtime schedule catalog metadata to enumerate per-source schedules in apps/pipeline/src/orchestration/definitions.py
-- [ ] T020 [US1] Add schedule-state visibility metadata for source assets in apps/pipeline/src/orchestration/source_asset_definitions.py
-- [ ] T021 [US1] Update quick local verification helper for per-source schedule visibility in tools/quality/local-stack/test-dagit-endpoint.sh
-- [ ] T022 [US1] Verify US1 coverage impact and threshold in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T016 [US1] Implement source-specific schedule definitions for dummy, example, and fred assets in apps/pipeline/src/orchestration/schedules/source_asset_schedules.py
+- [x] T017 [US1] Wire per-source schedules into Dagster definitions in apps/pipeline/src/orchestration/definitions.py
+- [x] T018 [US1] Update source asset definitions to align scheduled execution entrypoint with source ownership in apps/pipeline/src/orchestration/source_asset_definitions.py
+- [x] T019 [US1] Update runtime schedule catalog metadata to enumerate per-source schedules in apps/pipeline/src/orchestration/definitions.py
+- [x] T020 [US1] Add schedule-state visibility metadata for source assets in apps/pipeline/src/orchestration/source_asset_definitions.py
+- [x] T021 [US1] Update quick local verification helper for per-source schedule visibility in tools/quality/local-stack/test-dagit-endpoint.sh
+- [x] T022 [US1] Verify US1 coverage impact and threshold in apps/pipeline/tests/orchestration/test_definitions_smoke.py
 
 **Checkpoint**: US1 delivers independently scheduled source assets and is testable on its own.
 
@@ -77,19 +77,19 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T023 [P] [US2] Add run attribution integration test for source schedule trigger origin in apps/pipeline/tests/orchestration/test_trigger_modes.py
-- [ ] T024 [P] [US2] Add repository persistence test for source trigger attribution in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
-- [ ] T025 [P] [US2] Add local-stack smoke test for per-source schedule introspection in tools/quality/local-stack/test-compose-stack.sh
+- [x] T023 [P] [US2] Add run attribution integration test for source schedule trigger origin in apps/pipeline/tests/orchestration/test_trigger_modes.py
+- [x] T024 [P] [US2] Add repository persistence test for source trigger attribution in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
+- [x] T025 [P] [US2] Add local-stack smoke test for per-source schedule introspection in tools/quality/local-stack/test-compose-stack.sh
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Simplify ingest execution flow to rely on schedule-owned source selection in apps/pipeline/src/orchestration/jobs/ingest_job.py
-- [ ] T027 [US2] Update run summary schema to emphasize trigger attribution and remove obsolete due/not-due semantics in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T028 [US2] Update outcome aggregation fields for source-owned schedule model in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
-- [ ] T029 [US2] Update run repository insert/select mappings for revised run summary fields in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
-- [ ] T030 [US2] Add operator-visible trigger attribution mapping in runtime view helpers in apps/pipeline/src/orchestration/runtime.py
-- [ ] T031 [US2] Align on-demand sensor tags with source-owned trigger attribution in apps/pipeline/src/orchestration/sensors/ondemand_sensor.py
-- [ ] T032 [US2] Verify US2 coverage impact and threshold in apps/pipeline/tests/orchestration/test_trigger_modes.py
+- [x] T026 [US2] Simplify ingest execution flow to rely on schedule-owned source selection in apps/pipeline/src/orchestration/jobs/ingest_job.py
+- [x] T027 [US2] Update run summary schema to emphasize trigger attribution and remove obsolete due/not-due semantics in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T028 [US2] Update outcome aggregation fields for source-owned schedule model in apps/pipeline/src/orchestration/jobs/run_outcome_service.py
+- [x] T029 [US2] Update run repository insert/select mappings for revised run summary fields in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T030 [US2] Add operator-visible trigger attribution mapping in runtime view helpers in apps/pipeline/src/orchestration/runtime.py
+- [x] T031 [US2] Align on-demand sensor tags with source-owned trigger attribution in apps/pipeline/src/orchestration/sensors/ondemand_sensor.py
+- [x] T032 [US2] Verify US2 coverage impact and threshold in apps/pipeline/tests/orchestration/test_trigger_modes.py
 
 **Checkpoint**: US2 delivers simplified schedule operations with clear trigger attribution.
 
@@ -103,19 +103,19 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T033 [P] [US3] Add migration test for legacy cadence artifact historical-only behavior in libs/db/tests/test_ingestion_runtime_migrations.py
-- [ ] T034 [P] [US3] Add orchestration regression test proving no shared schedule trigger path in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
-- [ ] T035 [P] [US3] Add integration test for historical artifact non-authority in apps/pipeline/tests/orchestration/test_run_visibility_audit.py
+- [x] T033 [P] [US3] Add migration test for legacy cadence artifact historical-only behavior in libs/db/tests/test_ingestion_runtime_migrations.py
+- [x] T034 [P] [US3] Add orchestration regression test proving no shared schedule trigger path in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T035 [P] [US3] Add integration test for historical artifact non-authority in apps/pipeline/tests/orchestration/test_run_visibility_audit.py
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Create migration to rationalize legacy schedule-policy and eligibility schema in libs/db/alembic/versions/0005_source_asset_schedule_cutover.py
-- [ ] T037 [US3] Update ingestion runtime ORM models for post-cutover schema contract in libs/db/src/db/models/ingestion_runtime.py
-- [ ] T038 [US3] Remove legacy schedule-policy persistence methods from repository runtime path in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
-- [ ] T039 [US3] Update runtime clear/fetch behaviors for historical artifact interpretation in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
-- [ ] T040 [US3] Implement explicit cutover guardrails in scheduling authority checks in apps/pipeline/src/orchestration/runtime.py
-- [ ] T041 [US3] Update source discovery defaults to cadence metadata used only for operator visibility in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T042 [US3] Verify US3 coverage impact and threshold in libs/db/tests/test_ingestion_runtime_models.py
+- [x] T036 [US3] Create migration to rationalize legacy schedule-policy and eligibility schema in libs/db/alembic/versions/0005_source_asset_schedule_cutover.py
+- [x] T037 [US3] Update ingestion runtime ORM models for post-cutover schema contract in libs/db/src/db/models/ingestion_runtime.py
+- [x] T038 [US3] Remove legacy schedule-policy persistence methods from repository runtime path in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T039 [US3] Update runtime clear/fetch behaviors for historical artifact interpretation in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T040 [US3] Implement explicit cutover guardrails in scheduling authority checks in apps/pipeline/src/orchestration/runtime.py
+- [x] T041 [US3] Update source discovery defaults to cadence metadata used only for operator visibility in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T042 [US3] Verify US3 coverage impact and threshold in libs/db/tests/test_ingestion_runtime_models.py
 
 **Checkpoint**: US3 completes hard cutover and preserves historical context without active legacy authority.
 
@@ -125,13 +125,13 @@
 
 **Purpose**: Final consistency, documentation, and end-to-end validation across stories.
 
-- [ ] T043 [P] Update cutover runbook with verification commands in docs/runbooks/local-stack-baseline.md
-- [ ] T044 [P] Update onboarding guidance for per-source schedule operations in docs/onboarding/monorepo-baseline.md
-- [ ] T045 [P] Update architecture documentation for schedule ownership model in docs/architecture/monorepo-boundaries.md
-- [ ] T046 [P] Update spec quickstart alignment notes in specs/011-source-asset-cadence/quickstart.md
-- [ ] T047 Run feature quality gate command set and document results in specs/011-source-asset-cadence/quickstart.md
-- [ ] T048 Run local compose end-to-end schedule verification and document results in specs/011-source-asset-cadence/quickstart.md
-- [ ] T049 Update AGENTS feature history and canonical commands for schedule model changes in AGENTS.md
+- [x] T043 [P] Update cutover runbook with verification commands in docs/runbooks/local-stack-baseline.md
+- [x] T044 [P] Update onboarding guidance for per-source schedule operations in docs/onboarding/monorepo-baseline.md
+- [x] T045 [P] Update architecture documentation for schedule ownership model in docs/architecture/monorepo-boundaries.md
+- [x] T046 [P] Update spec quickstart alignment notes in specs/011-source-asset-cadence/quickstart.md
+- [x] T047 Run feature quality gate command set and document results in specs/011-source-asset-cadence/quickstart.md
+- [x] T048 Run local compose end-to-end schedule verification and document results in specs/011-source-asset-cadence/quickstart.md
+- [x] T049 Update AGENTS feature history and canonical commands for schedule model changes in AGENTS.md
 
 ---
 

@@ -68,3 +68,25 @@ def test_source_outcomes_include_visibility_for_success_and_failure() -> None:
     assert by_source["visible-success"]["failure_summary"] is None
     assert by_source["visible-failure"]["visible_in_dagit"] is True
     assert "provider_request_failed" in str(by_source["visible-failure"]["failure_summary"])
+
+
+def test_source_schedule_trigger_attribution_in_outcomes() -> None:
+    """Feature 011 US2: source outcomes should carry trigger attribution for scheduled runs."""
+    coordinator = RunCoordinator(
+        workflow_registry=_build_registry(),
+        source_lock_service=SourceLockService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    payload = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="visible-success_schedule",
+        source_keys=["visible-success"],
+    )
+
+    assert payload["trigger_type"] == "scheduled"
+    assert payload["requested_by"] == "visible-success_schedule"
+    assert len(payload["source_results"]) == 1
+    assert payload["source_results"][0]["source_key"] == "visible-success"
+    assert payload["source_results"][0]["visible_in_dagit"] is True

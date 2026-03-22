@@ -127,3 +127,50 @@ def test_on_demand_subset_bypasses_due_state() -> None:
     assert payload["executed_source_count"] == 1
     by_source = {row["source_key"]: row for row in payload["source_results"]}
     assert by_source["not-due-source"]["status"] == "success"
+
+
+def test_per_source_schedule_triggers_independently() -> None:
+    """Feature 011 US1: per-source schedule should trigger only the owning source."""
+    now = datetime(2026, 3, 21, 12, 0, tzinfo=UTC)
+    repository = _CaptureRepository()
+    coordinator = RunCoordinator(
+        workflow_registry=_build_registry(now),
+        source_lock_service=SourceLockService(),
+        due_source_selector=_NowAnchoredSelector(now),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+        run_repository=repository,
+    )
+
+    # Simulate per-source schedule for "due-source" only
+    payload = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="due-source_schedule",
+        source_keys=["due-source"],
+    )
+
+    assert payload["executed_source_count"] == 1
+    assert payload["not_due_source_count"] == 0
+    assert len(payload["source_results"]) == 1
+    assert payload["source_results"][0]["source_key"] == "due-source"
+    assert payload["source_results"][0]["status"] == "success"
+
+
+def test_per_source_schedule_does_not_trigger_other_sources() -> None:
+    """Feature 011 US1: triggering one source schedule must not execute other sources."""
+    now = datetime(2026, 3, 21, 12, 0, tzinfo=UTC)
+    coordinator = RunCoordinator(
+        workflow_registry=_build_registry(now),
+        source_lock_service=SourceLockService(),
+        due_source_selector=_NowAnchoredSelector(now),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    payload = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="not-due-source_schedule",
+        source_keys=["not-due-source"],
+    )
+
+    source_keys = [r["source_key"] for r in payload["source_results"]]
+    assert source_keys == ["not-due-source"]
+    assert "due-source" not in source_keys

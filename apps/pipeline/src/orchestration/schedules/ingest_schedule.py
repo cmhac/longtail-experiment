@@ -1,18 +1,11 @@
-"""Scheduled Dagster trigger for standardized ingestion runs."""
+"""
+Shared scheduled Dagster trigger — RETIRED after Feature 011 cutover.
+
+This module previously defined an hourly all-source schedule. Per-source asset
+schedules now own cadence authority. See source_asset_schedules.py.
+"""
 
 from __future__ import annotations
 
-from dagster import RunRequest, schedule
-
-
-@schedule(cron_schedule="0 * * * *", job_name="ingest_job")
-def ingest_schedule(_context) -> RunRequest:
-    """Emit hourly scheduled run requests for ingestion operations."""
-    return RunRequest(
-        run_key=None,
-        tags={
-            "trigger_type": "scheduled",
-            "source_selection_mode": "due_only",
-            "requested_by": "ingest_schedule",
-        },
-    )
+SHARED_SCHEDULE_RETIRED = True
+"""Marker indicating the shared ingest schedule is no longer active."""

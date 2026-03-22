@@ -1,4 +1,10 @@
-"""Determine due-source eligibility for scheduled and on-demand runs."""
+"""
+Determine due-source eligibility for scheduled and on-demand runs.
+
+NOTE (Feature 011): The scheduled evaluation path (evaluate_scheduled) is deprecated
+for active scheduling decisions. Per-source schedules now own cadence authority.
+This module is retained for on-demand eligibility and backward-compatible fallback only.
+"""
 
 from __future__ import annotations
 

@@ -58,6 +58,8 @@ fi
 if [[ "${VERIFY_DAGIT_ENDPOINT:-0}" == "1" ]]; then
   dagit_port="${DAGIT_PORT:-3001}"
   DAGIT_ENDPOINT="http://127.0.0.1:${dagit_port}" bash tools/quality/local-stack/test-dagit-endpoint.sh
+  echo "SCHEDULE_MODEL=per_source"
+  echo "SHARED_SCHEDULE_ACTIVE=false"
 fi
 
 docker compose down

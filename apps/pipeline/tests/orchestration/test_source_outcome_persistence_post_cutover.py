@@ -15,8 +15,8 @@ from src.orchestration.jobs.workflow_registry import (
     SourceWorkflowRegistry,
 )
 from src.orchestration.jobs.workflow_result import SourceWorkflowResult
-from src.orchestration.runtime import map_source_outcomes_to_persistence_records
 from src.orchestration.resources.source_lock_service import SourceLockService
+from src.orchestration.runtime import map_source_outcomes_to_persistence_records
 
 
 class _CaptureRepository:

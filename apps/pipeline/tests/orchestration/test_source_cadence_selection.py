@@ -12,6 +12,7 @@ from src.orchestration.jobs.due_source_selector import DueSourceSelector
 from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
 from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
 from src.orchestration.jobs.workflow_result import SourceWorkflowResult
+from src.orchestration.schedules.source_asset_schedules import SOURCE_CADENCE_DEFINITIONS
 
 
 def _registration(
@@ -105,3 +106,23 @@ def test_invalid_policy_is_marked_as_skipped_invalid_policy() -> None:
     assert decisions[0].eligibility_state == "skipped_invalid_policy"
     assert decisions[0].reason_code == "invalid_policy"
     assert decisions[0].selected_for_execution is False
+
+
+def test_source_asset_owns_schedule_cadence() -> None:
+    """Feature 011 US1: each source schedule definition maps to its own cadence."""
+    assert "dummy_source" in SOURCE_CADENCE_DEFINITIONS
+    assert "example_source" in SOURCE_CADENCE_DEFINITIONS
+    assert "fred_fedfunds" in SOURCE_CADENCE_DEFINITIONS
+
+    assert SOURCE_CADENCE_DEFINITIONS["dummy_source"][1] == "hourly"
+    assert SOURCE_CADENCE_DEFINITIONS["example_source"][1] == "daily"
+    assert SOURCE_CADENCE_DEFINITIONS["fred_fedfunds"][1] == "daily"
+
+
+def test_source_asset_schedules_have_distinct_cron_definitions() -> None:
+    """Feature 011 US1: per-source schedules should have appropriate cron expressions."""
+    # Hourly: every hour on the hour
+    assert SOURCE_CADENCE_DEFINITIONS["dummy_source"][0] == "0 * * * *"
+    # Daily: midnight
+    assert SOURCE_CADENCE_DEFINITIONS["example_source"][0] == "0 0 * * *"
+    assert SOURCE_CADENCE_DEFINITIONS["fred_fedfunds"][0] == "0 0 * * *"

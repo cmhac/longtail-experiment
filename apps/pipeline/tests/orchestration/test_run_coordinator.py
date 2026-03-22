@@ -287,3 +287,50 @@ def test_run_coordinator_upserts_schedule_policy_for_successful_sources_only() -
     assert upsert["cadence_type"] == "hourly"
     assert isinstance(upsert["last_successful_at"], datetime)
     assert isinstance(upsert["updated_at"], datetime)
+
+
+def test_scheduled_run_with_explicit_source_keys_bypasses_due_filter() -> None:
+    """Feature 011: scheduled trigger with explicit source_keys should skip due evaluation."""
+    registry = SourceWorkflowRegistry()
+
+    def _handler(request):
+        return SourceWorkflowResult(
+            source_key=request.source_key,
+            status="success",
+            accepted_count=1,
+        )
+
+    # Register with a policy that would mark source as not-due (recent success)
+    registry.register(
+        SourceWorkflowRegistration(
+            workflow_id="wf-bypass",
+            source_key="bypass-source",
+            owner="pipeline",
+            supported_trigger_modes={"scheduled", "on_demand"},
+            handler=_handler,
+            schedule_policy=SourceSchedulePolicy(
+                source_key="bypass-source",
+                cadence_type="daily",
+                last_successful_at=datetime.now(tz=UTC) - timedelta(minutes=5),
+            ),
+        )
+    )
+
+    coordinator = RunCoordinator(
+        workflow_registry=registry,
+        source_lock_service=SourceLockService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    # With explicit source_keys, the coordinator should execute even though
+    # due-evaluation would mark the source as not-due
+    payload = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="bypass_source_schedule",
+        source_keys=["bypass-source"],
+    )
+
+    assert payload["executed_source_count"] == 1
+    assert payload["not_due_source_count"] == 0
+    assert payload["source_results"][0]["status"] == "success"

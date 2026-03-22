@@ -153,3 +153,27 @@ def test_run_aggregate_counts_match_source_classifications() -> None:
     assert payload["deferred_source_count"] == deferred
     assert payload["not_due_source_count"] == not_due
     assert payload["due_source_count"] == executed + deferred
+
+
+def test_historical_artifacts_do_not_drive_scheduling_decisions() -> None:
+    """Feature 011 US3: legacy cadence policy should not affect per-source schedule runs."""
+    now = datetime(2026, 3, 21, 12, 0, tzinfo=UTC)
+    coordinator = RunCoordinator(
+        workflow_registry=_registry(now),
+        source_lock_service=SourceLockService(),
+        due_source_selector=_NowAnchoredSelector(now),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    # Per-source schedule trigger with explicit source_keys bypasses due evaluation
+    payload = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="source-success_schedule",
+        source_keys=["source-success"],
+    )
+
+    # All explicitly-targeted sources execute regardless of legacy policy state
+    assert payload["executed_source_count"] == 1
+    assert payload["not_due_source_count"] == 0
+    assert payload["source_results"][0]["source_key"] == "source-success"
+    assert payload["source_results"][0]["status"] == "success"

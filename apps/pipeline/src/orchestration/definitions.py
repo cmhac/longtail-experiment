@@ -2,19 +2,19 @@
 
 from dagster import Definitions
 
-from .jobs.source_assets.recovery import build_post_cutover_recovery_plan
 from .jobs.ingest_job import ingest_job
+from .jobs.source_assets.recovery import build_post_cutover_recovery_plan
 from .runtime import IngestRuntime, build_ingest_runtime
-from .source_asset_definitions import SOURCE_DAGIT_ASSETS
-from .schedules.ingest_schedule import ingest_schedule
+from .schedules.source_asset_schedules import SOURCE_ASSET_SCHEDULES
 from .sensors.ondemand_sensor import ondemand_sensor
+from .source_asset_definitions import SOURCE_DAGIT_ASSETS
 
 _INGEST_RUNTIME = build_ingest_runtime()
 DAGIT_WORKSPACE_MODULE = "src.orchestration.definitions"
 WORKSPACE_DEFINITION_CATALOG: dict[str, tuple[str, ...]] = {
     "jobs": ("ingest_job",),
     "assets": ("dummy_source", "example_source", "fred_fedfunds"),
-    "schedules": ("ingest_schedule",),
+    "schedules": ("dummy_source_schedule", "example_source_schedule", "fred_fedfunds_schedule"),
     "sensors": ("ondemand_sensor",),
 }
 
@@ -52,7 +52,7 @@ def get_recovery_plan_for_source_results(
 defs = Definitions(
     assets=SOURCE_DAGIT_ASSETS,
     jobs=[ingest_job],
-    schedules=[ingest_schedule],
+    schedules=SOURCE_ASSET_SCHEDULES,
     sensors=[ondemand_sensor],
     resources=_INGEST_RUNTIME.dagit_resources(),
 )

@@ -127,3 +127,43 @@ def test_scheduled_trigger_marks_fred_not_due_when_recent_success_exists() -> No
     assert result["not_due_source_count"] == 1
     assert result["source_results"][0]["source_key"] == "fred_fedfunds"
     assert result["source_results"][0]["status"] == "not_due"
+
+
+def test_source_schedule_trigger_carries_attribution() -> None:
+    """Feature 011 US2: per-source schedule trigger should carry source attribution."""
+    coordinator = RunCoordinator(
+        workflow_registry=_build_registry(),
+        source_lock_service=SourceLockService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    result = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="bls_schedule",
+        source_keys=["bls"],
+    )
+
+    assert result["trigger_type"] == "scheduled"
+    assert result["requested_by"] == "bls_schedule"
+    assert result["executed_source_count"] == 1
+    assert result["source_results"][0]["source_key"] == "bls"
+
+
+def test_source_schedule_trigger_preserves_run_id_attribution() -> None:
+    """Feature 011 US2: run_id must be present in source-scheduled trigger output."""
+    coordinator = RunCoordinator(
+        workflow_registry=_build_registry(),
+        source_lock_service=SourceLockService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    result = coordinator.run(
+        trigger_type="scheduled",
+        requested_by="bls_schedule",
+        source_keys=["bls"],
+    )
+
+    assert result["run_id"] is not None
+    assert len(result["run_id"]) > 0

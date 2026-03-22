@@ -1,4 +1,10 @@
-"""Source cadence policy schema and due-state helpers."""
+"""
+Source cadence policy schema and due-state helpers.
+
+NOTE (Feature 011): This module is deprecated for active scheduling decisions.
+Per-source Dagster schedule definitions now own cadence authority. Retained for
+historical policy interpretation and backward-compatible policy hydration only.
+"""
 
 from __future__ import annotations
 

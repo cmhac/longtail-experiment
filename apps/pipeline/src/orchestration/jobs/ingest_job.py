@@ -6,12 +6,12 @@ from typing import Any
 
 from dagster import job, op
 
+from .source_assets.recovery import build_post_cutover_recovery_plan
 from .source_assets.triggering import (
     build_invalid_source_request_summary,
     normalize_requested_source_keys,
     validate_source_selection,
 )
-from .source_assets.recovery import build_post_cutover_recovery_plan
 
 
 @op(required_resource_keys={"run_coordinator", "scheduling_authority_state"})
@@ -59,11 +59,14 @@ def execute_ingest_run(context) -> dict[str, Any]:
             "run_id": run_summary["run_id"],
             "outcome_state": run_summary["outcome_state"],
             "accepted_count": run_summary["accepted_count"],
+            "trigger_type": trigger_type,
+            "trigger_origin": requested_by,
             "due_source_count": run_summary["due_source_count"],
             "executed_source_count": run_summary["executed_source_count"],
             "deferred_source_count": run_summary["deferred_source_count"],
             "not_due_source_count": run_summary["not_due_source_count"],
             "requested_source_keys": selected_source_keys,
+            "schedule_model": "per_source",
         },
     )
     if run_summary["deferred_source_count"] > 0:
