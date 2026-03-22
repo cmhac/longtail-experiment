@@ -23,6 +23,15 @@ class _AuditRepo:
     def fetch_conflict_ids_for_series(self, series_key: str) -> list[str]:
         return [f"conf-{series_key}-1"]
 
+    def fetch_run_visibility_for_series(self, _series_key: str) -> dict[str, object]:
+        return {
+            "due_source_count": 3,
+            "executed_source_count": 2,
+            "deferred_source_count": 1,
+            "not_due_source_count": 4,
+            "source_visibility_reasons": ["overlap_guard_queued", "cadence_not_due"],
+        }
+
 
 def test_audit_query_returns_conflict_ids_in_projection() -> None:
     service = ProvenanceAuditQueryService(repository=_AuditRepo())
@@ -30,3 +39,16 @@ def test_audit_query_returns_conflict_ids_in_projection() -> None:
     rows = service.fetch_audit_history("CPI.US.ALL")
 
     assert rows[0]["conflict_ids"] == ["conf-CPI.US.ALL-1"]
+
+
+def test_audit_query_exposes_run_visibility_reason_fields() -> None:
+    service = ProvenanceAuditQueryService(repository=_AuditRepo())
+
+    rows = service.fetch_audit_history("CPI.US.ALL")
+
+    assert rows[0]["deferred_source_count"] == 1
+    assert rows[0]["not_due_source_count"] == 4
+    assert rows[0]["source_visibility_reasons"] == [
+        "overlap_guard_queued",
+        "cadence_not_due",
+    ]

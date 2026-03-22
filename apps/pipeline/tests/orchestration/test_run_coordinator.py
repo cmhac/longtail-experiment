@@ -7,8 +7,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from src.orchestration.jobs.due_source_selector import DueSourceSelector
+from src.orchestration.jobs.parallel_source_executor import ParallelSourceExecutor
 from src.orchestration.jobs.run_coordinator import RunCoordinator
-from src.orchestration.jobs.run_outcome_service import RunOutcomeService
 from src.orchestration.jobs.workflow_registry import (
     SourceWorkflowRegistration,
     SourceWorkflowRegistry,
@@ -52,7 +53,8 @@ def test_run_coordinator_persists_successful_summary() -> None:
     coordinator = RunCoordinator(
         workflow_registry=registry,
         source_lock_service=SourceLockService(),
-        run_outcome_service=RunOutcomeService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
         run_repository=run_repo,
     )
 
@@ -82,7 +84,8 @@ def test_run_coordinator_marks_source_failure_when_handler_raises() -> None:
     coordinator = RunCoordinator(
         workflow_registry=registry,
         source_lock_service=SourceLockService(),
-        run_outcome_service=RunOutcomeService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
     )
 
     payload = coordinator.run(trigger_type="on_demand", requested_by="operator")
@@ -118,12 +121,12 @@ def test_run_coordinator_deduplicated_lock_state_is_reported_as_failure() -> Non
     coordinator = RunCoordinator(
         workflow_registry=registry,
         source_lock_service=lock_service,
-        run_outcome_service=RunOutcomeService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
     )
 
     payload = coordinator.run(trigger_type="scheduled", requested_by="scheduler")
 
-    assert payload["outcome_state"] == "failure"
-    assert payload["failed_count"] == 1
-    message = payload["source_results"][0]["message"]
-    assert message == "source trigger deduplicated while active+queued"
+    assert payload["outcome_state"] == "success"
+    assert payload["deferred_source_count"] == 1
+    assert payload["source_results"][0]["status"] == "deferred"

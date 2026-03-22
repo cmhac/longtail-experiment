@@ -38,3 +38,35 @@ def test_runtime_migration_creates_expected_tables() -> None:
         "conflict_records",
     ):
         assert f'"{table_name}"' in migration_text
+
+
+def test_schedule_eligibility_migration_metadata() -> None:
+    file_path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0003_source_schedule_and_eligibility.py"
+    )
+    spec = spec_from_file_location("source_schedule_and_eligibility", file_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.revision == "0003_sched_eligibility"
+    assert module.down_revision == "0002_ingestion_runtime_conflicts"
+
+
+def test_schedule_eligibility_migration_creates_expected_tables() -> None:
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0003_source_schedule_and_eligibility.py"
+    ).read_text(encoding="utf-8")
+
+    for table_name in (
+        "source_schedule_policies",
+        "source_eligibility_snapshots",
+    ):
+        assert f'"{table_name}"' in migration_text

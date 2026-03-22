@@ -23,5 +23,7 @@ defs = Definitions(
         "source_lock_service": _INGEST_RUNTIME.source_lock_service,
         "run_coordinator": _INGEST_RUNTIME.run_coordinator,
         "run_repository": _INGEST_RUNTIME.run_repository,
+        "due_source_selector": _INGEST_RUNTIME.due_source_selector,
+        "parallel_source_executor": _INGEST_RUNTIME.parallel_source_executor,
     },
 )

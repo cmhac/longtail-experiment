@@ -35,3 +35,10 @@ Define ownership and separation boundaries for baseline monorepo projects.
 - Conflict lifecycle writes are produced in pipeline orchestration modules and persisted via shared DB repositories.
 - Backend audit projection may enrich provenance/revision rows with conflict identifiers, but does not own conflict lifecycle state transitions.
 - Shared DB migration and model updates are required whenever conflict record schema changes.
+
+## Per-Source Scheduling Boundary (Feature 006)
+
+- `apps/pipeline/src/orchestration/jobs/source_schedule_policy.py` owns cadence policy parsing and validation.
+- `apps/pipeline/src/orchestration/jobs/due_source_selector.py` owns due/not-due eligibility decisions and deterministic source ordering for scheduled runs.
+- `apps/pipeline/src/orchestration/jobs/parallel_source_executor.py` owns bounded active-source launch policy.
+- `apps/pipeline/src/orchestration/resources/postgres_run_repository.py` owns persistence of run-level due/executed/deferred/not-due counters and per-source eligibility snapshots.

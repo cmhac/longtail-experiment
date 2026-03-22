@@ -63,3 +63,17 @@
 
 - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_workflow_contract.py`
 - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_onboarding_flow.py`
+
+## Bounded Parallel Ingestion Validation (Feature 006)
+
+1. Run cadence eligibility verification:
+  - `nx run pipeline:test:orchestration:cadence`
+2. Run bounded concurrency verification:
+  - `nx run pipeline:test:orchestration:parallel`
+3. Run full orchestration suite if either command fails:
+  - `nx run pipeline:test:orchestration`
+
+Expected operator signals:
+
+- Deferred sources are recorded when due work exceeds configured active-source capacity.
+- Not-due and invalid-policy sources are excluded from scheduled execution with explicit reasons.

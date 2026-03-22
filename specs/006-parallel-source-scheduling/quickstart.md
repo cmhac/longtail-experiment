@@ -98,6 +98,43 @@ pnpm run affected:coverage
 pnpm run affected:duplication
 ```
 
+## Feature 006 Local Verification Shortcuts
+
+```bash
+nx run pipeline:test:orchestration
+nx run pipeline:test:orchestration:cadence
+nx run pipeline:test:orchestration:parallel
+```
+
+Expected outcome:
+
+- Cadence and bounded-parallel test selections are runnable as stable project targets.
+
+## Validation Log (2026-03-21)
+
+Quality gate run:
+
+- `pnpm run quality:pipeline`
+- Result: PASS (`ruff check`, `ruff format --check`, `ty check`, full `pytest`, and coverage all succeeded).
+- Coverage: 94.02% total for `apps/pipeline/src` with `76 passed` tests.
+
+Local DB migration and revision checks:
+
+- `bash tools/quality/local-stack/run-db-migrations.sh`
+- `bash tools/quality/local-stack/check-db-revision.sh`
+- Result: PASS after applying migration `0003_sched_eligibility`; revision check now reports `Revision OK: 0003_sched_eligibility`.
+
+Scheduled-run and bounded-parallel verification:
+
+- `pnpm exec nx run pipeline:test:orchestration:cadence`
+- `pnpm exec nx run pipeline:test:orchestration:parallel`
+- Result: PASS (`7 passed` for cadence selection, `7 passed` for bounded parallel checks).
+
+Two-week backlog carry-forward risk proxy check:
+
+- `uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_ingest_job_runtime.py::test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward`
+- Result: PASS (`1 passed`), confirming deferred-source counters persist when overlap guard forces carry-forward.
+
 ## 9. Documentation Impact Checklist
 
 Update in same change when behavior or commands change:

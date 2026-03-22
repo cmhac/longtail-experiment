@@ -2,22 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Literal, Protocol, TypedDict
+from typing import Any, Literal, TypedDict, cast
 from uuid import uuid4
 
 from src.orchestration.resources.source_lock_service import SourceLockService
 
+from .due_source_selector import DueSourceSelector, SourceEligibilityDecision
+from .parallel_source_executor import ParallelSourceExecutor
 from .run_outcome_service import RunOutcomeService
-from .workflow_registry import SourceWorkflowRegistry
+from .workflow_registry import SourceWorkflowRegistration, SourceWorkflowRegistry
 from .workflow_result import SourceWorkflowResult
-
-
-class RunRepository(Protocol):
-    """Protocol for persisting run summary payloads."""
-
-    def add_run_outcome(self, payload: RunSummary) -> None:
-        """Persist one run summary payload."""
 
 
 class RunSummary(TypedDict):
@@ -33,8 +29,13 @@ class RunSummary(TypedDict):
     accepted_count: int
     quarantined_count: int
     failed_count: int
+    failed_source_count: int
     duplicate_no_op_count: int
     conflict_count: int
+    due_source_count: int
+    executed_source_count: int
+    deferred_source_count: int
+    not_due_source_count: int
 
 
 class RunCoordinator:
@@ -45,13 +46,16 @@ class RunCoordinator:
         *,
         workflow_registry: SourceWorkflowRegistry,
         source_lock_service: SourceLockService,
-        run_outcome_service: RunOutcomeService,
-        run_repository: RunRepository | None = None,
+        due_source_selector: DueSourceSelector,
+        parallel_source_executor: ParallelSourceExecutor,
+        run_repository: object | None = None,
     ) -> None:
         """Initialize coordinator with registry, lock, aggregation, and persistence dependencies."""
         self._workflow_registry = workflow_registry
         self._source_lock_service = source_lock_service
-        self._run_outcome_service = run_outcome_service
+        self._run_outcome_service = RunOutcomeService()
+        self._due_source_selector = due_source_selector
+        self._parallel_source_executor = parallel_source_executor
         self._run_repository = run_repository
 
     def run(
@@ -63,43 +67,37 @@ class RunCoordinator:
     ) -> RunSummary:
         """Execute one orchestration run and return summary details."""
         run_id = str(uuid4())
-        keys = source_keys or self._workflow_registry.list_source_keys()
-        source_results: list[SourceWorkflowResult] = []
         started_at = datetime.now(tz=UTC)
+        registrations = self._filter_registrations(source_keys)
 
-        for source_key in keys:
-            lock_status = self._source_lock_service.acquire(source_key, run_id)
-            if lock_status == "deduplicated":
-                source_results.append(
-                    SourceWorkflowResult(
-                        source_key=source_key,
-                        status="failure",
-                        failed_count=1,
-                        message="source trigger deduplicated while active+queued",
-                    )
-                )
-                continue
+        eligibility_decisions = self._build_eligibility_decisions(
+            trigger_type=trigger_type,
+            registrations=registrations,
+            source_keys=source_keys,
+            evaluated_at=started_at,
+        )
 
-            try:
-                source_results.append(
-                    self._workflow_registry.execute_for_source(
-                        source_key=source_key,
-                        run_id=run_id,
-                        trigger_type=trigger_type,
-                        run_context={"requested_by": requested_by},
-                    )
-                )
-            except Exception as exc:  # pragma: no cover - fail-open policy boundary
-                source_results.append(
-                    SourceWorkflowResult(
-                        source_key=source_key,
-                        status="failure",
-                        failed_count=1,
-                        message=str(exc),
-                    )
-                )
-            finally:
-                self._source_lock_service.release(source_key, run_id)
+        due_source_keys = [
+            decision.source_key
+            for decision in eligibility_decisions
+            if decision.eligibility_state == "due" and decision.selected_for_execution
+        ]
+
+        execution = self._parallel_source_executor.execute(
+            run_id=run_id,
+            due_source_keys=due_source_keys,
+            source_lock_service=self._source_lock_service,
+            handler=lambda source_key: self._workflow_registry.execute_for_source(
+                source_key=source_key,
+                run_id=run_id,
+                trigger_type=trigger_type,
+                run_context={"requested_by": requested_by},
+            ),
+        )
+
+        non_due_results = self._build_non_due_results(eligibility_decisions)
+        source_results = execution.source_results + non_due_results
+        source_results.sort(key=lambda result: result.source_key)
 
         aggregate = self._run_outcome_service.aggregate(source_results)
         completed_at = datetime.now(tz=UTC)
@@ -114,9 +112,92 @@ class RunCoordinator:
             "accepted_count": aggregate["accepted_count"],
             "quarantined_count": aggregate["quarantined_count"],
             "failed_count": aggregate["failed_count"],
+            "failed_source_count": aggregate["failed_source_count"],
             "duplicate_no_op_count": aggregate["duplicate_no_op_count"],
             "conflict_count": aggregate["conflict_count"],
+            "due_source_count": aggregate["due_source_count"],
+            "executed_source_count": aggregate["executed_source_count"],
+            "deferred_source_count": aggregate["deferred_source_count"],
+            "not_due_source_count": aggregate["not_due_source_count"],
         }
         if self._run_repository is not None:
-            self._run_repository.add_run_outcome(payload)
+            add_run_outcome = getattr(self._run_repository, "add_run_outcome", None)
+            if callable(add_run_outcome):
+                typed_add_run_outcome = cast(Callable[[RunSummary], None], add_run_outcome)
+                typed_add_run_outcome(payload)
+
+            write_snapshots = getattr(
+                self._run_repository,
+                "write_eligibility_snapshots",
+                None,
+            )
+            if callable(write_snapshots):
+                typed_write_snapshots = cast(Callable[..., Any], write_snapshots)
+                typed_write_snapshots(
+                    run_id=run_id,
+                    snapshots=[
+                        self._decision_to_snapshot(decision) for decision in eligibility_decisions
+                    ],
+                )
         return payload
+
+    def _filter_registrations(
+        self,
+        source_keys: list[str] | None,
+    ) -> list[SourceWorkflowRegistration]:
+        registrations = self._workflow_registry.list_registrations()
+        if source_keys is None:
+            return registrations
+        requested = set(source_keys)
+        return [
+            registration for registration in registrations if registration.source_key in requested
+        ]
+
+    def _build_eligibility_decisions(
+        self,
+        *,
+        trigger_type: Literal["scheduled", "on_demand"],
+        registrations: list[SourceWorkflowRegistration],
+        source_keys: list[str] | None,
+        evaluated_at: datetime,
+    ) -> list[SourceEligibilityDecision]:
+        if trigger_type == "scheduled":
+            return self._due_source_selector.evaluate_scheduled(
+                registrations=registrations,
+                evaluated_at=evaluated_at,
+            )
+
+        selected = source_keys or [registration.source_key for registration in registrations]
+        return self._due_source_selector.evaluate_on_demand(
+            source_keys=selected,
+            evaluated_at=evaluated_at,
+        )
+
+    def _build_non_due_results(
+        self,
+        decisions: list[SourceEligibilityDecision],
+    ) -> list[SourceWorkflowResult]:
+        results: list[SourceWorkflowResult] = []
+        for decision in decisions:
+            if decision.selected_for_execution:
+                continue
+            results.append(
+                SourceWorkflowResult(
+                    source_key=decision.source_key,
+                    status="not_due",
+                    outcome_reason_code=decision.reason_code,
+                    message=f"source not selected for execution ({decision.reason_code})",
+                )
+            )
+        return results
+
+    @staticmethod
+    def _decision_to_snapshot(decision: SourceEligibilityDecision) -> dict[str, object]:
+        return {
+            "source_key": decision.source_key,
+            "eligibility_state": decision.eligibility_state,
+            "reason_code": decision.reason_code,
+            "evaluated_at": decision.evaluated_at,
+            "due_at": decision.due_at,
+            "selected_for_execution": decision.selected_for_execution,
+        }

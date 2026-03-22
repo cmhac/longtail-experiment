@@ -8,4 +8,11 @@ from dagster import RunRequest, schedule
 @schedule(cron_schedule="0 * * * *", job_name="ingest_job")
 def ingest_schedule(_context) -> RunRequest:
     """Emit hourly scheduled run requests for ingestion operations."""
-    return RunRequest(run_key=None, tags={"trigger_type": "scheduled"})
+    return RunRequest(
+        run_key=None,
+        tags={
+            "trigger_type": "scheduled",
+            "source_selection_mode": "due_only",
+            "requested_by": "ingest_schedule",
+        },
+    )

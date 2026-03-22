@@ -72,7 +72,12 @@ class PostgresRunRepository:
                         quarantined_count,
                         failed_count,
                         duplicate_no_op_count,
-                        conflict_count
+                        conflict_count,
+                        due_source_count,
+                        executed_source_count,
+                        deferred_source_count,
+                        not_due_source_count,
+                        failed_source_count
                     ) VALUES (
                         :id,
                         :run_id,
@@ -85,7 +90,12 @@ class PostgresRunRepository:
                         :quarantined_count,
                         :failed_count,
                         :duplicate_no_op_count,
-                        :conflict_count
+                        :conflict_count,
+                        :due_source_count,
+                        :executed_source_count,
+                        :deferred_source_count,
+                        :not_due_source_count,
+                        :failed_source_count
                     )
                     ON CONFLICT (run_id) DO UPDATE
                     SET
@@ -98,7 +108,12 @@ class PostgresRunRepository:
                         quarantined_count = EXCLUDED.quarantined_count,
                         failed_count = EXCLUDED.failed_count,
                         duplicate_no_op_count = EXCLUDED.duplicate_no_op_count,
-                        conflict_count = EXCLUDED.conflict_count
+                        conflict_count = EXCLUDED.conflict_count,
+                        due_source_count = EXCLUDED.due_source_count,
+                        executed_source_count = EXCLUDED.executed_source_count,
+                        deferred_source_count = EXCLUDED.deferred_source_count,
+                        not_due_source_count = EXCLUDED.not_due_source_count,
+                        failed_source_count = EXCLUDED.failed_source_count
                     """
                 ),
                 {
@@ -114,6 +129,11 @@ class PostgresRunRepository:
                     "failed_count": int(payload["failed_count"]),
                     "duplicate_no_op_count": int(payload["duplicate_no_op_count"]),
                     "conflict_count": int(payload["conflict_count"]),
+                    "due_source_count": int(payload["due_source_count"]),
+                    "executed_source_count": int(payload["executed_source_count"]),
+                    "deferred_source_count": int(payload["deferred_source_count"]),
+                    "not_due_source_count": int(payload["not_due_source_count"]),
+                    "failed_source_count": int(payload["failed_source_count"]),
                 },
             )
 
@@ -131,6 +151,7 @@ class PostgresRunRepository:
                             failed_count,
                             duplicate_no_op_count,
                             conflict_count,
+                            outcome_reason_code,
                             message
                         ) VALUES (
                             :id,
@@ -142,6 +163,7 @@ class PostgresRunRepository:
                             :failed_count,
                             :duplicate_no_op_count,
                             :conflict_count,
+                            :outcome_reason_code,
                             :message
                         )
                         ON CONFLICT (run_id, source_key) DO UPDATE
@@ -152,6 +174,7 @@ class PostgresRunRepository:
                             failed_count = EXCLUDED.failed_count,
                             duplicate_no_op_count = EXCLUDED.duplicate_no_op_count,
                             conflict_count = EXCLUDED.conflict_count,
+                            outcome_reason_code = EXCLUDED.outcome_reason_code,
                             message = EXCLUDED.message
                         """
                     ),
@@ -160,9 +183,7 @@ class PostgresRunRepository:
                         "run_id": run_id,
                         "source_key": str(source_result["source_key"]),
                         "state": str(source_result["status"]),
-                        "accepted_count": self._as_int(
-                            source_result.get("accepted_count", 0)
-                        ),
+                        "accepted_count": self._as_int(source_result.get("accepted_count", 0)),
                         "quarantined_count": self._as_int(
                             source_result.get("quarantined_count", 0)
                         ),
@@ -171,9 +192,97 @@ class PostgresRunRepository:
                             source_result.get("duplicate_no_op_count", 0)
                         ),
                         "conflict_count": self._as_int(source_result.get("conflict_count", 0)),
+                        "outcome_reason_code": source_result.get("outcome_reason_code"),
                         "message": source_result.get("message"),
                     },
                 )
+
+    def write_eligibility_snapshots(
+        self,
+        *,
+        run_id: str,
+        snapshots: list[dict[str, object]],
+    ) -> None:
+        """Persist per-source eligibility snapshots for one run."""
+        if not snapshots:
+            return
+
+        with self._engine.begin() as connection:
+            for snapshot in snapshots:
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO source_eligibility_snapshots (
+                            id,
+                            run_id,
+                            source_key,
+                            eligibility_state,
+                            reason_code,
+                            evaluated_at,
+                            due_at,
+                            selected_for_execution
+                        ) VALUES (
+                            :id,
+                            :run_id,
+                            :source_key,
+                            :eligibility_state,
+                            :reason_code,
+                            :evaluated_at,
+                            :due_at,
+                            :selected_for_execution
+                        )
+                        ON CONFLICT (run_id, source_key) DO UPDATE
+                        SET
+                            eligibility_state = EXCLUDED.eligibility_state,
+                            reason_code = EXCLUDED.reason_code,
+                            evaluated_at = EXCLUDED.evaluated_at,
+                            due_at = EXCLUDED.due_at,
+                            selected_for_execution = EXCLUDED.selected_for_execution
+                        """
+                    ),
+                    {
+                        "id": uuid4(),
+                        "run_id": run_id,
+                        "source_key": str(snapshot["source_key"]),
+                        "eligibility_state": str(snapshot["eligibility_state"]),
+                        "reason_code": str(snapshot["reason_code"]),
+                        "evaluated_at": self._as_datetime(snapshot["evaluated_at"]),
+                        "due_at": (
+                            self._as_datetime(snapshot["due_at"])
+                            if snapshot.get("due_at") is not None
+                            else None
+                        ),
+                        "selected_for_execution": bool(
+                            snapshot.get("selected_for_execution", False)
+                        ),
+                    },
+                )
+
+    def read_eligibility_snapshots(self, run_id: str) -> list[dict[str, Any]]:
+        """Read persisted eligibility snapshots for one run."""
+        with self._engine.begin() as connection:
+            rows = (
+                connection.execute(
+                    text(
+                        """
+                    SELECT
+                        source_key,
+                        eligibility_state,
+                        reason_code,
+                        evaluated_at,
+                        due_at,
+                        selected_for_execution
+                    FROM source_eligibility_snapshots
+                    WHERE run_id = :run_id
+                    ORDER BY source_key ASC
+                    """
+                    ),
+                    {"run_id": run_id},
+                )
+                .mappings()
+                .all()
+            )
+        return [dict(row) for row in rows]
 
     @staticmethod
     def _as_datetime(value: object) -> datetime:
@@ -196,9 +305,10 @@ class PostgresRunRepository:
     def fetch_run(self, run_id: str) -> dict[str, Any] | None:
         """Fetch persisted run and source outcomes for verification workflows."""
         with self._engine.begin() as connection:
-            run_row = connection.execute(
-                text(
-                    """
+            run_row = (
+                connection.execute(
+                    text(
+                        """
                     SELECT
                         run_id,
                         trigger_type,
@@ -208,19 +318,28 @@ class PostgresRunRepository:
                         quarantined_count,
                         failed_count,
                         duplicate_no_op_count,
-                        conflict_count
+                        conflict_count,
+                        due_source_count,
+                        executed_source_count,
+                        deferred_source_count,
+                        not_due_source_count,
+                        failed_source_count
                     FROM ingestion_runs
                     WHERE run_id = :run_id
                     """
-                ),
-                {"run_id": run_id},
-            ).mappings().first()
+                    ),
+                    {"run_id": run_id},
+                )
+                .mappings()
+                .first()
+            )
             if run_row is None:
                 return None
 
-            outcome_rows = connection.execute(
-                text(
-                    """
+            outcome_rows = (
+                connection.execute(
+                    text(
+                        """
                     SELECT
                         source_key,
                         state,
@@ -229,23 +348,54 @@ class PostgresRunRepository:
                         failed_count,
                         duplicate_no_op_count,
                         conflict_count,
+                        outcome_reason_code,
                         message
                     FROM source_run_outcomes
                     WHERE run_id = :run_id
                     ORDER BY source_key ASC
                     """
-                ),
-                {"run_id": run_id},
-            ).mappings().all()
+                    ),
+                    {"run_id": run_id},
+                )
+                .mappings()
+                .all()
+            )
+
+            eligibility_rows = (
+                connection.execute(
+                    text(
+                        """
+                    SELECT
+                        source_key,
+                        eligibility_state,
+                        reason_code,
+                        evaluated_at,
+                        due_at,
+                        selected_for_execution
+                    FROM source_eligibility_snapshots
+                    WHERE run_id = :run_id
+                    ORDER BY source_key ASC
+                    """
+                    ),
+                    {"run_id": run_id},
+                )
+                .mappings()
+                .all()
+            )
 
         return {
             "run": dict(run_row),
             "outcomes": [dict(row) for row in outcome_rows],
+            "eligibility": [dict(row) for row in eligibility_rows],
         }
 
     def clear_run(self, run_id: str) -> None:
         """Delete persisted run and source outcomes by run id for test cleanup."""
         with self._engine.begin() as connection:
+            connection.execute(
+                text("DELETE FROM source_eligibility_snapshots WHERE run_id = :run_id"),
+                {"run_id": run_id},
+            )
             connection.execute(
                 text("DELETE FROM source_run_outcomes WHERE run_id = :run_id"),
                 {"run_id": run_id},
@@ -258,5 +408,6 @@ class PostgresRunRepository:
     def clear_all(self) -> None:
         """Delete all persisted runtime rows for local integration checks."""
         with self._engine.begin() as connection:
+            connection.execute(text("DELETE FROM source_eligibility_snapshots"))
             connection.execute(text("DELETE FROM source_run_outcomes"))
             connection.execute(text("DELETE FROM ingestion_runs"))

@@ -13,10 +13,11 @@ class SourceWorkflowResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     source_key: str = Field(min_length=1)
-    status: Literal["success", "partial_success", "failure"]
+    status: Literal["success", "partial_success", "failure", "deferred", "not_due"]
     accepted_count: int = Field(default=0, ge=0)
     quarantined_count: int = Field(default=0, ge=0)
     failed_count: int = Field(default=0, ge=0)
     duplicate_no_op_count: int = Field(default=0, ge=0)
     conflict_count: int = Field(default=0, ge=0)
+    outcome_reason_code: str | None = None
     message: str | None = None

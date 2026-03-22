@@ -69,3 +69,9 @@
 - Validate scheduled trigger mode: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k scheduled
 - Validate on-demand trigger mode: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k ondemand
 - Validate queue and partial-success behavior: uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_partial_success_status.py apps/pipeline/tests/orchestration/test_source_queue_policy.py
+
+## Source Schedule Metadata Maintenance (Feature 006)
+
+- Keep source cadence metadata with each `SourceWorkflowRegistration` entry in orchestration runtime wiring.
+- Validate cadence policy updates with `nx run pipeline:test:orchestration:cadence` before merging.
+- Validate bounded parallel ingestion behavior with `nx run pipeline:test:orchestration:parallel` when changing concurrency settings.

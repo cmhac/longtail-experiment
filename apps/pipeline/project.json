@@ -35,6 +35,18 @@
         "command": "uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration"
       }
     },
+    "test:orchestration:cadence": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"cadence or due or schedule_policy\""
+      }
+    },
+    "test:orchestration:parallel": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"parallel or concurrency or queue\""
+      }
+    },
     "coverage": {
       "executor": "nx:run-commands",
       "options": {

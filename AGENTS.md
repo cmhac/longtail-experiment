@@ -105,6 +105,8 @@ Pipeline quality commands:
 - uv run --project apps/pipeline ty check apps/pipeline
 - uv run --project apps/pipeline pytest apps/pipeline/tests
 - uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration
+- pnpm exec nx run pipeline:test:orchestration:cadence
+- pnpm exec nx run pipeline:test:orchestration:parallel
 
 Frontend quality commands:
 
@@ -120,12 +122,15 @@ Local stack and duplication:
 - bash tools/quality/local-stack/test-local-db-bootstrap.sh
 - bash tools/quality/local-stack/run-db-migrations.sh
 - bash tools/quality/local-stack/check-db-revision.sh
+- uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_ingest_job_runtime.py::test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward
 - bash tools/quality/local-stack/test-db-readiness.sh
 - uv run --project apps/backend pytest apps/backend/tests/contract/test_ingest_audit_query_contract.py apps/backend/tests/contract/test_revision_lineage_traceability.py
 - bash tools/quality/local-stack/test-compose-stack.sh
 - docker compose up -d
 - docker compose ps
 - docker compose down
+
+Current migration head expected by local revision checks: `0003_sched_eligibility`.
 
 ## Code Style
 

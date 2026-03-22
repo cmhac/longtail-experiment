@@ -24,8 +24,20 @@ def execute_ingest_run(context) -> dict[str, Any]:
             "run_id": run_summary["run_id"],
             "outcome_state": run_summary["outcome_state"],
             "accepted_count": run_summary["accepted_count"],
+            "due_source_count": run_summary["due_source_count"],
+            "executed_source_count": run_summary["executed_source_count"],
+            "deferred_source_count": run_summary["deferred_source_count"],
+            "not_due_source_count": run_summary["not_due_source_count"],
         },
     )
+    if run_summary["deferred_source_count"] > 0:
+        context.log.warning(
+            "ingest run carried forward deferred due sources",
+            extra={
+                "run_id": run_summary["run_id"],
+                "deferred_source_count": run_summary["deferred_source_count"],
+            },
+        )
     return run_summary
 
 

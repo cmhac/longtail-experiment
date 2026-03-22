@@ -8,8 +8,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from src.orchestration.jobs.due_source_selector import DueSourceSelector
+from src.orchestration.jobs.parallel_source_executor import ParallelSourceExecutor
 from src.orchestration.jobs.run_coordinator import RunCoordinator
-from src.orchestration.jobs.run_outcome_service import RunOutcomeService
 from src.orchestration.jobs.workflow_registry import (
     SourceWorkflowRegistration,
     SourceWorkflowRegistry,
@@ -45,7 +46,8 @@ def test_operator_visibility_is_under_five_minutes() -> None:
     coordinator = RunCoordinator(
         workflow_registry=_build_registry(),
         source_lock_service=SourceLockService(),
-        run_outcome_service=RunOutcomeService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
     )
 
     payload = coordinator.run(trigger_type="scheduled", requested_by="scheduler")

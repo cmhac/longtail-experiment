@@ -14,8 +14,13 @@ class RunOutcomeAggregate(TypedDict):
     accepted_count: int
     quarantined_count: int
     failed_count: int
+    failed_source_count: int
     duplicate_no_op_count: int
     conflict_count: int
+    due_source_count: int
+    executed_source_count: int
+    deferred_source_count: int
+    not_due_source_count: int
 
 
 class RunOutcomeService:
@@ -28,8 +33,20 @@ class RunOutcomeService:
         failed = sum(result.failed_count for result in source_results)
         duplicate_no_op = sum(result.duplicate_no_op_count for result in source_results)
         conflicts = sum(result.conflict_count for result in source_results)
+        failed_source_count = sum(1 for result in source_results if result.status == "failure")
 
-        has_success = any(result.status == "success" for result in source_results)
+        executed_source_count = sum(
+            1
+            for result in source_results
+            if result.status in {"success", "partial_success", "failure"}
+        )
+        deferred_source_count = sum(1 for result in source_results if result.status == "deferred")
+        not_due_source_count = sum(1 for result in source_results if result.status == "not_due")
+        due_source_count = executed_source_count + deferred_source_count
+
+        has_success = any(
+            result.status in {"success", "partial_success"} for result in source_results
+        )
         has_failure = any(result.status == "failure" for result in source_results)
         if has_success and has_failure:
             outcome_state = "partial_success"
@@ -43,6 +60,11 @@ class RunOutcomeService:
             "accepted_count": accepted,
             "quarantined_count": quarantined,
             "failed_count": failed,
+            "failed_source_count": failed_source_count,
             "duplicate_no_op_count": duplicate_no_op,
             "conflict_count": conflicts,
+            "due_source_count": due_source_count,
+            "executed_source_count": executed_source_count,
+            "deferred_source_count": deferred_source_count,
+            "not_due_source_count": not_due_source_count,
         }

@@ -6,9 +6,11 @@ from dataclasses import dataclass
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
 
+from .jobs.due_source_selector import DueSourceSelector
+from .jobs.parallel_source_executor import ParallelSourceExecutor
 from .jobs.run_coordinator import RunCoordinator
-from .jobs.run_outcome_service import RunOutcomeService
 from .jobs.source_ingest_runner import SourceIngestRunner
+from .jobs.source_schedule_policy import SourceSchedulePolicy
 from .jobs.sources.dummy_source import build_dummy_source_workflow
 from .jobs.sources.example_source import build_example_source_workflow
 from .jobs.workflow_registry import SourceWorkflowRegistry
@@ -23,7 +25,6 @@ class _DiscardingObservationRepository:
         """Accept validated observations without retaining in-memory runtime state."""
 
 
-
 @dataclass(frozen=True)
 class IngestRuntime:
     """Container for orchestration runtime dependencies and stateful adapters."""
@@ -31,6 +32,8 @@ class IngestRuntime:
     run_coordinator: RunCoordinator
     source_lock_service: SourceLockService
     run_repository: PostgresRunRepository
+    due_source_selector: DueSourceSelector
+    parallel_source_executor: ParallelSourceExecutor
 
 
 def build_ingest_runtime() -> IngestRuntime:
@@ -40,14 +43,33 @@ def build_ingest_runtime() -> IngestRuntime:
     runner = SourceIngestRunner(canonical_ingest_service=canonical_service)
 
     registry = SourceWorkflowRegistry()
-    registry.register(build_dummy_source_workflow(runner))
-    registry.register(build_example_source_workflow(runner))
+    registry.register(
+        build_dummy_source_workflow(
+            runner,
+            schedule_policy=SourceSchedulePolicy(
+                source_key="dummy_source",
+                cadence_type="hourly",
+            ),
+        )
+    )
+    registry.register(
+        build_example_source_workflow(
+            runner,
+            schedule_policy=SourceSchedulePolicy(
+                source_key="example_source",
+                cadence_type="daily",
+            ),
+        )
+    )
 
     source_lock_service = SourceLockService()
+    due_source_selector = DueSourceSelector()
+    parallel_source_executor = ParallelSourceExecutor(max_active_sources=2)
     run_coordinator = RunCoordinator(
         workflow_registry=registry,
         source_lock_service=source_lock_service,
-        run_outcome_service=RunOutcomeService(),
+        due_source_selector=due_source_selector,
+        parallel_source_executor=parallel_source_executor,
         run_repository=run_repository,
     )
 
@@ -55,4 +77,6 @@ def build_ingest_runtime() -> IngestRuntime:
         run_coordinator=run_coordinator,
         source_lock_service=source_lock_service,
         run_repository=run_repository,
+        due_source_selector=due_source_selector,
+        parallel_source_executor=parallel_source_executor,
     )

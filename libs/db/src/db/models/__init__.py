@@ -6,8 +6,10 @@ from .lineage import ProvenanceRecord, RevisionRecord
 from .ingestion_runtime import (
     ConflictRecord,
     IngestionRun,
+    SourceEligibilitySnapshot,
     SourceRunLock,
     SourceRunOutcome,
+    SourceSchedulePolicy,
 )
 from .observation import Observation
 from .source_profile import SourceProfile
@@ -23,7 +25,9 @@ __all__ = [
     "Observation",
     "ProvenanceRecord",
     "RevisionRecord",
+    "SourceEligibilitySnapshot",
     "SourceRunLock",
     "SourceRunOutcome",
+    "SourceSchedulePolicy",
     "SourceProfile",
 ]

@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 from ..source_ingest_runner import SourceIngestRunner
+from ..source_schedule_policy import SourceSchedulePolicy
 from ..workflow_registry import SourceWorkflowRegistration
 from ..workflow_request import SourceWorkflowRequest
 
 EXAMPLE_SOURCE_KEY = "example_source"
 
 
-def build_example_source_workflow(runner: SourceIngestRunner) -> SourceWorkflowRegistration:
+def build_example_source_workflow(
+    runner: SourceIngestRunner,
+    schedule_policy: SourceSchedulePolicy | None = None,
+) -> SourceWorkflowRegistration:
     """Build a workflow registration backed by the reusable source ingest runner."""
 
     def _handler(request: SourceWorkflowRequest):
@@ -24,4 +28,5 @@ def build_example_source_workflow(runner: SourceIngestRunner) -> SourceWorkflowR
         owner="pipeline",
         supported_trigger_modes={"scheduled", "on_demand"},
         handler=_handler,
+        schedule_policy=schedule_policy,
     )

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from .workflow_request import SourceWorkflowRequest
 from .workflow_result import SourceWorkflowResult
+
+if TYPE_CHECKING:
+    from .source_schedule_policy import SourceSchedulePolicy
 
 
 @dataclass(frozen=True)
@@ -19,6 +22,7 @@ class SourceWorkflowRegistration:
     owner: str
     supported_trigger_modes: set[str]
     handler: Callable[[SourceWorkflowRequest], SourceWorkflowResult]
+    schedule_policy: SourceSchedulePolicy | None = None
     status: str = "active"
 
 
@@ -66,3 +70,9 @@ class SourceWorkflowRegistry:
     def list_source_keys(self) -> list[str]:
         """Return all registered source keys in deterministic order."""
         return sorted(self._registrations.keys())
+
+    def list_registrations(self) -> list[SourceWorkflowRegistration]:
+        """Return registrations in deterministic source-key order."""
+        return [
+            self._registrations[source_key] for source_key in sorted(self._registrations.keys())
+        ]

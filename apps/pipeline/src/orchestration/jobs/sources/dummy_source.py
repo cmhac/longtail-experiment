@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..source_ingest_runner import SourceIngestRunner
+from ..source_schedule_policy import SourceSchedulePolicy
 from ..workflow_registry import SourceWorkflowRegistration
 from ..workflow_request import SourceWorkflowRequest
 
@@ -36,6 +37,7 @@ class DummySourceProvider:
 def build_dummy_source_workflow(
     runner: SourceIngestRunner,
     provider: DummySourceProvider | None = None,
+    schedule_policy: SourceSchedulePolicy | None = None,
 ) -> SourceWorkflowRegistration:
     """Build a dummy source workflow registration for Dagster runtime validation."""
     source_provider = provider or DummySourceProvider()
@@ -54,4 +56,5 @@ def build_dummy_source_workflow(
         owner="pipeline",
         supported_trigger_modes={"scheduled", "on_demand"},
         handler=_handler,
+        schedule_policy=schedule_policy,
     )

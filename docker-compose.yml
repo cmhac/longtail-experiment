@@ -29,7 +29,10 @@ services:
       - "8090:8090"
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8090 || exit 1"]
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8090'', timeout=2)" || exit 1',
+        ]
       interval: 10s
       timeout: 3s
       retries: 6
@@ -42,7 +45,10 @@ services:
       - "8080:8080"
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080 || exit 1"]
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8080'', timeout=2)" || exit 1',
+        ]
       interval: 10s
       timeout: 3s
       retries: 6
