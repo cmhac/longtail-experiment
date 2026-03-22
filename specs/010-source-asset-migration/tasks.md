@@ -53,7 +53,7 @@
 
 - [ ] T013 [P] [US1] Add integration test for single-source trigger isolation in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
 - [ ] T014 [P] [US1] Add integration test for invalid source-key rejection in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
-- [ ] T015 [P] [US1] Add smoke assertion updates for source-targeted execution in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [ ] T015 [P] [US1] Add smoke assertion updates for source-targeted execution including a newly onboarded implementation-window source fixture in apps/pipeline/tests/orchestration/test_definitions_smoke.py
 
 ### Implementation for User Story 1
 
@@ -61,7 +61,7 @@
 - [ ] T017 [US1] Wire selector validation to source registration state in apps/pipeline/src/orchestration/runtime.py
 - [ ] T018 [P] [US1] Add source-trigger request normalization helper in apps/pipeline/src/orchestration/jobs/source_assets/triggering.py
 - [ ] T019 [US1] Add structured failure outcome for invalid source requests in apps/pipeline/src/orchestration/jobs/source_assets/triggering.py
-- [ ] T020 [US1] Verify US1 coverage contribution >=90% with targeted test run in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
+- [ ] T020 [US1] Verify US1 coverage contribution >=90% and record manual-trigger success-rate measurement against the >=95% criterion in specs/010-source-asset-migration/quickstart.md
 
 **Checkpoint**: User Story 1 is independently functional and testable.
 
@@ -77,7 +77,7 @@
 
 - [ ] T021 [P] [US2] Add integration test for source-level success outcome visibility in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
 - [ ] T022 [P] [US2] Add integration test for source-level failure metadata visibility in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
-- [ ] T023 [P] [US2] Add persistence equivalence test for post-cutover forward outcomes in apps/pipeline/tests/orchestration/test_source_outcome_persistence_post_cutover.py
+- [ ] T023 [P] [US2] Add forward persistence integrity test for post-cutover outcomes only (no historical parity requirement) in apps/pipeline/tests/orchestration/test_source_outcome_persistence_post_cutover.py
 
 ### Implementation for User Story 2
 
@@ -109,7 +109,7 @@
 - [ ] T033 [US3] Implement cutover authority mode enforcement in apps/pipeline/src/orchestration/jobs/source_assets/authority_state.py
 - [ ] T034 [P] [US3] Implement post-cutover failed-source recovery orchestration path in apps/pipeline/src/orchestration/jobs/source_assets/recovery.py
 - [ ] T035 [US3] Wire authority mode and recovery path integration in apps/pipeline/src/orchestration/definitions.py
-- [ ] T036 [US3] Verify US3 coverage contribution >=90% with targeted test run in apps/pipeline/tests/orchestration/test_cutover_partial_failure_behavior.py
+- [ ] T036 [US3] Verify US3 coverage contribution >=90% and capture CutoverReadinessGate go/hold evidence before release-window cutover in specs/010-source-asset-migration/quickstart.md
 
 **Checkpoint**: All user stories are independently functional and testable.
 
@@ -134,14 +134,14 @@
 - Phase 1 (Setup): no dependencies.
 - Phase 2 (Foundational): depends on Phase 1; blocks all user stories.
 - Phase 3 (US1): depends on Phase 2.
-- Phase 4 (US2): depends on Phase 2 and reuses US1 trigger routing behavior.
+- Phase 4 (US2): depends on Phase 2 and remains independently testable with foundational runtime wiring.
 - Phase 5 (US3): depends on Phase 2 and uses artifacts from US1 and US2.
 - Phase 6 (Polish): depends on completion of all selected user stories.
 
 ### User Story Dependencies
 
 - US1 (P1): can start immediately after Phase 2.
-- US2 (P2): can start after Phase 2; independent for execution but integrates with runtime mappings introduced in US1.
+- US2 (P2): can start after Phase 2 and is independently executable/testable using foundational runtime wiring.
 - US3 (P3): can start after Phase 2; requires source registration and outcome visibility infrastructure from earlier phases.
 
 ### Within Each User Story
