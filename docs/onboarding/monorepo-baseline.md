@@ -85,3 +85,14 @@
 - Keep source cadence metadata with each `SourceWorkflowRegistration` entry in orchestration runtime wiring.
 - Validate cadence policy updates with `nx run pipeline:test:orchestration:cadence` before merging.
 - Validate bounded parallel ingestion behavior with `nx run pipeline:test:orchestration:parallel` when changing concurrency settings.
+
+## Source-Asset Migration Validation (Feature 010)
+
+- Validate source discovery determinism and contract guards:
+  `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_asset_discovery.py apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py`
+- Validate single-source trigger and invalid-key rejection:
+  `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py`
+- Validate source-level outcome visibility and persistence:
+  `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_outcome_visibility.py apps/pipeline/tests/orchestration/test_source_outcome_persistence_post_cutover.py`
+- Validate Dagster-only authority and partial-failure recovery path:
+  `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_scheduler_runtime.py apps/pipeline/tests/orchestration/test_cutover_partial_failure_behavior.py`

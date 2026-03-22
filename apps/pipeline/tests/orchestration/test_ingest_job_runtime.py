@@ -236,3 +236,11 @@ def test_partial_environment_failure_category_mapping() -> None:
         )
         == "partial_environment"
     )
+
+
+def test_ingest_runtime_exposes_dagster_only_scheduling_authority() -> None:
+    """Runtime should expose Dagster-only scheduling authority state after cutover."""
+    runtime = get_ingest_runtime()
+
+    assert runtime.authority_state.authority_mode == "dagster_only"
+    assert runtime.authority_state.legacy_paths_disabled is True

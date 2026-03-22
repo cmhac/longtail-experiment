@@ -47,6 +47,12 @@
         "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"parallel or concurrency or queue\""
       }
     },
+    "test:orchestration:source-assets": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"source_asset or single_source_trigger or outcome_visibility or cutover_partial_failure or scheduler_runtime\""
+      }
+    },
     "coverage": {
       "executor": "nx:run-commands",
       "options": {

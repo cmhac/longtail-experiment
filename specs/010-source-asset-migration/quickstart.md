@@ -65,3 +65,13 @@
 2. Dagster is the only scheduling authority after cutover.
 3. Source-level outcomes are visible for successful and failed runs.
 4. Quality gates remain passing with coverage expectations intact.
+
+## Validation Evidence Log
+
+Use this section to capture release-window go/hold evidence.
+
+- Manual trigger success-rate sample: `20/20` successful dummy-source on-demand runs (`100.0%`, target >=95%)
+- US1 coverage run evidence: `uv run --project apps/pipeline pytest apps/pipeline/tests` reported module coverage `ingest_job.py=100%` and `source_assets/triggering.py=100%`
+- US2 coverage run evidence: `uv run --project apps/pipeline pytest apps/pipeline/tests` reported module coverage `source_assets/outcomes.py=100%` and project total `92.93%`
+- US3 coverage run evidence: `uv run --project apps/pipeline pytest apps/pipeline/tests` reported module coverage `source_assets/authority_state.py=100%` and `source_assets/recovery.py=100%`
+- CutoverReadinessGate decision: `hold` in local verification due missing live provider credentials for `fred_fedfunds` (`failed_source_count=1`), while Dagster-only authority and persistence gates passed

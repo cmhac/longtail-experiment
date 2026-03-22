@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from typing import TypedDict
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
@@ -10,23 +11,33 @@ from src.contract.services.canonical_ingest_service import CanonicalIngestServic
 from .jobs.due_source_selector import DueSourceSelector
 from .jobs.parallel_source_executor import ParallelSourceExecutor
 from .jobs.run_coordinator import RunCoordinator
-from .jobs.source_ingest_runner import SourceIngestRunner
-from .jobs.source_schedule_policy import SourceSchedulePolicy
-from .jobs.sources.dummy_source import build_dummy_source_workflow
-from .jobs.sources.example_source import build_example_source_workflow
-from .jobs.sources.fred_fedfunds_source import (
-    FRED_FEDFUNDS_SOURCE_KEY,
-    build_fred_fedfunds_source_workflow,
+from .jobs.source_assets.authority_state import (
+    SchedulingAuthorityState,
+    assert_dagster_only_authority,
+    dagster_only_authority_state,
 )
+from .jobs.source_assets.contracts import SourceAssetContractError, register_source_assets
+from .jobs.source_assets.discovery import discover_source_registrations
+from .jobs.source_ingest_runner import SourceIngestRunner
+from .jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
+from .jobs.sources.implementation_window_source import IMPLEMENTATION_WINDOW_SOURCE_KEY
 from .jobs.workflow_registry import SourceWorkflowRegistry
 from .resources.postgres_observation_repository import PostgresObservationRepository
 from .resources.postgres_run_repository import PostgresRunRepository
 from .resources.source_lock_service import SourceLockService
 
+logger = logging.getLogger(__name__)
+
 EXPECTED_RUNTIME_SOURCE_KEYS = (
     "dummy_source",
     "example_source",
     FRED_FEDFUNDS_SOURCE_KEY,
+    IMPLEMENTATION_WINDOW_SOURCE_KEY,
+)
+
+RETIRED_LEGACY_CADENCE_ENTRYPOINTS = (
+    "legacy_scheduler",
+    "legacy_coordinator",
 )
 
 
@@ -38,6 +49,17 @@ class RuntimeWorkspaceLoadState(TypedDict):
     source_keys: tuple[str, ...]
 
 
+class SourceOutcomePersistenceRecord(TypedDict):
+    """Runtime-shaped source outcome record persisted for operator visibility."""
+
+    source_key: str
+    state: str
+    outcome_reason_code: str | None
+    message: str | None
+    visible_in_dagit: bool
+    failure_summary: str | None
+
+
 @dataclass(frozen=True)
 class IngestRuntime:
     """Container for orchestration runtime dependencies and stateful adapters."""
@@ -47,6 +69,7 @@ class IngestRuntime:
     run_repository: PostgresRunRepository
     due_source_selector: DueSourceSelector
     parallel_source_executor: ParallelSourceExecutor
+    authority_state: SchedulingAuthorityState
 
     def dagit_resources(self) -> dict[str, object]:
         """Return resource bindings exposed by Dagster definitions for local UI use."""
@@ -56,7 +79,44 @@ class IngestRuntime:
             "run_repository": self.run_repository,
             "due_source_selector": self.due_source_selector,
             "parallel_source_executor": self.parallel_source_executor,
+            "scheduling_authority_state": self.authority_state,
         }
+
+
+def map_source_outcomes_to_persistence_records(
+    source_results: list[dict[str, object]],
+) -> list[SourceOutcomePersistenceRecord]:
+    """Normalize run source outcomes into persistence-view records."""
+    mapped: list[SourceOutcomePersistenceRecord] = []
+    for source_result in source_results:
+        mapped.append(
+            {
+                "source_key": str(source_result["source_key"]),
+                "state": str(source_result["status"]),
+                "outcome_reason_code": (
+                    str(source_result["outcome_reason_code"])
+                    if source_result.get("outcome_reason_code") is not None
+                    else None
+                ),
+                "message": (
+                    str(source_result["message"])
+                    if source_result.get("message") is not None
+                    else None
+                ),
+                "visible_in_dagit": bool(source_result.get("visible_in_dagit", True)),
+                "failure_summary": (
+                    str(source_result["failure_summary"])
+                    if source_result.get("failure_summary") is not None
+                    else None
+                ),
+            }
+        )
+    return mapped
+
+
+def assert_legacy_cadence_entrypoints_retired(*, authority_state: SchedulingAuthorityState) -> None:
+    """Ensure legacy cadence paths remain disabled after cutover."""
+    assert_dagster_only_authority(authority_state)
 
 
 def verify_runtime_wiring_for_dagit(runtime: IngestRuntime) -> tuple[bool, list[str]]:
@@ -70,9 +130,18 @@ def verify_runtime_wiring_for_dagit(runtime: IngestRuntime) -> tuple[bool, list[
         "run_repository",
         "due_source_selector",
         "parallel_source_executor",
+        "scheduling_authority_state",
     ):
         if key not in resources:
             errors.append(f"Missing Dagit resource: {key}")
+
+    authority_state = resources["scheduling_authority_state"]
+    if isinstance(authority_state, SchedulingAuthorityState):
+        try:
+            assert_dagster_only_authority(authority_state)
+            assert_legacy_cadence_entrypoints_retired(authority_state=authority_state)
+        except RuntimeError as exc:
+            errors.append(str(exc))
 
     registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - runtime validation helper
     registered = tuple(registry.list_source_keys())
@@ -103,38 +172,39 @@ def build_ingest_runtime() -> IngestRuntime:
     runner = SourceIngestRunner(canonical_ingest_service=canonical_service)
 
     registry = SourceWorkflowRegistry()
-    registry.register(
-        build_dummy_source_workflow(
-            runner,
-            schedule_policy=SourceSchedulePolicy(
-                source_key="dummy_source",
-                cadence_type="hourly",
-            ),
-        )
-    )
-    registry.register(
-        build_example_source_workflow(
-            runner,
-            schedule_policy=SourceSchedulePolicy(
-                source_key="example_source",
-                cadence_type="daily",
-            ),
-        )
-    )
-    registry.register(
-        build_fred_fedfunds_source_workflow(
-            runner,
+    try:
+        discovered = discover_source_registrations(
+            runner=runner,
             observation_repository=observation_repository,
-            schedule_policy=SourceSchedulePolicy(
-                source_key=FRED_FEDFUNDS_SOURCE_KEY,
-                cadence_type="daily",
-            ),
         )
-    )
+        logger.info(
+            "source asset discovery completed",
+            extra={
+                "discovered_source_count": len(discovered),
+                "discovered_source_keys": [
+                    registration.source_key for _, registration in discovered
+                ],
+                "telemetry_event": "source_asset_discovery",
+            },
+        )
+        register_source_assets(registry=registry, registrations=discovered)
+    except SourceAssetContractError as exc:
+        logger.error(
+            "source asset contract validation failed",
+            extra={
+                "module_name": exc.module_name,
+                "source_key": exc.source_key,
+                "contract_reason": exc.reason,
+                "telemetry_event": "source_asset_contract_failure",
+            },
+        )
+        raise
 
     source_lock_service = SourceLockService()
     due_source_selector = DueSourceSelector()
     parallel_source_executor = ParallelSourceExecutor(max_active_sources=2)
+    authority_state = dagster_only_authority_state(partial_failure_mode=False)
+    assert_legacy_cadence_entrypoints_retired(authority_state=authority_state)
     run_coordinator = RunCoordinator(
         workflow_registry=registry,
         source_lock_service=source_lock_service,
@@ -149,4 +219,5 @@ def build_ingest_runtime() -> IngestRuntime:
         run_repository=run_repository,
         due_source_selector=due_source_selector,
         parallel_source_executor=parallel_source_executor,
+        authority_state=authority_state,
     )

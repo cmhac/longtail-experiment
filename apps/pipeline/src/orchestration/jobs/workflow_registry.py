@@ -38,7 +38,13 @@ class SourceWorkflowRegistry:
         if registration.status != "active":
             raise ValueError("only active workflows can be registered")
         if registration.source_key in self._registrations:
-            raise ValueError(f"source workflow already registered: {registration.source_key}")
+            existing = self._registrations[registration.source_key]
+            raise ValueError(
+                "source workflow already registered: "
+                f"source_key={registration.source_key} "
+                f"existing_workflow_id={existing.workflow_id} "
+                f"new_workflow_id={registration.workflow_id}"
+            )
         self._registrations[registration.source_key] = registration
 
     def execute(self, request: SourceWorkflowRequest) -> SourceWorkflowResult:

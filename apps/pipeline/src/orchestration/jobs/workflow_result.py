@@ -44,3 +44,5 @@ class SourceWorkflowResult(BaseModel):
     conflict_count: int = Field(default=0, ge=0)
     outcome_reason_code: str | None = None
     message: str | None = None
+    visible_in_dagit: bool = True
+    failure_summary: str | None = None

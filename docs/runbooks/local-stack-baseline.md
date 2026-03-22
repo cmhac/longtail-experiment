@@ -95,6 +95,32 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_workflow_contract.py`
 - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_onboarding_flow.py`
 
+## Source-Asset Cutover Operations (Feature 010)
+
+1. Validate source-asset discovery and contract guards:
+
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_asset_discovery.py`
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py`
+
+2. Validate source-targeted manual triggers and invalid-key fail-fast behavior:
+
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py`
+
+3. Validate source-level visibility and post-cutover persistence:
+
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_outcome_visibility.py`
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_outcome_persistence_post_cutover.py`
+
+4. Validate Dagster-only authority and partial-failure recovery posture:
+
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_scheduler_runtime.py`
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_cutover_partial_failure_behavior.py`
+
+Operator expectation after cutover:
+
+- Legacy non-Dagster scheduling paths remain disabled.
+- Source failures produce source-level failure summaries without scheduler fallback.
+
 ## Bounded Parallel Ingestion Validation (Feature 006)
 
 1. Run cadence eligibility verification:

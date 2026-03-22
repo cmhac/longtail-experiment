@@ -17,11 +17,11 @@
 
 **Purpose**: Prepare migration scaffolding, validation entrypoints, and quality command wiring.
 
-- [ ] T001 Create migration feature module scaffold in apps/pipeline/src/orchestration/jobs/source_assets/**init**.py
-- [ ] T002 [P] Add source-asset contract type definitions in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
-- [ ] T003 [P] Add source-asset discovery module skeleton in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T004 [P] Add cutover authority state helper skeleton in apps/pipeline/src/orchestration/jobs/source_assets/authority_state.py
-- [ ] T005 Add orchestration task command aliases for this feature in apps/pipeline/project.json
+- [x] T001 Create migration feature module scaffold in apps/pipeline/src/orchestration/jobs/source_assets/**init**.py
+- [x] T002 [P] Add source-asset contract type definitions in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
+- [x] T003 [P] Add source-asset discovery module skeleton in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T004 [P] Add cutover authority state helper skeleton in apps/pipeline/src/orchestration/jobs/source_assets/authority_state.py
+- [x] T005 Add orchestration task command aliases for this feature in apps/pipeline/project.json
 
 ---
 
@@ -31,13 +31,13 @@
 
 **CRITICAL**: No user story implementation can start before this phase is complete.
 
-- [ ] T006 Implement deterministic source discovery order and registry loader in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T007 [P] Implement source registration contract validation and actionable error formatter in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
-- [ ] T008 [P] Implement duplicate source-key rejection guard integration in apps/pipeline/src/orchestration/jobs/workflow_registry.py
-- [ ] T009 Wire source-asset discovery into runtime assembly in apps/pipeline/src/orchestration/runtime.py
-- [ ] T010 [P] Add foundational unit tests for discovery determinism and malformed module failures in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
-- [ ] T011 [P] Add foundational unit tests for duplicate source-key rejection in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
-- [ ] T012 Add foundational logging/telemetry fields for discovery and contract failures in apps/pipeline/src/orchestration/runtime.py
+- [x] T006 Implement deterministic source discovery order and registry loader in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T007 [P] Implement source registration contract validation and actionable error formatter in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
+- [x] T008 [P] Implement duplicate source-key rejection guard integration in apps/pipeline/src/orchestration/jobs/workflow_registry.py
+- [x] T009 Wire source-asset discovery into runtime assembly in apps/pipeline/src/orchestration/runtime.py
+- [x] T010 [P] Add foundational unit tests for discovery determinism and malformed module failures in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
+- [x] T011 [P] Add foundational unit tests for duplicate source-key rejection in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T012 Add foundational logging/telemetry fields for discovery and contract failures in apps/pipeline/src/orchestration/runtime.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -51,17 +51,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Add integration test for single-source trigger isolation in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
-- [ ] T014 [P] [US1] Add integration test for invalid source-key rejection in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
-- [ ] T015 [P] [US1] Add smoke assertion updates for source-targeted execution including a newly onboarded implementation-window source fixture in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T013 [P] [US1] Add integration test for single-source trigger isolation in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
+- [x] T014 [P] [US1] Add integration test for invalid source-key rejection in apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py
+- [x] T015 [P] [US1] Add smoke assertion updates for source-targeted execution including a newly onboarded implementation-window source fixture in apps/pipeline/tests/orchestration/test_definitions_smoke.py
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Implement source-targeted execution selector in apps/pipeline/src/orchestration/jobs/ingest_job.py
-- [ ] T017 [US1] Wire selector validation to source registration state in apps/pipeline/src/orchestration/runtime.py
-- [ ] T018 [P] [US1] Add source-trigger request normalization helper in apps/pipeline/src/orchestration/jobs/source_assets/triggering.py
-- [ ] T019 [US1] Add structured failure outcome for invalid source requests in apps/pipeline/src/orchestration/jobs/source_assets/triggering.py
-- [ ] T020 [US1] Verify US1 coverage contribution >=90% and record manual-trigger success-rate measurement against the >=95% criterion in specs/010-source-asset-migration/quickstart.md
+- [x] T016 [US1] Implement source-targeted execution selector in apps/pipeline/src/orchestration/jobs/ingest_job.py
+- [x] T017 [US1] Wire selector validation to source registration state in apps/pipeline/src/orchestration/runtime.py
+- [x] T018 [P] [US1] Add source-trigger request normalization helper in apps/pipeline/src/orchestration/jobs/source_assets/triggering.py
+- [x] T019 [US1] Add structured failure outcome for invalid source requests in apps/pipeline/src/orchestration/jobs/source_assets/triggering.py
+- [x] T020 [US1] Verify US1 coverage contribution >=90% and record manual-trigger success-rate measurement against the >=95% criterion in specs/010-source-asset-migration/quickstart.md
 
 **Checkpoint**: User Story 1 is independently functional and testable.
 
@@ -75,17 +75,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T021 [P] [US2] Add integration test for source-level success outcome visibility in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
-- [ ] T022 [P] [US2] Add integration test for source-level failure metadata visibility in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
-- [ ] T023 [P] [US2] Add forward persistence integrity test for post-cutover outcomes only (no historical parity requirement) in apps/pipeline/tests/orchestration/test_source_outcome_persistence_post_cutover.py
+- [x] T021 [P] [US2] Add integration test for source-level success outcome visibility in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
+- [x] T022 [P] [US2] Add integration test for source-level failure metadata visibility in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
+- [x] T023 [P] [US2] Add forward persistence integrity test for post-cutover outcomes only (no historical parity requirement) in apps/pipeline/tests/orchestration/test_source_outcome_persistence_post_cutover.py
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Emit source-level materialization metadata in apps/pipeline/src/orchestration/jobs/ingest_job.py
-- [ ] T025 [US2] Map source execution outcomes to runtime persistence records in apps/pipeline/src/orchestration/runtime.py
-- [ ] T026 [P] [US2] Implement failure summary payload builder for operator triage in apps/pipeline/src/orchestration/jobs/source_assets/outcomes.py
-- [ ] T027 [US2] Ensure visibility metadata is attached for successful and failed source runs in apps/pipeline/src/orchestration/jobs/source_assets/outcomes.py
-- [ ] T028 [US2] Verify US2 coverage contribution >=90% with targeted test run in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
+- [x] T024 [US2] Emit source-level materialization metadata in apps/pipeline/src/orchestration/jobs/ingest_job.py
+- [x] T025 [US2] Map source execution outcomes to runtime persistence records in apps/pipeline/src/orchestration/runtime.py
+- [x] T026 [P] [US2] Implement failure summary payload builder for operator triage in apps/pipeline/src/orchestration/jobs/source_assets/outcomes.py
+- [x] T027 [US2] Ensure visibility metadata is attached for successful and failed source runs in apps/pipeline/src/orchestration/jobs/source_assets/outcomes.py
+- [x] T028 [US2] Verify US2 coverage contribution >=90% with targeted test run in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
 
 **Checkpoint**: User Stories 1 and 2 are independently functional and testable.
 
@@ -99,17 +99,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] Add regression test ensuring non-Dagster scheduler paths are disabled in apps/pipeline/tests/orchestration/test_scheduler_runtime.py
-- [ ] T030 [P] [US3] Add regression test for partial-failure cutover behavior without legacy fallback in apps/pipeline/tests/orchestration/test_cutover_partial_failure_behavior.py
-- [ ] T031 [P] [US3] Add cadence integration assertion for Dagster-only scheduling authority in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T029 [P] [US3] Add regression test ensuring non-Dagster scheduler paths are disabled in apps/pipeline/tests/orchestration/test_scheduler_runtime.py
+- [x] T030 [P] [US3] Add regression test for partial-failure cutover behavior without legacy fallback in apps/pipeline/tests/orchestration/test_cutover_partial_failure_behavior.py
+- [x] T031 [P] [US3] Add cadence integration assertion for Dagster-only scheduling authority in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Retire legacy cadence entrypoint wiring in apps/pipeline/src/orchestration/runtime.py
-- [ ] T033 [US3] Implement cutover authority mode enforcement in apps/pipeline/src/orchestration/jobs/source_assets/authority_state.py
-- [ ] T034 [P] [US3] Implement post-cutover failed-source recovery orchestration path in apps/pipeline/src/orchestration/jobs/source_assets/recovery.py
-- [ ] T035 [US3] Wire authority mode and recovery path integration in apps/pipeline/src/orchestration/definitions.py
-- [ ] T036 [US3] Verify US3 coverage contribution >=90% and capture CutoverReadinessGate go/hold evidence before release-window cutover in specs/010-source-asset-migration/quickstart.md
+- [x] T032 [US3] Retire legacy cadence entrypoint wiring in apps/pipeline/src/orchestration/runtime.py
+- [x] T033 [US3] Implement cutover authority mode enforcement in apps/pipeline/src/orchestration/jobs/source_assets/authority_state.py
+- [x] T034 [P] [US3] Implement post-cutover failed-source recovery orchestration path in apps/pipeline/src/orchestration/jobs/source_assets/recovery.py
+- [x] T035 [US3] Wire authority mode and recovery path integration in apps/pipeline/src/orchestration/definitions.py
+- [x] T036 [US3] Verify US3 coverage contribution >=90% and capture CutoverReadinessGate go/hold evidence before release-window cutover in specs/010-source-asset-migration/quickstart.md
 
 **Checkpoint**: All user stories are independently functional and testable.
 
@@ -119,11 +119,11 @@
 
 **Purpose**: Final verification, documentation, and quality completion across all stories.
 
-- [ ] T037 [P] Update source-as-asset onboarding and scheduling runbook in docs/runbooks/local-stack-baseline.md
-- [ ] T038 [P] Update developer onboarding references for source-asset operations in docs/onboarding/monorepo-baseline.md
-- [ ] T039 [P] Update canonical commands and architecture notes in AGENTS.md
-- [ ] T040 Run full orchestration quality gates for affected scope via pnpm run affected:test and uv run --project apps/pipeline pytest apps/pipeline/tests
-- [ ] T041 Run compose and Dagit verification flow in tools/quality/local-stack/test-compose-stack.sh
+- [x] T037 [P] Update source-as-asset onboarding and scheduling runbook in docs/runbooks/local-stack-baseline.md
+- [x] T038 [P] Update developer onboarding references for source-asset operations in docs/onboarding/monorepo-baseline.md
+- [x] T039 [P] Update canonical commands and architecture notes in AGENTS.md
+- [x] T040 Run full orchestration quality gates for affected scope via pnpm run affected:test and uv run --project apps/pipeline pytest apps/pipeline/tests
+- [x] T041 Run compose and Dagit verification flow in tools/quality/local-stack/test-compose-stack.sh
 
 ---
 

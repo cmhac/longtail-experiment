@@ -13,6 +13,7 @@ from src.orchestration.resources.source_lock_service import SourceLockService
 from .due_source_selector import DueSourceSelector, SourceEligibilityDecision
 from .parallel_source_executor import ParallelSourceExecutor
 from .run_outcome_service import RunOutcomeService
+from .source_assets.outcomes import build_failure_summary
 from .workflow_registry import SourceWorkflowRegistration, SourceWorkflowRegistry
 from .workflow_result import SourceWorkflowResult
 
@@ -107,6 +108,10 @@ class RunCoordinator:
 
         non_due_results = self._build_non_due_results(eligibility_decisions)
         source_results = execution.source_results + non_due_results
+        source_results = [
+            result.model_copy(update={"failure_summary": build_failure_summary(result)})
+            for result in source_results
+        ]
         source_results.sort(key=lambda result: result.source_key)
 
         aggregate = self._run_outcome_service.aggregate(source_results)
@@ -169,6 +174,10 @@ class RunCoordinator:
                         updated_at=completed_at,
                     )
         return payload
+
+    def list_registered_source_keys(self) -> list[str]:
+        """Return all known source keys for source-targeted trigger validation."""
+        return self._workflow_registry.list_source_keys()
 
     def _filter_registrations(
         self,

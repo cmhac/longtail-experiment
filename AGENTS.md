@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-22
 
 ## Active Technologies
+
 - Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling (010-source-asset-migration)
 - PostgreSQL 16 local runtime DB (`ingestion_runs`, `source_run_outcomes`, related orchestration tables) (010-source-asset-migration)
 
@@ -115,6 +116,7 @@ Pipeline quality commands:
 - uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration
 - pnpm exec nx run pipeline:test:orchestration:cadence
 - pnpm exec nx run pipeline:test:orchestration:parallel
+- pnpm exec nx run pipeline:test:orchestration:source-assets
 
 Frontend quality commands:
 
@@ -154,6 +156,7 @@ Current migration head expected by local revision checks: `0004_observation_stor
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
 - 010-source-asset-migration: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 - 009-dagit-local-dev: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling

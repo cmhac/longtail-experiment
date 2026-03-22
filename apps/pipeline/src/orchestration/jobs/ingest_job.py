@@ -6,17 +6,52 @@ from typing import Any
 
 from dagster import job, op
 
+from .source_assets.triggering import (
+    build_invalid_source_request_summary,
+    normalize_requested_source_keys,
+    validate_source_selection,
+)
+from .source_assets.recovery import build_post_cutover_recovery_plan
 
-@op(required_resource_keys={"run_coordinator"})
+
+@op(required_resource_keys={"run_coordinator", "scheduling_authority_state"})
 def execute_ingest_run(context) -> dict[str, Any]:
     """Execute one coordinator-managed ingest run for all registered sources."""
     trigger_type_tag = context.run.tags.get("trigger_type", "scheduled")
     trigger_type = "on_demand" if trigger_type_tag == "on_demand" else "scheduled"
     requested_by = context.run.tags.get("requested_by", "dagster")
+    requested_source_keys = normalize_requested_source_keys(
+        source_key_tag=context.run.tags.get("source_key"),
+        source_keys_tag=context.run.tags.get("source_keys"),
+    )
 
-    run_summary = context.resources.run_coordinator.run(
+    run_coordinator = context.resources.run_coordinator
+    available_source_keys = run_coordinator.list_registered_source_keys()
+    selected_source_keys, invalid_source_keys = validate_source_selection(
+        requested_source_keys=requested_source_keys,
+        available_source_keys=available_source_keys,
+    )
+
+    if invalid_source_keys:
+        invalid_summary = build_invalid_source_request_summary(
+            requested_by=requested_by,
+            trigger_type=trigger_type,
+            invalid_source_keys=invalid_source_keys,
+            available_source_keys=available_source_keys,
+        )
+        context.log.error(
+            "ingest run rejected due to invalid source selection",
+            extra={
+                "invalid_source_keys": invalid_source_keys,
+                "available_source_keys": available_source_keys,
+            },
+        )
+        return invalid_summary
+
+    run_summary = run_coordinator.run(
         trigger_type=trigger_type,
         requested_by=requested_by,
+        source_keys=selected_source_keys,
     )
     context.log.info(
         "ingest run completed",
@@ -28,6 +63,7 @@ def execute_ingest_run(context) -> dict[str, Any]:
             "executed_source_count": run_summary["executed_source_count"],
             "deferred_source_count": run_summary["deferred_source_count"],
             "not_due_source_count": run_summary["not_due_source_count"],
+            "requested_source_keys": selected_source_keys,
         },
     )
     if run_summary["deferred_source_count"] > 0:
@@ -38,7 +74,17 @@ def execute_ingest_run(context) -> dict[str, Any]:
                 "deferred_source_count": run_summary["deferred_source_count"],
             },
         )
-    return run_summary
+
+    run_output: dict[str, Any] = dict(run_summary)
+
+    if run_summary["failed_source_count"] > 0:
+        authority_state = context.resources.scheduling_authority_state
+        run_output["recovery_plan"] = build_post_cutover_recovery_plan(
+            authority_state=authority_state,
+            source_results=run_summary["source_results"],
+        )
+
+    return run_output
 
 
 @job

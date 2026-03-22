@@ -2,8 +2,10 @@
 
 from dagster import Definitions
 
+from .jobs.source_assets.recovery import build_post_cutover_recovery_plan
 from .jobs.ingest_job import ingest_job
 from .runtime import IngestRuntime, build_ingest_runtime
+from .source_asset_definitions import SOURCE_DAGIT_ASSETS
 from .schedules.ingest_schedule import ingest_schedule
 from .sensors.ondemand_sensor import ondemand_sensor
 
@@ -11,6 +13,7 @@ _INGEST_RUNTIME = build_ingest_runtime()
 DAGIT_WORKSPACE_MODULE = "src.orchestration.definitions"
 WORKSPACE_DEFINITION_CATALOG: dict[str, tuple[str, ...]] = {
     "jobs": ("ingest_job",),
+    "assets": ("dummy_source", "example_source", "fred_fedfunds"),
     "schedules": ("ingest_schedule",),
     "sensors": ("ondemand_sensor",),
 }
@@ -31,7 +34,23 @@ def get_workspace_definition_catalog() -> dict[str, tuple[str, ...]]:
     return WORKSPACE_DEFINITION_CATALOG
 
 
+def get_scheduling_authority_mode() -> str:
+    """Expose current scheduling authority mode for runtime verification checks."""
+    return _INGEST_RUNTIME.authority_state.authority_mode
+
+
+def get_recovery_plan_for_source_results(
+    source_results: list[dict[str, object]],
+) -> dict[str, object]:
+    """Build post-cutover recovery plan from source-level outcomes."""
+    return build_post_cutover_recovery_plan(
+        authority_state=_INGEST_RUNTIME.authority_state,
+        source_results=source_results,
+    )
+
+
 defs = Definitions(
+    assets=SOURCE_DAGIT_ASSETS,
     jobs=[ingest_job],
     schedules=[ingest_schedule],
     sensors=[ondemand_sensor],

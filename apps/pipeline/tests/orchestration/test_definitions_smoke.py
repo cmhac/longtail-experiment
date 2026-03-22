@@ -13,8 +13,16 @@ from dagster import Definitions
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.orchestration.definitions import defs, get_workspace_definition_catalog
+from src.orchestration.definitions import (
+    defs,
+    get_recovery_plan_for_source_results,
+    get_scheduling_authority_mode,
+    get_workspace_definition_catalog,
+)
 from src.orchestration.jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
+from src.orchestration.jobs.sources.implementation_window_source import (
+    IMPLEMENTATION_WINDOW_SOURCE_KEY,
+)
 from src.orchestration.runtime import (
     build_ingest_runtime,
     get_runtime_workspace_load_state,
@@ -35,8 +43,17 @@ def test_orchestration_definitions_expose_visibility_resources() -> None:
     assert "parallel_source_executor" in resources
 
 
+def test_definitions_expose_source_assets_for_dagit_catalog() -> None:
+    """Dagit definitions should surface source-per-asset entries in the catalog."""
+    asset_keys = {asset_key.to_user_string() for asset_key in defs.resolve_all_asset_keys()}
+
+    assert "dummy_source" in asset_keys
+    assert "example_source" in asset_keys
+    assert FRED_FEDFUNDS_SOURCE_KEY in asset_keys
+
+
 def test_runtime_builder_registers_expected_sources() -> None:
-    """Runtime wiring should register dummy, example, and FRED source workflows."""
+    """Runtime wiring should register baseline and implementation-window sources."""
     runtime = build_ingest_runtime()
     registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - smoke assertion
 
@@ -44,6 +61,7 @@ def test_runtime_builder_registers_expected_sources() -> None:
         "dummy_source",
         "example_source",
         FRED_FEDFUNDS_SOURCE_KEY,
+        IMPLEMENTATION_WINDOW_SOURCE_KEY,
     ]
 
 
@@ -66,6 +84,7 @@ def test_workspace_definition_catalog_lists_existing_definitions() -> None:
     catalog = get_workspace_definition_catalog()
 
     assert catalog["jobs"] == ("ingest_job",)
+    assert catalog["assets"] == ("dummy_source", "example_source", "fred_fedfunds")
     assert catalog["schedules"] == ("ingest_schedule",)
     assert catalog["sensors"] == ("ondemand_sensor",)
 
@@ -77,6 +96,26 @@ def test_runtime_workspace_load_state_reports_loaded_for_default_runtime() -> No
 
     assert load_state["workspace_loaded"] is True
     assert FRED_FEDFUNDS_SOURCE_KEY in load_state["source_keys"]
+    assert IMPLEMENTATION_WINDOW_SOURCE_KEY in load_state["source_keys"]
+
+
+def test_definitions_expose_dagster_only_authority_mode() -> None:
+    """Definitions should expose dagster-only scheduling authority mode."""
+    assert get_scheduling_authority_mode() == "dagster_only"
+
+
+def test_definitions_recovery_plan_keeps_legacy_paths_disabled() -> None:
+    """Recovery plans built from definitions should never re-enable legacy paths."""
+    plan = get_recovery_plan_for_source_results(
+        [
+            {"source_key": "dummy_source", "status": "success"},
+            {"source_key": "fred_fedfunds", "status": "failure"},
+        ]
+    )
+
+    assert plan["authority_mode"] == "dagster_only"
+    assert plan["legacy_paths_disabled"] is True
+    assert plan["failed_sources"] == ["fred_fedfunds"]
 
 
 def test_dagit_endpoint_probe_reports_ready_when_endpoint_is_reachable() -> None:
