@@ -1,0 +1,912 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Longtail Backend API",
+        "description": "Read-only API for ingested data",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "health"
+                ],
+                "summary": "Get Health",
+                "description": "Check service health and database reachability.",
+                "operationId": "get_health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/runs": {
+            "get": {
+                "tags": [
+                    "runs"
+                ],
+                "summary": "List Runs",
+                "description": "Return a paginated list of ingestion runs ordered by started_at descending.",
+                "operationId": "list_runs_api_runs_get",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "Page number (1-based)",
+                            "default": 1,
+                            "title": "Page"
+                        },
+                        "description": "Page number (1-based)"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 200,
+                            "minimum": 1,
+                            "description": "Items per page (1-200)",
+                            "default": 50,
+                            "title": "Page Size"
+                        },
+                        "description": "Items per page (1-200)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_IngestionRunResponse_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/runs/{run_id}": {
+            "get": {
+                "tags": [
+                    "runs"
+                ],
+                "summary": "Get Run",
+                "description": "Return the full detail record for a single ingestion run.",
+                "operationId": "get_run_api_runs__run_id__get",
+                "parameters": [
+                    {
+                        "name": "run_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Run Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IngestionRunResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/runs/{run_id}/outcomes": {
+            "get": {
+                "tags": [
+                    "outcomes"
+                ],
+                "summary": "List Outcomes",
+                "description": "Return a paginated list of source run outcomes for the specified run.",
+                "operationId": "list_outcomes_api_runs__run_id__outcomes_get",
+                "parameters": [
+                    {
+                        "name": "run_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Run Id"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 200,
+                            "minimum": 1,
+                            "default": 50,
+                            "title": "Page Size"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_SourceRunOutcomeResponse_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/runs/{run_id}/eligibility": {
+            "get": {
+                "tags": [
+                    "eligibility"
+                ],
+                "summary": "List Eligibility",
+                "description": "Return a paginated list of eligibility snapshots for the specified run.",
+                "operationId": "list_eligibility_api_runs__run_id__eligibility_get",
+                "parameters": [
+                    {
+                        "name": "run_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Run Id"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 200,
+                            "minimum": 1,
+                            "default": 50,
+                            "title": "Page Size"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_SourceEligibilityResponse_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/conflicts": {
+            "get": {
+                "tags": [
+                    "conflicts"
+                ],
+                "summary": "List Conflicts",
+                "description": "Return a paginated list of conflict records with optional filters.",
+                "operationId": "list_conflicts_api_conflicts_get",
+                "parameters": [
+                    {
+                        "name": "run_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by run identifier",
+                            "title": "Run Id"
+                        },
+                        "description": "Filter by run identifier"
+                    },
+                    {
+                        "name": "source_key",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by source key",
+                            "title": "Source Key"
+                        },
+                        "description": "Filter by source key"
+                    },
+                    {
+                        "name": "series_key",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by series key",
+                            "title": "Series Key"
+                        },
+                        "description": "Filter by series key"
+                    },
+                    {
+                        "name": "reference_period_key",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by reference period key",
+                            "title": "Reference Period Key"
+                        },
+                        "description": "Filter by reference period key"
+                    },
+                    {
+                        "name": "conflict_state",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Filter by conflict state",
+                            "title": "Conflict State"
+                        },
+                        "description": "Filter by conflict state"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1,
+                            "title": "Page"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 200,
+                            "minimum": 1,
+                            "default": 50,
+                            "title": "Page Size"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse_ConflictRecordResponse_"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ConflictRecordResponse": {
+                "properties": {
+                    "conflict_id": {
+                        "type": "string",
+                        "title": "Conflict Id"
+                    },
+                    "run_id": {
+                        "type": "string",
+                        "title": "Run Id"
+                    },
+                    "source_key": {
+                        "type": "string",
+                        "title": "Source Key"
+                    },
+                    "series_key": {
+                        "type": "string",
+                        "title": "Series Key"
+                    },
+                    "reference_period_key": {
+                        "type": "string",
+                        "title": "Reference Period Key"
+                    },
+                    "existing_observation_ref": {
+                        "type": "string",
+                        "title": "Existing Observation Ref"
+                    },
+                    "incoming_record_ref": {
+                        "type": "string",
+                        "title": "Incoming Record Ref"
+                    },
+                    "conflict_type": {
+                        "type": "string",
+                        "title": "Conflict Type"
+                    },
+                    "conflict_state": {
+                        "type": "string",
+                        "title": "Conflict State"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At"
+                    },
+                    "resolved_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Resolved At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "conflict_id",
+                    "run_id",
+                    "source_key",
+                    "series_key",
+                    "reference_period_key",
+                    "existing_observation_ref",
+                    "incoming_record_ref",
+                    "conflict_type",
+                    "conflict_state",
+                    "created_at"
+                ],
+                "title": "ConflictRecordResponse",
+                "description": "Projects a ConflictRecord ORM row into the HTTP response shape."
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "db": {
+                        "type": "string",
+                        "title": "Db"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "db"
+                ],
+                "title": "HealthResponse",
+                "description": "Response shape for GET /health."
+            },
+            "IngestionRunResponse": {
+                "properties": {
+                    "run_id": {
+                        "type": "string",
+                        "title": "Run Id"
+                    },
+                    "trigger_type": {
+                        "type": "string",
+                        "title": "Trigger Type"
+                    },
+                    "lifecycle_state": {
+                        "type": "string",
+                        "title": "Lifecycle State"
+                    },
+                    "outcome_state": {
+                        "type": "string",
+                        "title": "Outcome State"
+                    },
+                    "started_at": {
+                        "type": "string",
+                        "title": "Started At"
+                    },
+                    "completed_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Completed At"
+                    },
+                    "accepted_count": {
+                        "type": "integer",
+                        "title": "Accepted Count"
+                    },
+                    "quarantined_count": {
+                        "type": "integer",
+                        "title": "Quarantined Count"
+                    },
+                    "failed_count": {
+                        "type": "integer",
+                        "title": "Failed Count"
+                    },
+                    "duplicate_no_op_count": {
+                        "type": "integer",
+                        "title": "Duplicate No Op Count"
+                    },
+                    "conflict_count": {
+                        "type": "integer",
+                        "title": "Conflict Count"
+                    },
+                    "due_source_count": {
+                        "type": "integer",
+                        "title": "Due Source Count"
+                    },
+                    "executed_source_count": {
+                        "type": "integer",
+                        "title": "Executed Source Count"
+                    },
+                    "deferred_source_count": {
+                        "type": "integer",
+                        "title": "Deferred Source Count"
+                    },
+                    "not_due_source_count": {
+                        "type": "integer",
+                        "title": "Not Due Source Count"
+                    },
+                    "failed_source_count": {
+                        "type": "integer",
+                        "title": "Failed Source Count"
+                    },
+                    "trigger_origin": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Trigger Origin"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "run_id",
+                    "trigger_type",
+                    "lifecycle_state",
+                    "outcome_state",
+                    "started_at",
+                    "accepted_count",
+                    "quarantined_count",
+                    "failed_count",
+                    "duplicate_no_op_count",
+                    "conflict_count",
+                    "due_source_count",
+                    "executed_source_count",
+                    "deferred_source_count",
+                    "not_due_source_count",
+                    "failed_source_count"
+                ],
+                "title": "IngestionRunResponse",
+                "description": "Projects an IngestionRun ORM row into the HTTP response shape."
+            },
+            "PaginatedResponse_ConflictRecordResponse_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/ConflictRecordResponse"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page"
+                    },
+                    "page_size": {
+                        "type": "integer",
+                        "title": "Page Size"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "page_size"
+                ],
+                "title": "PaginatedResponse[ConflictRecordResponse]"
+            },
+            "PaginatedResponse_IngestionRunResponse_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/IngestionRunResponse"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page"
+                    },
+                    "page_size": {
+                        "type": "integer",
+                        "title": "Page Size"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "page_size"
+                ],
+                "title": "PaginatedResponse[IngestionRunResponse]"
+            },
+            "PaginatedResponse_SourceEligibilityResponse_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/SourceEligibilityResponse"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page"
+                    },
+                    "page_size": {
+                        "type": "integer",
+                        "title": "Page Size"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "page_size"
+                ],
+                "title": "PaginatedResponse[SourceEligibilityResponse]"
+            },
+            "PaginatedResponse_SourceRunOutcomeResponse_": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/SourceRunOutcomeResponse"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    },
+                    "page": {
+                        "type": "integer",
+                        "title": "Page"
+                    },
+                    "page_size": {
+                        "type": "integer",
+                        "title": "Page Size"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "page_size"
+                ],
+                "title": "PaginatedResponse[SourceRunOutcomeResponse]"
+            },
+            "SourceEligibilityResponse": {
+                "properties": {
+                    "run_id": {
+                        "type": "string",
+                        "title": "Run Id"
+                    },
+                    "source_key": {
+                        "type": "string",
+                        "title": "Source Key"
+                    },
+                    "eligibility_state": {
+                        "type": "string",
+                        "title": "Eligibility State"
+                    },
+                    "reason_code": {
+                        "type": "string",
+                        "title": "Reason Code"
+                    },
+                    "evaluated_at": {
+                        "type": "string",
+                        "title": "Evaluated At"
+                    },
+                    "due_at": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Due At"
+                    },
+                    "selected_for_execution": {
+                        "type": "boolean",
+                        "title": "Selected For Execution"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "run_id",
+                    "source_key",
+                    "eligibility_state",
+                    "reason_code",
+                    "evaluated_at",
+                    "selected_for_execution"
+                ],
+                "title": "SourceEligibilityResponse",
+                "description": "Projects a SourceEligibilitySnapshot ORM row into the HTTP response shape."
+            },
+            "SourceRunOutcomeResponse": {
+                "properties": {
+                    "run_id": {
+                        "type": "string",
+                        "title": "Run Id"
+                    },
+                    "source_key": {
+                        "type": "string",
+                        "title": "Source Key"
+                    },
+                    "state": {
+                        "type": "string",
+                        "title": "State"
+                    },
+                    "accepted_count": {
+                        "type": "integer",
+                        "title": "Accepted Count"
+                    },
+                    "quarantined_count": {
+                        "type": "integer",
+                        "title": "Quarantined Count"
+                    },
+                    "failed_count": {
+                        "type": "integer",
+                        "title": "Failed Count"
+                    },
+                    "duplicate_no_op_count": {
+                        "type": "integer",
+                        "title": "Duplicate No Op Count"
+                    },
+                    "conflict_count": {
+                        "type": "integer",
+                        "title": "Conflict Count"
+                    },
+                    "outcome_reason_code": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Outcome Reason Code"
+                    },
+                    "message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "run_id",
+                    "source_key",
+                    "state",
+                    "accepted_count",
+                    "quarantined_count",
+                    "failed_count",
+                    "duplicate_no_op_count",
+                    "conflict_count"
+                ],
+                "title": "SourceRunOutcomeResponse",
+                "description": "Projects a SourceRunOutcome ORM row into the HTTP response shape."
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

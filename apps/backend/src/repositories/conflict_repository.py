@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "libs/db/src"))
@@ -18,19 +17,6 @@ VALID_CONFLICT_STATES = frozenset({"open", "resolved", "suppressed"})
 
 _DEFAULT_PAGE = 1
 _DEFAULT_PAGE_SIZE = 50
-
-
-@dataclass
-class ConflictFilter:
-    """Optional filter parameters for listing conflict records."""
-
-    run_id: str | None = field(default=None)
-    source_key: str | None = field(default=None)
-    series_key: str | None = field(default=None)
-    reference_period_key: str | None = field(default=None)
-    conflict_state: str | None = field(default=None)
-    page: int = field(default=_DEFAULT_PAGE)
-    page_size: int = field(default=_DEFAULT_PAGE_SIZE)
 
 
 class ConflictRepository:

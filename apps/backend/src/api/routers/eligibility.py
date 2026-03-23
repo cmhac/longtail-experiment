@@ -10,12 +10,14 @@ from sqlalchemy.orm import Session
 from ...repositories.eligibility_repository import EligibilityRepository
 from ...repositories.run_repository import RunRepository
 from ..dependencies import get_db_session
-from ..schemas.common import PaginatedResponse
+from ..schemas.common import ErrorResponse, PaginatedResponse
 from ..schemas.eligibility import SourceEligibilityResponse
 
 router = APIRouter()
 _run_repo = RunRepository()
 _eligibility_repo = EligibilityRepository()
+
+_NOT_FOUND = 404
 
 
 @router.get(
@@ -33,8 +35,11 @@ def list_eligibility(
     run = _run_repo.get_run_by_run_id(session, run_id)
     if run is None:
         raise HTTPException(
-            status_code=404,
-            detail={"code": "not_found", "message": f"Run '{run_id}' not found"},
+            status_code=_NOT_FOUND,
+            detail=ErrorResponse(
+                code="not_found",
+                message=f"Run '{run_id}' not found",
+            ).model_dump(),
         )
     records, total = _eligibility_repo.list_eligibility_for_run(
         session, run_id, page=page, page_size=page_size

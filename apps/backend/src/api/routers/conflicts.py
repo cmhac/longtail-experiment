@@ -33,12 +33,10 @@ class _ConflictQueryParams:
         page: Annotated[int, Query(ge=1)] = 1,
         page_size: Annotated[int, Query(ge=1, le=200)] = 50,
     ) -> None:
-        self.run_id = run_id or None if run_id == "" else run_id
-        self.source_key = source_key or None if source_key == "" else source_key
-        self.series_key = series_key or None if series_key == "" else series_key
-        self.reference_period_key = (
-            reference_period_key or None if reference_period_key == "" else reference_period_key
-        )
+        self.run_id = None if run_id == "" else run_id
+        self.source_key = None if source_key == "" else source_key
+        self.series_key = None if series_key == "" else series_key
+        self.reference_period_key = None if reference_period_key == "" else reference_period_key
         self.conflict_state = conflict_state
         self.page = page
         self.page_size = page_size

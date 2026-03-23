@@ -19,13 +19,13 @@
 
 **Purpose**: Add FastAPI/uvicorn dependencies, create module skeleton, update Docker Compose backend service, and prepare `specs/contracts/` directory.
 
-- [ ] T001 Add `fastapi>=0.115.0`, `uvicorn[standard]>=0.32.0`, and `httpx>=0.28.0` (test client) to apps/backend/pyproject.toml and sync lockfile with `uv add --project apps/backend fastapi "uvicorn[standard]" && uv add --project apps/backend --dev httpx`
-- [ ] T002 [P] Create module skeleton: `apps/backend/src/api/__init__.py`, `apps/backend/src/api/schemas/__init__.py`, `apps/backend/src/api/routers/__init__.py`, `apps/backend/src/repositories/__init__.py`
-- [ ] T003 [P] Create test skeleton directories: `apps/backend/tests/api/__init__.py`, `apps/backend/tests/repositories/__init__.py`
-- [ ] T004 [P] Create `specs/contracts/` directory (parent for OpenAPI snapshot) at `specs/contracts/.gitkeep` (placeholder until snapshot is generated)
-- [ ] T005 [P] Update `docker-compose.yml` backend service: replace placeholder `python -m http.server 8080` command with uvicorn FastAPI startup command mounting the workspace volume; update healthcheck to `GET /health`
+- [x] T001 Add `fastapi>=0.115.0`, `uvicorn[standard]>=0.32.0`, and `httpx>=0.28.0` (test client) to apps/backend/pyproject.toml and sync lockfile with `uv add --project apps/backend fastapi "uvicorn[standard]" && uv add --project apps/backend --dev httpx`
+- [x] T002 [P] Create module skeleton: `apps/backend/src/api/__init__.py`, `apps/backend/src/api/schemas/__init__.py`, `apps/backend/src/api/routers/__init__.py`, `apps/backend/src/repositories/__init__.py`
+- [x] T003 [P] Create test skeleton directories: `apps/backend/tests/api/__init__.py`, `apps/backend/tests/repositories/__init__.py`
+- [x] T004 [P] Create `specs/contracts/` directory (parent for OpenAPI snapshot) at `specs/contracts/.gitkeep` (placeholder until snapshot is generated)
+- [x] T005 [P] Update `docker-compose.yml` backend service: replace placeholder `python -m http.server 8080` command with uvicorn FastAPI startup command mounting the workspace volume; update healthcheck to `GET /health`
 
-- [ ] T006 Create Alembic migration `0008_query_support_indexes` with 6 query-support indexes in `libs/db/alembic/versions/0008_query_support_indexes.py`: `ix_conflict_records_run_id`, `ix_conflict_records_source_key`, `ix_conflict_records_series_key`, `ix_conflict_records_reference_period_key`, `ix_conflict_records_conflict_state` (all on `conflict_records`), and `ix_ingestion_runs_started_at` (on `ingestion_runs` for `ORDER BY started_at DESC`)
+- [x] T006 Create Alembic migration `0008_query_support_indexes` with 6 query-support indexes in `libs/db/alembic/versions/0008_query_support_indexes.py`: `ix_conflict_records_run_id`, `ix_conflict_records_source_key`, `ix_conflict_records_series_key`, `ix_conflict_records_reference_period_key`, `ix_conflict_records_conflict_state` (all on `conflict_records`), and `ix_ingestion_runs_started_at` (on `ingestion_runs` for `ORDER BY started_at DESC`)
 
 **Checkpoint**: Setup complete — dependencies installed, skeleton dirs created, compose updated
 
@@ -37,14 +37,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T007 Create FastAPI application factory in `apps/backend/src/api/app.py`: `create_app()` function that registers routers, registers exception handlers for `HTTPException` and `RequestValidationError`, and configures structlog logging
-- [ ] T008 [P] Implement per-request DB session dependency in `apps/backend/src/api/dependencies.py`: `get_db_session()` yield dependency using `libs/db` `resolve_database_url()`, `create_db_engine()`, and `session_scope()` utilities
-- [ ] T009 [P] Implement common Pydantic response schemas in `apps/backend/src/api/schemas/common.py`: `PaginatedResponse[T]` generic envelope (`items`, `total`, `page`, `page_size`) and `ErrorResponse` envelope (`code`, `message`, `details`, `correlation_id`)
-- [ ] T010 [P] Register centralized exception handlers in `apps/backend/src/api/app.py`: override FastAPI default `HTTPException` handler and `RequestValidationError` handler to return `ErrorResponse` envelope with stable `code`/`message`/`details` fields
-- [ ] T011 [P] Create `apps/backend/src/repositories/base.py` with shared pagination helper (`apply_pagination(query, page, page_size) -> tuple[list, int]`) used by all read repositories
-- [ ] T012 [P] Add foundational tests for app factory, dependency injection, and error handler envelope shape in `apps/backend/tests/api/test_app_foundation.py`
-- [ ] T013 [P] Add foundational tests for `PaginatedResponse` and `ErrorResponse` schema validation in `apps/backend/tests/api/test_schemas_common.py`
-- [ ] T014 Add main ASGI entrypoint `apps/backend/src/api/main.py` exporting `app = create_app()` so uvicorn can start with `src.api.main:app`
+- [x] T007 Create FastAPI application factory in `apps/backend/src/api/app.py`: `create_app()` function that registers routers, registers exception handlers for `HTTPException` and `RequestValidationError`, and configures structlog logging
+- [x] T008 [P] Implement per-request DB session dependency in `apps/backend/src/api/dependencies.py`: `get_db_session()` yield dependency using `libs/db` `resolve_database_url()`, `create_db_engine()`, and `session_scope()` utilities
+- [x] T009 [P] Implement common Pydantic response schemas in `apps/backend/src/api/schemas/common.py`: `PaginatedResponse[T]` generic envelope (`items`, `total`, `page`, `page_size`) and `ErrorResponse` envelope (`code`, `message`, `details`, `correlation_id`)
+- [x] T010 [P] Register centralized exception handlers in `apps/backend/src/api/app.py`: override FastAPI default `HTTPException` handler and `RequestValidationError` handler to return `ErrorResponse` envelope with stable `code`/`message`/`details` fields
+- [x] T011 [P] Create `apps/backend/src/repositories/base.py` with shared pagination helper (`apply_pagination(query, page, page_size) -> tuple[list, int]`) used by all read repositories
+- [x] T012 [P] Add foundational tests for app factory, dependency injection, and error handler envelope shape in `apps/backend/tests/api/test_app_foundation.py`
+- [x] T013 [P] Add foundational tests for `PaginatedResponse` and `ErrorResponse` schema validation in `apps/backend/tests/api/test_schemas_common.py`
+- [x] T014 Add main ASGI entrypoint `apps/backend/src/api/main.py` exporting `app = create_app()` so uvicorn can start with `src.api.main:app`
 
 **Checkpoint**: Foundation ready — app factory, DB session DI, error handlers, common schemas, and pagination helper all complete. User story implementation can now begin in parallel.
 
@@ -58,14 +58,14 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T015 [P] [US1] Add health endpoint tests in `apps/backend/tests/api/test_health.py`: test 200 response shape when DB is reachable (mock session), test 503 response shape and error envelope when DB raises connection error
+- [x] T015 [P] [US1] Add health endpoint tests in `apps/backend/tests/api/test_health.py`: test 200 response shape when DB is reachable (mock session), test 503 response shape and error envelope when DB raises connection error
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Implement `HealthResponse` Pydantic schema in `apps/backend/src/api/schemas/common.py` (add to existing file): fields `status: str` and `db: str`
-- [ ] T017 [US1] Implement `GET /health` router in `apps/backend/src/api/routers/health.py`: execute a lightweight DB probe (e.g., `SELECT 1`), return `HealthResponse(status="ok", db="reachable")` on success, return HTTP 503 `ErrorResponse` with `code="service_unavailable"` on DB error; do not use the standard DI session — probe directly to isolate health from request session lifecycle
-- [ ] T018 [US1] Register health router on the FastAPI app in `apps/backend/src/api/app.py` (prefix-free: `/health`)
-- [ ] T019 [US1] Verify US1 coverage contribution keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests` and reviewing coverage report
+- [x] T016 [US1] Implement `HealthResponse` Pydantic schema in `apps/backend/src/api/schemas/common.py` (add to existing file): fields `status: str` and `db: str`
+- [x] T017 [US1] Implement `GET /health` router in `apps/backend/src/api/routers/health.py`: execute a lightweight DB probe (e.g., `SELECT 1`), return `HealthResponse(status="ok", db="reachable")` on success, return HTTP 503 `ErrorResponse` with `code="service_unavailable"` on DB error; do not use the standard DI session — probe directly to isolate health from request session lifecycle
+- [x] T018 [US1] Register health router on the FastAPI app in `apps/backend/src/api/app.py` (prefix-free: `/health`)
+- [x] T019 [US1] Verify US1 coverage contribution keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests` and reviewing coverage report
 
 **Checkpoint**: User Story 1 independently testable — health endpoint responds correctly under healthy and degraded database conditions
 
@@ -79,16 +79,16 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T020 [P] [US2] Add run list endpoint tests in `apps/backend/tests/api/test_runs.py`: test paginated list shape, descending order, empty list case, and pagination parameters (page/page_size validation with 422 on invalid values)
-- [ ] T021 [P] [US2] Add run repository unit tests in `apps/backend/tests/repositories/test_run_repository.py`: test `list_runs(page, page_size)` returns ordered results and correct total count using in-memory SQLite or mock session
+- [x] T020 [P] [US2] Add run list endpoint tests in `apps/backend/tests/api/test_runs.py`: test paginated list shape, descending order, empty list case, and pagination parameters (page/page_size validation with 422 on invalid values)
+- [x] T021 [P] [US2] Add run repository unit tests in `apps/backend/tests/repositories/test_run_repository.py`: test `list_runs(page, page_size)` returns ordered results and correct total count using in-memory SQLite or mock session
 
 ### Implementation for User Story 2
 
-- [ ] T022 [P] [US2] Implement `IngestionRunResponse` Pydantic schema in `apps/backend/src/api/schemas/runs.py`: all fields from `IngestionRun` ORM model with `model_config = ConfigDict(from_attributes=True)` and `datetime` → ISO-8601 UTC string serialization
-- [ ] T023 [US2] Implement `RunRepository` in `apps/backend/src/repositories/run_repository.py`: `list_runs(session, page, page_size) -> tuple[list[IngestionRun], int]` ordered by `started_at` DESC using `libs/db` `IngestionRun` ORM model
-- [ ] T024 [US2] Implement `GET /api/runs` router in `apps/backend/src/api/routers/runs.py`: inject DB session, call `RunRepository.list_runs()`, return `PaginatedResponse[IngestionRunResponse]`; validate `page >= 1` and `1 <= page_size <= 200` returning 422 on violations
-- [ ] T025 [US2] Register runs router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
-- [ ] T026 [US2] Verify US2 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
+- [x] T022 [P] [US2] Implement `IngestionRunResponse` Pydantic schema in `apps/backend/src/api/schemas/runs.py`: all fields from `IngestionRun` ORM model with `model_config = ConfigDict(from_attributes=True)` and `datetime` → ISO-8601 UTC string serialization
+- [x] T023 [US2] Implement `RunRepository` in `apps/backend/src/repositories/run_repository.py`: `list_runs(session, page, page_size) -> tuple[list[IngestionRun], int]` ordered by `started_at` DESC using `libs/db` `IngestionRun` ORM model
+- [x] T024 [US2] Implement `GET /api/runs` router in `apps/backend/src/api/routers/runs.py`: inject DB session, call `RunRepository.list_runs()`, return `PaginatedResponse[IngestionRunResponse]`; validate `page >= 1` and `1 <= page_size <= 200` returning 422 on violations
+- [x] T025 [US2] Register runs router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
+- [x] T026 [US2] Verify US2 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
 
 **Checkpoint**: User Story 2 independently testable — paginated run list endpoint works with and without seeded data
 
@@ -102,13 +102,13 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T027 [P] [US3] Add single-run detail tests in `apps/backend/tests/api/test_runs.py` (extend existing file): test 200 detail shape with seeded run, test 404 envelope for unknown run_id
+- [x] T027 [P] [US3] Add single-run detail tests in `apps/backend/tests/api/test_runs.py` (extend existing file): test 200 detail shape with seeded run, test 404 envelope for unknown run_id
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Add `get_run_by_run_id(session, run_id: str) -> IngestionRun | None` method to `RunRepository` in `apps/backend/src/repositories/run_repository.py`
-- [ ] T029 [US3] Add `GET /api/runs/{run_id}` route to `apps/backend/src/api/routers/runs.py`: call `RunRepository.get_run_by_run_id()`, return `IngestionRunResponse` on success, raise `HTTPException(404)` with `ErrorResponse` body when `None`
-- [ ] T030 [US3] Verify US3 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
+- [x] T028 [US3] Add `get_run_by_run_id(session, run_id: str) -> IngestionRun | None` method to `RunRepository` in `apps/backend/src/repositories/run_repository.py`
+- [x] T029 [US3] Add `GET /api/runs/{run_id}` route to `apps/backend/src/api/routers/runs.py`: call `RunRepository.get_run_by_run_id()`, return `IngestionRunResponse` on success, raise `HTTPException(404)` with `ErrorResponse` body when `None`
+- [x] T030 [US3] Verify US3 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
 
 **Checkpoint**: User Story 3 independently testable — single-run detail and 404 both work
 
@@ -122,16 +122,16 @@
 
 ### Tests for User Story 4 (REQUIRED) ⚠️
 
-- [ ] T031 [P] [US4] Add outcomes endpoint tests in `apps/backend/tests/api/test_outcomes.py`: test list with seeded outcomes, empty list for run with no outcomes, 404 for unknown run_id, stable `state` values from enum set
-- [ ] T032 [P] [US4] Add outcome repository unit tests in `apps/backend/tests/repositories/test_outcome_repository.py`: test `list_outcomes_for_run(session, run_id)` returns all matching rows
+- [x] T031 [P] [US4] Add outcomes endpoint tests in `apps/backend/tests/api/test_outcomes.py`: test list with seeded outcomes, empty list for run with no outcomes, 404 for unknown run_id, stable `state` values from enum set
+- [x] T032 [P] [US4] Add outcome repository unit tests in `apps/backend/tests/repositories/test_outcome_repository.py`: test `list_outcomes_for_run(session, run_id)` returns all matching rows
 
 ### Implementation for User Story 4
 
-- [ ] T033 [P] [US4] Implement `SourceRunOutcomeResponse` Pydantic schema in `apps/backend/src/api/schemas/outcomes.py` with `from_attributes=True` and UTC timestamp serialization
-- [ ] T034 [US4] Implement `OutcomeRepository` in `apps/backend/src/repositories/outcome_repository.py`: `list_outcomes_for_run(session, run_id: str, page, page_size) -> tuple[list[SourceRunOutcome], int]` using `libs/db` `SourceRunOutcome` ORM model
-- [ ] T035 [US4] Implement `GET /api/runs/{run_id}/outcomes` router in `apps/backend/src/api/routers/outcomes.py`: verify run exists (reuse `RunRepository.get_run_by_run_id()`, raise 404 if not found), call `OutcomeRepository.list_outcomes_for_run()`, return `PaginatedResponse[SourceRunOutcomeResponse]`
-- [ ] T036 [US4] Register outcomes router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
-- [ ] T037 [US4] Verify US4 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
+- [x] T033 [P] [US4] Implement `SourceRunOutcomeResponse` Pydantic schema in `apps/backend/src/api/schemas/outcomes.py` with `from_attributes=True` and UTC timestamp serialization
+- [x] T034 [US4] Implement `OutcomeRepository` in `apps/backend/src/repositories/outcome_repository.py`: `list_outcomes_for_run(session, run_id: str, page, page_size) -> tuple[list[SourceRunOutcome], int]` using `libs/db` `SourceRunOutcome` ORM model
+- [x] T035 [US4] Implement `GET /api/runs/{run_id}/outcomes` router in `apps/backend/src/api/routers/outcomes.py`: verify run exists (reuse `RunRepository.get_run_by_run_id()`, raise 404 if not found), call `OutcomeRepository.list_outcomes_for_run()`, return `PaginatedResponse[SourceRunOutcomeResponse]`
+- [x] T036 [US4] Register outcomes router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
+- [x] T037 [US4] Verify US4 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
 
 **Checkpoint**: User Story 4 independently testable — outcomes list and 404 both work per run
 
@@ -145,16 +145,16 @@
 
 ### Tests for User Story 5 (REQUIRED) ⚠️
 
-- [ ] T038 [P] [US5] Add eligibility endpoint tests in `apps/backend/tests/api/test_eligibility.py`: test list with seeded eligibility records, empty list case, 404 for unknown run_id, correct field names
-- [ ] T039 [P] [US5] Add eligibility repository unit tests in `apps/backend/tests/repositories/test_eligibility_repository.py`: test `list_eligibility_for_run(session, run_id)` returns all matching rows
+- [x] T038 [P] [US5] Add eligibility endpoint tests in `apps/backend/tests/api/test_eligibility.py`: test list with seeded eligibility records, empty list case, 404 for unknown run_id, correct field names
+- [x] T039 [P] [US5] Add eligibility repository unit tests in `apps/backend/tests/repositories/test_eligibility_repository.py`: test `list_eligibility_for_run(session, run_id)` returns all matching rows
 
 ### Implementation for User Story 5
 
-- [ ] T040 [P] [US5] Implement `SourceEligibilityResponse` Pydantic schema in `apps/backend/src/api/schemas/eligibility.py` with `from_attributes=True` and UTC timestamp serialization
-- [ ] T041 [US5] Implement `EligibilityRepository` in `apps/backend/src/repositories/eligibility_repository.py`: `list_eligibility_for_run(session, run_id: str, page, page_size) -> tuple[list[SourceEligibilitySnapshot], int]` using `libs/db` `SourceEligibilitySnapshot` ORM model
-- [ ] T042 [US5] Implement `GET /api/runs/{run_id}/eligibility` router in `apps/backend/src/api/routers/eligibility.py`: verify run exists (raise 404 if not), call `EligibilityRepository.list_eligibility_for_run()`, return `PaginatedResponse[SourceEligibilityResponse]`
-- [ ] T043 [US5] Register eligibility router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
-- [ ] T044 [US5] Verify US5 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
+- [x] T040 [P] [US5] Implement `SourceEligibilityResponse` Pydantic schema in `apps/backend/src/api/schemas/eligibility.py` with `from_attributes=True` and UTC timestamp serialization
+- [x] T041 [US5] Implement `EligibilityRepository` in `apps/backend/src/repositories/eligibility_repository.py`: `list_eligibility_for_run(session, run_id: str, page, page_size) -> tuple[list[SourceEligibilitySnapshot], int]` using `libs/db` `SourceEligibilitySnapshot` ORM model
+- [x] T042 [US5] Implement `GET /api/runs/{run_id}/eligibility` router in `apps/backend/src/api/routers/eligibility.py`: verify run exists (raise 404 if not), call `EligibilityRepository.list_eligibility_for_run()`, return `PaginatedResponse[SourceEligibilityResponse]`
+- [x] T043 [US5] Register eligibility router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
+- [x] T044 [US5] Verify US5 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
 
 **Checkpoint**: User Story 5 independently testable — eligibility list and 404 both work per run
 
@@ -168,16 +168,16 @@
 
 ### Tests for User Story 6 (REQUIRED) ⚠️
 
-- [ ] T045 [P] [US6] Add conflicts endpoint tests in `apps/backend/tests/api/test_conflicts.py`: test unfiltered paginated list, each filter parameter independently, empty result for non-matching filter, 422 for invalid `conflict_state` value, 422 for out-of-range pagination params
-- [ ] T046 [P] [US6] Add conflict repository unit tests in `apps/backend/tests/repositories/test_conflict_repository.py`: test `list_conflicts()` with each filter combination returns correct subset
+- [x] T045 [P] [US6] Add conflicts endpoint tests in `apps/backend/tests/api/test_conflicts.py`: test unfiltered paginated list, each filter parameter independently, empty result for non-matching filter, 422 for invalid `conflict_state` value, 422 for out-of-range pagination params
+- [x] T046 [P] [US6] Add conflict repository unit tests in `apps/backend/tests/repositories/test_conflict_repository.py`: test `list_conflicts()` with each filter combination returns correct subset
 
 ### Implementation for User Story 6
 
-- [ ] T047 [P] [US6] Implement `ConflictRecordResponse` Pydantic schema in `apps/backend/src/api/schemas/conflicts.py` with `from_attributes=True` and UTC timestamp serialization
-- [ ] T048 [US6] Implement `ConflictRepository` in `apps/backend/src/repositories/conflict_repository.py`: `list_conflicts(session, *, run_id, source_key, series_key, reference_period_key, conflict_state, page, page_size) -> tuple[list[ConflictRecord], int]` using `libs/db` `ConflictRecord` ORM model; apply only non-None filters; validate `conflict_state` against the stable value set (`open`, `resolved`, `suppressed`)
-- [ ] T049 [US6] Implement `GET /api/conflicts` router in `apps/backend/src/api/routers/conflicts.py`: accept all five optional filter query params, validate `conflict_state` enum (return 422 `ErrorResponse` with `details` on invalid value), call `ConflictRepository.list_conflicts()`, return `PaginatedResponse[ConflictRecordResponse]`
-- [ ] T050 [US6] Register conflicts router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
-- [ ] T051 [US6] Verify US6 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
+- [x] T047 [P] [US6] Implement `ConflictRecordResponse` Pydantic schema in `apps/backend/src/api/schemas/conflicts.py` with `from_attributes=True` and UTC timestamp serialization
+- [x] T048 [US6] Implement `ConflictRepository` in `apps/backend/src/repositories/conflict_repository.py`: `list_conflicts(session, *, run_id, source_key, series_key, reference_period_key, conflict_state, page, page_size) -> tuple[list[ConflictRecord], int]` using `libs/db` `ConflictRecord` ORM model; apply only non-None filters; validate `conflict_state` against the stable value set (`open`, `resolved`, `suppressed`)
+- [x] T049 [US6] Implement `GET /api/conflicts` router in `apps/backend/src/api/routers/conflicts.py`: accept all five optional filter query params, validate `conflict_state` enum (return 422 `ErrorResponse` with `details` on invalid value), call `ConflictRepository.list_conflicts()`, return `PaginatedResponse[ConflictRecordResponse]`
+- [x] T050 [US6] Register conflicts router on the FastAPI app in `apps/backend/src/api/app.py` (prefix `/api`)
+- [x] T051 [US6] Verify US6 coverage keeps backend >= 90% by running `uv run --project apps/backend pytest apps/backend/tests`
 
 **Checkpoint**: All six user stories independently functional and testable
 
@@ -187,14 +187,14 @@
 
 **Purpose**: OpenAPI snapshot, Docker Compose validation, documentation updates, and final quality gate pass.
 
-- [ ] T052 [P] Generate OpenAPI contract snapshot from the running app and save to `specs/contracts/openapi-phase1-snapshot.json`: run `uv run --project apps/backend python -c "import json; from src.api.app import create_app; print(json.dumps(create_app().openapi(), indent=2))" > specs/contracts/openapi-phase1-snapshot.json`
-- [ ] T053 [P] Add OpenAPI snapshot consistency test in `apps/backend/tests/api/test_openapi_snapshot.py`: use `TestClient` to fetch `/openapi.json` and compare against the checked-in snapshot, failing if they diverge (satisfies FR-015 / SC-004)
-- [ ] T054 [P] Create backend API local run runbook in `docs/runbooks/backend-api-local-run.md`: document `uv sync`, uvicorn start command, health check curl, Swagger UI URL, and Docker Compose start sequence per quickstart.md
-- [ ] T055 [P] Update `AGENTS.md` to reflect new backend API structure (`apps/backend/src/api/`, `apps/backend/src/repositories/`), new dependencies (FastAPI, uvicorn, httpx), and the uvicorn start command
-- [ ] T056 Run full backend quality gate suite and confirm all pass: `uv run --project apps/backend ruff check apps/backend && uv run --project apps/backend ruff format --check apps/backend && uv run --project apps/backend ty check apps/backend && uv run --project apps/backend pytest apps/backend/tests`
-- [ ] T057 [P] Run affected Nx quality targets: `pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage`
-- [ ] T058 Start Docker Compose local stack and validate backend service health: `docker compose up -d && docker compose ps` — confirm backend service reports healthy and `curl http://localhost:8080/health` returns `{"status": "ok", "db": "reachable"}`
-- [ ] T059 Perform final consistency pass — confirm plan.md, spec.md, data-model.md, contracts/phase1-api-contract.md, and OpenAPI snapshot are all mutually consistent in `specs/014-read-only-fastapi-api/`
+- [x] T052 [P] Generate OpenAPI contract snapshot from the running app and save to `specs/contracts/openapi-phase1-snapshot.json`: run `uv run --project apps/backend python -c "import json; from src.api.app import create_app; print(json.dumps(create_app().openapi(), indent=2))" > specs/contracts/openapi-phase1-snapshot.json`
+- [x] T053 [P] Add OpenAPI snapshot consistency test in `apps/backend/tests/api/test_openapi_snapshot.py`: use `TestClient` to fetch `/openapi.json` and compare against the checked-in snapshot, failing if they diverge (satisfies FR-015 / SC-004)
+- [x] T054 [P] Create backend API local run runbook in `docs/runbooks/backend-api-local-run.md`: document `uv sync`, uvicorn start command, health check curl, Swagger UI URL, and Docker Compose start sequence per quickstart.md
+- [x] T055 [P] Update `AGENTS.md` to reflect new backend API structure (`apps/backend/src/api/`, `apps/backend/src/repositories/`), new dependencies (FastAPI, uvicorn, httpx), and the uvicorn start command
+- [x] T056 Run full backend quality gate suite and confirm all pass: `uv run --project apps/backend ruff check apps/backend && uv run --project apps/backend ruff format --check apps/backend && uv run --project apps/backend ty check apps/backend && uv run --project apps/backend pytest apps/backend/tests`
+- [x] T057 [P] Run affected Nx quality targets: `pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage`
+- [x] T058 Start Docker Compose local stack and validate backend service health: `docker compose up -d && docker compose ps` — confirm backend service reports healthy and `curl http://localhost:8080/health` returns `{"status": "ok", "db": "reachable"}`
+- [x] T059 Perform final consistency pass — confirm plan.md, spec.md, data-model.md, contracts/phase1-api-contract.md, and OpenAPI snapshot are all mutually consistent in `specs/014-read-only-fastapi-api/`
 
 ---
 

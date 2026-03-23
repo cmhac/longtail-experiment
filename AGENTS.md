@@ -1,8 +1,11 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-22
+Auto-generated from all feature plans. Last updated: 2026-03-23
 
 ## Active Technologies
+
+- Python 3.12 (backend), FastAPI 0.115.x, Uvicorn 0.32.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, uv, pytest, Nx tooling (014-read-only-fastapi-api)
+- PostgreSQL 16 read-only API serving `ingestion_runs`, `source_run_outcomes`, `source_eligibility_snapshots`, `conflict_records` via 6 REST endpoints (014-read-only-fastapi-api)
 
 - PostgreSQL 16 runtime store plus canonical observation store (`source_profiles`, `data_series`, `observations`) (012-multi-series-adapters)
 
@@ -108,8 +111,15 @@ Backend quality commands:
 
 - uv run --project apps/backend ruff check apps/backend
 - uv run --project apps/backend ruff format --check apps/backend
-- uv run --project apps/backend ty check apps/backend
+- uv run --project apps/backend ty check --extra-search-path libs/db/src apps/backend
 - uv run --project apps/backend pytest apps/backend/tests
+
+Backend API local dev:
+
+- PYTHONPATH="$PWD/libs/db/src:$PWD/apps/backend" uv run --project apps/backend uvicorn src.api.main:app --host 0.0.0.0 --port 8080
+- curl http://localhost:8080/health
+- curl http://localhost:8080/api/runs
+- curl http://localhost:8080/api/conflicts
 
 Pipeline quality commands:
 
@@ -160,6 +170,8 @@ Current migration head expected by local revision checks: `0008_query_support_in
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
+- 014-read-only-fastapi-api: Added FastAPI 0.115.x + Uvicorn 0.32.x to apps/backend; 6 read-only REST endpoints (GET /health, /api/runs, /api/runs/{run_id}, /api/runs/{run_id}/outcomes, /api/runs/{run_id}/eligibility, /api/conflicts); paginated responses with PaginatedResponse envelope; ErrorResponse on 4xx/5xx; OpenAPI snapshot at specs/014-read-only-fastapi-api/openapi-snapshot.json; backend docker-compose service updated to run FastAPI
 
 - 013-dynamic-source-registration: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 

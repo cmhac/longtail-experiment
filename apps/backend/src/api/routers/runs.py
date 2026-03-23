@@ -9,11 +9,13 @@ from sqlalchemy.orm import Session
 
 from ...repositories.run_repository import RunRepository
 from ..dependencies import get_db_session
-from ..schemas.common import PaginatedResponse
+from ..schemas.common import ErrorResponse, PaginatedResponse
 from ..schemas.runs import IngestionRunResponse
 
 router = APIRouter()
 _repo = RunRepository()
+
+_NOT_FOUND = 404
 
 
 @router.get(
@@ -49,7 +51,10 @@ def get_run(
     run = _repo.get_run_by_run_id(session, run_id)
     if run is None:
         raise HTTPException(
-            status_code=404,
-            detail={"code": "not_found", "message": f"Run '{run_id}' not found"},
+            status_code=_NOT_FOUND,
+            detail=ErrorResponse(
+                code="not_found",
+                message=f"Run '{run_id}' not found",
+            ).model_dump(),
         )
     return IngestionRunResponse.model_validate(run)
