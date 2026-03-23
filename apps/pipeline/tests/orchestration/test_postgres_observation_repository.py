@@ -10,6 +10,7 @@ from typing import Protocol
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import text
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -28,6 +29,10 @@ class _Observation(Protocol):
     reported_at: datetime
     value: Decimal
     attributes: dict[str, str]
+    dataset_title: str | None
+    dataset_description: str | None
+    dataset_geographic_scope: str | None
+    topic_tags: list[str]
 
 
 class _CanonicalObservation:
@@ -41,6 +46,10 @@ class _CanonicalObservation:
         self.reported_at = datetime.now(tz=UTC)
         self.value = value
         self.attributes = {"provider_series_id": "FEDFUNDS"}
+        self.dataset_title = "Effective Federal Funds Rate"
+        self.dataset_description = "Federal funds effective interest rate."
+        self.dataset_geographic_scope = "United States"
+        self.topic_tags = ["interest rates", "monetary policy"]
 
 
 def _repo_or_skip() -> PostgresObservationRepository:
@@ -91,3 +100,66 @@ def test_observation_repository_upsert_is_idempotent_per_series_date() -> None:
     rows = repo.read_series_observations(series_key=series_key)
     assert len(rows) == 1
     assert Decimal(str(rows[0]["value"])) == Decimal("4.25")
+
+
+def test_observation_repository_persists_metadata_and_accumulates_topic_tags() -> None:
+    """Dataset metadata columns should persist while topic tags accumulate over ingests."""
+    repo = _repo_or_skip()
+    series_key = f"INT.US.FEDFUNDS.TEST.{uuid4()}"
+
+    first = _CanonicalObservation(
+        series_key=series_key,
+        observed_on=date(2026, 3, 1),
+        value=Decimal("4.30"),
+    )
+    first.topic_tags = ["interest rates", "federal reserve"]
+    repo.upsert_observation(first)
+
+    second = _CanonicalObservation(
+        series_key=series_key,
+        observed_on=date(2026, 3, 2),
+        value=Decimal("4.35"),
+    )
+    second.topic_tags = ["banking", "interest rates"]
+    repo.upsert_observation(second)
+
+    with repo._engine.begin() as connection:  # noqa: SLF001 - integration test DB verification
+        metadata_row = (
+            connection.execute(
+                text(
+                    """
+                    SELECT title, description, geographic_scope
+                    FROM data_series
+                    WHERE series_key = :series_key
+                    """
+                ),
+                {"series_key": series_key},
+            )
+            .mappings()
+            .one()
+        )
+
+        tag_rows = (
+            connection.execute(
+                text(
+                    """
+                    SELECT tt.tag_name
+                    FROM data_series ds
+                    JOIN data_series_topic_tags dstt
+                      ON dstt.data_series_id = ds.id
+                    JOIN topic_tags tt
+                      ON tt.id = dstt.topic_tag_id
+                    WHERE ds.series_key = :series_key
+                    ORDER BY tt.tag_name ASC
+                    """
+                ),
+                {"series_key": series_key},
+            )
+            .scalars()
+            .all()
+        )
+
+    assert metadata_row["title"] == "Effective Federal Funds Rate"
+    assert metadata_row["description"] == "Federal funds effective interest rate."
+    assert metadata_row["geographic_scope"] == "United States"
+    assert tag_rows == ["banking", "federal reserve", "interest rates"]

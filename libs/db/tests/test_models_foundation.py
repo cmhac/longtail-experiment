@@ -15,7 +15,9 @@ from db.models import (
     Observation,
     ProvenanceRecord,
     RevisionRecord,
+    DataSeriesTopicTag,
     SourceProfile,
+    TopicTag,
 )
 
 
@@ -28,3 +30,5 @@ def test_model_exports_available() -> None:
     assert RevisionRecord.__tablename__ == "revision_records"
     assert CategoryNode.__tablename__ == "category_nodes"
     assert GeographyNode.__tablename__ == "geography_nodes"
+    assert TopicTag.__tablename__ == "topic_tags"
+    assert DataSeriesTopicTag.__tablename__ == "data_series_topic_tags"

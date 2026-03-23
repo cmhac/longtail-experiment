@@ -7,7 +7,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, String
+from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +16,7 @@ from .base import Base
 if TYPE_CHECKING:
     from .observation import Observation
     from .source_profile import SourceProfile
+    from .topic_tag import TopicTag
 
 
 class DataSeries(Base):
@@ -31,6 +32,9 @@ class DataSeries(Base):
     )
     series_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     metric_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    geographic_scope: Mapped[str | None] = mapped_column(String(255), nullable=True)
     default_scale: Mapped[Decimal] = mapped_column(
         Numeric(10, 4), nullable=False, default=1
     )
@@ -40,3 +44,6 @@ class DataSeries(Base):
 
     source_profile: Mapped["SourceProfile"] = relationship(back_populates="series")
     observations: Mapped[list["Observation"]] = relationship(back_populates="series")
+    topic_tags: Mapped[list["TopicTag"]] = relationship(
+        secondary="data_series_topic_tags", back_populates="data_series"
+    )

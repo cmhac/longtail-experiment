@@ -18,12 +18,27 @@ _FREQUENCY_MAP = {
 }
 
 
+def _coerce_topic_tags(raw: object) -> list[str]:
+    """Coerce mixed tag payloads into trimmed string tag lists."""
+    if not isinstance(raw, list):
+        return []
+    coerced: list[str] = []
+    for item in raw:
+        if not isinstance(item, str):
+            continue
+        value = item.strip()
+        if value:
+            coerced.append(value)
+    return coerced
+
+
 def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation:
     """Map variant source payload keys into the canonical observation schema."""
     frequency_raw = str(payload.get("frequency") or payload.get("frequency_granularity") or "")
     normalized_frequency = frequency_raw.strip().lower()
     canonical_frequency = _FREQUENCY_MAP.get(normalized_frequency, normalized_frequency)
     source_type = str(payload["source_type"]).strip().lower()
+    topic_tags = _coerce_topic_tags(payload.get("topic_tags") or payload.get("tags"))
 
     return CanonicalObservation.model_validate(
         {
@@ -32,6 +47,11 @@ def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation
             "series_key": str(payload["series_key"]),
             "metric_name": str(payload["metric_name"]),
             "frequency_granularity": canonical_frequency,
+            "dataset_title": payload.get("dataset_title") or payload.get("title"),
+            "dataset_description": payload.get("dataset_description") or payload.get("description"),
+            "dataset_geographic_scope": payload.get("dataset_geographic_scope")
+            or payload.get("geographic_scope"),
+            "topic_tags": topic_tags,
             "observed_on": payload.get("date") or payload.get("observed_on"),
             "reported_at": payload["reported_at"],
             "value": payload["value"],

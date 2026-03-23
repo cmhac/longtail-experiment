@@ -15,12 +15,14 @@ from .ingestion_runtime import (
 from .observation import Observation
 from .source_profile import SourceProfile
 from .taxonomy import CategoryNode, GeographyNode
+from .topic_tag import DataSeriesTopicTag, TopicTag
 
 __all__ = [
     "Base",
     "CategoryNode",
     "ConflictRecord",
     "DataSeries",
+    "DataSeriesTopicTag",
     "GeographyNode",
     "IngestionRun",
     "Observation",
@@ -32,4 +34,5 @@ __all__ = [
     "SeriesRunOutcome",
     "SourceSchedulePolicy",
     "SourceProfile",
+    "TopicTag",
 ]

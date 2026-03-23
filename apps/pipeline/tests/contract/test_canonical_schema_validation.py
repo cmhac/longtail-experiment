@@ -23,6 +23,10 @@ def test_canonical_observation_accepts_valid_payload() -> None:
         series_key="CPI.US.ALL",
         metric_name="Consumer Price Index",
         frequency_granularity="monthly",
+        dataset_title="US Consumer Price Index",
+        dataset_description="Headline CPI for urban consumers.",
+        dataset_geographic_scope="United States",
+        topic_tags=["inflation", "prices"],
         observed_on=date(2026, 1, 1),
         reported_at=datetime(2026, 2, 1, tzinfo=UTC),
         value=Decimal("302.5000"),
@@ -32,6 +36,8 @@ def test_canonical_observation_accepts_valid_payload() -> None:
 
     assert payload.series_key == "CPI.US.ALL"
     assert payload.frequency_granularity == "monthly"
+    assert payload.dataset_geographic_scope == "United States"
+    assert payload.topic_tags == ["inflation", "prices"]
 
 
 def test_canonical_observation_requires_mandatory_fields() -> None:

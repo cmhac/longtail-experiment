@@ -30,6 +30,9 @@ FRED_SERIES_CONFIGS: tuple[dict[str, str], ...] = (
         "provider_series_id": FRED_FEDFUNDS_SERIES_ID,
         "canonical_series_key": FRED_FEDFUNDS_CANONICAL_SERIES,
         "metric_name": "Effective Federal Funds Rate",
+        "dataset_description": "Federal funds effective interest rate published by FRED.",
+        "dataset_geographic_scope": "United States",
+        "topic_tags": "interest rates,monetary policy,federal reserve",
         "frequency": "daily",
     },
     {
@@ -37,6 +40,9 @@ FRED_SERIES_CONFIGS: tuple[dict[str, str], ...] = (
         "provider_series_id": FRED_GASREGW_SERIES_ID,
         "canonical_series_key": FRED_GASREGW_CANONICAL_SERIES,
         "metric_name": "US Regular Gas Price",
+        "dataset_description": "Average retail regular gasoline price from FRED.",
+        "dataset_geographic_scope": "United States",
+        "topic_tags": "energy,gasoline,consumer prices",
         "frequency": "weekly",
     },
 )
@@ -101,26 +107,30 @@ class ObservationCheckpointRepository(Protocol):
 def _map_fred_records(
     *,
     rows: Sequence[dict[str, Any]],
-    canonical_series_key: str,
-    provider_series_id: str,
-    metric_name: str,
-    frequency: str,
+    series_config: dict[str, str],
 ) -> list[dict[str, object]]:
     mapped: list[dict[str, object]] = []
     now_iso = datetime.now(tz=UTC).isoformat()
+    metric_name = series_config["metric_name"]
     for row in rows:
         mapped.append(
             {
                 "source_name": "FRED",
                 "source_type": "external",
-                "series_key": canonical_series_key,
+                "series_key": series_config["canonical_series_key"],
                 "metric_name": metric_name,
-                "frequency": frequency,
+                "dataset_title": metric_name,
+                "dataset_description": series_config["dataset_description"],
+                "dataset_geographic_scope": series_config["dataset_geographic_scope"],
+                "topic_tags": [
+                    tag.strip() for tag in series_config["topic_tags"].split(",") if tag.strip()
+                ],
+                "frequency": series_config["frequency"],
                 "date": str(row.get("date", "")),
                 "reported_at": str(row.get("realtime_end") or row.get("realtime_start") or now_iso),
                 "value": str(row.get("value", "")),
                 "attributes": {
-                    "provider_series_id": provider_series_id,
+                    "provider_series_id": series_config["provider_series_id"],
                 },
             }
         )
@@ -217,10 +227,7 @@ def build_fred_fedfunds_source_workflow(
                 request=request,
                 records=_map_fred_records(
                     rows=raw_rows,
-                    canonical_series_key=canonical_series_key,
-                    provider_series_id=provider_series_id,
-                    metric_name=series_config["metric_name"],
-                    frequency=series_config["frequency"],
+                    series_config=series_config,
                 ),
             )
             accepted_count += series_result.accepted_count

@@ -18,6 +18,10 @@ class CanonicalObservation(BaseModel):
     series_key: str = Field(min_length=1)
     metric_name: str = Field(min_length=1)
     frequency_granularity: str = Field(pattern="^(daily|weekly|monthly|quarterly|yearly)$")
+    dataset_title: str | None = Field(default=None, min_length=1)
+    dataset_description: str | None = Field(default=None, min_length=1)
+    dataset_geographic_scope: str | None = Field(default=None, min_length=1)
+    topic_tags: list[str] = Field(default_factory=list)
     observed_on: date
     reported_at: datetime
     value: Decimal

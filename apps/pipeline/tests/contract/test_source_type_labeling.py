@@ -48,3 +48,28 @@ def test_source_type_rejects_non_contract_values() -> None:
                 "value": Decimal("3.1"),
             }
         )
+
+
+def test_payload_mapper_maps_dataset_metadata_aliases() -> None:
+    """Mapper should support metadata aliases used by source adapters."""
+    observation = normalize_source_payload(
+        {
+            "source_name": "FRED",
+            "source_type": "EXTERNAL",
+            "series_key": "INT.US.FEDFUNDS",
+            "metric_name": "Effective Federal Funds Rate",
+            "title": "Effective Federal Funds Rate",
+            "description": "Federal funds effective interest rate.",
+            "geographic_scope": "United States",
+            "tags": ["interest rates", "monetary policy"],
+            "frequency": "daily",
+            "date": "2026-01-01",
+            "reported_at": datetime(2026, 2, 2, tzinfo=UTC),
+            "value": Decimal("4.1"),
+        }
+    )
+
+    assert observation.dataset_title == "Effective Federal Funds Rate"
+    assert observation.dataset_description == "Federal funds effective interest rate."
+    assert observation.dataset_geographic_scope == "United States"
+    assert observation.topic_tags == ["interest rates", "monetary policy"]

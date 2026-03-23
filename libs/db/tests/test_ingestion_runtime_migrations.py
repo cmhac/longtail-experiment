@@ -188,3 +188,41 @@ def test_series_ownership_transition_migration_creates_series_outcome_table() ->
 
     assert "series_run_outcomes" in migration_text
     assert "uq_series_outcome_run_source_series" in migration_text
+
+
+def test_dataset_metadata_topic_tags_migration_metadata() -> None:
+    """Feature 014: dataset metadata migration should chain from ownership transition."""
+    file_path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0007_dataset_metadata_and_topic_tags.py"
+    )
+    spec = spec_from_file_location("dataset_metadata_topic_tags", file_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.revision == "0007_dataset_metadata_topic_tags"
+    assert module.down_revision == "0006_series_ownership_transition"
+
+
+def test_dataset_metadata_topic_tags_migration_creates_expected_schema() -> None:
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0007_dataset_metadata_and_topic_tags.py"
+    ).read_text(encoding="utf-8")
+
+    for required_fragment in (
+        "topic_tags",
+        "data_series_topic_tags",
+        '"title"',
+        '"description"',
+        '"geographic_scope"',
+        '"tag_name"',
+        "ix_data_series_topic_tags_topic_tag_id",
+    ):
+        assert required_fragment in migration_text

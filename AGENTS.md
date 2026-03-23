@@ -148,7 +148,7 @@ Local stack and duplication:
 - docker compose ps
 - docker compose down
 
-Current migration head expected by local revision checks: `0006_series_ownership_transition`.
+Current migration head expected by local revision checks: `0007_dataset_metadata_topic_tags`.
 
 ## Code Style
 
@@ -160,12 +160,12 @@ Current migration head expected by local revision checks: `0006_series_ownership
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
 - 013-dynamic-source-registration: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 - 012-multi-series-adapters: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 - 011-source-asset-cadence: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
-
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.
