@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-03-23
 
 ## Active Technologies
+- Python 3.12 for backend runtime and query composition + Existing backend query/service modules in `apps/backend/src/query`, SQLAlchemy-based repository access in `libs/db/src/db/repositories`, Pydantic contract models in `apps/backend/src/contract`, psycopg/PostgreSQL runtime stack via existing local infrastructure (019-real-backend-api)
+- PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`, `observations`, topic tag tables) (019-real-backend-api)
 
 - TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js App Router runtime, React runtime from Next.js, HeroUI component system, existing Biome/Vitest/TypeScript/Nx toolchain (016-scaffold-site-furniture)
 - N/A (UI scaffold only, no persistence changes) (016-scaffold-site-furniture)
@@ -180,10 +182,10 @@ Current migration head expected by local revision checks: `0007_dataset_metadata
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 019-real-backend-api: Added Python 3.12 for backend runtime and query composition + Existing backend query/service modules in `apps/backend/src/query`, SQLAlchemy-based repository access in `libs/db/src/db/repositories`, Pydantic contract models in `apps/backend/src/contract`, psycopg/PostgreSQL runtime stack via existing local infrastructure
 
 - 018-frontend-dataset-discovery: Added TypeScript 5.x with strict mode; Node.js 22 LTS + Next.js 15 (App Router), React 19, HeroUI 3, Recharts (new), Vitest 2, Biome
 - 017-dataset-discovery-api: Added Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src`
-- 016-scaffold-site-furniture: Added TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js App Router runtime, React runtime from Next.js, HeroUI component system, existing Biome/Vitest/TypeScript/Nx toolchain
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.
