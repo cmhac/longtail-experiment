@@ -58,19 +58,19 @@ def _run_series_item(
     }
 
 
-@asset(name="dummy_source", required_resource_keys={"run_coordinator"})
+@asset(name="dummy_source", key_prefix="test", required_resource_keys={"run_coordinator"})
 def dummy_source_asset(context) -> dict[str, Any]:
     """Materialize source visibility entry for dummy_source."""
     return _run_single_source(context=context, source_key="dummy_source")
 
 
-@asset(name="example_source", required_resource_keys={"run_coordinator"})
+@asset(name="example_source", key_prefix="test", required_resource_keys={"run_coordinator"})
 def example_source_asset(context) -> dict[str, Any]:
     """Materialize source visibility entry for example_source."""
     return _run_single_source(context=context, source_key="example_source")
 
 
-@asset(name="fred_fedfunds", required_resource_keys={"run_coordinator"})
+@asset(name="fedfunds", key_prefix="fred", required_resource_keys={"run_coordinator"})
 def fred_fedfunds_source_asset(context) -> dict[str, Any]:
     """Materialize source visibility entry for fred_fedfunds."""
     return _run_series_item(
@@ -80,7 +80,7 @@ def fred_fedfunds_source_asset(context) -> dict[str, Any]:
     )
 
 
-@asset(name="fred_gasregw", required_resource_keys={"run_coordinator"})
+@asset(name="gasregw", key_prefix="fred", required_resource_keys={"run_coordinator"})
 def fred_gasregw_source_asset(context) -> dict[str, Any]:
     """Materialize source visibility entry for fred_gasregw series."""
     return _run_series_item(

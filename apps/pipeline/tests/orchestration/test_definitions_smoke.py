@@ -51,10 +51,10 @@ def test_definitions_expose_source_assets_for_dagit_catalog() -> None:
     """Dagit definitions should surface source-per-asset entries in the catalog."""
     asset_keys = {asset_key.to_user_string() for asset_key in defs.resolve_all_asset_keys()}
 
-    assert "dummy_source" in asset_keys
-    assert "example_source" in asset_keys
-    assert FRED_FEDFUNDS_SOURCE_KEY in asset_keys
-    assert "fred_gasregw" in asset_keys
+    assert "test/dummy_source" in asset_keys
+    assert "test/example_source" in asset_keys
+    assert "fred/fedfunds" in asset_keys
+    assert "fred/gasregw" in asset_keys
 
 
 def test_runtime_builder_registers_expected_sources() -> None:
@@ -90,10 +90,10 @@ def test_workspace_definition_catalog_lists_existing_definitions() -> None:
 
     assert catalog["jobs"] == ("ingest_job",)
     assert catalog["assets"] == (
-        "dummy_source",
-        "example_source",
-        "fred_fedfunds",
-        "fred_gasregw",
+        "test/dummy_source",
+        "test/example_source",
+        "fred/fedfunds",
+        "fred/gasregw",
     )
     assert catalog["schedules"] == (
         "dummy_source_schedule",
