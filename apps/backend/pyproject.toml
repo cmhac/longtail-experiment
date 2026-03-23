@@ -10,10 +10,19 @@ dependencies = [
     "psycopg[binary]>=3.2.0",
     "sqlalchemy>=2.0.36",
     "structlog>=24.4.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.9",
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.3.0", "pytest-cov>=5.0.0", "ruff>=0.7.0", "ty>=0.0.1a16"]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8.3.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.7.0",
+    "ty>=0.0.1a16",
+]
 
 [tool.ruff]
 line-length = 100
@@ -35,7 +44,7 @@ select = [
     "DTZ",
     "PL",
 ]
-ignore = ["D212", "D203"]
+ignore = ["D212", "D203", "PLR2004", "PLR0913"]
 
 [tool.pytest.ini_options]
 addopts = "-q --maxfail=1 --cov=apps/backend/src --cov-report=term-missing --cov-fail-under=90"

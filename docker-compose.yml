@@ -38,20 +38,42 @@ services:
       retries: 6
 
   backend:
-    image: python:3.12-alpine
-    command: ["sh", "-c", "python -m http.server 8080"]
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm
+    env_file:
+      - docker/compose/stack.env
+    environment:
+      UV_HTTP_TIMEOUT: "180"
+      UV_HTTP_RETRIES: "5"
+      LOCAL_DB_HOST: db
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${LOCAL_DB_NAME:-longtail_local}
+      LOCAL_DB_USER: ${LOCAL_DB_USER:-longtail}
+      LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
     working_dir: /workspace
+    command:
+      [
+        "sh",
+        "-c",
+        "uv sync --project apps/backend --frozen && uv run --project apps/backend uvicorn src.api.main:app --host 0.0.0.0 --port 8080",
+      ]
+    volumes:
+      - ./:/workspace
+      - backend_venv:/workspace/apps/backend/.venv
+      - backend_uv_cache:/root/.cache/uv
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8080'', timeout=2)" || exit 1',
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8080/health'', timeout=2)" || exit 1',
         ]
-      interval: 10s
-      timeout: 3s
-      retries: 6
+      interval: 15s
+      timeout: 5s
+      retries: 12
 
   frontend:
     image: node:22-alpine
@@ -114,3 +136,5 @@ volumes:
   local_db_data:
   dagit_pipeline_venv:
   dagit_uv_cache:
+  backend_venv:
+  backend_uv_cache:

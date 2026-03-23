@@ -20,7 +20,7 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "uv run --project apps/backend ty check apps/backend"
+        "command": "uv run --project apps/backend ty check --extra-search-path libs/db/src apps/backend"
       }
     },
     "test": {
