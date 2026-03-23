@@ -4,10 +4,16 @@ from __future__ import annotations
 
 import argparse
 import json
-from typing import Any
+import os
+from collections.abc import Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import Any
 from urllib.parse import parse_qs, urlparse
+
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.pool import NullPool
 
 from src.contract.errors import ContractQueryError
 from src.contract.query.dataset_discovery_contracts import (
@@ -16,23 +22,67 @@ from src.contract.query.dataset_discovery_contracts import (
 )
 from src.query.dataset_catalog_query import execute_dataset_catalog
 from src.query.dataset_detail_query import execute_dataset_detail
-from src.query.dataset_discovery_runtime_repository import RuntimeDatasetDiscoveryRepository
-from src.query.dataset_discovery_seed import load_discovery_seed_data
+from src.query.dataset_discovery_persisted_repository import (
+    PersistedDatasetDiscoveryRepository,
+)
 from src.query.dataset_discovery_service import DatasetDiscoveryService
 from src.query.dataset_recent_updates_query import execute_recent_updates
 from src.query.dataset_search_query import execute_dataset_search
 
 
+def _env_value(environment: Mapping[str, str], key: str, default: str) -> str:
+    value = environment.get(key)
+    if value is None or value == "":
+        return default
+    return value
+
+
+def _resolve_database_url(*, environment: Mapping[str, str]) -> str:
+    explicit_database_url = environment.get("DATABASE_URL")
+    if explicit_database_url:
+        return explicit_database_url
+    user = _env_value(environment, "LOCAL_DB_USER", "longtail")
+    password = _env_value(environment, "LOCAL_DB_PASSWORD", "longtail")
+    host = _env_value(environment, "LOCAL_DB_HOST", "127.0.0.1")
+    port = _env_value(environment, "LOCAL_DB_PORT", "55432")
+    name = _env_value(environment, "LOCAL_DB_NAME", "longtail_local")
+    return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{name}"
+
+
+def _require_schema_readiness(*, engine: Any, expected_revision: str) -> None:
+    try:
+        with engine.connect() as connection:
+            revision = connection.execute(
+                text("SELECT version_num FROM alembic_version LIMIT 1")
+            ).scalar_one_or_none()
+    except SQLAlchemyError as exc:
+        raise RuntimeError("Runtime database schema is not ready") from exc
+
+    if revision is None:
+        raise RuntimeError("Runtime database schema version is missing")
+    if str(revision) != expected_revision:
+        raise RuntimeError(
+            "Runtime database schema revision mismatch: "
+            f"expected {expected_revision}, got {revision}"
+        )
+
+
 def _make_service() -> DatasetDiscoveryService:
-    datasets, observations = load_discovery_seed_data()
-    repository = RuntimeDatasetDiscoveryRepository(datasets=datasets, observations=observations)
+    expected_revision = os.environ.get(
+        "DISCOVERY_EXPECTED_DB_REVISION",
+        "0008_dataset_discovery_indexes",
+    )
+    database_url = _resolve_database_url(environment=os.environ)
+    engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
+    _require_schema_readiness(engine=engine, expected_revision=expected_revision)
+    repository = PersistedDatasetDiscoveryRepository(engine=engine)
     return DatasetDiscoveryService(repository)
 
 
 class DatasetApiHandler(BaseHTTPRequestHandler):
     """HTTP handler exposing dataset discovery and detail endpoints."""
 
-    service = _make_service()
+    service: DatasetDiscoveryService | None = None
 
     def _write_json(self, status: int, payload: dict[str, object]) -> None:
         body = json.dumps(payload, separators=(",", ":"), default=str).encode("utf-8")
@@ -42,14 +92,20 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, format: str, *args: Any) -> None:
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
         """Reduce handler logging noise; keep default behavior minimal."""
-        return
+        del format, args
 
     def do_GET(self) -> None:  # noqa: N802
         """Handle read-only dataset discovery API requests."""
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
+        if self.service is None:
+            self._write_json(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                invalid_request_error("service_not_initialized").model_dump(),
+            )
+            return
 
         try:
             if parsed.path == "/api/health":
@@ -136,6 +192,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8080)
     args = parser.parse_args()
 
+    DatasetApiHandler.service = _make_service()
     server = ThreadingHTTPServer((args.host, args.port), DatasetApiHandler)
     server.serve_forever()
 

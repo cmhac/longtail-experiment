@@ -44,25 +44,8 @@ class _InvalidPayloadRepository:
 
 
 def test_service_raises_when_repository_contract_methods_missing() -> None:
-    service = DatasetDiscoveryService(_BrokenRepository())
-
-    with pytest.raises(ContractQueryError):
-        service.search_datasets(query_text=None, page=1, page_size=10)
-
-    with pytest.raises(ContractQueryError):
-        service.list_recent_updates(limit=5)
-
-    with pytest.raises(ContractQueryError):
-        service.list_catalog(
-            query_text=None,
-            source_id=None,
-            page=1,
-            page_size=20,
-            group_by_source=False,
-        )
-
-    with pytest.raises(ContractQueryError):
-        service.get_dataset_detail(dataset_id="UNRATE", from_date=None, to_date=None)
+    with pytest.raises(ContractQueryError, match="required discovery methods"):
+        DatasetDiscoveryService(_BrokenRepository())
 
 
 def test_service_raises_when_repository_returns_invalid_payload_shape() -> None:

@@ -62,4 +62,9 @@ if [[ "${VERIFY_DAGIT_ENDPOINT:-0}" == "1" ]]; then
   echo "SHARED_SCHEDULE_ACTIVE=false"
 fi
 
+if [[ "${VERIFY_DISCOVERY_PARITY:-0}" == "1" ]]; then
+  DISCOVERY_API_BASE_URL="${DISCOVERY_API_BASE_URL:-http://127.0.0.1:8000}" \
+    bash tools/quality/local-stack/test-discovery-persisted-parity.sh
+fi
+
 docker compose down

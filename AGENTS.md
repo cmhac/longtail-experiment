@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-23
 
 ## Active Technologies
+
 - Python 3.12 for backend runtime and query composition + Existing backend query/service modules in `apps/backend/src/query`, SQLAlchemy-based repository access in `libs/db/src/db/repositories`, Pydantic contract models in `apps/backend/src/contract`, psycopg/PostgreSQL runtime stack via existing local infrastructure (019-real-backend-api)
 - PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`, `observations`, topic tag tables) (019-real-backend-api)
 
@@ -166,11 +167,12 @@ Local stack and duplication:
 - bash tools/quality/local-stack/test-db-readiness.sh
 - uv run --project apps/backend pytest apps/backend/tests/contract/test_ingest_audit_query_contract.py apps/backend/tests/contract/test_revision_lineage_traceability.py
 - bash tools/quality/local-stack/test-compose-stack.sh
+- bash tools/quality/local-stack/test-discovery-persisted-parity.sh
 - docker compose up -d
 - docker compose ps
 - docker compose down
 
-Current migration head expected by local revision checks: `0007_dataset_metadata_topic_tags`.
+Current migration head expected by local revision checks: `0008_dataset_discovery_indexes`.
 
 ## Code Style
 
@@ -182,6 +184,7 @@ Current migration head expected by local revision checks: `0007_dataset_metadata
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+
 - 019-real-backend-api: Added Python 3.12 for backend runtime and query composition + Existing backend query/service modules in `apps/backend/src/query`, SQLAlchemy-based repository access in `libs/db/src/db/repositories`, Pydantic contract models in `apps/backend/src/contract`, psycopg/PostgreSQL runtime stack via existing local infrastructure
 
 - 018-frontend-dataset-discovery: Added TypeScript 5.x with strict mode; Node.js 22 LTS + Next.js 15 (App Router), React 19, HeroUI 3, Recharts (new), Vitest 2, Biome

@@ -1,4 +1,4 @@
-"""Test-local in-memory repository for dataset discovery query services."""
+"""Test-only in-memory repository for dataset discovery contract fixtures."""
 
 # ruff: noqa: D102, D107
 

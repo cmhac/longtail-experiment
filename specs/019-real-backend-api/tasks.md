@@ -19,11 +19,11 @@
 
 **Purpose**: Establish runtime-verification scaffolding, quality command coverage, and baseline feature files before service wiring changes.
 
-- [ ] T001 Create feature task index and execution notes in `specs/019-real-backend-api/tasks.md`
-- [ ] T002 [P] Add runtime parity verification command notes to `specs/019-real-backend-api/quickstart.md`
-- [ ] T003 [P] Add feature-specific backend test command entry in `apps/backend/project.json`
-- [ ] T004 [P] Add verification script stub for persisted discovery parity in `tools/quality/local-stack/test-discovery-persisted-parity.sh`
-- [ ] T005 Run and document baseline backend quality commands in `specs/019-real-backend-api/quickstart.md`
+- [x] T001 Create feature task index and execution notes in `specs/019-real-backend-api/tasks.md`
+- [x] T002 [P] Add runtime parity verification command notes to `specs/019-real-backend-api/quickstart.md`
+- [x] T003 [P] Add feature-specific backend test command entry in `apps/backend/project.json`
+- [x] T004 [P] Add verification script stub for persisted discovery parity in `tools/quality/local-stack/test-discovery-persisted-parity.sh`
+- [x] T005 Run and document baseline backend quality commands in `specs/019-real-backend-api/quickstart.md`
 
 **Checkpoint**: Setup assets and command references are ready for implementation.
 
@@ -35,12 +35,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Add foundational unit test for runtime data-source selection and schema-readiness guard in `apps/backend/tests/contract/test_runtime_discovery_source_selection.py`
-- [ ] T007 [P] Add foundational unit test that fixture repositories are test-only in `apps/backend/tests/contract/test_runtime_fixture_scope_guards.py`
-- [ ] T008 Implement persisted runtime repository adapter interface in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
-- [ ] T009 Update discovery service composition helpers to accept persisted repository adapters in `apps/backend/src/query/dataset_discovery_service.py`
-- [ ] T010 Enforce runtime startup prohibition for fixture-backed repositories and block startup when required schema/migration head is unavailable in `apps/backend/src/http_api_server.py`
-- [ ] T011 Align backend fixture helpers with explicit test-only usage notes in `apps/backend/tests/fixtures/dataset_discovery_repository.py`
+- [x] T006 Add foundational unit test for runtime data-source selection and schema-readiness guard in `apps/backend/tests/contract/test_runtime_discovery_source_selection.py`
+- [x] T007 [P] Add foundational unit test that fixture repositories are test-only in `apps/backend/tests/contract/test_runtime_fixture_scope_guards.py`
+- [x] T008 Implement persisted runtime repository adapter interface in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
+- [x] T009 Update discovery service composition helpers to accept persisted repository adapters in `apps/backend/src/query/dataset_discovery_service.py`
+- [x] T010 Enforce runtime startup prohibition for fixture-backed repositories and block startup when required schema/migration head is unavailable in `apps/backend/src/http_api_server.py`
+- [x] T011 Align backend fixture helpers with explicit test-only usage notes in `apps/backend/tests/fixtures/dataset_discovery_repository.py`
 
 **Checkpoint**: Runtime source boundary is enforced and verified; user story implementation can begin.
 
@@ -54,20 +54,20 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T012 [P] [US1] Add contract test for persisted search response sourcing in `apps/backend/tests/contract/test_dataset_search_persisted_runtime_contract.py`
-- [ ] T013 [P] [US1] Add contract test for persisted recent updates sourcing in `apps/backend/tests/contract/test_dataset_recent_updates_persisted_runtime_contract.py`
-- [ ] T014 [P] [US1] Add contract test for persisted catalog sourcing and ordering in `apps/backend/tests/contract/test_dataset_catalog_persisted_runtime_contract.py`
-- [ ] T015 [P] [US1] Add contract test for persisted detail observations and chronology in `apps/backend/tests/contract/test_dataset_detail_persisted_runtime_contract.py`
-- [ ] T016 [P] [US1] Add integration test for HTTP runtime persisted sourcing across all discovery endpoints including explicit unknown-dataset not-found assertions in `apps/backend/tests/contract/test_http_runtime_persisted_discovery_endpoints.py`
+- [x] T012 [P] [US1] Add contract test for persisted search response sourcing in `apps/backend/tests/contract/test_dataset_search_persisted_runtime_contract.py`
+- [x] T013 [P] [US1] Add contract test for persisted recent updates sourcing in `apps/backend/tests/contract/test_dataset_recent_updates_persisted_runtime_contract.py`
+- [x] T014 [P] [US1] Add contract test for persisted catalog sourcing and ordering in `apps/backend/tests/contract/test_dataset_catalog_persisted_runtime_contract.py`
+- [x] T015 [P] [US1] Add contract test for persisted detail observations and chronology in `apps/backend/tests/contract/test_dataset_detail_persisted_runtime_contract.py`
+- [x] T016 [P] [US1] Add integration test for HTTP runtime persisted sourcing across all discovery endpoints including explicit unknown-dataset not-found assertions in `apps/backend/tests/contract/test_http_runtime_persisted_discovery_endpoints.py`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Replace seed-backed `_make_service` composition with persisted repository composition in `apps/backend/src/http_api_server.py`
-- [ ] T018 [US1] Implement persisted row mapping for dataset summaries and recency in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
-- [ ] T019 [US1] Implement persisted detail observation loading and date-range filtering in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
-- [ ] T020 [US1] Remove runtime dependency on seed loader in `apps/backend/src/query/dataset_discovery_seed.py`
-- [ ] T021 [US1] Keep fixture loaders test-only by moving runtime imports to test modules in `apps/backend/tests/fixtures/dataset_discovery_fixture.py`
-- [ ] T022 [US1] Verify US1 backend tests pass and coverage remains >= 90% in `apps/backend/tests/contract/`
+- [x] T017 [US1] Replace seed-backed `_make_service` composition with persisted repository composition in `apps/backend/src/http_api_server.py`
+- [x] T018 [US1] Implement persisted row mapping for dataset summaries and recency in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
+- [x] T019 [US1] Implement persisted detail observation loading and date-range filtering in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
+- [x] T020 [US1] Remove runtime dependency on seed loader in `apps/backend/src/query/dataset_discovery_seed.py`
+- [x] T021 [US1] Keep fixture loaders test-only by moving runtime imports to test modules in `apps/backend/tests/fixtures/dataset_discovery_fixture.py`
+- [x] T022 [US1] Verify US1 backend tests pass and coverage remains >= 90% in `apps/backend/tests/contract/`
 
 **Checkpoint**: US1 is independently functional and proves runtime discovery data is persisted-data-backed.
 
@@ -81,17 +81,17 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T023 [P] [US2] Add integration test for ingest-to-API parity workflow in `apps/backend/tests/contract/test_ingest_to_discovery_runtime_parity.py`
-- [ ] T024 [P] [US2] Add integration test for runtime fixture fallback prohibition and pre-migration startup fail/block behavior in `apps/backend/tests/contract/test_runtime_fixture_fallback_prohibited.py`
-- [ ] T025 [P] [US2] Add script-level smoke test for local parity command in `apps/backend/tests/test_quality_commands.py`
+- [x] T023 [P] [US2] Add integration test for ingest-to-API parity workflow in `apps/backend/tests/contract/test_ingest_to_discovery_runtime_parity.py`
+- [x] T024 [P] [US2] Add integration test for runtime fixture fallback prohibition and pre-migration startup fail/block behavior in `apps/backend/tests/contract/test_runtime_fixture_fallback_prohibited.py`
+- [x] T025 [P] [US2] Add script-level smoke test for local parity command in `apps/backend/tests/test_quality_commands.py`
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Implement end-to-end parity verification script logic in `tools/quality/local-stack/test-discovery-persisted-parity.sh`
-- [ ] T027 [US2] Integrate parity verification into compose-stack validation flow in `tools/quality/local-stack/test-compose-stack.sh`
-- [ ] T028 [US2] Add backend contract test target for parity suite in `apps/backend/project.json`
-- [ ] T029 [US2] Add runtime verification evidence steps and expected outputs, including migration-head runtime enforcement evidence, in `specs/019-real-backend-api/quickstart.md`
-- [ ] T030 [US2] Verify US2 quality gates pass via affected checks and backend tests in `specs/019-real-backend-api/quickstart.md`
+- [x] T026 [US2] Implement end-to-end parity verification script logic in `tools/quality/local-stack/test-discovery-persisted-parity.sh`
+- [x] T027 [US2] Integrate parity verification into compose-stack validation flow in `tools/quality/local-stack/test-compose-stack.sh`
+- [x] T028 [US2] Add backend contract test target for parity suite in `apps/backend/project.json`
+- [x] T029 [US2] Add runtime verification evidence steps and expected outputs, including migration-head runtime enforcement evidence, in `specs/019-real-backend-api/quickstart.md`
+- [x] T030 [US2] Verify US2 quality gates pass via affected checks and backend tests in `specs/019-real-backend-api/quickstart.md`
 
 **Checkpoint**: US2 is independently functional with reproducible local parity verification.
 
@@ -105,15 +105,15 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T031 [P] [US3] Add documentation alignment test for runtime behavior claims in `apps/backend/tests/test_runtime_discovery_documentation_alignment.py`
-- [ ] T032 [P] [US3] Add documentation alignment test for migration-head references in `apps/backend/tests/test_runtime_migration_head_documentation.py`
+- [x] T031 [P] [US3] Add documentation alignment test for runtime behavior claims in `apps/backend/tests/test_runtime_discovery_documentation_alignment.py`
+- [x] T032 [P] [US3] Add documentation alignment test for migration-head references in `apps/backend/tests/test_runtime_migration_head_documentation.py`
 
 ### Implementation for User Story 3
 
-- [ ] T033 [US3] Update local stack runbook for persisted discovery runtime behavior in `docs/runbooks/local-stack-baseline.md`
-- [ ] T034 [US3] Update provider onboarding runbook with persisted discovery verification expectations in `docs/runbooks/provider-onboarding.md`
-- [ ] T035 [US3] Update feature quickstart execution evidence for persisted runtime checks in `specs/019-real-backend-api/quickstart.md`
-- [ ] T036 [US3] Update repository command/tooling context and migration-head note in `AGENTS.md`
+- [x] T033 [US3] Update local stack runbook for persisted discovery runtime behavior in `docs/runbooks/local-stack-baseline.md`
+- [x] T034 [US3] Update provider onboarding runbook with persisted discovery verification expectations in `docs/runbooks/provider-onboarding.md`
+- [x] T035 [US3] Update feature quickstart execution evidence for persisted runtime checks in `specs/019-real-backend-api/quickstart.md`
+- [x] T036 [US3] Update repository command/tooling context and migration-head note in `AGENTS.md`
 
 **Checkpoint**: US3 is independently functional with documentation that matches runtime behavior.
 
@@ -123,10 +123,10 @@
 
 **Purpose**: Final hardening, cross-story validation, and release-ready evidence capture.
 
-- [ ] T037 [P] Run full backend quality suite and record outputs in `specs/019-real-backend-api/quickstart.md`
-- [ ] T038 [P] Run affected workspace quality gates and record outcomes in `specs/019-real-backend-api/quickstart.md`
-- [ ] T039 Execute full local stack parity flow and capture command evidence in `specs/019-real-backend-api/quickstart.md`
-- [ ] T040 Verify all changed behavior/docs remain aligned with the runtime contract in `specs/019-real-backend-api/contracts/runtime-discovery-contract.md`
+- [x] T037 [P] Run full backend quality suite and record outputs in `specs/019-real-backend-api/quickstart.md`
+- [x] T038 [P] Run affected workspace quality gates and record outcomes in `specs/019-real-backend-api/quickstart.md`
+- [x] T039 Execute full local stack parity flow and capture command evidence in `specs/019-real-backend-api/quickstart.md`
+- [x] T040 Verify all changed behavior/docs remain aligned with the runtime contract in `specs/019-real-backend-api/contracts/runtime-discovery-contract.md`
 
 ---
 
@@ -219,3 +219,17 @@ Then documentation sequence:
 - `[P]` markers are used only where tasks are parallelizable.
 - Coverage for affected projects must remain >= 90%.
 - Fixtures are allowed only in automated tests and must remain unreachable from runtime startup paths.
+
+## Execution Notes
+
+- T001 completed: Added execution notes section to track task-phase implementation progress.
+- T002 completed: Quickstart now includes dedicated runtime parity script invocation.
+- T003 completed: Backend project target includes runtime parity-focused contract suite command.
+- T004 completed: Local stack parity verification script scaffold created under tools/quality/local-stack.
+- T006-T036 (except T020-T022 and T030) implemented: runtime persisted repository wiring, parity/docs tests, and local-stack parity flow are in place.
+- Validation evidence: `uv run --project apps/backend pytest --no-cov ...` (23 passed), `pnpm exec nx run backend:test:discovery-runtime` (12 passed), and targeted `ruff check` on changed backend/runtime files passed.
+- T020 completed: Removed obsolete runtime seed and in-memory discovery repository modules from `apps/backend/src/query/`.
+- T022/T037 completed: Full backend quality suite passed with coverage `96.68%` (`82 passed`).
+- T030/T038 completed: `affected:{lint,format,typecheck,test,coverage}` all passed.
+- T039 completed: Local parity script passed against runtime API (`DISCOVERY_PARITY_REQUIRE_DELTA=0`).
+- T040 completed: Manual API-vs-DB verification matched runtime contract semantics across `health`, `search`, `recent`, `catalog`, `detail`, and explicit not-found behavior.

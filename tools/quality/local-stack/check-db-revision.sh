@@ -21,7 +21,7 @@ set +a
 : "${LOCAL_DB_PASSWORD:?LOCAL_DB_PASSWORD is required}"
 
 DB_URL="postgresql+psycopg://${LOCAL_DB_USER}:${LOCAL_DB_PASSWORD}@${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_NAME}"
-EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0007_dataset_metadata_topic_tags}"
+EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0008_dataset_discovery_indexes}"
 
 cd "$REPO_ROOT"
 

@@ -58,18 +58,6 @@ def _run_series_item(
     }
 
 
-@asset(name="dummy_source", key_prefix="test", required_resource_keys={"run_coordinator"})
-def dummy_source_asset(context) -> dict[str, Any]:
-    """Materialize source visibility entry for dummy_source."""
-    return _run_single_source(context=context, source_key="dummy_source")
-
-
-@asset(name="example_source", key_prefix="test", required_resource_keys={"run_coordinator"})
-def example_source_asset(context) -> dict[str, Any]:
-    """Materialize source visibility entry for example_source."""
-    return _run_single_source(context=context, source_key="example_source")
-
-
 @asset(name="fedfunds", key_prefix="fred", required_resource_keys={"run_coordinator"})
 def fred_fedfunds_source_asset(context) -> dict[str, Any]:
     """Materialize source visibility entry for fred_fedfunds."""
@@ -91,8 +79,6 @@ def fred_gasregw_source_asset(context) -> dict[str, Any]:
 
 
 SOURCE_DAGIT_ASSETS = [
-    dummy_source_asset,
-    example_source_asset,
     fred_fedfunds_source_asset,
     fred_gasregw_source_asset,
 ]

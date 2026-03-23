@@ -86,7 +86,9 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 3. Apply shared DB migrations: `bash tools/quality/local-stack/run-db-migrations.sh`
 4. Verify revision baseline: `bash tools/quality/local-stack/check-db-revision.sh`
 5. Run end-to-end readiness helper: `bash tools/quality/local-stack/test-db-readiness.sh`
-6. Verify quality gates for affected changes:
+6. Verify discovery runtime is persisted-data-backed (not fixture-backed):
+   `DISCOVERY_API_BASE_URL=http://127.0.0.1:8000 bash tools/quality/local-stack/test-discovery-persisted-parity.sh`
+7. Verify quality gates for affected changes:
    - `pnpm run affected:lint`
    - `pnpm run affected:test`
    - `pnpm run affected:coverage`

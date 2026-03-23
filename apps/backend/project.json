@@ -35,6 +35,12 @@
         "command": "uv run --project apps/backend pytest apps/backend/tests/contract/test_dataset_* apps/backend/tests/contract/test_dataset_discovery_*"
       }
     },
+    "test:discovery-runtime": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend pytest --no-cov apps/backend/tests/contract/test_runtime_* apps/backend/tests/contract/test_http_runtime_* apps/backend/tests/contract/test_ingest_to_discovery_runtime_*"
+      }
+    },
     "coverage": {
       "executor": "nx:run-commands",
       "options": {

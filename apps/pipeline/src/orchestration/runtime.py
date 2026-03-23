@@ -31,7 +31,6 @@ from .jobs.source_assets.series_catalog import (
 )
 from .jobs.source_ingest_runner import SourceIngestRunner
 from .jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
-from .jobs.sources.implementation_window_source import IMPLEMENTATION_WINDOW_SOURCE_KEY
 from .jobs.workflow_registry import SourceWorkflowRegistry
 from .resources.postgres_observation_repository import PostgresObservationRepository
 from .resources.postgres_run_repository import PostgresRunRepository
@@ -39,12 +38,7 @@ from .resources.source_lock_service import SourceLockService
 
 logger = logging.getLogger(__name__)
 
-EXPECTED_RUNTIME_SOURCE_KEYS = (
-    "dummy_source",
-    "example_source",
-    FRED_FEDFUNDS_SOURCE_KEY,
-    IMPLEMENTATION_WINDOW_SOURCE_KEY,
-)
+EXPECTED_RUNTIME_SOURCE_KEYS = (FRED_FEDFUNDS_SOURCE_KEY,)
 
 RETIRED_LEGACY_CADENCE_ENTRYPOINTS = (
     "legacy_scheduler",

@@ -39,6 +39,8 @@ Use these keys consistently throughout all files:
 
 Provider adapters that emit canonical records feed the backend dataset discovery APIs. To ensure data appears correctly in discovery/search/detail surfaces, keep the following guarantees:
 
+- Discovery runtime responses are served from persisted records in the local stack; fixture-backed discovery payloads are reserved for automated tests only.
+
 - Always emit stable canonical `series_key` values because backend detail lookup uses canonical identifiers.
 - Emit `dataset_title`, `dataset_description`, and `dataset_geographic_scope` whenever known; these fields drive `/api/datasets/search` and `/api/datasets` matching.
 - Emit `topic_tags` as `list[str]`; discovery search matches tag text and catalog/detail responses expose normalized tags.

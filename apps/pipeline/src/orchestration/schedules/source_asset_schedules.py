@@ -12,20 +12,14 @@ from dagster import RunRequest, schedule
 # --- Source cadence configuration ---
 # Maps source_key -> (cron_schedule, human-readable cadence label)
 SOURCE_CADENCE_DEFINITIONS: dict[str, tuple[str, str]] = {
-    "dummy_source": ("0 * * * *", "hourly"),
-    "example_source": ("0 0 * * *", "daily"),
     "fred_fedfunds": ("0 0 * * *", "daily"),
 }
 
 SOURCE_SERIES_ITEM_DEFINITIONS: dict[str, tuple[str, ...]] = {
-    "dummy_source": ("dummy_source",),
-    "example_source": ("example_source",),
     "fred_fedfunds": ("fred_fedfunds", "fred_gasregw"),
 }
 
 SOURCE_PROVIDER_GROUP_DEFINITIONS: dict[str, str] = {
-    "dummy_source": "dummy",
-    "example_source": "example",
     "fred_fedfunds": "fred",
 }
 
@@ -60,13 +54,9 @@ def _make_source_schedule(source_key: str, cron: str, cadence_label: str):
     return source_schedule
 
 
-dummy_source_schedule = _make_source_schedule("dummy_source", "0 * * * *", "hourly")
-example_source_schedule = _make_source_schedule("example_source", "0 0 * * *", "daily")
 fred_fedfunds_schedule = _make_source_schedule("fred_fedfunds", "0 0 * * *", "daily")
 
 
 SOURCE_ASSET_SCHEDULES = [
-    dummy_source_schedule,
-    example_source_schedule,
     fred_fedfunds_schedule,
 ]

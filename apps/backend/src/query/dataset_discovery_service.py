@@ -22,6 +22,22 @@ class DatasetDiscoveryService:
 
     def __init__(self, repository: Any) -> None:
         """Initialize service with a repository providing discovery read methods."""
+        missing_methods = [
+            method_name
+            for method_name in (
+                "search_datasets",
+                "list_recent_datasets",
+                "list_catalog_datasets",
+                "get_dataset_detail",
+                "list_dataset_observations",
+            )
+            if not hasattr(repository, method_name)
+        ]
+        if missing_methods:
+            missing = ", ".join(missing_methods)
+            raise ContractQueryError(
+                f"Repository does not provide required discovery methods: {missing}"
+            )
         self._repository = repository
 
     def search_datasets(

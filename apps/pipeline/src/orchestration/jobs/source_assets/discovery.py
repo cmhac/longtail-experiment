@@ -13,16 +13,10 @@ from dataclasses import dataclass
 
 from ..source_ingest_runner import SourceIngestRunner
 from ..source_schedule_policy import SourceSchedulePolicy
-from ..sources.dummy_source import DUMMY_SOURCE_KEY, build_dummy_source_workflow
-from ..sources.example_source import EXAMPLE_SOURCE_KEY, build_example_source_workflow
 from ..sources.fred_fedfunds_source import (
     FRED_FEDFUNDS_SOURCE_KEY,
     ObservationCheckpointRepository,
     build_fred_fedfunds_source_workflow,
-)
-from ..sources.implementation_window_source import (
-    IMPLEMENTATION_WINDOW_SOURCE_KEY,
-    build_implementation_window_source_workflow,
 )
 from ..workflow_registry import SourceWorkflowRegistration
 from .series_catalog import SeriesCatalogEntry
@@ -71,34 +65,6 @@ def filter_adapter_specs(
 def _build_default_specs() -> tuple[SourceBuilderSpec, ...]:
     return (
         SourceBuilderSpec(
-            source_key=DUMMY_SOURCE_KEY,
-            module_name="src.orchestration.jobs.sources.dummy_source",
-            builder=lambda runner, observation_repository: build_dummy_source_workflow(
-                runner,
-                schedule_policy=SourceSchedulePolicy(
-                    source_key=DUMMY_SOURCE_KEY,
-                    cadence_type="hourly",
-                ),
-            ),
-            provider_group_key="dummy",
-            series_item_keys=("dummy_source",),
-            canonical_series_keys=("DUMMY.SERIES",),
-        ),
-        SourceBuilderSpec(
-            source_key=EXAMPLE_SOURCE_KEY,
-            module_name="src.orchestration.jobs.sources.example_source",
-            builder=lambda runner, observation_repository: build_example_source_workflow(
-                runner,
-                schedule_policy=SourceSchedulePolicy(
-                    source_key=EXAMPLE_SOURCE_KEY,
-                    cadence_type="daily",
-                ),
-            ),
-            provider_group_key="example",
-            series_item_keys=("example_source",),
-            canonical_series_keys=("EXAMPLE.SERIES",),
-        ),
-        SourceBuilderSpec(
             source_key=FRED_FEDFUNDS_SOURCE_KEY,
             module_name="src.orchestration.jobs.sources.fred_fedfunds_source",
             builder=lambda runner, observation_repository: build_fred_fedfunds_source_workflow(
@@ -112,22 +78,6 @@ def _build_default_specs() -> tuple[SourceBuilderSpec, ...]:
             provider_group_key="fred",
             series_item_keys=("fred_fedfunds", "fred_gasregw"),
             canonical_series_keys=("INT.US.FEDFUNDS", "ENERGY.US.GASREGW"),
-        ),
-        SourceBuilderSpec(
-            source_key=IMPLEMENTATION_WINDOW_SOURCE_KEY,
-            module_name="src.orchestration.jobs.sources.implementation_window_source",
-            builder=lambda runner, observation_repository: (
-                build_implementation_window_source_workflow(
-                    runner,
-                    schedule_policy=SourceSchedulePolicy(
-                        source_key=IMPLEMENTATION_WINDOW_SOURCE_KEY,
-                        cadence_type="daily",
-                    ),
-                )
-            ),
-            provider_group_key="implementation_window",
-            series_item_keys=("implementation_window_source",),
-            canonical_series_keys=("IMPLEMENTATION.WINDOW.SERIES",),
         ),
     )
 
