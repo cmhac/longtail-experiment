@@ -63,7 +63,7 @@ A frontend client needs to see the per-source outcomes for a specific ingestion 
 
 **Acceptance Scenarios**:
 
-1. **Given** a run with source outcomes exists, **When** a client sends `GET /api/runs/{run_id}/outcomes`, **Then** the response has HTTP 200 with a list of source outcomes, each with a stable `outcome_state` value from the known set (`succeeded`, `failed`, `not_due`, `deferred`, `conflict`).
+1. **Given** a run with source outcomes exists, **When** a client sends `GET /api/runs/{run_id}/outcomes`, **Then** the response has HTTP 200 with a list of source outcomes, each with a stable `state` value from the known set (`success`, `partial_success`, `failure`, `not_due`, `deferred`, `conflict`).
 2. **Given** the run exists but has no outcomes, **When** a client sends `GET /api/runs/{run_id}/outcomes`, **Then** the response has HTTP 200 with an empty list.
 3. **Given** `run_id` does not match any run, **When** a client sends `GET /api/runs/{run_id}/outcomes`, **Then** the response has HTTP 404 with a structured error body.
 
@@ -79,7 +79,7 @@ A developer or operator wants to inspect which sources were evaluated for eligib
 
 **Acceptance Scenarios**:
 
-1. **Given** eligibility records exist for a run, **When** a client sends `GET /api/runs/{run_id}/eligibility`, **Then** the response has HTTP 200 with a list of eligibility records including `source_key`, `eligible`, and `reason` fields.
+1. **Given** eligibility records exist for a run, **When** a client sends `GET /api/runs/{run_id}/eligibility`, **Then** the response has HTTP 200 with a list of eligibility records including `source_key`, `eligibility_state` (one of `due`, `not_due`, `skipped_inactive`, `skipped_invalid_policy`), and `reason_code` fields.
 2. **Given** `run_id` does not match any run, **When** a client sends `GET /api/runs/{run_id}/eligibility`, **Then** the response has HTTP 404 with a structured error body.
 
 ---
@@ -122,7 +122,7 @@ A data quality reviewer or operator wants to browse conflicts across ingestion r
 - **FR-007**: All list endpoints MUST support pagination and return a response envelope with an `items` array and pagination metadata (`total`, `page`, `page_size`).
 - **FR-008**: All endpoints MUST return responses using a consistent JSON envelope with explicit, stable field names in snake_case.
 - **FR-009**: All timestamps in responses MUST be formatted as ISO-8601 UTC strings.
-- **FR-010**: All enum/state values (`outcome_state`, `conflict_state`) MUST use lowercase snake_case string literals from a defined, stable value set.
+- **FR-010**: All enum/state values (`state` on source outcomes, `eligibility_state` on eligibility records, `conflict_state` on conflict records) MUST use lowercase snake_case string literals from a defined, stable value set. The stable sets are: source outcome `state` = `success` | `partial_success` | `failure` | `not_due` | `deferred` | `conflict`; eligibility `eligibility_state` = `due` | `not_due` | `skipped_inactive` | `skipped_invalid_policy`; conflict `conflict_state` = `open` | `resolved` | `suppressed`.
 - **FR-011**: The backend MUST return HTTP 404 with a structured JSON error body (`code`, `message`) for any single-resource endpoint where the resource is not found.
 - **FR-012**: The backend MUST return HTTP 422 with a structured JSON error body for invalid filter parameters or malformed path parameters.
 - **FR-013**: The backend MUST return HTTP 503 with a structured JSON error body when a downstream dependency (database) is unavailable.
@@ -134,8 +134,8 @@ A data quality reviewer or operator wants to browse conflicts across ingestion r
 ### Key Entities
 
 - **IngestionRun**: A single execution of the ingestion pipeline; has an identifier, start time, finish time, status, and summary counts.
-- **SourceRunOutcome**: A per-source result record within an ingestion run; has source key, outcome state, observation count, and timestamps.
-- **SourceEligibility**: A record of a source's cadence evaluation within a run; has source key, eligible flag, reason, and period reference.
+- **SourceRunOutcome**: A per-source result record within an ingestion run; has source key, outcome state (`success`, `partial_success`, `failure`, `not_due`, `deferred`, or `conflict`), observation counts, and an optional reason code.
+- **SourceEligibility**: A record of a source's cadence evaluation within a run; has source key, eligibility state string (`due`, `not_due`, `skipped_inactive`, or `skipped_invalid_policy`), machine-readable reason code, evaluation timestamp, and a flag indicating whether the source was selected for execution.
 - **ConflictRecord**: A data conflict recorded during ingestion; has run reference, source key, series key, reference period key, conflict state, and timestamps.
 
 ## Success Criteria _(mandatory)_
@@ -152,12 +152,14 @@ A data quality reviewer or operator wants to browse conflicts across ingestion r
 
 ## Assumptions
 
-- Phase 1 endpoints depend only on runtime ingestion tables (`ingestion_runs`, `source_run_outcomes`, and related tables) that are already persisted by the pipeline.
+- Phase 1 endpoints depend only on runtime ingestion tables (`ingestion_runs`, `source_run_outcomes`, `source_eligibility_snapshots`, and `conflict_records`) that are already persisted by the pipeline.
 - Phase 2 endpoints (observations, audit, hierarchy) are explicitly out of scope for this feature and will be addressed in a follow-up issue after canonical persistence is wired.
 - Path versioning starts as unversioned `/api/` for Phase 1; a `/api/v1/` migration path may be introduced later without requiring changes to this spec.
 - Frontend clients will consume the OpenAPI contract snapshot to generate typed client interfaces (FR-015); this contract acts as the shared interface boundary.
 - Authentication and authorization are out of scope; all Phase 1 endpoints are unauthenticated reads.
 - Pagination uses page-number style (`page`, `page_size`) as a reasonable default; cursor-based pagination may be introduced in a later phase.
+- The pipeline writes `partial_success` as a distinct source-level outcome state (a source that ingested some records successfully but also encountered some failures). Frontend clients MUST handle this value; it is not an error but a degraded-success condition.
+- Query-support indexes on `conflict_records` filter columns and `ingestion_runs.started_at` are required for SC-001 to hold at scale. These are delivered by database migration `0008_query_support_indexes` and MUST be applied before the API is exercised against a populated database.
 
 ## Constitution Alignment _(mandatory)_
 
