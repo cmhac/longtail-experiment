@@ -148,7 +148,7 @@ Local stack and duplication:
 - docker compose ps
 - docker compose down
 
-Current migration head expected by local revision checks: `0007_dataset_metadata_topic_tags`.
+Current migration head expected by local revision checks: `0008_query_support_indexes`.
 
 ## Code Style
 

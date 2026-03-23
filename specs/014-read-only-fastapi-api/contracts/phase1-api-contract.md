@@ -112,7 +112,7 @@ List ingestion runs ordered by `started_at` descending.
       "run_id": "run-20260323-abc",
       "trigger_type": "scheduled",
       "lifecycle_state": "completed",
-      "outcome_state": "succeeded",
+      "outcome_state": "success",
       "started_at": "2026-03-23T03:00:00Z",
       "completed_at": "2026-03-23T03:02:15Z",
       "accepted_count": 120,
@@ -179,7 +179,7 @@ List source run outcomes for a specific ingestion run.
     {
       "run_id": "run-20260323-abc",
       "source_key": "fred.fedfunds",
-      "state": "succeeded",
+      "state": "success",
       "accepted_count": 60,
       "quarantined_count": 0,
       "failed_count": 0,
@@ -195,7 +195,7 @@ List source run outcomes for a specific ingestion run.
 }
 ```
 
-**Stable `state` values**: `succeeded`, `failed`, `not_due`, `deferred`, `conflict`
+**Stable `state` values**: `success`, `partial_success`, `failure`, `not_due`, `deferred`, `conflict`
 
 **Response 404**: Run not found (same envelope as above).
 
@@ -219,8 +219,8 @@ List source eligibility snapshots for a specific ingestion run.
     {
       "run_id": "run-20260323-abc",
       "source_key": "fred.fedfunds",
-      "eligibility_state": "eligible",
-      "reason_code": "cadence_due",
+      "eligibility_state": "due",
+      "reason_code": "due_for_execution",
       "evaluated_at": "2026-03-23T03:00:01Z",
       "due_at": "2026-03-23T03:00:00Z",
       "selected_for_execution": true
@@ -232,7 +232,7 @@ List source eligibility snapshots for a specific ingestion run.
 }
 ```
 
-**Stable `eligibility_state` values**: `eligible`, `not_due`, `skipped`
+**Stable `eligibility_state` values**: `due`, `not_due`, `skipped_inactive`, `skipped_invalid_policy`
 
 **Response 404**: Run not found.
 

@@ -59,7 +59,7 @@ Fields:
 - run_id: string (required) — stable string run identifier (maps to `IngestionRun.run_id`)
 - trigger_type: string (required) — how the run was triggered (e.g., `"scheduled"`, `"manual"`)
 - lifecycle_state: string (required) — current run lifecycle state (e.g., `"completed"`, `"running"`)
-- outcome_state: string (required) — aggregate outcome (e.g., `"succeeded"`, `"failed"`, `"partial"`)
+- outcome_state: string (required) — aggregate outcome (`"success"`, `"partial_success"`, `"failure"`)
 - started_at: string (required) — ISO-8601 UTC timestamp
 - completed_at: string | null (optional) — ISO-8601 UTC timestamp; null if run is in progress
 - accepted_count: int (required)
@@ -98,7 +98,7 @@ Fields:
 
 - run_id: string (required)
 - source_key: string (required)
-- state: string (required) — outcome state from the stable value set: `succeeded`, `failed`, `not_due`, `deferred`, `conflict`
+- state: string (required) — outcome state from the stable value set: `success`, `partial_success`, `failure`, `not_due`, `deferred`, `conflict`
 - accepted_count: int (required)
 - quarantined_count: int (required)
 - failed_count: int (required)
@@ -124,7 +124,7 @@ Fields:
 
 - run_id: string (required)
 - source_key: string (required)
-- eligibility_state: string (required) — e.g., `"eligible"`, `"not_due"`, `"skipped"`
+- eligibility_state: string (required) — e.g., `"due"`, `"not_due"`, `"skipped_inactive"`, `"skipped_invalid_policy"`
 - reason_code: string (required) — machine-readable reason for eligibility decision
 - evaluated_at: string (required) — ISO-8601 UTC timestamp
 - due_at: string | null (optional) — ISO-8601 UTC timestamp; null if not applicable
@@ -185,13 +185,14 @@ These value sets are stable across Phase 1. Any extension requires a versioned c
 
 ### outcome_state (SourceRunOutcomeResponse.state)
 
-| Value       | Meaning                                   |
-| ----------- | ----------------------------------------- |
-| succeeded   | Source run completed without errors       |
-| failed      | Source run encountered a terminal error   |
-| not_due     | Source was not due for execution          |
-| deferred    | Source was deferred for retry             |
-| conflict    | Source produced one or more conflict records |
+| Value          | Meaning                                              |
+| -------------- | ---------------------------------------------------- |
+| success        | Source executed to completion with all records accepted |
+| partial_success | Source executed but produced some failures alongside successes |
+| failure        | Source encountered a terminal error                  |
+| not_due        | Source was not due for execution this run            |
+| deferred       | Source execution was deferred for retry              |
+| conflict       | Source produced one or more conflict records         |
 
 ### conflict_state (ConflictRecordResponse.conflict_state)
 
@@ -203,11 +204,12 @@ These value sets are stable across Phase 1. Any extension requires a versioned c
 
 ### eligibility_state (SourceEligibilityResponse.eligibility_state)
 
-| Value     | Meaning                                    |
-| --------- | ------------------------------------------ |
-| eligible  | Source was due and selected for execution  |
-| not_due   | Source cadence not yet satisfied           |
-| skipped   | Source was eligible but not executed       |
+| Value                  | Meaning                                                         |
+| ---------------------- | --------------------------------------------------------------- |
+| due                    | Source was evaluated as due and selected for execution          |
+| not_due                | Source cadence not yet satisfied                                |
+| skipped_inactive       | Source is marked inactive; skipped without cadence evaluation   |
+| skipped_invalid_policy | Source schedule policy is malformed; skipped with error         |
 
 ## Query Parameter Contracts
 
