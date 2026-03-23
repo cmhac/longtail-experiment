@@ -141,7 +141,7 @@
 
 **Goal**: A developer or operator can inspect source eligibility evaluations for a specific run via `GET /api/runs/{run_id}/eligibility`.
 
-**Independent Test**: Seed a run with eligibility records, send `GET /api/runs/{run_id}/eligibility`, verify HTTP 200 with `source_key`, `eligible_state`, and `reason_code` fields; send with unknown `run_id`, verify HTTP 404.
+**Independent Test**: Seed a run with eligibility records, send `GET /api/runs/{run_id}/eligibility`, verify HTTP 200 with `source_key`, `eligibility_state` (one of `due`, `not_due`, `skipped_inactive`, `skipped_invalid_policy`), and `reason_code` fields; send with unknown `run_id`, verify HTTP 404.
 
 ### Tests for User Story 5 (REQUIRED) ⚠️
 
