@@ -35,6 +35,16 @@ Use these keys consistently throughout all files:
 | `canonical_series_key` | Persistence identity in the canonical observation store                 | `ENERGY.US.GASREGW` |
 | `ownership_mode`       | Schedule authority: `grouped` (one schedule owns all series) or `split` | `grouped`           |
 
+## Dataset Discovery API Expectations
+
+Provider adapters that emit canonical records feed the backend dataset discovery APIs. To ensure data appears correctly in discovery/search/detail surfaces, keep the following guarantees:
+
+- Always emit stable canonical `series_key` values because backend detail lookup uses canonical identifiers.
+- Emit `dataset_title`, `dataset_description`, and `dataset_geographic_scope` whenever known; these fields drive `/api/datasets/search` and `/api/datasets` matching.
+- Emit `topic_tags` as `list[str]`; discovery search matches tag text and catalog/detail responses expose normalized tags.
+- Preserve accurate `reported_at` timestamps; `/api/datasets/recent` ranking uses dataset recency derived from canonical observations.
+- Keep per-series observations chronologically consistent so `/api/datasets/{dataset_id}` can return stable ordered points for chart rendering.
+
 ---
 
 ## Step 1: Implement the Source Adapter

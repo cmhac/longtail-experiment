@@ -29,6 +29,12 @@
         "command": "uv run --project apps/backend pytest apps/backend/tests"
       }
     },
+    "test:discovery-contract": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend pytest apps/backend/tests/contract/test_dataset_* apps/backend/tests/contract/test_dataset_discovery_*"
+      }
+    },
     "coverage": {
       "executor": "nx:run-commands",
       "options": {

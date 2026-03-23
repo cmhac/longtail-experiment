@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-23
 ## Active Technologies
 - TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js App Router runtime, React runtime from Next.js, HeroUI component system, existing Biome/Vitest/TypeScript/Nx toolchain (016-scaffold-site-furniture)
 - N/A (UI scaffold only, no persistence changes) (016-scaffold-site-furniture)
+- Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src` (017-dataset-discovery-api)
+- PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`, `observations`, topic tag relation tables) (017-dataset-discovery-api)
 
 - TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets (015-scaffold-page-furniture)
 - N/A for this scaffold-only feature (no data persistence changes) (015-scaffold-page-furniture)
@@ -168,11 +170,11 @@ Current migration head expected by local revision checks: `0007_dataset_metadata
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 017-dataset-discovery-api: Added Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src`
 - 016-scaffold-site-furniture: Added TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js App Router runtime, React runtime from Next.js, HeroUI component system, existing Biome/Vitest/TypeScript/Nx toolchain
 
 - 015-scaffold-page-furniture: Added TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets
 
-- 013-dynamic-source-registration: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication

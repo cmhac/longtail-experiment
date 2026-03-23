@@ -1,0 +1,56 @@
+"""US2 contract tests for dataset catalog listing behavior."""
+
+# ruff: noqa: D103, PLR2004
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from src.query.dataset_discovery_service import DatasetDiscoveryService
+from tests.fixtures.dataset_discovery_factory import build_discovery_rows
+from tests.fixtures.dataset_discovery_repository import InMemoryDatasetDiscoveryRepository
+
+
+def test_catalog_returns_paging_metadata() -> None:
+    datasets, observations = build_discovery_rows()
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=observations,
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = service.list_catalog(
+        query_text=None,
+        source_id=None,
+        page=1,
+        page_size=2,
+        group_by_source=False,
+    )
+
+    assert response["page"] == 1
+    assert response["page_size"] == 2
+    assert response["total_items"] == len(datasets)
+    assert response["sort"] == "source_name_asc,title_asc,dataset_id_asc"
+
+
+def test_catalog_items_include_source_attribution() -> None:
+    datasets, observations = build_discovery_rows()
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=observations,
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = service.list_catalog(
+        query_text="us",
+        source_id=None,
+        page=1,
+        page_size=20,
+        group_by_source=False,
+    )
+
+    assert response["items"]
+    assert all("source" in item for item in response["items"])
