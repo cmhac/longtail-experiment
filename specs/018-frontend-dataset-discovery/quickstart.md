@@ -103,4 +103,46 @@ frontend:
 
 ## Execution Evidence
 
-_To be filled in after implementation._
+Environment and stack used for verification:
+
+- `docker compose up -d db backend`
+- `DISCOVERY_API_BASE_URL=http://localhost:8080 pnpm --dir apps/frontend dev`
+- Next.js selected port `3002` because `3000` was already in use.
+
+Route status verification:
+
+```text
+ROUTE STATUS
+/ 200
+/?q=federal 200
+/datasets 200
+/datasets?group=source 200
+/datasets/FEDFUNDS 200
+/datasets/UNKNOWN 404
+```
+
+Content verification excerpts:
+
+```text
+CONTENT CHECKS
+Recent Updates
+Search datasets
+Group by source
+Search datasets
+Dataset observations
+Federal Funds Effective Rate
+Back to all datasets
+Dataset not found
+```
+
+Frontend quality suite verification:
+
+- `pnpm --dir apps/frontend lint` ✅
+- `pnpm --dir apps/frontend exec biome check .` ✅
+- `pnpm --dir apps/frontend typecheck` ✅
+- `pnpm --dir apps/frontend test` ✅
+- `pnpm --dir apps/frontend coverage` ✅ (overall coverage remained above the 90% threshold)
+
+Cross-workspace affected checks note:
+
+- `pnpm run affected:test` / `pnpm run affected:coverage` remain blocked by pre-existing backend/pipeline coverage gaps unrelated to this frontend feature.

@@ -44,6 +44,7 @@ Provider adapters that emit canonical records feed the backend dataset discovery
 - Emit `topic_tags` as `list[str]`; discovery search matches tag text and catalog/detail responses expose normalized tags.
 - Preserve accurate `reported_at` timestamps; `/api/datasets/recent` ranking uses dataset recency derived from canonical observations.
 - Keep per-series observations chronologically consistent so `/api/datasets/{dataset_id}` can return stable ordered points for chart rendering.
+- Once canonical dataset records are ingested, frontend discovery surfaces will automatically show them: home search, recent updates feed, catalog list/grouping, and dataset detail pages.
 
 ---
 

@@ -52,6 +52,12 @@
       "options": {
         "command": "pnpm --dir apps/frontend coverage"
       }
+    },
+    "test:discovery-pages": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --dir apps/frontend test -- tests/home-page.test.tsx tests/catalog-page.test.tsx tests/detail-page.test.tsx"
+      }
     }
   }
 }

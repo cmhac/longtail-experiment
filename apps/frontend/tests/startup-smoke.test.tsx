@@ -1,21 +1,39 @@
 import React from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import HomePage from "../src/app/page";
+import * as discoveryClient from "../src/lib/api/discovery-client";
+import { renderMarkup } from "./test-utils";
 
-describe("frontend shell startup", () => {
-  it("renders root shell without runtime errors", () => {
-    const markup = renderToStaticMarkup(<HomePage />);
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: () => undefined }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
-    expect(markup).toContain('data-testid="site-shell"');
-    expect(markup).toContain("Minimal Site Shell");
+const renderHomePage = async (): Promise<string> => {
+  vi.spyOn(discoveryClient, "fetchRecentDatasets").mockResolvedValue({
+    items: [],
+    limit: 5,
+    sort: "latest_update_at_desc",
   });
 
-  it("renders required header, placeholder, and footer regions", () => {
-    const markup = renderToStaticMarkup(<HomePage />);
+  const element = await HomePage({ searchParams: Promise.resolve({}) });
+  return renderMarkup(element);
+};
+
+describe("frontend shell startup", () => {
+  it("renders root shell without runtime errors", async () => {
+    const markup = await renderHomePage();
+
+    expect(markup).toContain('data-testid="site-shell"');
+    expect(markup).toContain("Longtail Experiment");
+  });
+
+  it("renders required header, home content, and footer regions", async () => {
+    const markup = await renderHomePage();
 
     expect(markup).toContain('data-testid="shell-header"');
-    expect(markup).toContain('data-testid="shell-main-placeholder"');
+    expect(markup).toContain('data-testid="home-content"');
     expect(markup).toContain('data-testid="shell-footer"');
   });
 });

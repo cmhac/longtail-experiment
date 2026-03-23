@@ -7,6 +7,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-23
 - N/A (UI scaffold only, no persistence changes) (016-scaffold-site-furniture)
 - Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src` (017-dataset-discovery-api)
 - PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`, `observations`, topic tag relation tables) (017-dataset-discovery-api)
+- TypeScript 5.x with strict mode; Node.js 22 LTS + Next.js 15 (App Router), React 19, HeroUI 3, Recharts (new), Vitest 2, Biome (018-frontend-dataset-discovery)
+- N/A — read-only consumer of the 017 backend API (018-frontend-dataset-discovery)
 
 - TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets (015-scaffold-page-furniture)
 - N/A for this scaffold-only feature (no data persistence changes) (015-scaffold-page-furniture)
@@ -66,6 +68,8 @@ apps/
 		project.json
 	frontend/
 		src/
+			app/
+				datasets/
 		tests/
 		package.json
 		tsconfig.json
@@ -139,6 +143,11 @@ Frontend quality commands:
 - pnpm --dir apps/frontend typecheck
 - pnpm --dir apps/frontend test
 - pnpm --dir apps/frontend coverage
+- pnpm exec nx run frontend:test:discovery-pages
+
+Frontend discovery runtime environment:
+
+- DISCOVERY_API_BASE_URL (server-side only; do not expose via NEXT_PUBLIC_ prefix)
 
 Local stack and duplication:
 
@@ -170,10 +179,10 @@ Current migration head expected by local revision checks: `0007_dataset_metadata
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 018-frontend-dataset-discovery: Added TypeScript 5.x with strict mode; Node.js 22 LTS + Next.js 15 (App Router), React 19, HeroUI 3, Recharts (new), Vitest 2, Biome
 - 017-dataset-discovery-api: Added Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src`
 - 016-scaffold-site-furniture: Added TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js App Router runtime, React runtime from Next.js, HeroUI component system, existing Biome/Vitest/TypeScript/Nx toolchain
 
-- 015-scaffold-page-furniture: Added TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets
 
 
 
