@@ -24,7 +24,20 @@ FRED_GASREGW_CANONICAL_SERIES = "ENERGY.US.GASREGW"
 FRED_API_KEY_ENV = "FRED_API_KEY"
 
 
-FRED_SERIES_CONFIGS: tuple[dict[str, str], ...] = (
+class FredSeriesConfig(Protocol):
+    """Typed view of per-series FRED adapter configuration."""
+
+    series_item_key: str
+    provider_series_id: str
+    canonical_series_key: str
+    metric_name: str
+    dataset_description: str
+    dataset_geographic_scope: str
+    topic_tags: list[str]
+    frequency: str
+
+
+FRED_SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
     {
         "series_item_key": "fred_fedfunds",
         "provider_series_id": FRED_FEDFUNDS_SERIES_ID,
@@ -32,7 +45,7 @@ FRED_SERIES_CONFIGS: tuple[dict[str, str], ...] = (
         "metric_name": "Effective Federal Funds Rate",
         "dataset_description": "Federal funds effective interest rate published by FRED.",
         "dataset_geographic_scope": "United States",
-        "topic_tags": "interest rates,monetary policy,federal reserve",
+        "topic_tags": ["interest rates", "monetary policy", "federal reserve"],
         "frequency": "daily",
     },
     {
@@ -42,7 +55,7 @@ FRED_SERIES_CONFIGS: tuple[dict[str, str], ...] = (
         "metric_name": "US Regular Gas Price",
         "dataset_description": "Average retail regular gasoline price from FRED.",
         "dataset_geographic_scope": "United States",
-        "topic_tags": "energy,gasoline,consumer prices",
+        "topic_tags": ["energy", "gasoline", "consumer prices"],
         "frequency": "weekly",
     },
 )
@@ -107,7 +120,7 @@ class ObservationCheckpointRepository(Protocol):
 def _map_fred_records(
     *,
     rows: Sequence[dict[str, Any]],
-    series_config: dict[str, str],
+    series_config: dict[str, Any],
 ) -> list[dict[str, object]]:
     mapped: list[dict[str, object]] = []
     now_iso = datetime.now(tz=UTC).isoformat()
@@ -123,7 +136,9 @@ def _map_fred_records(
                 "dataset_description": series_config["dataset_description"],
                 "dataset_geographic_scope": series_config["dataset_geographic_scope"],
                 "topic_tags": [
-                    tag.strip() for tag in series_config["topic_tags"].split(",") if tag.strip()
+                    tag.strip()
+                    for tag in series_config["topic_tags"]
+                    if isinstance(tag, str) and tag.strip()
                 ],
                 "frequency": series_config["frequency"],
                 "date": str(row.get("date", "")),

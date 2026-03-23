@@ -51,6 +51,8 @@ Required interface:
 - Support both trigger modes: `{"scheduled", "on_demand"}`.
 - Return `SourceWorkflowResult` from the handler with clear counts.
 - For multi-series providers: check `request.run_context.get("series_item_keys")` to filter which series to fetch that run. See `fred_fedfunds_source.py` for the canonical multi-series pattern.
+- When emitting canonical records, include dataset metadata fields when available: `dataset_title`, `dataset_description`, and `dataset_geographic_scope`.
+- Topic metadata must be emitted as `topic_tags: list[str]` (not comma-delimited strings). The persistence layer normalizes and de-duplicates tags before upserting `topic_tags` and `data_series_topic_tags`.
 
 Minimal single-series skeleton:
 
@@ -71,7 +73,22 @@ def build_acme_cpi_source_workflow(
 ) -> SourceWorkflowRegistration:
     def _handler(request: SourceWorkflowRequest) -> SourceWorkflowResult:
         # fetch, normalize, and persist observations here
-        records = []  # replace with actual fetch
+        records = [
+            {
+                "source_name": "ACME",
+                "source_type": "external",
+                "series_key": "PRICE.US.CPI",
+                "metric_name": "Consumer Price Index",
+                "dataset_title": "US Consumer Price Index",
+                "dataset_description": "Monthly CPI for US urban consumers.",
+                "dataset_geographic_scope": "United States",
+                "topic_tags": ["inflation", "consumer prices"],
+                "frequency": "monthly",
+                "date": "2026-01-01",
+                "reported_at": "2026-02-01T00:00:00Z",
+                "value": "302.5",
+            }
+        ]
         return runner.run_records(request=request, records=records)
 
     return SourceWorkflowRegistration(
