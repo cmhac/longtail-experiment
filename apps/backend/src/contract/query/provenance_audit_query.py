@@ -39,9 +39,7 @@ class ProvenanceAuditQueryService:
                 "executed_source_count": int(projection.get("executed_source_count", 0)),
                 "deferred_source_count": int(projection.get("deferred_source_count", 0)),
                 "not_due_source_count": int(projection.get("not_due_source_count", 0)),
-                "source_visibility_reasons": list(
-                    projection.get("source_visibility_reasons", [])
-                ),
+                "source_visibility_reasons": list(projection.get("source_visibility_reasons", [])),
             }
 
         return [

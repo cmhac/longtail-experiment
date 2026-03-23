@@ -37,7 +37,29 @@
 - Frontend format: pnpm --dir apps/frontend exec biome check .
 - Frontend typecheck: pnpm --dir apps/frontend typecheck
 - Frontend test: pnpm --dir apps/frontend test
+- Frontend coverage: pnpm --dir apps/frontend coverage
+- Frontend local dev server: pnpm --dir apps/frontend dev
 - Duplication: bash tools/quality/cpd/run-cpd.sh
+
+## Frontend Shell Verification (Feature 015)
+
+1. Start frontend runtime: `pnpm --dir apps/frontend dev`
+2. Open the root route URL shown by the dev server.
+3. Confirm required placeholder slots are visible:
+
+- top navigation
+- secondary navigation
+- scripts/analytics
+- ads/subscription
+- footer
+
+4. Confirm the main content region is intentionally blank.
+5. Run frontend checks:
+
+- `pnpm --dir apps/frontend lint`
+- `pnpm --dir apps/frontend typecheck`
+- `pnpm --dir apps/frontend test`
+- `pnpm --dir apps/frontend coverage`
 
 ## Local DB Migration Commands (Development-only)
 

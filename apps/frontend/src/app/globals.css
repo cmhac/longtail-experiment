@@ -1,0 +1,73 @@
+:root {
+  --shell-bg: #f6f8fa;
+  --shell-panel: #ffffff;
+  --shell-border: #c9d1d9;
+  --shell-ink: #1f2933;
+  --shell-muted: #52606d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--shell-ink);
+  background: radial-gradient(circle at 15% 20%, rgba(20, 85, 140, 0.1), transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(200, 94, 45, 0.08), transparent 35%), var(--shell-bg);
+  min-height: 100vh;
+}
+
+.app-shell {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 1.5rem;
+}
+
+.shell-band {
+  background: var(--shell-panel);
+  border: 1px solid var(--shell-border);
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem 1.2rem;
+}
+
+.shell-title {
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.shell-layout {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.shell-slot {
+  background: var(--shell-panel);
+  border: 1px dashed var(--shell-border);
+  border-radius: 0.75rem;
+  color: var(--shell-muted);
+  min-height: 3.25rem;
+  padding: 0.9rem 1rem;
+}
+
+.main-region {
+  background: var(--shell-panel);
+  border: 1px solid var(--shell-border);
+  border-radius: 0.75rem;
+  min-height: 10rem;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 1rem;
+  }
+
+  .shell-title {
+    font-size: 0.85rem;
+  }
+}

@@ -9,6 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.contract.query.provenance_audit_query import ProvenanceAuditQueryService
 
+EXPECTED_NOT_DUE_SOURCE_COUNT = 4
+
 
 class _AuditRepo:
     def fetch_provenance_and_revisions(self, series_key: str) -> list[dict[str, object]]:
@@ -34,6 +36,7 @@ class _AuditRepo:
 
 
 def test_audit_query_returns_conflict_ids_in_projection() -> None:
+    """Confirms conflict identifiers are included in audit row projections."""
     service = ProvenanceAuditQueryService(repository=_AuditRepo())
 
     rows = service.fetch_audit_history("CPI.US.ALL")
@@ -42,12 +45,13 @@ def test_audit_query_returns_conflict_ids_in_projection() -> None:
 
 
 def test_audit_query_exposes_run_visibility_reason_fields() -> None:
+    """Confirms deferred/not-due counts and reason details are exposed."""
     service = ProvenanceAuditQueryService(repository=_AuditRepo())
 
     rows = service.fetch_audit_history("CPI.US.ALL")
 
     assert rows[0]["deferred_source_count"] == 1
-    assert rows[0]["not_due_source_count"] == 4
+    assert rows[0]["not_due_source_count"] == EXPECTED_NOT_DUE_SOURCE_COUNT
     assert rows[0]["source_visibility_reasons"] == [
         "overlap_guard_queued",
         "cadence_not_due",

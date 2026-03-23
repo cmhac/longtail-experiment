@@ -44,6 +44,25 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 - dagit service is listed and healthy.
 - db service is listed and healthy.
 
+## Frontend Shell Readiness (Feature 015)
+
+1. Start the local frontend runtime:
+   - `pnpm --dir apps/frontend dev`
+2. Visit the root route from the printed local URL.
+3. Validate shell placeholders are rendered:
+   - `top-navigation-slot`
+   - `secondary-navigation-slot`
+   - `scripts-analytics-slot`
+   - `ads-subscription-slot`
+   - `footer-slot`
+4. Validate the main content region remains empty:
+   - `main-content-region`
+5. Run frontend quality checks before merge:
+   - `pnpm --dir apps/frontend lint`
+   - `pnpm --dir apps/frontend typecheck`
+   - `pnpm --dir apps/frontend test`
+   - `pnpm --dir apps/frontend coverage`
+
 ## Local DB Persistence Policy
 
 - The local DB is persistent by default using the `local_db_data` volume.

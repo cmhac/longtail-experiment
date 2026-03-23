@@ -23,6 +23,7 @@ class _TraceabilityRepo:
 
 
 def test_revision_lineage_rows_remain_queryable() -> None:
+    """Confirms sampled lineage fields remain queryable in audit history output."""
     service = ProvenanceAuditQueryService(repository=_TraceabilityRepo())
 
     rows = service.fetch_audit_history("CPI.US.ALL")

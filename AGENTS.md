@@ -4,6 +4,9 @@ Auto-generated from all feature plans. Last updated: 2026-03-22
 
 ## Active Technologies
 
+- TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets (015-scaffold-page-furniture)
+- N/A for this scaffold-only feature (no data persistence changes) (015-scaffold-page-furniture)
+
 - PostgreSQL 16 runtime store plus canonical observation store (`source_profiles`, `data_series`, `observations`) (012-multi-series-adapters)
 
 - PostgreSQL 16 runtime store for ingestion run and source outcome visibility; legacy cadence/eligibility structures rationalized to historical-only (011-source-asset-cadence)
@@ -124,6 +127,9 @@ Pipeline quality commands:
 
 Frontend quality commands:
 
+- pnpm --dir apps/frontend dev
+- pnpm --dir apps/frontend build
+- pnpm --dir apps/frontend start
 - pnpm --dir apps/frontend lint
 - pnpm --dir apps/frontend exec biome check .
 - pnpm --dir apps/frontend typecheck
@@ -161,11 +167,11 @@ Current migration head expected by local revision checks: `0007_dataset_metadata
 
 ## Recent Changes
 
+- 015-scaffold-page-furniture: Added TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets
+
 - 013-dynamic-source-registration: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 - 012-multi-series-adapters: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
-
-- 011-source-asset-cadence: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.

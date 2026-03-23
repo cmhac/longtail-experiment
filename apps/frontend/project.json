@@ -3,8 +3,26 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/frontend/src",
   "projectType": "application",
-  "tags": ["scope:frontend", "type:placeholder"],
+  "tags": ["scope:frontend", "type:app"],
   "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --dir apps/frontend dev"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --dir apps/frontend build"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm --dir apps/frontend start"
+      }
+    },
     "lint": {
       "executor": "nx:run-commands",
       "options": {

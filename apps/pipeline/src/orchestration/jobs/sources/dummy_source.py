@@ -27,7 +27,9 @@ class DummySourceProvider:
                 "series_key": "DUMMY.US.CPI",
                 "metric_name": "Dummy CPI",
                 "dataset_title": "Dummy CPI",
-                "dataset_description": "Deterministic CPI sample series used for pipeline validation.",
+                "dataset_description": (
+                    "Deterministic CPI sample series used for pipeline validation."
+                ),
                 "dataset_geographic_scope": "United States",
                 "topic_tags": ["inflation", "prices", "demo"],
                 "frequency": "monthly",
