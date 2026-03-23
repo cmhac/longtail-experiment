@@ -58,3 +58,10 @@ Define ownership and separation boundaries for baseline monorepo projects.
 - Series-level trigger selection and series-item visibility wiring must remain inside orchestration runtime modules (`ingest_job.py`, `source_asset_definitions.py`, `source_asset_schedules.py`, `runtime.py`).
 - Ownership transition safeguards and duplicate-trigger protection are orchestration responsibilities and must not be delegated to ad-hoc scripts.
 - Shared DB model and migration updates required by ownership transitions must remain under `libs/db/src/db/models/` and `libs/db/alembic/versions/`.
+
+## Dynamic Source Registration Boundary (Feature 013)
+
+- `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py` is the canonical source adapter discovery catalog and deterministic ordering authority.
+- `apps/pipeline/src/orchestration/jobs/source_assets/contracts.py` is the canonical source registration contract validation and duplicate-source-key guardrail.
+- `apps/pipeline/src/orchestration/runtime.py` must only call discovery/contract registration entrypoints and must not add per-source bootstrap registrations.
+- Orchestration tests under `apps/pipeline/tests/orchestration/test_source_asset_discovery.py`, `test_source_asset_contract_validation.py`, and `test_definitions_smoke.py` are the required dynamic-registration verification set.

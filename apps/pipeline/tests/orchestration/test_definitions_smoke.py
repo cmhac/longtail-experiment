@@ -70,6 +70,16 @@ def test_runtime_builder_registers_expected_sources() -> None:
     ]
 
 
+def test_runtime_registry_order_is_deterministic() -> None:
+    """Runtime registry list should remain deterministic for a fixed adapter set."""
+    first_runtime = build_ingest_runtime()
+    second_runtime = build_ingest_runtime()
+    first_registry = first_runtime.run_coordinator._workflow_registry  # noqa: SLF001
+    second_registry = second_runtime.run_coordinator._workflow_registry  # noqa: SLF001
+
+    assert first_registry.list_source_keys() == second_registry.list_source_keys()
+
+
 def test_definitions_expose_ingest_job_for_dagit_workspace() -> None:
     """Dagit workspace loading should surface ingest job definition by name."""
     assert defs.get_job_def("ingest_job").name == "ingest_job"

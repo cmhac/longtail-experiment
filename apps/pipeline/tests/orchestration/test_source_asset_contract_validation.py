@@ -54,3 +54,48 @@ def test_register_source_assets_rejects_duplicate_source_keys() -> None:
             registry=SourceWorkflowRegistry(),
             registrations=duplicate_registrations,
         )
+
+
+def test_register_source_assets_rejects_inactive_registration() -> None:
+    """Inactive registrations should fail contract validation before register."""
+    inactive_registration = [
+        (
+            "tests.inactive",
+            SourceWorkflowRegistration(
+                workflow_id="wf-inactive",
+                source_key="inactive_source",
+                owner="pipeline",
+                supported_trigger_modes={"scheduled", "on_demand"},
+                handler=_handler,
+                status="inactive",
+            ),
+        )
+    ]
+
+    with pytest.raises(SourceAssetContractError, match="registration must be active"):
+        register_source_assets(
+            registry=SourceWorkflowRegistry(),
+            registrations=inactive_registration,
+        )
+
+
+def test_register_source_assets_rejects_empty_workflow_id() -> None:
+    """Registrations must include a non-empty workflow identifier."""
+    invalid_registration = [
+        (
+            "tests.empty_workflow",
+            SourceWorkflowRegistration(
+                workflow_id="",
+                source_key="empty_workflow_source",
+                owner="pipeline",
+                supported_trigger_modes={"scheduled", "on_demand"},
+                handler=_handler,
+            ),
+        )
+    ]
+
+    with pytest.raises(SourceAssetContractError, match="workflow_id must be non-empty"):
+        register_source_assets(
+            registry=SourceWorkflowRegistry(),
+            registrations=invalid_registration,
+        )

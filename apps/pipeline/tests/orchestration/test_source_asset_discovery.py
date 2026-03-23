@@ -13,8 +13,11 @@ from src.contract.services.canonical_ingest_service import CanonicalIngestServic
 from src.orchestration.jobs.source_assets.discovery import (
     SourceBuilderSpec,
     discover_source_registrations,
+    filter_adapter_specs,
 )
 from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
+from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 
 
 class _ObservationRepository:
@@ -48,6 +51,21 @@ def test_discovery_returns_deterministic_source_order() -> None:
     ]
 
 
+def test_discovery_order_is_stable_across_repeated_runs() -> None:
+    """Repeated discovery runs should preserve source-key order exactly."""
+    first = discover_source_registrations(
+        runner=_runner(),
+        observation_repository=_ObservationRepository(),
+    )
+    second = discover_source_registrations(
+        runner=_runner(),
+        observation_repository=_ObservationRepository(),
+    )
+    assert [registration.source_key for _, registration in first] == [
+        registration.source_key for _, registration in second
+    ]
+
+
 def test_discovery_surfaces_malformed_module_failures() -> None:
     """Malformed source builders should fail fast during startup discovery."""
 
@@ -68,3 +86,45 @@ def test_discovery_surfaces_malformed_module_failures() -> None:
             observation_repository=_ObservationRepository(),
             specs=specs,
         )
+
+
+def test_filter_adapter_specs_ignores_non_adapter_modules() -> None:
+    """Helper modules should be ignored by adapter discovery eligibility filter."""
+
+    def _handler(request):
+        return SourceWorkflowResult(source_key=request.source_key, status="success")
+
+    def _valid_builder(runner, observation_repository):
+        return SourceWorkflowRegistration(
+            workflow_id="wf-valid",
+            source_key="valid_source",
+            owner="pipeline",
+            supported_trigger_modes={"scheduled", "on_demand"},
+            handler=_handler,
+        )
+
+    def _helper_builder(runner, observation_repository):
+        return SourceWorkflowRegistration(
+            workflow_id="wf-helper",
+            source_key="helper_module",
+            owner="pipeline",
+            supported_trigger_modes={"scheduled", "on_demand"},
+            handler=_handler,
+        )
+
+    specs = (
+        SourceBuilderSpec(
+            source_key="valid_source",
+            module_name="tests.valid_source",
+            builder=_valid_builder,
+        ),
+        SourceBuilderSpec(
+            source_key="helper_module",
+            module_name="tests.helper_module",
+            builder=_helper_builder,
+        ),
+    )
+
+    eligible, ignored = filter_adapter_specs(specs)
+    assert [spec.source_key for spec in eligible] == ["valid_source"]
+    assert [spec.source_key for spec in ignored] == ["helper_module"]

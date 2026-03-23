@@ -74,3 +74,41 @@ Expected:
 - Registration order is deterministic across repeated runs.
 - Malformed/duplicate adapter startup failures are actionable and module-scoped.
 - Existing adapters continue to register and execute successfully.
+
+## Execution Evidence (2026-03-22)
+
+Validation commands executed:
+
+- `pnpm exec nx run pipeline:test:orchestration:dynamic-registration`
+  - Result: `23 passed in 1.31s`
+- `pnpm run affected:lint`
+  - Result: passed
+- `pnpm run affected:format`
+  - Result: passed
+- `pnpm run affected:typecheck`
+  - Result: passed
+- `pnpm run affected:test`
+  - Result: passed
+- `pnpm run affected:coverage`
+  - Result: passed
+
+Dagit runtime checks:
+
+- `bash tools/quality/local-stack/test-compose-stack.sh`
+  - Result: local stack health checks passed; compose services started healthy and were torn down cleanly
+- `bash tools/quality/local-stack/start-dagit-local.sh`
+  - Result: `DAGIT_START_STATUS=ready`
+- `bash tools/quality/local-stack/test-dagit-endpoint.sh`
+  - Result: `DAGIT_HEALTH_STATUS=ready`, `DAGIT_LOCATION_ENTRIES=1`
+- `PYTHONPATH=apps/pipeline uv run --project apps/pipeline python -c 'from src.orchestration.definitions import defs; print("\\n".join(sorted(k.to_user_string() for k in defs.resolve_all_asset_keys())))'`
+  - Result asset keys:
+    - `fred/fedfunds`
+    - `fred/gasregw`
+    - `test/dummy_source`
+    - `test/example_source`
+
+Browser validation notes:
+
+- Dagit UI opened at `http://127.0.0.1:3001` and navigation sections loaded (`Catalog`, `Lineage`, `Deployment`).
+- Deployment > Code locations shows `src.orchestration.definitions` with `Loaded` status.
+- Catalog > Assets displays slash-prefix dynamic assets: `fred/fedfunds`, `fred/gasregw`, `test/dummy_source`, and `test/example_source`.

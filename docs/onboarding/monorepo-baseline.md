@@ -113,6 +113,8 @@
 
 - Validate source discovery determinism and contract guards:
   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_asset_discovery.py apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py`
+- Validate dynamic registration entrypoint wiring:
+  `pnpm exec nx run pipeline:test:orchestration:dynamic-registration`
 - Validate single-source trigger and invalid-key rejection:
   `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_single_source_trigger_runtime.py`
 - Validate source-level outcome visibility and persistence:

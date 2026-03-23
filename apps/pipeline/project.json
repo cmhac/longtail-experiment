@@ -53,6 +53,12 @@
         "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"source_asset or single_source_trigger or outcome_visibility or cutover_partial_failure or scheduler_runtime\""
       }
     },
+    "test:orchestration:dynamic-registration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_source_asset_discovery.py apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py apps/pipeline/tests/orchestration/test_definitions_smoke.py"
+      }
+    },
     "test:orchestration:multi-series": {
       "executor": "nx:run-commands",
       "options": {
@@ -65,6 +71,16 @@
         "commands": [
           "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_fred_source_workflow.py apps/pipeline/tests/orchestration/test_trigger_modes.py apps/pipeline/tests/orchestration/test_definitions_smoke.py apps/pipeline/tests/orchestration/test_ingest_job_runtime.py",
           "pnpm run affected:test"
+        ],
+        "parallel": false
+      }
+    },
+    "verify:dynamic-registration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_source_asset_discovery.py apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py apps/pipeline/tests/orchestration/test_definitions_smoke.py",
+          "bash tools/quality/local-stack/test-dagit-endpoint.sh"
         ],
         "parallel": false
       }

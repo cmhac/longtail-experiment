@@ -17,10 +17,10 @@
 
 **Purpose**: Establish feature scaffolding and verification entrypoints
 
-- [ ] T001 Confirm feature artifact readiness in specs/013-dynamic-source-registration/quickstart.md
-- [ ] T002 [P] Add dynamic-registration verification command notes in apps/pipeline/project.json
-- [ ] T003 [P] Prepare deterministic registration fixture notes in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
-- [ ] T004 [P] Document startup-failure diagnostics expectations in specs/013-dynamic-source-registration/contracts/source-registration-contract.md
+- [x] T001 Confirm feature artifact readiness in specs/013-dynamic-source-registration/quickstart.md
+- [x] T002 [P] Add dynamic-registration verification command notes in apps/pipeline/project.json
+- [x] T003 [P] Prepare deterministic registration fixture notes in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
+- [x] T004 [P] Document startup-failure diagnostics expectations in specs/013-dynamic-source-registration/contracts/source-registration-contract.md
 
 ---
 
@@ -30,12 +30,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Implement single discovery/registration orchestration path in apps/pipeline/src/orchestration/runtime.py
-- [ ] T006 [P] Enforce deterministic discovery ordering policy in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T007 [P] Harden contract violation formatting for module-scoped diagnostics in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
-- [ ] T008 Add duplicate-source-key pre-registration guard assertions in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
-- [ ] T009 [P] Add foundational regression tests for runtime composition in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
-- [ ] T010 Validate foundational coverage impact and thresholds in apps/pipeline/project.json
+- [x] T005 Implement single discovery/registration orchestration path in apps/pipeline/src/orchestration/runtime.py
+- [x] T006 [P] Enforce deterministic discovery ordering policy in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T007 [P] Harden contract violation formatting for module-scoped diagnostics in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
+- [x] T008 Add duplicate-source-key pre-registration guard assertions in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
+- [x] T009 [P] Add foundational regression tests for runtime composition in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T010 Validate foundational coverage impact and thresholds in apps/pipeline/project.json
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -49,17 +49,17 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T011 [P] [US1] Add valid-adapter discovery test in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
-- [ ] T012 [P] [US1] Add runtime onboarding integration test in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T013 [P] [US1] Add no-bootstrap-edit contract test case in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T011 [P] [US1] Add valid-adapter discovery test in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
+- [x] T012 [P] [US1] Add runtime onboarding integration test in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T013 [P] [US1] Add no-bootstrap-edit contract test case in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Refactor adapter onboarding flow to single discovery entrypoint in apps/pipeline/src/orchestration/runtime.py
-- [ ] T015 [P] [US1] Add explicit adapter candidate inclusion criteria in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T016 [US1] Ensure existing adapters register through discovery path in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T017 [US1] Update source onboarding guidance to remove manual bootstrap edits in docs/runbooks/provider-onboarding.md
-- [ ] T018 [US1] Verify US1 coverage contribution remains >= 90% in apps/pipeline/project.json
+- [x] T014 [US1] Refactor adapter onboarding flow to single discovery entrypoint in apps/pipeline/src/orchestration/runtime.py
+- [x] T015 [P] [US1] Add explicit adapter candidate inclusion criteria in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T016 [US1] Ensure existing adapters register through discovery path in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T017 [US1] Update source onboarding guidance to remove manual bootstrap edits in docs/runbooks/provider-onboarding.md
+- [x] T018 [US1] Verify US1 coverage contribution remains >= 90% in apps/pipeline/project.json
 
 **Checkpoint**: User Story 1 is independently functional and testable
 
@@ -73,17 +73,17 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T019 [P] [US2] Add deterministic-order regression tests in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
-- [ ] T020 [P] [US2] Add malformed-adapter fail-fast tests in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
-- [ ] T021 [P] [US2] Add duplicate-source-key rejection tests in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T019 [P] [US2] Add deterministic-order regression tests in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
+- [x] T020 [P] [US2] Add malformed-adapter fail-fast tests in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T021 [P] [US2] Add duplicate-source-key rejection tests in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Implement non-adapter ignore behavior in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T023 [US2] Standardize startup contract error payload details in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
-- [ ] T024 [US2] Wire deterministic registration visibility into runtime load-state checks in apps/pipeline/src/orchestration/runtime.py
-- [ ] T025 [US2] Align smoke assertions with dynamic-registration expectations in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T026 [US2] Verify US2 coverage contribution remains >= 90% in apps/pipeline/project.json
+- [x] T022 [US2] Implement non-adapter ignore behavior in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T023 [US2] Standardize startup contract error payload details in apps/pipeline/src/orchestration/jobs/source_assets/contracts.py
+- [x] T024 [US2] Wire deterministic registration visibility into runtime load-state checks in apps/pipeline/src/orchestration/runtime.py
+- [x] T025 [US2] Align smoke assertions with dynamic-registration expectations in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T026 [US2] Verify US2 coverage contribution remains >= 90% in apps/pipeline/project.json
 
 **Checkpoint**: User Stories 1 and 2 both work independently
 
@@ -97,17 +97,17 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T027 [P] [US3] Add doc-aligned smoke validation test notes in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T028 [P] [US3] Add quickstart command validation coverage in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
-- [ ] T029 [P] [US3] Add startup diagnostics visibility assertions in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T027 [P] [US3] Add doc-aligned smoke validation test notes in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T028 [P] [US3] Add quickstart command validation coverage in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
+- [x] T029 [P] [US3] Add startup diagnostics visibility assertions in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Update source workflow onboarding section for dynamic registration in docs/runbooks/local-stack-baseline.md
-- [ ] T031 [US3] Update onboarding baseline guidance for dynamic registration flow in docs/onboarding/monorepo-baseline.md
-- [ ] T032 [US3] Align feature quickstart evidence and operator checks in specs/013-dynamic-source-registration/quickstart.md
-- [ ] T033 [US3] Update architecture boundary notes for registration composition in docs/architecture/monorepo-boundaries.md
-- [ ] T034 [US3] Verify US3 coverage contribution remains >= 90% in apps/pipeline/project.json
+- [x] T030 [US3] Update source workflow onboarding section for dynamic registration in docs/runbooks/local-stack-baseline.md
+- [x] T031 [US3] Update onboarding baseline guidance for dynamic registration flow in docs/onboarding/monorepo-baseline.md
+- [x] T032 [US3] Align feature quickstart evidence and operator checks in specs/013-dynamic-source-registration/quickstart.md
+- [x] T033 [US3] Update architecture boundary notes for registration composition in docs/architecture/monorepo-boundaries.md
+- [x] T034 [US3] Verify US3 coverage contribution remains >= 90% in apps/pipeline/project.json
 
 **Checkpoint**: All user stories are independently functional and testable
 
@@ -117,16 +117,16 @@
 
 **Purpose**: Final hardening across stories
 
-- [ ] T035 [P] Run targeted orchestration suite for this feature in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
-- [ ] T036 [P] Run targeted orchestration suite for this feature in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
-- [ ] T037 [P] Run targeted orchestration suite for this feature in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T038 Execute affected quality gates and record outcomes in specs/013-dynamic-source-registration/quickstart.md
-- [ ] T039 [P] Verify documentation fidelity and command updates in AGENTS.md
-- [ ] T040 Perform final consistency pass across spec/plan/tasks in specs/013-dynamic-source-registration/tasks.md
-- [ ] T041 Run full local development stack validation sequence in tools/quality/local-stack/test-compose-stack.sh
-- [ ] T042 Validate Dagit endpoint/workspace health after local run in tools/quality/local-stack/test-dagit-endpoint.sh
-- [ ] T043 Use browser validation of Dagit UI asset catalog and capture evidence in specs/013-dynamic-source-registration/quickstart.md
-- [ ] T044 Confirm final operator acceptance criteria that changes are visible in Dagit in specs/013-dynamic-source-registration/quickstart.md
+- [x] T035 [P] Run targeted orchestration suite for this feature in apps/pipeline/tests/orchestration/test_source_asset_discovery.py
+- [x] T036 [P] Run targeted orchestration suite for this feature in apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py
+- [x] T037 [P] Run targeted orchestration suite for this feature in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T038 Execute affected quality gates and record outcomes in specs/013-dynamic-source-registration/quickstart.md
+- [x] T039 [P] Verify documentation fidelity and command updates in AGENTS.md
+- [x] T040 Perform final consistency pass across spec/plan/tasks in specs/013-dynamic-source-registration/tasks.md
+- [x] T041 Run full local development stack validation sequence in tools/quality/local-stack/test-compose-stack.sh
+- [x] T042 Validate Dagit endpoint/workspace health after local run in tools/quality/local-stack/test-dagit-endpoint.sh
+- [x] T043 Use browser validation of Dagit UI asset catalog and capture evidence in specs/013-dynamic-source-registration/quickstart.md
+- [x] T044 Confirm final operator acceptance criteria that changes are visible in Dagit in specs/013-dynamic-source-registration/quickstart.md
 
 ---
 

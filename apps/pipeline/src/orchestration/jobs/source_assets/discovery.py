@@ -44,6 +44,30 @@ class SourceBuilderSpec:
     ownership_mode: str = "grouped"
 
 
+def is_adapter_spec(spec: SourceBuilderSpec) -> bool:
+    """Return True when a spec is eligible for adapter registration discovery."""
+    module_name = spec.module_name.strip()
+    source_key = spec.source_key.strip()
+    if not module_name or not source_key:
+        return False
+    # Adapter modules follow the *_source naming contract in this repository.
+    return module_name.rsplit(".", 1)[-1].endswith("_source")
+
+
+def filter_adapter_specs(
+    specs: tuple[SourceBuilderSpec, ...],
+) -> tuple[list[SourceBuilderSpec], list[SourceBuilderSpec]]:
+    """Split specs into eligible adapter specs and ignored non-adapter specs."""
+    eligible: list[SourceBuilderSpec] = []
+    ignored: list[SourceBuilderSpec] = []
+    for spec in specs:
+        if is_adapter_spec(spec):
+            eligible.append(spec)
+        else:
+            ignored.append(spec)
+    return eligible, ignored
+
+
 def _build_default_specs() -> tuple[SourceBuilderSpec, ...]:
     return (
         SourceBuilderSpec(
@@ -116,7 +140,8 @@ def discover_source_registrations(
 ) -> list[tuple[str, SourceWorkflowRegistration]]:
     """Discover and build source registrations in deterministic source-key order."""
     discovered_specs = specs or _build_default_specs()
-    by_source_key = sorted(discovered_specs, key=lambda spec: spec.source_key)
+    eligible_specs, _ignored_specs = filter_adapter_specs(discovered_specs)
+    by_source_key = sorted(eligible_specs, key=lambda spec: spec.source_key)
 
     registrations: list[tuple[str, SourceWorkflowRegistration]] = []
     for spec in by_source_key:
@@ -132,7 +157,8 @@ def discover_series_catalog_entries(
 ) -> list[SeriesCatalogEntry]:
     """Discover runtime series catalog entries from source builder specs."""
     discovered_specs = specs or _build_default_specs()
-    by_source_key = sorted(discovered_specs, key=lambda spec: spec.source_key)
+    eligible_specs, _ignored_specs = filter_adapter_specs(discovered_specs)
+    by_source_key = sorted(eligible_specs, key=lambda spec: spec.source_key)
     entries: list[SeriesCatalogEntry] = []
     for spec in by_source_key:
         if spec.series_item_keys and spec.canonical_series_keys:
