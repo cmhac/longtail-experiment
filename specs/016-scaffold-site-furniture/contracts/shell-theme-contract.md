@@ -26,6 +26,7 @@ Validation outcomes:
 - Invalid when any required region is missing.
 - Invalid when region order is broken.
 - Invalid when placeholder messaging is absent.
+- Invalid when expected region identifiers (`shell-header`, `shell-main-placeholder`, `shell-footer`) are absent.
 
 ### 2) Monochrome Appearance Contract
 
@@ -39,6 +40,7 @@ Validation outcomes:
 
 - Invalid when any shell region introduces accent color usage.
 - Invalid when shell regions diverge from monochromatic rules.
+- Invalid when shell region wrappers do not include monochrome/readability class contracts.
 
 ### 3) Device Preference Theme Contract
 
@@ -81,3 +83,4 @@ Acceptance evidence should include:
 - Automated verification of shell presence and theme behavior.
 - Local runtime startup success.
 - Passing affected quality gate results.
+- Contract test evidence from `apps/frontend/tests/shell-structure-contract.test.tsx` and `apps/frontend/tests/shell-theme-preference.test.tsx`.

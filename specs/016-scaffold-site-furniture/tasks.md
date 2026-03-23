@@ -17,11 +17,11 @@
 
 **Purpose**: Prepare project configuration and baseline verification surface for shell/theme work.
 
-- [ ] T001 Confirm frontend runtime and quality commands are current in apps/frontend/package.json
-- [ ] T002 Confirm frontend Nx targets for dev/build/start/test/coverage in apps/frontend/project.json
-- [ ] T003 [P] Confirm Next.js baseline configuration supports shell work in apps/frontend/next.config.ts
-- [ ] T004 [P] Confirm frontend TypeScript and test settings for new shell files in apps/frontend/tsconfig.json
-- [ ] T005 [P] Add or update frontend test utility setup for shell rendering assertions in apps/frontend/tests/test-utils.tsx
+- [X] T001 Confirm frontend runtime and quality commands are current in apps/frontend/package.json
+- [X] T002 Confirm frontend Nx targets for dev/build/start/test/coverage in apps/frontend/project.json
+- [X] T003 [P] Confirm Next.js baseline configuration supports shell work in apps/frontend/next.config.ts
+- [X] T004 [P] Confirm frontend TypeScript and test settings for new shell files in apps/frontend/tsconfig.json
+- [X] T005 [P] Add or update frontend test utility setup for shell rendering assertions in apps/frontend/tests/test-utils.tsx
 
 ---
 
@@ -31,13 +31,13 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Create shell region constants and ordering contract in apps/frontend/src/shell/shell-regions.ts
-- [ ] T007 Create shared monochrome style rules module in apps/frontend/src/theme/monochrome-theme.ts
-- [ ] T008 [P] Add global shell layout container and semantic regions in apps/frontend/src/app/layout.tsx
-- [ ] T009 [P] Add global monochrome tokens and base shell styles in apps/frontend/src/app/globals.css
-- [ ] T010 Create root route composition boundary for shell rendering in apps/frontend/src/app/page.tsx
-- [ ] T011 Add foundational shell render smoke test scaffold in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T012 Add foundational light/dark preference test scaffold in apps/frontend/tests/shell-theme-preference.test.tsx
+- [X] T006 Create shell region constants and ordering contract in apps/frontend/src/shell/shell-regions.ts
+- [X] T007 Create shared monochrome style rules module in apps/frontend/src/theme/monochrome-theme.ts
+- [X] T008 [P] Add global shell layout container and semantic regions in apps/frontend/src/app/layout.tsx
+- [X] T009 [P] Add global monochrome tokens and base shell styles in apps/frontend/src/app/globals.css
+- [X] T010 Create root route composition boundary for shell rendering in apps/frontend/src/app/page.tsx
+- [X] T011 Add foundational shell render smoke test scaffold in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T012 Add foundational light/dark preference test scaffold in apps/frontend/tests/shell-theme-preference.test.tsx
 
 **Checkpoint**: Foundation ready. User story implementation can now begin.
 
@@ -51,19 +51,19 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T013 [P] [US1] Add test asserting header region presence and semantics in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T014 [P] [US1] Add test asserting main placeholder region presence and placeholder text in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T015 [P] [US1] Add test asserting footer region presence and ordering in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T016 [P] [US1] Add test asserting shell remains structurally valid during page scroll in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T013 [P] [US1] Add test asserting header region presence and semantics in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T014 [P] [US1] Add test asserting main placeholder region presence and placeholder text in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T015 [P] [US1] Add test asserting footer region presence and ordering in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T016 [P] [US1] Add test asserting shell remains structurally valid during page scroll in apps/frontend/tests/shell-structure-contract.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Implement site header component in apps/frontend/src/shell/site-header.tsx
-- [ ] T018 [P] [US1] Implement content placeholder component in apps/frontend/src/shell/content-placeholder.tsx
-- [ ] T019 [P] [US1] Implement site footer component in apps/frontend/src/shell/site-footer.tsx
-- [ ] T020 [US1] Compose header, placeholder, and footer in root page shell in apps/frontend/src/app/page.tsx
-- [ ] T021 [US1] Add responsive shell region spacing and ordering styles in apps/frontend/src/app/globals.css
-- [ ] T022 [US1] Verify US1 coverage contribution via targeted shell tests in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T017 [P] [US1] Implement site header component in apps/frontend/src/shell/site-header.tsx
+- [X] T018 [P] [US1] Implement content placeholder component in apps/frontend/src/shell/content-placeholder.tsx
+- [X] T019 [P] [US1] Implement site footer component in apps/frontend/src/shell/site-footer.tsx
+- [X] T020 [US1] Compose header, placeholder, and footer in root page shell in apps/frontend/src/app/page.tsx
+- [X] T021 [US1] Add responsive shell region spacing and ordering styles in apps/frontend/src/app/globals.css
+- [X] T022 [US1] Verify US1 coverage contribution via targeted shell tests in apps/frontend/tests/shell-structure-contract.test.tsx
 
 **Checkpoint**: User Story 1 is independently functional and testable.
 
@@ -77,19 +77,19 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T023 [P] [US2] Add test asserting header uses monochrome classes/tokens only in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T024 [P] [US2] Add test asserting placeholder uses monochrome classes/tokens only in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T025 [P] [US2] Add test asserting footer uses monochrome classes/tokens only in apps/frontend/tests/shell-structure-contract.test.tsx
-- [ ] T026 [P] [US2] Add regression test rejecting accent variant usage in shell components in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T023 [P] [US2] Add test asserting header uses monochrome classes/tokens only in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T024 [P] [US2] Add test asserting placeholder uses monochrome classes/tokens only in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T025 [P] [US2] Add test asserting footer uses monochrome classes/tokens only in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T026 [P] [US2] Add regression test rejecting accent variant usage in shell components in apps/frontend/tests/shell-structure-contract.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Apply HeroUI-first neutral component composition to header in apps/frontend/src/shell/site-header.tsx
-- [ ] T028 [P] [US2] Apply HeroUI-first neutral component composition to placeholder in apps/frontend/src/shell/content-placeholder.tsx
-- [ ] T029 [P] [US2] Apply HeroUI-first neutral component composition to footer in apps/frontend/src/shell/site-footer.tsx
-- [ ] T030 [US2] Implement shared monochrome class helpers and export usage contract in apps/frontend/src/theme/monochrome-theme.ts
-- [ ] T031 [US2] Align global CSS selectors with monochrome rules and remove accent leakage paths in apps/frontend/src/app/globals.css
-- [ ] T032 [US2] Verify US2 coverage contribution for monochrome constraints in apps/frontend/tests/shell-structure-contract.test.tsx
+- [X] T027 [P] [US2] Apply HeroUI-first neutral component composition to header in apps/frontend/src/shell/site-header.tsx
+- [X] T028 [P] [US2] Apply HeroUI-first neutral component composition to placeholder in apps/frontend/src/shell/content-placeholder.tsx
+- [X] T029 [P] [US2] Apply HeroUI-first neutral component composition to footer in apps/frontend/src/shell/site-footer.tsx
+- [X] T030 [US2] Implement shared monochrome class helpers and export usage contract in apps/frontend/src/theme/monochrome-theme.ts
+- [X] T031 [US2] Align global CSS selectors with monochrome rules and remove accent leakage paths in apps/frontend/src/app/globals.css
+- [X] T032 [US2] Verify US2 coverage contribution for monochrome constraints in apps/frontend/tests/shell-structure-contract.test.tsx
 
 **Checkpoint**: User Story 2 is independently functional and testable.
 
@@ -103,19 +103,19 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T033 [P] [US3] Add test asserting light preference renders light shell mode in apps/frontend/tests/shell-theme-preference.test.tsx
-- [ ] T034 [P] [US3] Add test asserting dark preference renders dark shell mode in apps/frontend/tests/shell-theme-preference.test.tsx
-- [ ] T035 [P] [US3] Add test asserting text readability classes are present in both modes in apps/frontend/tests/shell-theme-preference.test.tsx
-- [ ] T036 [P] [US3] Add regression test for preference mode switching between sessions in apps/frontend/tests/shell-theme-preference.test.tsx
+- [X] T033 [P] [US3] Add test asserting light preference renders light shell mode in apps/frontend/tests/shell-theme-preference.test.tsx
+- [X] T034 [P] [US3] Add test asserting dark preference renders dark shell mode in apps/frontend/tests/shell-theme-preference.test.tsx
+- [X] T035 [P] [US3] Add test asserting text readability classes are present in both modes in apps/frontend/tests/shell-theme-preference.test.tsx
+- [X] T036 [P] [US3] Add regression test for preference mode switching between sessions in apps/frontend/tests/shell-theme-preference.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Implement preference-aware theme mode resolution in root layout in apps/frontend/src/app/layout.tsx
-- [ ] T038 [US3] Apply mode-specific monochrome token mapping in apps/frontend/src/app/globals.css
-- [ ] T039 [US3] Ensure header component supports mode-appropriate readable contrast in apps/frontend/src/shell/site-header.tsx
-- [ ] T040 [US3] Ensure placeholder component supports mode-appropriate readable contrast in apps/frontend/src/shell/content-placeholder.tsx
-- [ ] T041 [US3] Ensure footer component supports mode-appropriate readable contrast in apps/frontend/src/shell/site-footer.tsx
-- [ ] T042 [US3] Verify US3 coverage contribution for preference-aware rendering in apps/frontend/tests/shell-theme-preference.test.tsx
+- [X] T037 [US3] Implement preference-aware theme mode resolution in root layout in apps/frontend/src/app/layout.tsx
+- [X] T038 [US3] Apply mode-specific monochrome token mapping in apps/frontend/src/app/globals.css
+- [X] T039 [US3] Ensure header component supports mode-appropriate readable contrast in apps/frontend/src/shell/site-header.tsx
+- [X] T040 [US3] Ensure placeholder component supports mode-appropriate readable contrast in apps/frontend/src/shell/content-placeholder.tsx
+- [X] T041 [US3] Ensure footer component supports mode-appropriate readable contrast in apps/frontend/src/shell/site-footer.tsx
+- [X] T042 [US3] Verify US3 coverage contribution for preference-aware rendering in apps/frontend/tests/shell-theme-preference.test.tsx
 
 **Checkpoint**: User Story 3 is independently functional and testable.
 
@@ -125,13 +125,13 @@
 
 **Purpose**: Finalize quality validation, docs, and release readiness across all stories.
 
-- [ ] T043 [P] Update shell/theme quickstart verification evidence in specs/016-scaffold-site-furniture/quickstart.md
-- [ ] T044 [P] Align contract language with implemented shell/theme behavior in specs/016-scaffold-site-furniture/contracts/shell-theme-contract.md
-- [ ] T045 [P] Update plan notes if implementation deltas are discovered in specs/016-scaffold-site-furniture/plan.md
-- [ ] T046 Document local shell validation workflow updates in docs/runbooks/local-stack-baseline.md
-- [ ] T047 Run and fix frontend lint, format, typecheck, test, and coverage commands via apps/frontend/package.json targets
-- [ ] T048 Run and fix workspace affected lint/format/typecheck/test/coverage commands in package.json
-- [ ] T049 Validate AGENTS command/tooling references remain accurate for this feature in AGENTS.md
+- [X] T043 [P] Update shell/theme quickstart verification evidence in specs/016-scaffold-site-furniture/quickstart.md
+- [X] T044 [P] Align contract language with implemented shell/theme behavior in specs/016-scaffold-site-furniture/contracts/shell-theme-contract.md
+- [X] T045 [P] Update plan notes if implementation deltas are discovered in specs/016-scaffold-site-furniture/plan.md
+- [X] T046 Document local shell validation workflow updates in docs/runbooks/local-stack-baseline.md
+- [X] T047 Run and fix frontend lint, format, typecheck, test, and coverage commands via apps/frontend/package.json targets
+- [X] T048 Run and fix workspace affected lint/format/typecheck/test/coverage commands in package.json
+- [X] T049 Validate AGENTS command/tooling references remain accurate for this feature in AGENTS.md
 
 ---
 

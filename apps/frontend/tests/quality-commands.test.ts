@@ -18,7 +18,7 @@ describe("frontend quality command contracts", () => {
 
   it("documents quickstart quality command flow", () => {
     const quickstart = readFileSync(
-      new URL("../../../specs/015-scaffold-page-furniture/quickstart.md", import.meta.url),
+      new URL("../../../specs/016-scaffold-site-furniture/quickstart.md", import.meta.url),
       "utf8",
     );
 
@@ -30,7 +30,7 @@ describe("frontend quality command contracts", () => {
 
   it("documents local startup command", () => {
     const quickstart = readFileSync(
-      new URL("../../../specs/015-scaffold-page-furniture/quickstart.md", import.meta.url),
+      new URL("../../../specs/016-scaffold-site-furniture/quickstart.md", import.meta.url),
       "utf8",
     );
 

@@ -151,3 +151,5 @@ Run `.specify/scripts/bash/update-agent-context.sh codex` after design artifacts
 - Keep content scope intentionally structural and avoid product-feature additions.
 - Enforce no accent colors in shell-level tokens, classes, and component variants.
 - Keep light/dark behavior preference-aware from initial render.
+- Implemented shell regions via `site-header.tsx`, `content-placeholder.tsx`, and `site-footer.tsx` with HeroUI `Card` primitives.
+- Removed legacy five-slot furniture scaffold modules to keep affected coverage and contracts aligned with the new three-region shell baseline.

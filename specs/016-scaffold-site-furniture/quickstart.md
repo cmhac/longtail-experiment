@@ -26,9 +26,9 @@ Expected:
 
 - Open the local URL shown by the dev server.
 - Confirm all required regions are visible:
-  - header
-  - main content placeholder
-  - footer
+  - `shell-header`
+  - `shell-main-placeholder`
+  - `shell-footer`
 - Confirm region order remains header -> main -> footer.
 
 Expected:
@@ -46,6 +46,13 @@ Expected:
 
 - No accent-colored shell elements appear.
 - Shell stays readable in both light and dark preference modes.
+
+Optional targeted assertions:
+
+```bash
+pnpm --dir apps/frontend test -- --run tests/shell-structure-contract.test.tsx
+pnpm --dir apps/frontend test -- --run tests/shell-theme-preference.test.tsx
+```
 
 ## 4) Run frontend quality checks
 

@@ -1,5 +1,9 @@
 import React from "react";
 import type { JSX, ReactNode } from "react";
+import {
+  createRootDocumentAttributes,
+  resolveInitialThemePreference,
+} from "../theme/theme-preference";
 import "./globals.css";
 
 interface RootLayoutProps {
@@ -7,9 +11,16 @@ interface RootLayoutProps {
 }
 
 const RootLayout = ({ children }: RootLayoutProps): JSX.Element => {
+  const rootAttributes = createRootDocumentAttributes(resolveInitialThemePreference());
+
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html
+      className={rootAttributes.className}
+      data-theme-preference={rootAttributes.dataThemePreference}
+      lang="en"
+      style={rootAttributes.style}
+    >
+      <body className="shell-body">{children}</body>
     </html>
   );
 };

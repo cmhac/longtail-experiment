@@ -44,19 +44,17 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 - dagit service is listed and healthy.
 - db service is listed and healthy.
 
-## Frontend Shell Readiness (Feature 015)
+## Frontend Shell Readiness (Feature 016)
 
 1. Start the local frontend runtime:
    - `pnpm --dir apps/frontend dev`
 2. Visit the root route from the printed local URL.
-3. Validate shell placeholders are rendered:
-   - `top-navigation-slot`
-   - `secondary-navigation-slot`
-   - `scripts-analytics-slot`
-   - `ads-subscription-slot`
-   - `footer-slot`
-4. Validate the main content region remains empty:
-   - `main-content-region`
+3. Validate shell regions are rendered in order:
+   - `shell-header`
+   - `shell-main-placeholder`
+   - `shell-footer`
+4. Validate placeholder copy remains present in the main region:
+   - `Feature content will appear here soon.`
 5. Run frontend quality checks before merge:
    - `pnpm --dir apps/frontend lint`
    - `pnpm --dir apps/frontend typecheck`

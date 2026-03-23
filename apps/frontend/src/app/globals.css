@@ -1,73 +1,108 @@
 :root {
-  --shell-bg: #f6f8fa;
-  --shell-panel: #ffffff;
-  --shell-border: #c9d1d9;
-  --shell-ink: #1f2933;
-  --shell-muted: #52606d;
+  --shell-background: #f5f5f5;
+  --shell-surface: #ffffff;
+  --shell-border: #d4d4d4;
+  --shell-foreground: #111111;
+  --shell-muted: #404040;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shell-background: #0f0f0f;
+    --shell-surface: #171717;
+    --shell-border: #3f3f46;
+    --shell-foreground: #f5f5f5;
+    --shell-muted: #d4d4d8;
+  }
+}
+
+html[data-theme-preference="light"] {
+  color-scheme: light;
+}
+
+html[data-theme-preference="dark"] {
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
 }
 
-body {
+.shell-root,
+.shell-body {
+  min-height: 100%;
+}
+
+.shell-body {
   margin: 0;
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-  color: var(--shell-ink);
-  background: radial-gradient(circle at 15% 20%, rgba(20, 85, 140, 0.1), transparent 40%),
-    radial-gradient(circle at 80% 10%, rgba(200, 94, 45, 0.08), transparent 35%), var(--shell-bg);
-  min-height: 100vh;
+  background: linear-gradient(180deg, var(--shell-background) 0%, var(--shell-surface) 100%);
+  color: var(--shell-foreground);
 }
 
-.app-shell {
+.shell-page {
   margin: 0 auto;
-  max-width: 1100px;
-  padding: 1.5rem;
+  max-width: 58rem;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.75rem;
+  padding: 1rem;
 }
 
-.shell-band {
-  background: var(--shell-panel);
-  border: 1px solid var(--shell-border);
-  border-radius: 0.75rem;
-  margin-bottom: 1rem;
-  padding: 0.9rem 1.2rem;
+.shell-region {
+  width: 100%;
 }
 
-.shell-title {
-  font-size: 1rem;
-  letter-spacing: 0.08em;
+.shell-monochrome > [data-slot="base"] {
+  background: var(--shell-surface) !important;
+  border: 1px solid var(--shell-border) !important;
+}
+
+.shell-readable {
+  color: var(--shell-foreground);
+}
+
+.shell-region-main {
+  min-height: 40dvh;
+}
+
+.shell-eyebrow {
   margin: 0;
+  color: var(--shell-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.shell-layout {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: 1fr;
+.shell-title {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.3;
 }
 
-.shell-slot {
-  background: var(--shell-panel);
-  border: 1px dashed var(--shell-border);
-  border-radius: 0.75rem;
+.shell-subtitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.shell-copy {
+  margin: 0.4rem 0 0;
   color: var(--shell-muted);
-  min-height: 3.25rem;
-  padding: 0.9rem 1rem;
+  line-height: 1.5;
 }
 
-.main-region {
-  background: var(--shell-panel);
-  border: 1px solid var(--shell-border);
-  border-radius: 0.75rem;
-  min-height: 10rem;
+.shell-divider {
+  margin: 0 0 0.65rem;
 }
 
 @media (max-width: 720px) {
-  .app-shell {
-    padding: 1rem;
+  .shell-title {
+    font-size: 1.05rem;
   }
 
-  .shell-title {
-    font-size: 0.85rem;
+  .shell-page {
+    padding: 0.8rem;
   }
 }
