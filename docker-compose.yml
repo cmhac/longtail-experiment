@@ -78,6 +78,8 @@ services:
 
   frontend:
     image: node:22-alpine
+    environment:
+      DISCOVERY_API_BASE_URL: http://backend:8080
     command:
       [
         "sh",
