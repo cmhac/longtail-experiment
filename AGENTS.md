@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-22
 
 ## Active Technologies
+- PostgreSQL 16 runtime store plus canonical observation store (`source_profiles`, `data_series`, `observations`) (012-multi-series-adapters)
 
 - PostgreSQL 16 runtime store for ingestion run and source outcome visibility; legacy cadence/eligibility structures rationalized to historical-only (011-source-asset-cadence)
 
@@ -158,12 +159,12 @@ Current migration head expected by local revision checks: `0005_source_asset_sch
   affected targets and pre-commit hooks.
 
 ## Recent Changes
+- 012-multi-series-adapters: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 - 011-source-asset-cadence: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
 - 010-source-asset-migration: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling
 
-- 009-dagit-local-dev: Added Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling
 
   placeholder projects, strict quality gates, affected-only checks, PMD duplication
   scripts, and Docker Compose local stack verification.
