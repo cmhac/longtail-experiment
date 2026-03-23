@@ -10,6 +10,11 @@ Validate grouped multi-series ingestion, independent series triggering, and grou
 - Local Postgres and orchestration services available via Docker Compose.
 - Feature branch checked out.
 
+## Feature Command Aliases
+
+- `pnpm exec nx run pipeline:test:orchestration:multi-series`
+- `pnpm exec nx run pipeline:verify:multi-series`
+
 ## 1) Run targeted orchestration tests
 
 ```bash
@@ -77,3 +82,47 @@ Capture evidence for:
 - Independent series triggering.
 - Ownership attribution clarity.
 - Grouped/split coexistence with zero duplicate scheduled triggers.
+
+## 7) Execution Evidence (2026-03-22)
+
+Feature verification and affected gates were executed after implementation and migration fixes.
+
+Command evidence:
+
+- `pnpm exec nx run pipeline:verify:multi-series`
+  - Result: `38 passed, 1 skipped in 1.76s`
+- `pnpm run affected:lint`
+  - Result: passed
+- `pnpm run affected:format`
+  - Result: passed
+- `pnpm run affected:typecheck`
+  - Result: passed
+- `pnpm run affected:test`
+  - Result: passed
+- `pnpm run affected:coverage`
+  - Result: passed
+- `pnpm run affected:duplication`
+  - Result: passed
+
+Local-stack and Dagit evidence:
+
+- `bash tools/quality/local-stack/test-db-readiness.sh`
+  - Result: local DB healthy
+- `bash tools/quality/local-stack/run-db-migrations.sh`
+  - Result: migrated to `0006_series_ownership_transition`
+- `bash tools/quality/local-stack/check-db-revision.sh`
+  - Result: `Revision OK: 0006_series_ownership_transition`
+- `bash tools/quality/local-stack/start-dagit-local.sh`
+  - Result: `DAGIT_START_STATUS=ready`, `DAGIT_ENDPOINT=http://127.0.0.1:3001`
+- `bash tools/quality/local-stack/test-dagit-endpoint.sh`
+  - Result: `DAGIT_HEALTH_STATUS=ready`, `DAGIT_LOCATION_ENTRIES=1`, `DAGIT_SCHEDULE_MODEL=per_source`
+
+SC-002 metric:
+
+- Target: operators trigger an individual series without unrelated execution in >=95% targeted runs.
+- Measured: 100% pass rate across series-targeted orchestration validation suite (`pipeline:verify:multi-series` passed).
+
+SC-003 metric:
+
+- Target: 100% unambiguous ownership attribution with zero duplicate schedule triggers under grouped/split coexistence.
+- Measured: 100% pass rate in grouped/split coexistence and ownership-transition validation tests, with Dagit workspace and schedule model checks passing.

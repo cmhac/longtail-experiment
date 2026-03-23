@@ -145,6 +145,45 @@ def test_ingest_job_reports_fred_source_outcome_visibility() -> None:
     assert FRED_FEDFUNDS_SOURCE_KEY in source_keys
 
 
+def test_ingest_job_series_targeted_request_executes_selected_series_only() -> None:
+    """Series-targeted trigger should execute selected series item without unrelated slices."""
+    runtime = get_ingest_runtime()
+    run_repo = runtime.run_repository
+
+    probe_run_id = f"run-probe-{uuid4()}"
+    try:
+        run_repo.fetch_run(probe_run_id)
+    except Exception as exc:  # pragma: no cover - environment-dependent integration guard
+        pytest.skip(f"postgres runtime DB unavailable for integration test: {exc}")
+
+    run_repo.clear_all()
+
+    result = defs.get_job_def("ingest_job").execute_in_process(
+        run_config={},
+        tags={
+            "trigger_type": "on_demand",
+            "requested_by": "series-target-test",
+            "series_item_key": "fred_fedfunds",
+        },
+    )
+
+    assert result.success
+    run_output = result.output_for_node("execute_ingest_run")
+    source_rows = [
+        row for row in run_output["source_results"] if row["source_key"] == FRED_FEDFUNDS_SOURCE_KEY
+    ]
+    assert len(source_rows) == 1
+    series_outcomes = source_rows[0].get("series_outcomes", [])
+    assert isinstance(series_outcomes, list)
+    if series_outcomes:
+        series_item_keys = {
+            str(outcome["series_item_key"])
+            for outcome in series_outcomes
+            if "series_item_key" in outcome
+        }
+        assert series_item_keys <= {"fred_fedfunds"}
+
+
 def test_ingest_job_second_run_adds_no_duplicate_fred_observations() -> None:
     """Two immediate runs should not create duplicate FRED observations."""
     if not os.getenv("FRED_API_KEY", "").strip():

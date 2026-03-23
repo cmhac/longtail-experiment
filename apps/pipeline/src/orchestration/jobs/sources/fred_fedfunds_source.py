@@ -19,7 +19,27 @@ from ..workflow_result import SourceWorkflowResult
 FRED_FEDFUNDS_SOURCE_KEY = "fred_fedfunds"
 FRED_FEDFUNDS_SERIES_ID = "FEDFUNDS"
 FRED_FEDFUNDS_CANONICAL_SERIES = "INT.US.FEDFUNDS"
+FRED_GASREGW_SERIES_ID = "GASREGW"
+FRED_GASREGW_CANONICAL_SERIES = "ENERGY.US.GASREGW"
 FRED_API_KEY_ENV = "FRED_API_KEY"
+
+
+FRED_SERIES_CONFIGS: tuple[dict[str, str], ...] = (
+    {
+        "series_item_key": "fred_fedfunds",
+        "provider_series_id": FRED_FEDFUNDS_SERIES_ID,
+        "canonical_series_key": FRED_FEDFUNDS_CANONICAL_SERIES,
+        "metric_name": "Effective Federal Funds Rate",
+        "frequency": "daily",
+    },
+    {
+        "series_item_key": "fred_gasregw",
+        "provider_series_id": FRED_GASREGW_SERIES_ID,
+        "canonical_series_key": FRED_GASREGW_CANONICAL_SERIES,
+        "metric_name": "US Regular Gas Price",
+        "frequency": "weekly",
+    },
+)
 
 
 class FredClient(Protocol):
@@ -78,7 +98,14 @@ class ObservationCheckpointRepository(Protocol):
         """Return latest persisted observation date for one canonical series."""
 
 
-def _map_fred_records(rows: Sequence[dict[str, Any]]) -> list[dict[str, object]]:
+def _map_fred_records(
+    *,
+    rows: Sequence[dict[str, Any]],
+    canonical_series_key: str,
+    provider_series_id: str,
+    metric_name: str,
+    frequency: str,
+) -> list[dict[str, object]]:
     mapped: list[dict[str, object]] = []
     now_iso = datetime.now(tz=UTC).isoformat()
     for row in rows:
@@ -86,14 +113,14 @@ def _map_fred_records(rows: Sequence[dict[str, Any]]) -> list[dict[str, object]]
             {
                 "source_name": "FRED",
                 "source_type": "external",
-                "series_key": FRED_FEDFUNDS_CANONICAL_SERIES,
-                "metric_name": "Effective Federal Funds Rate",
-                "frequency": "daily",
+                "series_key": canonical_series_key,
+                "metric_name": metric_name,
+                "frequency": frequency,
                 "date": str(row.get("date", "")),
                 "reported_at": str(row.get("realtime_end") or row.get("realtime_start") or now_iso),
                 "value": str(row.get("value", "")),
                 "attributes": {
-                    "provider_series_id": FRED_FEDFUNDS_SERIES_ID,
+                    "provider_series_id": provider_series_id,
                 },
             }
         )
@@ -135,27 +162,108 @@ def build_fred_fedfunds_source_workflow(
                 message="FRED_API_KEY is required for fred_fedfunds source",
             )
 
-        latest = observation_repository.read_latest_observed_on(
-            series_key=FRED_FEDFUNDS_CANONICAL_SERIES,
+        accepted_count = 0
+        quarantined_count = 0
+        failed_count = 0
+        series_outcomes: list[dict[str, object]] = []
+
+        requested_series_items_raw = request.run_context.get("series_item_keys")
+        requested_series_items = (
+            set(requested_series_items_raw)
+            if isinstance(requested_series_items_raw, list)
+            else None
         )
-        start_date = latest + timedelta(days=1) if latest is not None else None
 
-        try:
-            raw_rows = fred_client.fetch_observations(
-                api_key=api_key,
-                series_id=FRED_FEDFUNDS_SERIES_ID,
-                start_date=start_date,
+        for series_config in FRED_SERIES_CONFIGS:
+            if (
+                requested_series_items is not None
+                and series_config["series_item_key"] not in requested_series_items
+            ):
+                continue
+            canonical_series_key = series_config["canonical_series_key"]
+            provider_series_id = series_config["provider_series_id"]
+            latest = observation_repository.read_latest_observed_on(
+                series_key=canonical_series_key,
             )
-        except Exception as exc:
-            return SourceWorkflowResult(
-                source_key=request.source_key,
-                status="failure",
-                failed_count=1,
-                outcome_reason_code="provider_request_failed",
-                message=str(exc),
+            start_date = latest + timedelta(days=1) if latest is not None else None
+
+            try:
+                raw_rows = fred_client.fetch_observations(
+                    api_key=api_key,
+                    series_id=provider_series_id,
+                    start_date=start_date,
+                )
+            except Exception as exc:
+                failed_count += 1
+                series_outcomes.append(
+                    {
+                        "series_item_key": series_config["series_item_key"],
+                        "canonical_series_key": canonical_series_key,
+                        "provider_series_id": provider_series_id,
+                        "provider_group_key": "fred",
+                        "ownership_mode": "grouped",
+                        "owner_adapter_key": request.source_key,
+                        "status": "failure",
+                        "accepted_count": 0,
+                        "quarantined_count": 0,
+                        "failed_count": 1,
+                        "outcome_reason_code": "provider_request_failed",
+                        "message": str(exc),
+                    }
+                )
+                continue
+
+            series_result = runner.run_records(
+                request=request,
+                records=_map_fred_records(
+                    rows=raw_rows,
+                    canonical_series_key=canonical_series_key,
+                    provider_series_id=provider_series_id,
+                    metric_name=series_config["metric_name"],
+                    frequency=series_config["frequency"],
+                ),
+            )
+            accepted_count += series_result.accepted_count
+            quarantined_count += series_result.quarantined_count
+            failed_count += series_result.failed_count
+            series_outcomes.append(
+                {
+                    "series_item_key": series_config["series_item_key"],
+                    "canonical_series_key": canonical_series_key,
+                    "provider_series_id": provider_series_id,
+                    "provider_group_key": "fred",
+                    "ownership_mode": "grouped",
+                    "owner_adapter_key": request.source_key,
+                    "status": series_result.status,
+                    "accepted_count": series_result.accepted_count,
+                    "quarantined_count": series_result.quarantined_count,
+                    "failed_count": series_result.failed_count,
+                }
             )
 
-        return runner.run_records(request=request, records=_map_fred_records(raw_rows))
+        if failed_count > 0 and accepted_count == 0 and quarantined_count == 0:
+            status = "failure"
+            outcome_reason = "provider_request_failed"
+            message = "all configured FRED series failed provider retrieval"
+        elif failed_count > 0 or quarantined_count > 0:
+            status = "partial_success"
+            outcome_reason = None
+            message = None
+        else:
+            status = "success"
+            outcome_reason = None
+            message = None
+
+        return SourceWorkflowResult(
+            source_key=request.source_key,
+            status=status,
+            accepted_count=accepted_count,
+            quarantined_count=quarantined_count,
+            failed_count=failed_count,
+            outcome_reason_code=outcome_reason,
+            message=message,
+            series_outcomes=series_outcomes,
+        )
 
     return SourceWorkflowRegistration(
         workflow_id="wf-fred-fedfunds",

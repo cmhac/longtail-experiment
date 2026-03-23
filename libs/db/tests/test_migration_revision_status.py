@@ -10,7 +10,7 @@ def test_revision_check_uses_expected_baseline_default() -> None:
         encoding="utf-8"
     )
     assert (
-        'EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0005_source_asset_schedule_cutover}"'
+        'EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0006_series_ownership_transition}"'
         in script
     )
 

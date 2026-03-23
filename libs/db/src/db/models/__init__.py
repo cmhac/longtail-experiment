@@ -9,6 +9,7 @@ from .ingestion_runtime import (
     SourceEligibilitySnapshot,
     SourceRunLock,
     SourceRunOutcome,
+    SeriesRunOutcome,
     SourceSchedulePolicy,
 )
 from .observation import Observation
@@ -28,6 +29,7 @@ __all__ = [
     "SourceEligibilitySnapshot",
     "SourceRunLock",
     "SourceRunOutcome",
+    "SeriesRunOutcome",
     "SourceSchedulePolicy",
     "SourceProfile",
 ]

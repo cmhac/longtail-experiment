@@ -144,3 +144,47 @@ def test_source_asset_schedule_cutover_rationalizes_legacy_tables() -> None:
 
     assert "source_schedule_policies" in migration_text
     assert "source_eligibility_snapshots" in migration_text
+
+
+def test_source_asset_schedule_cutover_widens_alembic_version_column() -> None:
+    """Feature 011: cutover migration must widen alembic version identifier length."""
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0005_source_asset_schedule_cutover.py"
+    ).read_text(encoding="utf-8")
+
+    assert "alembic_version" in migration_text
+    assert "version_num" in migration_text
+    assert "sa.String(length=64)" in migration_text
+
+
+def test_series_ownership_transition_migration_metadata() -> None:
+    """Feature 012: series ownership migration should chain from cutover migration."""
+    file_path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0006_series_ownership_transition.py"
+    )
+    spec = spec_from_file_location("series_ownership_transition", file_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.revision == "0006_series_ownership_transition"
+    assert module.down_revision == "0005_source_asset_schedule_cutover"
+
+
+def test_series_ownership_transition_migration_creates_series_outcome_table() -> None:
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0006_series_ownership_transition.py"
+    ).read_text(encoding="utf-8")
+
+    assert "series_run_outcomes" in migration_text
+    assert "uq_series_outcome_run_source_series" in migration_text

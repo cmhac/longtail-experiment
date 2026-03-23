@@ -200,3 +200,27 @@ Feature 008 implementation delta (resolved):
   `observations.series_id` with `data_series.series_key` join.
 - Resolution: use repository code that writes/reads through
   `source_profiles` -> `data_series` -> `observations(series_id)` and query series key via join.
+
+## Grouped-vs-Split Adapter Operations (Feature 012)
+
+Use this decision table before onboarding new provider series:
+
+- Keep grouped ownership when:
+  - Cadence requirements are shared.
+  - Operational trigger isolation is not required beyond series-level on-demand runs.
+- Use split ownership when:
+  - A series requires materially different cadence.
+  - Operational risk requires separate schedule authority for one series.
+
+Ownership transition guardrails:
+
+1. Define one effective ownership boundary timestamp for the moving series.
+2. Disable old schedule authority before enabling new authority.
+3. Validate no duplicate scheduled run for the same series_item_key in the same cadence window.
+4. Verify run attribution remains explicit after transition.
+
+Verification commands:
+
+- `pnpm exec nx run pipeline:test:orchestration:multi-series`
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py -k "grouped or split or ownership_transition"`
+- `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_outcome_visibility.py`

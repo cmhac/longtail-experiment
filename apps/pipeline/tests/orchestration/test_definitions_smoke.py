@@ -28,6 +28,10 @@ from src.orchestration.runtime import (
     get_runtime_workspace_load_state,
     verify_runtime_wiring_for_dagit,
 )
+from src.orchestration.schedules.source_asset_schedules import (
+    SOURCE_CADENCE_DEFINITIONS,
+    SOURCE_SERIES_ITEM_DEFINITIONS,
+)
 
 
 def test_orchestration_definitions_is_dagster_definitions() -> None:
@@ -50,6 +54,7 @@ def test_definitions_expose_source_assets_for_dagit_catalog() -> None:
     assert "dummy_source" in asset_keys
     assert "example_source" in asset_keys
     assert FRED_FEDFUNDS_SOURCE_KEY in asset_keys
+    assert "fred_gasregw" in asset_keys
 
 
 def test_runtime_builder_registers_expected_sources() -> None:
@@ -84,7 +89,12 @@ def test_workspace_definition_catalog_lists_existing_definitions() -> None:
     catalog = get_workspace_definition_catalog()
 
     assert catalog["jobs"] == ("ingest_job",)
-    assert catalog["assets"] == ("dummy_source", "example_source", "fred_fedfunds")
+    assert catalog["assets"] == (
+        "dummy_source",
+        "example_source",
+        "fred_fedfunds",
+        "fred_gasregw",
+    )
     assert catalog["schedules"] == (
         "dummy_source_schedule",
         "example_source_schedule",
@@ -194,3 +204,12 @@ def test_per_source_schedules_registered_in_definitions() -> None:
     assert "dummy_source_schedule" in schedule_names
     assert "example_source_schedule" in schedule_names
     assert "fred_fedfunds_schedule" in schedule_names
+
+
+def test_grouped_fred_series_share_default_cadence_definition() -> None:
+    """Grouped series items should inherit one shared cadence by default."""
+    assert SOURCE_CADENCE_DEFINITIONS["fred_fedfunds"][1] == "daily"
+    assert SOURCE_SERIES_ITEM_DEFINITIONS["fred_fedfunds"] == (
+        "fred_fedfunds",
+        "fred_gasregw",
+    )

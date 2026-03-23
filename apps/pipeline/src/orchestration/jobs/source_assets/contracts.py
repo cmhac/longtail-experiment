@@ -16,6 +16,7 @@ class SourceAssetContractError(ValueError):
     reason: str
 
     def __str__(self) -> str:
+        """Render stable contract error message text."""
         return format_contract_error(self)
 
 

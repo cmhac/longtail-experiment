@@ -160,6 +160,39 @@ class SourceRunOutcome(Base):
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class SeriesRunOutcome(Base):
+    """Series-scoped outcomes for one run and source for operator traceability."""
+
+    __tablename__ = "series_run_outcomes"
+    __table_args__ = (
+        UniqueConstraint(
+            "run_id",
+            "source_key",
+            "series_item_key",
+            name="uq_series_outcome_run_source_series",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    run_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("ingestion_runs.run_id"), nullable=False
+    )
+    source_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    series_item_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    canonical_series_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    provider_group_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    ownership_mode: Mapped[str] = mapped_column(String(16), nullable=False)
+    owner_adapter_key: Mapped[str] = mapped_column(String(255), nullable=False)
+    state: Mapped[str] = mapped_column(String(32), nullable=False)
+    accepted_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    quarantined_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    failed_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    outcome_reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class ConflictRecord(Base):
     """Persisted conflict record for duplicate drift mismatches."""
 

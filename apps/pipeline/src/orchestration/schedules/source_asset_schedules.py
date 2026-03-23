@@ -17,6 +17,18 @@ SOURCE_CADENCE_DEFINITIONS: dict[str, tuple[str, str]] = {
     "fred_fedfunds": ("0 0 * * *", "daily"),
 }
 
+SOURCE_SERIES_ITEM_DEFINITIONS: dict[str, tuple[str, ...]] = {
+    "dummy_source": ("dummy_source",),
+    "example_source": ("example_source",),
+    "fred_fedfunds": ("fred_fedfunds", "fred_gasregw"),
+}
+
+SOURCE_PROVIDER_GROUP_DEFINITIONS: dict[str, str] = {
+    "dummy_source": "dummy",
+    "example_source": "example",
+    "fred_fedfunds": "fred",
+}
+
 
 def _make_source_schedule(source_key: str, cron: str, cadence_label: str):
     """Build a Dagster schedule for one source asset."""
@@ -27,6 +39,7 @@ def _make_source_schedule(source_key: str, cron: str, cadence_label: str):
         name=f"{source_key}_schedule",
     )
     def source_schedule(_context) -> RunRequest:
+        series_item_keys = SOURCE_SERIES_ITEM_DEFINITIONS.get(source_key, (source_key,))
         return RunRequest(
             run_key=None,
             tags={
@@ -35,6 +48,11 @@ def _make_source_schedule(source_key: str, cron: str, cadence_label: str):
                 "requested_by": f"{source_key}_schedule",
                 "source_keys": source_key,
                 "cadence_label": cadence_label,
+                "provider_group_key": SOURCE_PROVIDER_GROUP_DEFINITIONS.get(
+                    source_key,
+                    source_key,
+                ),
+                "series_item_keys": ",".join(series_item_keys),
             },
         )
 

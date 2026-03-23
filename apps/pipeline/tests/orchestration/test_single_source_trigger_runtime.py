@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -51,4 +52,5 @@ def test_invalid_source_key_is_rejected_before_run_starts() -> None:
     assert selected == []
     assert payload["outcome_state"] == "failure"
     assert payload["failed_source_count"] == 1
-    assert payload["source_results"][0]["outcome_reason_code"] == "invalid_source_key"
+    source_results = cast(list[dict[str, object]], payload["source_results"])
+    assert source_results[0]["outcome_reason_code"] == "invalid_source_key"

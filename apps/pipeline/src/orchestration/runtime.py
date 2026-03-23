@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
 
@@ -17,7 +17,18 @@ from .jobs.source_assets.authority_state import (
     dagster_only_authority_state,
 )
 from .jobs.source_assets.contracts import SourceAssetContractError, register_source_assets
-from .jobs.source_assets.discovery import discover_source_registrations
+from .jobs.source_assets.discovery import (
+    discover_series_catalog_entries,
+    discover_source_registrations,
+)
+from .jobs.source_assets.ownership_mode import (
+    SeriesOwnershipModeRecord,
+    build_ownership_mode_registry,
+)
+from .jobs.source_assets.series_catalog import (
+    SeriesCatalogEntry,
+    validate_series_catalog_entries,
+)
 from .jobs.source_ingest_runner import SourceIngestRunner
 from .jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
 from .jobs.sources.implementation_window_source import IMPLEMENTATION_WINDOW_SOURCE_KEY
@@ -61,6 +72,7 @@ class SourceOutcomePersistenceRecord(TypedDict):
     message: str | None
     visible_in_dagit: bool
     failure_summary: str | None
+    series_outcomes: list[dict[str, object]]
 
 
 @dataclass(frozen=True)
@@ -73,6 +85,8 @@ class IngestRuntime:
     due_source_selector: DueSourceSelector
     parallel_source_executor: ParallelSourceExecutor
     authority_state: SchedulingAuthorityState
+    series_catalog_entries: tuple[SeriesCatalogEntry, ...]
+    ownership_mode_registry: dict[str, SeriesOwnershipModeRecord]
 
     def dagit_resources(self) -> dict[str, object]:
         """Return resource bindings exposed by Dagster definitions for local UI use."""
@@ -83,6 +97,8 @@ class IngestRuntime:
             "due_source_selector": self.due_source_selector,
             "parallel_source_executor": self.parallel_source_executor,
             "scheduling_authority_state": self.authority_state,
+            "series_catalog_entries": self.series_catalog_entries,
+            "ownership_mode_registry": self.ownership_mode_registry,
         }
 
 
@@ -94,6 +110,12 @@ def map_source_outcomes_to_persistence_records(
     """Normalize run source outcomes into persistence-view records."""
     mapped: list[SourceOutcomePersistenceRecord] = []
     for source_result in source_results:
+        raw_series_outcomes = source_result.get("series_outcomes")
+        series_outcomes: list[dict[str, object]] = (
+            cast(list[dict[str, object]], raw_series_outcomes)
+            if isinstance(raw_series_outcomes, list)
+            else []
+        )
         mapped.append(
             {
                 "source_key": str(source_result["source_key"]),
@@ -114,6 +136,7 @@ def map_source_outcomes_to_persistence_records(
                     if source_result.get("failure_summary") is not None
                     else None
                 ),
+                "series_outcomes": list(series_outcomes),
             }
         )
     return mapped
@@ -177,6 +200,19 @@ def build_ingest_runtime() -> IngestRuntime:
     runner = SourceIngestRunner(canonical_ingest_service=canonical_service)
 
     registry = SourceWorkflowRegistry()
+    series_catalog_entries = discover_series_catalog_entries()
+    validate_series_catalog_entries(series_catalog_entries)
+
+    ownership_mode_records = [
+        SeriesOwnershipModeRecord(
+            series_item_key=entry.series_item_key,
+            owner_adapter_key=entry.source_key,
+            mode="grouped" if entry.ownership_mode == "grouped" else "split",
+        )
+        for entry in series_catalog_entries
+    ]
+    ownership_mode_registry = build_ownership_mode_registry(ownership_mode_records)
+
     try:
         discovered = discover_source_registrations(
             runner=runner,
@@ -189,6 +225,12 @@ def build_ingest_runtime() -> IngestRuntime:
                 "discovered_source_keys": [
                     registration.source_key for _, registration in discovered
                 ],
+                "discovered_provider_group_keys": sorted(
+                    {entry.provider_group_key for entry in series_catalog_entries}
+                ),
+                "discovered_series_item_keys": sorted(
+                    {entry.series_item_key for entry in series_catalog_entries}
+                ),
                 "telemetry_event": "source_asset_discovery",
             },
         )
@@ -216,6 +258,8 @@ def build_ingest_runtime() -> IngestRuntime:
         due_source_selector=due_source_selector,
         parallel_source_executor=parallel_source_executor,
         run_repository=run_repository,
+        series_catalog_entries=tuple(series_catalog_entries),
+        ownership_mode_registry=ownership_mode_registry,
     )
 
     return IngestRuntime(
@@ -225,4 +269,6 @@ def build_ingest_runtime() -> IngestRuntime:
         due_source_selector=due_source_selector,
         parallel_source_executor=parallel_source_executor,
         authority_state=authority_state,
+        series_catalog_entries=tuple(series_catalog_entries),
+        ownership_mode_registry=ownership_mode_registry,
     )

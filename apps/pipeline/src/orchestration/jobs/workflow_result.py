@@ -46,3 +46,4 @@ class SourceWorkflowResult(BaseModel):
     message: str | None = None
     visible_in_dagit: bool = True
     failure_summary: str | None = None
+    series_outcomes: list[dict[str, object]] = Field(default_factory=list)

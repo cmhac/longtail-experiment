@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.orchestration.jobs.due_source_selector import DueSourceSelector
 from src.orchestration.jobs.parallel_source_executor import ParallelSourceExecutor
 from src.orchestration.jobs.run_coordinator import RunCoordinator
+from src.orchestration.jobs.source_assets.ownership_mode import SeriesOwnershipModeRecord
+from src.orchestration.jobs.source_assets.series_catalog import SeriesCatalogEntry
 from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
 from src.orchestration.jobs.workflow_registry import (
     SourceWorkflowRegistration,
@@ -167,3 +169,90 @@ def test_source_schedule_trigger_preserves_run_id_attribution() -> None:
 
     assert result["run_id"] is not None
     assert len(result["run_id"]) > 0
+
+
+def test_series_level_trigger_origin_is_preserved_for_source_execution() -> None:
+    """Series-level on-demand trigger should preserve operator attribution metadata."""
+    coordinator = RunCoordinator(
+        workflow_registry=_build_registry(),
+        source_lock_service=SourceLockService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+    )
+
+    result = coordinator.run(
+        trigger_type="on_demand",
+        requested_by="operator:fred_fedfunds",
+        source_keys=["bls"],
+        series_item_keys=["fred_fedfunds"],
+    )
+
+    assert result["requested_by"] == "operator:fred_fedfunds"
+    assert result["trigger_origin"] == "operator:fred_fedfunds"
+
+
+def test_grouped_split_coexistence_uses_authoritative_owner_for_schedule() -> None:
+    """When grouped and split owners coexist, schedule guard should avoid duplicate execution."""
+    registry = SourceWorkflowRegistry()
+
+    registry.register(
+        SourceWorkflowRegistration(
+            workflow_id="wf-fred-grouped",
+            source_key="fred_fedfunds",
+            owner="pipeline",
+            supported_trigger_modes={"scheduled", "on_demand"},
+            handler=lambda request: SourceWorkflowResult(
+                source_key=request.source_key,
+                status="success",
+                accepted_count=1,
+            ),
+        )
+    )
+    registry.register(
+        SourceWorkflowRegistration(
+            workflow_id="wf-fred-gasregw",
+            source_key="fred_gasregw",
+            owner="pipeline",
+            supported_trigger_modes={"scheduled", "on_demand"},
+            handler=lambda request: SourceWorkflowResult(
+                source_key=request.source_key,
+                status="success",
+                accepted_count=1,
+            ),
+        )
+    )
+
+    coordinator = RunCoordinator(
+        workflow_registry=registry,
+        source_lock_service=SourceLockService(),
+        due_source_selector=DueSourceSelector(),
+        parallel_source_executor=ParallelSourceExecutor(max_active_sources=2),
+        series_catalog_entries=(
+            SeriesCatalogEntry(
+                source_key="fred_fedfunds",
+                provider_group_key="fred",
+                series_item_key="fred_gasregw",
+                canonical_series_key="ENERGY.US.GASREGW",
+                ownership_mode="grouped",
+            ),
+            SeriesCatalogEntry(
+                source_key="fred_gasregw",
+                provider_group_key="fred",
+                series_item_key="fred_gasregw",
+                canonical_series_key="ENERGY.US.GASREGW",
+                ownership_mode="split",
+            ),
+        ),
+        ownership_mode_registry={
+            "fred_gasregw": SeriesOwnershipModeRecord(
+                series_item_key="fred_gasregw",
+                owner_adapter_key="fred_gasregw",
+                mode="split",
+            )
+        },
+    )
+
+    result = coordinator.run(trigger_type="scheduled", requested_by="scheduler")
+    source_keys = [row["source_key"] for row in result["source_results"]]
+    assert "fred_gasregw" in source_keys
+    assert "fred_fedfunds" not in source_keys

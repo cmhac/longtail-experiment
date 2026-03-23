@@ -88,6 +88,21 @@
 - Validate source cadence selection: `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_cadence_selection.py`
 - Validate trigger attribution: `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trigger_modes.py`
 
+## Multi-Series Adapter Onboarding (Feature 012)
+
+- Use stable keys:
+  - `provider_group_key`: provider grouping identity.
+  - `series_item_key`: operator-facing series trigger identity.
+  - `canonical_series_key`: persistence identity used by observation storage.
+- Default ownership mode is grouped when cadence requirements are shared.
+- Split ownership is allowed when cadence or operational isolation needs diverge.
+- Manual trigger expectations:
+  - Series-level trigger should execute only the selected series item.
+  - Grouped scheduled runs may execute multiple series items under one provider group.
+- Escalation workflow:
+  - If grouped/split coexistence causes duplicate scheduling, escalate to pipeline owner and attach trigger-attribution evidence from orchestration tests.
+  - If ownership transitions lose traceability, escalate with run_id, series_item_key, and persistence evidence.
+
 ## Source Schedule Metadata Maintenance (Feature 006)
 
 - Keep source cadence metadata with each `SourceWorkflowRegistration` entry in orchestration runtime wiring.

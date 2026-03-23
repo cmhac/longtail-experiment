@@ -53,6 +53,22 @@
         "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"source_asset or single_source_trigger or outcome_visibility or cutover_partial_failure or scheduler_runtime\""
       }
     },
+    "test:orchestration:multi-series": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"series or grouped or split or ownership_transition\""
+      }
+    },
+    "verify:multi-series": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_fred_source_workflow.py apps/pipeline/tests/orchestration/test_trigger_modes.py apps/pipeline/tests/orchestration/test_definitions_smoke.py apps/pipeline/tests/orchestration/test_ingest_job_runtime.py",
+          "pnpm run affected:test"
+        ],
+        "parallel": false
+      }
+    },
     "coverage": {
       "executor": "nx:run-commands",
       "options": {

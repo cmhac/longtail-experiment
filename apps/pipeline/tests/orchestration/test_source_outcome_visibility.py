@@ -16,6 +16,7 @@ from src.orchestration.jobs.workflow_registry import (
 )
 from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 from src.orchestration.resources.source_lock_service import SourceLockService
+from src.orchestration.runtime import map_source_outcomes_to_persistence_records
 
 
 def _build_registry() -> SourceWorkflowRegistry:
@@ -90,3 +91,42 @@ def test_source_schedule_trigger_attribution_in_outcomes() -> None:
     assert len(payload["source_results"]) == 1
     assert payload["source_results"][0]["source_key"] == "visible-success"
     assert payload["source_results"][0]["visible_in_dagit"] is True
+
+
+def test_series_outcome_traceability_persists_across_ownership_transition() -> None:
+    """Series outcomes should remain explicitly traceable when ownership mode changes."""
+    grouped_records = map_source_outcomes_to_persistence_records(
+        [
+            {
+                "source_key": "fred_fedfunds",
+                "status": "success",
+                "series_outcomes": [
+                    {
+                        "series_item_key": "fred_gasregw",
+                        "status": "success",
+                        "owner_adapter_key": "fred_fedfunds",
+                        "ownership_mode": "grouped",
+                    }
+                ],
+            }
+        ]
+    )
+    split_records = map_source_outcomes_to_persistence_records(
+        [
+            {
+                "source_key": "fred_gasregw",
+                "status": "success",
+                "series_outcomes": [
+                    {
+                        "series_item_key": "fred_gasregw",
+                        "status": "success",
+                        "owner_adapter_key": "fred_gasregw",
+                        "ownership_mode": "split",
+                    }
+                ],
+            }
+        ]
+    )
+
+    assert grouped_records[0]["series_outcomes"][0]["series_item_key"] == "fred_gasregw"
+    assert split_records[0]["series_outcomes"][0]["series_item_key"] == "fred_gasregw"

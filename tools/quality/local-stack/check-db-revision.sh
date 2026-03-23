@@ -21,7 +21,7 @@ set +a
 : "${LOCAL_DB_PASSWORD:?LOCAL_DB_PASSWORD is required}"
 
 DB_URL="postgresql+psycopg://${LOCAL_DB_USER}:${LOCAL_DB_PASSWORD}@${LOCAL_DB_HOST}:${LOCAL_DB_PORT}/${LOCAL_DB_NAME}"
-EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0005_source_asset_schedule_cutover}"
+EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0006_series_ownership_transition}"
 
 cd "$REPO_ROOT"
 

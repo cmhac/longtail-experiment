@@ -17,11 +17,11 @@
 
 **Purpose**: Prepare feature scaffolding, canonical naming conventions, and verification entrypoints.
 
-- [ ] T001 Create feature task and verification command aliases in apps/pipeline/project.json
-- [ ] T002 [P] Create multi-series design notes anchor in docs/architecture/monorepo-boundaries.md
-- [ ] T003 [P] Add runbook section defining grouped-vs-split decision criteria and ownership transition guardrails in docs/runbooks/local-stack-baseline.md
-- [ ] T004 [P] Add onboarding section defining series-item naming, trigger expectations, and escalation workflow in docs/onboarding/monorepo-baseline.md
-- [ ] T005 Add feature quick validation command references in specs/012-multi-series-adapters/quickstart.md
+- [x] T001 Create feature task and verification command aliases in apps/pipeline/project.json
+- [x] T002 [P] Create multi-series design notes anchor in docs/architecture/monorepo-boundaries.md
+- [x] T003 [P] Add runbook section defining grouped-vs-split decision criteria and ownership transition guardrails in docs/runbooks/local-stack-baseline.md
+- [x] T004 [P] Add onboarding section defining series-item naming, trigger expectations, and escalation workflow in docs/onboarding/monorepo-baseline.md
+- [x] T005 Add feature quick validation command references in specs/012-multi-series-adapters/quickstart.md
 
 ---
 
@@ -31,13 +31,13 @@
 
 **CRITICAL**: No user story implementation can begin before this phase is complete.
 
-- [ ] T006 Implement provider-group and series-item catalog types in apps/pipeline/src/orchestration/jobs/source_assets/series_catalog.py
-- [ ] T007 [P] Implement ownership-mode validation and overlap guards in apps/pipeline/src/orchestration/jobs/source_assets/ownership_mode.py
-- [ ] T008 [P] Extend source discovery to emit grouped and split ownership metadata in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
-- [ ] T009 Wire catalog and ownership-mode resources into runtime assembly in apps/pipeline/src/orchestration/runtime.py
-- [ ] T010 [P] Add foundational tests for series catalog validation in apps/pipeline/tests/orchestration/test_series_catalog.py
-- [ ] T011 [P] Add foundational tests for ownership overlap rejection in apps/pipeline/tests/orchestration/test_series_ownership_mode.py
-- [ ] T012 Add foundational telemetry fields for provider_group_key and series_item_key in apps/pipeline/src/orchestration/runtime.py
+- [x] T006 Implement provider-group and series-item catalog types in apps/pipeline/src/orchestration/jobs/source_assets/series_catalog.py
+- [x] T007 [P] Implement ownership-mode validation and overlap guards in apps/pipeline/src/orchestration/jobs/source_assets/ownership_mode.py
+- [x] T008 [P] Extend source discovery to emit grouped and split ownership metadata in apps/pipeline/src/orchestration/jobs/source_assets/discovery.py
+- [x] T009 Wire catalog and ownership-mode resources into runtime assembly in apps/pipeline/src/orchestration/runtime.py
+- [x] T010 [P] Add foundational tests for series catalog validation in apps/pipeline/tests/orchestration/test_series_catalog.py
+- [x] T011 [P] Add foundational tests for ownership overlap rejection in apps/pipeline/tests/orchestration/test_series_ownership_mode.py
+- [x] T012 Add foundational telemetry fields for provider_group_key and series_item_key in apps/pipeline/src/orchestration/runtime.py
 
 **Checkpoint**: Foundational model is ready; user stories can proceed.
 
@@ -51,18 +51,18 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T013 [P] [US1] Add grouped multi-series ingest contract test in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
-- [ ] T014 [P] [US1] Add per-series incremental checkpoint test in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
-- [ ] T015 [P] [US1] Add partial-success mixed-series outcome test in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
+- [x] T013 [P] [US1] Add grouped multi-series ingest contract test in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
+- [x] T014 [P] [US1] Add per-series incremental checkpoint test in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
+- [x] T015 [P] [US1] Add partial-success mixed-series outcome test in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Refactor FRED source adapter to load multiple series configurations in apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py
-- [ ] T017 [US1] Implement per-series checkpoint reads for grouped runs in apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py
-- [ ] T018 [US1] Implement per-series record mapping preserving canonical identities in apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py
-- [ ] T019 [US1] Extend source ingest workflow result payload to include series-level outcome slices in apps/pipeline/src/orchestration/jobs/workflow_result.py
-- [ ] T020 [US1] Update run outcome aggregation to account for series-level grouped outcomes in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T021 [US1] Verify US1 coverage contribution and threshold in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
+- [x] T016 [US1] Refactor FRED source adapter to load multiple series configurations in apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py
+- [x] T017 [US1] Implement per-series checkpoint reads for grouped runs in apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py
+- [x] T018 [US1] Implement per-series record mapping preserving canonical identities in apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py
+- [x] T019 [US1] Extend source ingest workflow result payload to include series-level outcome slices in apps/pipeline/src/orchestration/jobs/workflow_result.py
+- [x] T020 [US1] Update run outcome aggregation to account for series-level grouped outcomes in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T021 [US1] Verify US1 coverage contribution and threshold in apps/pipeline/tests/orchestration/test_fred_source_workflow.py
 
 **Checkpoint**: US1 is independently functional and testable.
 
@@ -76,19 +76,19 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T022 [P] [US2] Add series-targeted selection test for ingest job runtime in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
-- [ ] T023 [P] [US2] Add Dagit catalog visibility and grouped-default-cadence test for series items in apps/pipeline/tests/orchestration/test_definitions_smoke.py
-- [ ] T024 [P] [US2] Add run-attribution test for series-level trigger origin in apps/pipeline/tests/orchestration/test_trigger_modes.py
+- [x] T022 [P] [US2] Add series-targeted selection test for ingest job runtime in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T023 [P] [US2] Add Dagit catalog visibility and grouped-default-cadence test for series items in apps/pipeline/tests/orchestration/test_definitions_smoke.py
+- [x] T024 [P] [US2] Add run-attribution test for series-level trigger origin in apps/pipeline/tests/orchestration/test_trigger_modes.py
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Implement series-targeted request normalization helper in apps/pipeline/src/orchestration/jobs/source_assets/series_selection.py
-- [ ] T026 [US2] Wire series selection semantics into ingest job execution in apps/pipeline/src/orchestration/jobs/ingest_job.py
-- [ ] T027 [US2] Add series-level Dagit assets grouped by provider metadata in apps/pipeline/src/orchestration/source_asset_definitions.py
-- [ ] T028 [US2] Enforce grouped-series shared-cadence default policy and per-series schedule attribution tags in apps/pipeline/src/orchestration/schedules/source_asset_schedules.py
-- [ ] T029 [US2] Update workspace definition catalog for series-item visibility in apps/pipeline/src/orchestration/definitions.py
-- [ ] T030 [US2] Ensure series-level outcome records are persisted for operator views in apps/pipeline/src/orchestration/runtime.py
-- [ ] T031 [US2] Verify US2 coverage contribution and threshold in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
+- [x] T025 [US2] Implement series-targeted request normalization helper in apps/pipeline/src/orchestration/jobs/source_assets/series_selection.py
+- [x] T026 [US2] Wire series selection semantics into ingest job execution in apps/pipeline/src/orchestration/jobs/ingest_job.py
+- [x] T027 [US2] Add series-level Dagit assets grouped by provider metadata in apps/pipeline/src/orchestration/source_asset_definitions.py
+- [x] T028 [US2] Enforce grouped-series shared-cadence default policy and per-series schedule attribution tags in apps/pipeline/src/orchestration/schedules/source_asset_schedules.py
+- [x] T029 [US2] Update workspace definition catalog for series-item visibility in apps/pipeline/src/orchestration/definitions.py
+- [x] T030 [US2] Ensure series-level outcome records are persisted for operator views in apps/pipeline/src/orchestration/runtime.py
+- [x] T031 [US2] Verify US2 coverage contribution and threshold in apps/pipeline/tests/orchestration/test_ingest_job_runtime.py
 
 **Checkpoint**: US2 is independently functional and testable.
 
@@ -102,21 +102,21 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T032 [P] [US3] Add grouped/split coexistence schedule test in apps/pipeline/tests/orchestration/test_trigger_modes.py
-- [ ] T033 [P] [US3] Add ownership transition duplicate-prevention test in apps/pipeline/tests/orchestration/test_series_ownership_transition.py
-- [ ] T034 [P] [US3] Add persistence traceability test across ownership transition in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
-- [ ] T035 [P] [US3] Add migration-model contract test for ownership effective window validation in libs/db/tests/test_ingestion_runtime_models.py
+- [x] T032 [P] [US3] Add grouped/split coexistence schedule test in apps/pipeline/tests/orchestration/test_trigger_modes.py
+- [x] T033 [P] [US3] Add ownership transition duplicate-prevention test in apps/pipeline/tests/orchestration/test_series_ownership_transition.py
+- [x] T034 [P] [US3] Add persistence traceability test across ownership transition in apps/pipeline/tests/orchestration/test_source_outcome_visibility.py
+- [x] T035 [P] [US3] Add migration-model contract test for ownership effective window validation in libs/db/tests/test_ingestion_runtime_models.py
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Implement grouped/split schedule authority resolver in apps/pipeline/src/orchestration/jobs/source_assets/ownership_mode.py
-- [ ] T037 [US3] Add duplicate schedule guardrails for ownership transitions in apps/pipeline/src/orchestration/jobs/run_coordinator.py
-- [ ] T038 [US3] Implement ownership transition helper and validation in apps/pipeline/src/orchestration/jobs/source_assets/ownership_transition.py
-- [ ] T039 [US3] Extend run repository mappings for series ownership attribution in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
-- [ ] T040 [US3] Update runtime exposure for ownership mode visibility in apps/pipeline/src/orchestration/runtime.py
-- [ ] T041 [US3] Define ownership transition model fields and constraints in libs/db/src/db/models/ingestion_runtime.py
-- [ ] T042 [US3] Add migration for ownership transition metadata persistence in libs/db/alembic/versions/0006_series_ownership_transition.py
-- [ ] T043 [US3] Verify US3 coverage contribution and threshold in apps/pipeline/tests/orchestration/test_series_ownership_transition.py
+- [x] T036 [US3] Implement grouped/split schedule authority resolver in apps/pipeline/src/orchestration/jobs/source_assets/ownership_mode.py
+- [x] T037 [US3] Add duplicate schedule guardrails for ownership transitions in apps/pipeline/src/orchestration/jobs/run_coordinator.py
+- [x] T038 [US3] Implement ownership transition helper and validation in apps/pipeline/src/orchestration/jobs/source_assets/ownership_transition.py
+- [x] T039 [US3] Extend run repository mappings for series ownership attribution in apps/pipeline/src/orchestration/resources/postgres_run_repository.py
+- [x] T040 [US3] Update runtime exposure for ownership mode visibility in apps/pipeline/src/orchestration/runtime.py
+- [x] T041 [US3] Define ownership transition model fields and constraints in libs/db/src/db/models/ingestion_runtime.py
+- [x] T042 [US3] Add migration for ownership transition metadata persistence in libs/db/alembic/versions/0006_series_ownership_transition.py
+- [x] T043 [US3] Verify US3 coverage contribution and threshold in apps/pipeline/tests/orchestration/test_series_ownership_transition.py
 
 **Checkpoint**: US3 is independently functional and testable.
 
@@ -126,12 +126,12 @@
 
 **Purpose**: Finalize docs, quality, and end-to-end verification across all stories.
 
-- [ ] T044 [P] Update grouped-vs-split operational runbook details in docs/runbooks/local-stack-baseline.md
-- [ ] T045 [P] Update onboarding guidance for multi-series adapter ownership decisions in docs/onboarding/monorepo-baseline.md
-- [ ] T046 [P] Update architecture constraints and naming conventions in docs/architecture/monorepo-boundaries.md
-- [ ] T047 [P] Update command and feature history entries in AGENTS.md
-- [ ] T048 Run quickstart validation command sequence, compute SC-002 and SC-003 metrics, and capture evidence in specs/012-multi-series-adapters/quickstart.md
-- [ ] T049 Run affected quality gates and record outcomes in specs/012-multi-series-adapters/quickstart.md
+- [x] T044 [P] Update grouped-vs-split operational runbook details in docs/runbooks/local-stack-baseline.md
+- [x] T045 [P] Update onboarding guidance for multi-series adapter ownership decisions in docs/onboarding/monorepo-baseline.md
+- [x] T046 [P] Update architecture constraints and naming conventions in docs/architecture/monorepo-boundaries.md
+- [x] T047 [P] Update command and feature history entries in AGENTS.md
+- [x] T048 Run quickstart validation command sequence, compute SC-002 and SC-003 metrics, and capture evidence in specs/012-multi-series-adapters/quickstart.md
+- [x] T049 Run affected quality gates and record outcomes in specs/012-multi-series-adapters/quickstart.md
 
 ---
 

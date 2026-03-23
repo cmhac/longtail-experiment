@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from db.models import SourceEligibilitySnapshot, SourceSchedulePolicy
+from db.models import SeriesRunOutcome, SourceEligibilitySnapshot, SourceSchedulePolicy
 
 
 def test_schedule_policy_model_metadata() -> None:
@@ -28,5 +28,22 @@ def test_eligibility_snapshot_model_metadata() -> None:
     assert "run_id" in table.columns
     assert "source_key" in table.columns
 
-    unique_names = {constraint.name for constraint in table.constraints if constraint.name}
+    unique_names = {
+        constraint.name for constraint in table.constraints if constraint.name
+    }
     assert "uq_eligibility_run_source" in unique_names
+
+
+def test_series_run_outcome_model_metadata() -> None:
+    """Series outcome model should persist ownership attribution with unique run+source+series key."""
+    table = SeriesRunOutcome.__table__
+
+    assert SeriesRunOutcome.__tablename__ == "series_run_outcomes"
+    assert "series_item_key" in table.columns
+    assert "ownership_mode" in table.columns
+    assert "owner_adapter_key" in table.columns
+
+    unique_names = {
+        constraint.name for constraint in table.constraints if constraint.name
+    }
+    assert "uq_series_outcome_run_source_series" in unique_names

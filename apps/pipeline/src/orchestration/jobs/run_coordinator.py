@@ -14,6 +14,11 @@ from .due_source_selector import DueSourceSelector, SourceEligibilityDecision
 from .parallel_source_executor import ParallelSourceExecutor
 from .run_outcome_service import RunOutcomeService
 from .source_assets.outcomes import build_failure_summary
+from .source_assets.ownership_mode import (
+    SeriesOwnershipModeRecord,
+    resolve_schedule_authority_owner,
+)
+from .source_assets.series_catalog import SeriesCatalogEntry
 from .workflow_registry import SourceWorkflowRegistration, SourceWorkflowRegistry
 from .workflow_result import SourceWorkflowResult
 
@@ -28,6 +33,7 @@ class RunSummary(TypedDict):
     started_at: datetime
     completed_at: datetime
     source_results: list[dict[str, object]]
+    series_outcome_count: int
     outcome_state: str
     accepted_count: int
     quarantined_count: int
@@ -44,7 +50,7 @@ class RunSummary(TypedDict):
 class RunCoordinator:
     """Execute all registered source workflows and aggregate run outcomes."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         workflow_registry: SourceWorkflowRegistry,
@@ -52,6 +58,8 @@ class RunCoordinator:
         due_source_selector: DueSourceSelector,
         parallel_source_executor: ParallelSourceExecutor,
         run_repository: object | None = None,
+        series_catalog_entries: tuple[SeriesCatalogEntry, ...] = (),
+        ownership_mode_registry: dict[str, SeriesOwnershipModeRecord] | None = None,
     ) -> None:
         """Initialize coordinator with registry, lock, aggregation, and persistence dependencies."""
         self._workflow_registry = workflow_registry
@@ -60,6 +68,8 @@ class RunCoordinator:
         self._due_source_selector = due_source_selector
         self._parallel_source_executor = parallel_source_executor
         self._run_repository = run_repository
+        self._series_catalog_entries = series_catalog_entries
+        self._ownership_mode_registry = ownership_mode_registry or {}
 
     def run(
         self,
@@ -67,6 +77,7 @@ class RunCoordinator:
         trigger_type: Literal["scheduled", "on_demand"],
         requested_by: str,
         source_keys: list[str] | None = None,
+        series_item_keys: list[str] | None = None,
     ) -> RunSummary:
         """Execute one orchestration run and return summary details."""
         run_id = str(uuid4())
@@ -94,6 +105,11 @@ class RunCoordinator:
             for decision in eligibility_decisions
             if decision.eligibility_state == "due" and decision.selected_for_execution
         ]
+        due_source_keys = self._apply_schedule_authority_guard(
+            due_source_keys=due_source_keys,
+            trigger_type=trigger_type,
+            evaluated_at=started_at,
+        )
 
         execution = self._parallel_source_executor.execute(
             run_id=run_id,
@@ -103,7 +119,10 @@ class RunCoordinator:
                 source_key=source_key,
                 run_id=run_id,
                 trigger_type=trigger_type,
-                run_context={"requested_by": requested_by},
+                run_context={
+                    "requested_by": requested_by,
+                    "series_item_keys": series_item_keys,
+                },
             ),
         )
 
@@ -125,6 +144,7 @@ class RunCoordinator:
             "started_at": started_at,
             "completed_at": completed_at,
             "source_results": [result.model_dump() for result in source_results],
+            "series_outcome_count": sum(len(result.series_outcomes) for result in source_results),
             "outcome_state": aggregate["outcome_state"],
             "accepted_count": aggregate["accepted_count"],
             "quarantined_count": aggregate["quarantined_count"],
@@ -176,6 +196,36 @@ class RunCoordinator:
                         updated_at=completed_at,
                     )
         return payload
+
+    def _apply_schedule_authority_guard(
+        self,
+        *,
+        due_source_keys: list[str],
+        trigger_type: Literal["scheduled", "on_demand"],
+        evaluated_at: datetime,
+    ) -> list[str]:
+        """Filter scheduled due sources using active series ownership authority."""
+        if trigger_type != "scheduled":
+            return due_source_keys
+        if not self._series_catalog_entries or not self._ownership_mode_registry:
+            return due_source_keys
+
+        due_set = set(due_source_keys)
+        allowed = set(due_source_keys)
+        for entry in self._series_catalog_entries:
+            if entry.source_key not in due_set:
+                continue
+            authority_owner = resolve_schedule_authority_owner(
+                series_item_key=entry.series_item_key,
+                ownership_mode_registry=self._ownership_mode_registry,
+                evaluated_at=evaluated_at,
+            )
+            if authority_owner is None:
+                continue
+            if authority_owner in due_set and authority_owner != entry.source_key:
+                allowed.discard(entry.source_key)
+
+        return sorted(allowed)
 
     def list_registered_source_keys(self) -> list[str]:
         """Return all known source keys for source-targeted trigger validation."""

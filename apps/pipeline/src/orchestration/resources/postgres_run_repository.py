@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
 from sqlalchemy import Engine, create_engine, text
@@ -64,6 +64,7 @@ class PostgresRunRepository:
                         id,
                         run_id,
                         trigger_type,
+                        trigger_origin,
                         lifecycle_state,
                         outcome_state,
                         started_at,
@@ -82,6 +83,7 @@ class PostgresRunRepository:
                         :id,
                         :run_id,
                         :trigger_type,
+                        :trigger_origin,
                         :lifecycle_state,
                         :outcome_state,
                         :started_at,
@@ -100,6 +102,7 @@ class PostgresRunRepository:
                     ON CONFLICT (run_id) DO UPDATE
                     SET
                         trigger_type = EXCLUDED.trigger_type,
+                        trigger_origin = EXCLUDED.trigger_origin,
                         lifecycle_state = EXCLUDED.lifecycle_state,
                         outcome_state = EXCLUDED.outcome_state,
                         started_at = EXCLUDED.started_at,
@@ -120,6 +123,7 @@ class PostgresRunRepository:
                     "id": uuid4(),
                     "run_id": run_id,
                     "trigger_type": str(payload["trigger_type"]),
+                    "trigger_origin": str(payload.get("trigger_origin", payload["requested_by"])),
                     "lifecycle_state": "completed",
                     "outcome_state": str(payload["outcome_state"]),
                     "started_at": self._as_datetime(payload["started_at"]),
@@ -196,6 +200,99 @@ class PostgresRunRepository:
                         "message": source_result.get("message"),
                     },
                 )
+
+                series_outcomes = source_result.get("series_outcomes")
+                if not isinstance(series_outcomes, list):
+                    continue
+                for series_outcome in series_outcomes:
+                    if not isinstance(series_outcome, dict):
+                        continue
+                    series_outcome_map = cast(dict[str, Any], series_outcome)
+                    series_item_key = str(
+                        series_outcome_map.get("series_item_key", source_result["source_key"])
+                    )
+                    canonical_series_key = str(
+                        series_outcome_map.get("canonical_series_key", series_item_key)
+                    )
+                    provider_group_key = str(
+                        series_outcome_map.get(
+                            "provider_group_key",
+                            str(source_result["source_key"]).split("_", maxsplit=1)[0],
+                        )
+                    )
+                    ownership_mode = str(series_outcome_map.get("ownership_mode", "grouped"))
+                    owner_adapter_key = str(
+                        series_outcome_map.get("owner_adapter_key", source_result["source_key"])
+                    )
+                    connection.execute(
+                        text(
+                            """
+                            INSERT INTO series_run_outcomes (
+                                id,
+                                run_id,
+                                source_key,
+                                series_item_key,
+                                canonical_series_key,
+                                provider_group_key,
+                                ownership_mode,
+                                owner_adapter_key,
+                                state,
+                                accepted_count,
+                                quarantined_count,
+                                failed_count,
+                                outcome_reason_code,
+                                message
+                            ) VALUES (
+                                :id,
+                                :run_id,
+                                :source_key,
+                                :series_item_key,
+                                :canonical_series_key,
+                                :provider_group_key,
+                                :ownership_mode,
+                                :owner_adapter_key,
+                                :state,
+                                :accepted_count,
+                                :quarantined_count,
+                                :failed_count,
+                                :outcome_reason_code,
+                                :message
+                            )
+                            ON CONFLICT (run_id, source_key, series_item_key) DO UPDATE
+                            SET
+                                canonical_series_key = EXCLUDED.canonical_series_key,
+                                provider_group_key = EXCLUDED.provider_group_key,
+                                ownership_mode = EXCLUDED.ownership_mode,
+                                owner_adapter_key = EXCLUDED.owner_adapter_key,
+                                state = EXCLUDED.state,
+                                accepted_count = EXCLUDED.accepted_count,
+                                quarantined_count = EXCLUDED.quarantined_count,
+                                failed_count = EXCLUDED.failed_count,
+                                outcome_reason_code = EXCLUDED.outcome_reason_code,
+                                message = EXCLUDED.message
+                            """
+                        ),
+                        {
+                            "id": uuid4(),
+                            "run_id": run_id,
+                            "source_key": str(source_result["source_key"]),
+                            "series_item_key": series_item_key,
+                            "canonical_series_key": canonical_series_key,
+                            "provider_group_key": provider_group_key,
+                            "ownership_mode": ownership_mode,
+                            "owner_adapter_key": owner_adapter_key,
+                            "state": str(series_outcome_map.get("status", source_result["status"])),
+                            "accepted_count": self._as_int(
+                                series_outcome_map.get("accepted_count", 0)
+                            ),
+                            "quarantined_count": self._as_int(
+                                series_outcome_map.get("quarantined_count", 0)
+                            ),
+                            "failed_count": self._as_int(series_outcome_map.get("failed_count", 0)),
+                            "outcome_reason_code": series_outcome_map.get("outcome_reason_code"),
+                            "message": series_outcome_map.get("message"),
+                        },
+                    )
 
     def write_eligibility_snapshots(
         self,
@@ -379,6 +476,7 @@ class PostgresRunRepository:
                     SELECT
                         run_id,
                         trigger_type,
+                        trigger_origin,
                         lifecycle_state,
                         outcome_state,
                         accepted_count,
@@ -450,9 +548,38 @@ class PostgresRunRepository:
                 .all()
             )
 
+            series_outcome_rows = (
+                connection.execute(
+                    text(
+                        """
+                    SELECT
+                        source_key,
+                        series_item_key,
+                        canonical_series_key,
+                        provider_group_key,
+                        ownership_mode,
+                        owner_adapter_key,
+                        state,
+                        accepted_count,
+                        quarantined_count,
+                        failed_count,
+                        outcome_reason_code,
+                        message
+                    FROM series_run_outcomes
+                    WHERE run_id = :run_id
+                    ORDER BY source_key ASC, series_item_key ASC
+                    """
+                    ),
+                    {"run_id": run_id},
+                )
+                .mappings()
+                .all()
+            )
+
         return {
             "run": dict(run_row),
             "outcomes": [dict(row) for row in outcome_rows],
+            "series_outcomes": [dict(row) for row in series_outcome_rows],
             "eligibility": [dict(row) for row in eligibility_rows],
         }
 
@@ -461,6 +588,10 @@ class PostgresRunRepository:
         with self._engine.begin() as connection:
             connection.execute(
                 text("DELETE FROM source_eligibility_snapshots WHERE run_id = :run_id"),
+                {"run_id": run_id},
+            )
+            connection.execute(
+                text("DELETE FROM series_run_outcomes WHERE run_id = :run_id"),
                 {"run_id": run_id},
             )
             connection.execute(
@@ -477,5 +608,6 @@ class PostgresRunRepository:
         with self._engine.begin() as connection:
             connection.execute(text("DELETE FROM source_schedule_policies"))
             connection.execute(text("DELETE FROM source_eligibility_snapshots"))
+            connection.execute(text("DELETE FROM series_run_outcomes"))
             connection.execute(text("DELETE FROM source_run_outcomes"))
             connection.execute(text("DELETE FROM ingestion_runs"))

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -61,8 +62,9 @@ def test_post_cutover_run_persists_current_source_outcomes_only() -> None:
     assert len(repository.payloads) == 1
     persisted = repository.payloads[0]
     assert persisted["run_id"]
-    assert len(persisted["source_results"]) == 1
-    assert persisted["source_results"][0]["source_key"] == "post-cutover-source"
+    source_results = cast(list[dict[str, object]], persisted["source_results"])
+    assert len(source_results) == 1
+    assert source_results[0]["source_key"] == "post-cutover-source"
 
 
 def test_runtime_maps_source_outcomes_to_persistence_view_records() -> None:
@@ -88,5 +90,6 @@ def test_runtime_maps_source_outcomes_to_persistence_view_records() -> None:
             "message": "timeout",
             "visible_in_dagit": True,
             "failure_summary": "provider_request_failed: timeout",
+            "series_outcomes": [],
         }
     ]

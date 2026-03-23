@@ -50,3 +50,11 @@ Define ownership and separation boundaries for baseline monorepo projects.
 - The shared `ingest_schedule` (hourly all-source trigger) is retired and not active post-cutover.
 - `apps/pipeline/src/orchestration/definitions.py` registers per-source schedules and no shared schedule.
 - Legacy `source_schedule_policies` and `source_eligibility_snapshots` tables are historical-only after migration `0005_source_asset_schedule_cutover`.
+
+## Multi-Series Adapter Ownership Boundary (Feature 012)
+
+- Multi-series provider ownership logic is implemented under `apps/pipeline/src/orchestration/jobs/source_assets/**`.
+- Grouped and split ownership decisions must preserve source-asset scheduling authority from Feature 011.
+- Series-level trigger selection and series-item visibility wiring must remain inside orchestration runtime modules (`ingest_job.py`, `source_asset_definitions.py`, `source_asset_schedules.py`, `runtime.py`).
+- Ownership transition safeguards and duplicate-trigger protection are orchestration responsibilities and must not be delegated to ad-hoc scripts.
+- Shared DB model and migration updates required by ownership transitions must remain under `libs/db/src/db/models/` and `libs/db/alembic/versions/`.
