@@ -13,8 +13,8 @@ _INGEST_RUNTIME = build_ingest_runtime()
 DAGIT_WORKSPACE_MODULE = "src.orchestration.definitions"
 WORKSPACE_DEFINITION_CATALOG: dict[str, tuple[str, ...]] = {
     "jobs": ("ingest_job",),
-    "assets": ("fred/fedfunds", "fred/gasregw"),
-    "schedules": ("fred_fedfunds_schedule",),
+    "assets": tuple(sorted(asset.key.to_user_string() for asset in SOURCE_DAGIT_ASSETS)),
+    "schedules": tuple(sorted(schedule_def.name for schedule_def in SOURCE_ASSET_SCHEDULES)),
     "sensors": ("ondemand_sensor",),
 }
 

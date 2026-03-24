@@ -98,7 +98,7 @@ If the source is high-dimensional (for example country x category x class), appl
 
 ### 1c. Check for conflicts
 
-- Read `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py` and verify the proposed `source_key` does not collide with any existing entry in `_build_default_specs()`.
+- Read discovered adapter manifests from `apps/pipeline/src/orchestration/jobs/sources/*_source.py` and verify the proposed `source_key` does not collide with any existing `SOURCE_SPEC.source_key`.
 - Verify the proposed `canonical_series_keys` do not duplicate any existing canonical keys.
 
 ### 1d. Report assessment
@@ -269,116 +269,41 @@ Report the result to the user. Do not proceed to Phase 4 if live calls fail unex
 
 ## Phase 4: Pipeline Integration
 
-Wire the validated adapter into all required pipeline touchpoints. Read each target file before editing.
+Implement onboarding in a single adapter module. Do not edit bootstrap orchestration files.
 
-### 4a. Discovery spec registration
+### 4a. Add SOURCE_SPEC in the adapter module
 
-Edit `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py`:
-
-1. Add import for the new source constants and builder at the top, alongside existing imports.
-2. Add a `SourceBuilderSpec` entry to `_build_default_specs()`.
+In `apps/pipeline/src/orchestration/jobs/sources/<provider>_<series>_source.py`, add:
 
 ```python
-SourceBuilderSpec(
-    source_key=<SOURCE_KEY_CONSTANT>,
-    module_name="src.orchestration.jobs.sources.<provider>_<series>_source",
-    builder=lambda runner, observation_repository: build_<provider>_<series>_source_workflow(
-        runner,
-        observation_repository=observation_repository,
-        schedule_policy=SourceSchedulePolicy(
-            source_key=<SOURCE_KEY_CONSTANT>,
-            cadence_type="<cadence>",
-        ),
-    ),
-    provider_group_key="<provider>",
-    series_item_keys=(<series_item_keys_tuple>),
-    canonical_series_keys=(<canonical_series_keys_tuple>),
-),
+SOURCE_SPEC: dict[str, Any] = {
+  "source_key": <SOURCE_KEY_CONSTANT>,
+  "provider_group_key": "<provider>",
+  "series_item_keys": (<tuple_of_series_item_keys>),
+  "canonical_series_keys": (<tuple_of_canonical_series_keys>),
+  "ownership_mode": "grouped",
+  "cron_schedule": "<cron_expression>",
+  "cadence_label": "<cadence_label>",
+  "builder": build_<provider>_<series>_source_workflow,
+}
 ```
 
 Constraints:
 
 - `series_item_keys` and `canonical_series_keys` must have equal length and matching index order.
-- `source_key` must be unique across all specs.
+- `source_key` must be unique across all adapter modules.
+- `cadence_label` must be one of: `hourly`, `daily`, `weekly`, `monthly`, `custom_interval`.
+- `cron_schedule` must use valid five-field cron syntax.
 
-### 4b. Schedule configuration
+### 4b. Verify derived registration surfaces
 
-Edit `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py`:
+Discovery, schedules, Dagit assets, and workspace catalog are derived automatically from scanned manifests.
+Do not manually edit:
 
-1. Add entry to `SOURCE_CADENCE_DEFINITIONS`:
-
-   ```python
-   "<source_key>": ("<cron_expression>", "<cadence_label>"),
-   ```
-
-2. Add entry to `SOURCE_SERIES_ITEM_DEFINITIONS`:
-
-   ```python
-   "<source_key>": (<tuple_of_series_item_keys>),
-   ```
-
-3. Add entry to `SOURCE_PROVIDER_GROUP_DEFINITIONS`:
-
-   ```python
-   "<source_key>": "<provider_group_key>",
-   ```
-
-4. Create the schedule and add to `SOURCE_ASSET_SCHEDULES`:
-
-   ```python
-   <source_key>_schedule = _make_source_schedule("<source_key>", "<cron>", "<cadence>")
-
-   SOURCE_ASSET_SCHEDULES = [
-       ...,
-       <source_key>_schedule,
-   ]
-   ```
-
-### 4c. Dagit asset definitions
-
-Edit `apps/pipeline/src/orchestration/source_asset_definitions.py`:
-
-Add one `@asset` per series item:
-
-```python
-@asset(name="<series_name>", key_prefix="<provider_group>", required_resource_keys={"run_coordinator"})
-def <provider>_<series>_source_asset(context) -> dict[str, Any]:
-    """Materialize source visibility entry for <series_item_key>."""
-    return _run_series_item(
-        context=context,
-        source_key="<source_key>",
-        series_item_key="<series_item_key>",
-    )
-```
-
-Append all new assets to `SOURCE_DAGIT_ASSETS`.
-
-Conventions:
-
-- `key_prefix` must match `provider_group_key` from the discovery spec.
-- `name` is the series-specific part (e.g. `"unrate"` not `"bls_unrate"`).
-- For single-series sources, you can use `_run_single_source` instead of `_run_series_item`.
-
-### 4d. Definitions catalog
-
-Edit `apps/pipeline/src/orchestration/definitions.py`:
-
-Update `WORKSPACE_DEFINITION_CATALOG` to include new asset keys and the schedule name:
-
-```python
-WORKSPACE_DEFINITION_CATALOG: dict[str, tuple[str, ...]] = {
-    "jobs": ("ingest_job",),
-    "assets": (
-        ...,
-        "<provider_group>/<series_name>",  # key_prefix/name from 4c
-    ),
-    "schedules": (
-        ...,
-        "<source_key>_schedule",
-    ),
-    "sensors": ("ondemand_sensor",),
-}
-```
+- `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py`
+- `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py`
+- `apps/pipeline/src/orchestration/source_asset_definitions.py`
+- `apps/pipeline/src/orchestration/definitions.py`
 
 ---
 
@@ -755,10 +680,7 @@ Present the final status:
 - `apps/pipeline/src/orchestration/jobs/sources/<file>.py`
 
 ### Files Modified
-- `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py`
-- `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py`
-- `apps/pipeline/src/orchestration/source_asset_definitions.py`
-- `apps/pipeline/src/orchestration/definitions.py`
+- `apps/pipeline/src/orchestration/jobs/sources/<file>.py` (plus tests)
 
 ### Series Registered
 | Series Item Key | Canonical Key | Frequency | Schedule |

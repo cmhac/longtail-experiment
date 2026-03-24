@@ -107,13 +107,14 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 ## Source Workflow Onboarding
 
 1. Add a new source adapter under `apps/pipeline/src/orchestration/jobs/sources/`.
-2. Build a `SourceWorkflowRegistration` using `build_example_source_workflow` as the reference pattern.
-3. Register the adapter via discovery specs in `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py`
+2. Build a `SourceWorkflowRegistration` in that module and export module-level `SOURCE_SPEC`.
+3. Do not edit bootstrap orchestration files (`discovery.py`, schedules, assets, definitions, runtime) for provider onboarding.
 4. Validate onboarding behavior with:
 
 - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_workflow_contract.py`
 - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_source_onboarding_flow.py`
 - `pnpm exec nx run pipeline:test:orchestration:dynamic-registration`
+- `uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_single_file_onboarding_guard.py`
 
 ## Source-Asset Cutover Operations (Feature 010)
 

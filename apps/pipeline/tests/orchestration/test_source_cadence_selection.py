@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.due_source_selector import DueSourceSelector
+from src.orchestration.jobs.source_assets.discovery import scan_adapter_modules
 from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
 from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
 from src.orchestration.jobs.workflow_result import SourceWorkflowResult
@@ -110,12 +111,16 @@ def test_invalid_policy_is_marked_as_skipped_invalid_policy() -> None:
 
 def test_source_asset_owns_schedule_cadence() -> None:
     """Feature 011 US1: each source schedule definition maps to its own cadence."""
-    assert "fred_fedfunds" in SOURCE_CADENCE_DEFINITIONS
+    specs = scan_adapter_modules()
+    assert specs
 
-    assert SOURCE_CADENCE_DEFINITIONS["fred_fedfunds"][1] == "daily"
+    for spec in specs:
+        assert spec.source_key in SOURCE_CADENCE_DEFINITIONS
+        assert SOURCE_CADENCE_DEFINITIONS[spec.source_key][1] == spec.cadence_label
 
 
 def test_source_asset_schedules_have_distinct_cron_definitions() -> None:
     """Feature 011 US1: per-source schedules should have appropriate cron expressions."""
-    # Daily: midnight
-    assert SOURCE_CADENCE_DEFINITIONS["fred_fedfunds"][0] == "0 0 * * *"
+    specs = scan_adapter_modules()
+    for spec in specs:
+        assert SOURCE_CADENCE_DEFINITIONS[spec.source_key][0] == spec.cron_schedule
