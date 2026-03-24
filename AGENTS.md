@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-03-24
 
 ## Active Technologies
+- Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers (022-dagster-postgres-backend)
+- Two local PostgreSQL database roles: orchestration metadata store and canonical output-data store (022-dagster-postgres-backend)
 
 - Python 3.12 for backend and pipeline applications (`apps/backend`, `apps/pipeline`)
 - TypeScript 5.x for frontend application (`apps/frontend`) with Node.js 22 LTS runtime
@@ -176,13 +178,13 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   `pnpm exec nx run-many -t coverage --all` with minimum thresholds satisfied.
 
 ## Recent Changes
+- 022-dagster-postgres-backend: Added Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers
 
 - 021-bootstrap-provider-script: Added provider adapter bootstrap tooling (`tools/provider_bootstrap`) and root script `pnpm run provider:bootstrap` to standardize new source adapter scaffolding.
 
 - 019-real-backend-api: Delivered backend runtime/query composition against canonical
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
   in `apps/backend/src/contract`.
-- 018-frontend-dataset-discovery: Delivered dataset discovery UI on Next.js 15/React 19
   with HeroUI/Recharts and strict TypeScript + Biome + Vitest quality tooling.
   query layer integration with PostgreSQL 16 canonical tables.
   provider ownership model and source-owned schedule authority in orchestration runtime.
