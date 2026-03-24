@@ -35,10 +35,7 @@ def test_eligibility_snapshots_are_persisted_for_each_run() -> None:
     snapshots = run_repo.read_eligibility_snapshots(run_id)
 
     assert snapshots
-    assert {snapshot["source_key"] for snapshot in snapshots} >= {
-        "dummy_source",
-        "example_source",
-    }
+    assert {snapshot["source_key"] for snapshot in snapshots} >= {"fred_fedfunds"}
     for snapshot in snapshots:
         assert snapshot["eligibility_state"] in {
             "due",

@@ -43,12 +43,7 @@ def test_discovery_returns_deterministic_source_order() -> None:
 
     source_keys = [registration.source_key for _, registration in discovered]
     assert source_keys == sorted(source_keys)
-    assert source_keys == [
-        "dummy_source",
-        "example_source",
-        "fred_fedfunds",
-        "implementation_window_source",
-    ]
+    assert source_keys == ["fred_fedfunds"]
 
 
 def test_discovery_order_is_stable_across_repeated_runs() -> None:

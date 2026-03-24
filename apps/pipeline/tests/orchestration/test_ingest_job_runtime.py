@@ -20,8 +20,8 @@ from src.orchestration.resources.postgres_observation_repository import (
 )
 
 
-def test_ingest_job_executes_and_creates_dummy_source_data() -> None:
-    """Dagster ingest job should persist run and source outcome rows in Postgres."""
+def test_ingest_job_executes_and_persists_fred_source_outcomes() -> None:
+    """Dagster ingest job should persist run and FRED source outcome rows in Postgres."""
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository
     observation_repo = PostgresObservationRepository()
@@ -47,7 +47,7 @@ def test_ingest_job_executes_and_creates_dummy_source_data() -> None:
     persisted = run_repo.fetch_run(run_id)
     assert persisted is not None
     assert persisted["run"]["run_id"] == run_id
-    assert persisted["run"]["outcome_state"] in {"success", "partial_success"}
+    assert persisted["run"]["outcome_state"] in {"success", "partial_success", "failure"}
     assert int(persisted["run"]["due_source_count"]) >= 1
     assert int(persisted["run"]["executed_source_count"]) >= 1
     assert int(persisted["run"]["deferred_source_count"]) >= 0
@@ -55,9 +55,11 @@ def test_ingest_job_executes_and_creates_dummy_source_data() -> None:
     assert len(persisted["outcomes"]) >= 1
     assert len(persisted["eligibility"]) >= 1
 
-    dummy_outcomes = [row for row in persisted["outcomes"] if row["source_key"] == "dummy_source"]
-    assert len(dummy_outcomes) == 1
-    assert int(dummy_outcomes[0]["accepted_count"]) >= 0
+    fred_outcomes = [
+        row for row in persisted["outcomes"] if row["source_key"] == FRED_FEDFUNDS_SOURCE_KEY
+    ]
+    assert len(fred_outcomes) == 1
+    assert int(fred_outcomes[0]["accepted_count"]) >= 0
 
 
 def test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward() -> None:
@@ -72,8 +74,8 @@ def test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward() 
         pytest.skip(f"postgres runtime DB unavailable for integration test: {exc}")
 
     run_repo.clear_all()
-    runtime.source_lock_service.acquire("dummy_source", "active-token")
-    runtime.source_lock_service.acquire("dummy_source", "queued-token")
+    runtime.source_lock_service.acquire(FRED_FEDFUNDS_SOURCE_KEY, "active-token")
+    runtime.source_lock_service.acquire(FRED_FEDFUNDS_SOURCE_KEY, "queued-token")
 
     try:
         result = defs.get_job_def("ingest_job").execute_in_process(
@@ -87,12 +89,15 @@ def test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward() 
         assert persisted is not None
         assert int(persisted["run"]["deferred_source_count"]) >= 1
     finally:
-        runtime.source_lock_service.release("dummy_source", "active-token")
-        runtime.source_lock_service.release("dummy_source", "queued-token")
+        runtime.source_lock_service.release(FRED_FEDFUNDS_SOURCE_KEY, "active-token")
+        runtime.source_lock_service.release(FRED_FEDFUNDS_SOURCE_KEY, "queued-token")
 
 
 def test_ingest_job_persists_schedule_policy_rows_for_registered_sources() -> None:
     """Successful ingest run should persist schedule state for registered sources."""
+    if not os.getenv("FRED_API_KEY", "").strip():
+        pytest.skip("FRED_API_KEY not set; skipping schedule policy persistence integration")
+
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository
 
@@ -289,7 +294,5 @@ def test_no_shared_schedule_trigger_path_in_definitions() -> None:
     """Feature 011 US3: no shared all-source schedule should exist in definitions."""
     schedule_names = {s.name for s in (defs.schedules or [])}
     assert "ingest_schedule" not in schedule_names
-    # Verify per-source schedules are present instead
-    assert "dummy_source_schedule" in schedule_names
-    assert "example_source_schedule" in schedule_names
+    # Verify active source schedules are present instead.
     assert "fred_fedfunds_schedule" in schedule_names

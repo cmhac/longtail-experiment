@@ -25,8 +25,6 @@ from src.orchestration.schedules.source_asset_schedules import _make_source_sche
 from src.orchestration.source_asset_definitions import (
     _run_series_item,
     _run_single_source,
-    dummy_source_asset,
-    example_source_asset,
     fred_fedfunds_source_asset,
     fred_gasregw_source_asset,
 )
@@ -185,27 +183,23 @@ def test_source_asset_helpers_run_source_and_series_variants() -> None:
     """Source- and series-scoped helper invocations should map to expected output keys."""
     context = _Context()
 
-    source_result = _run_single_source(context=context, source_key="dummy_source")
+    source_result = _run_single_source(context=context, source_key="fred_fedfunds")
     series_result = _run_series_item(
         context=context,
         source_key="fred_fedfunds",
         series_item_key="fred_gasregw",
     )
 
-    assert source_result["source_key"] == "dummy_source"
+    assert source_result["source_key"] == "fred_fedfunds"
     assert series_result["series_item_key"] == "fred_gasregw"
 
 
 def test_source_asset_wrapper_assets_delegate_to_helpers() -> None:
     """Public asset wrappers should delegate to the internal run helpers."""
     context = build_op_context(resources={"run_coordinator": _Coordinator()})
-    dummy_result = cast(dict[str, object], dummy_source_asset(context))
-    example_result = cast(dict[str, object], example_source_asset(context))
     fedfunds_result = cast(dict[str, object], fred_fedfunds_source_asset(context))
     gas_result = cast(dict[str, object], fred_gasregw_source_asset(context))
 
-    assert dummy_result["source_key"] == "dummy_source"
-    assert example_result["source_key"] == "example_source"
     assert fedfunds_result["series_item_key"] == "fred_fedfunds"
     assert gas_result["series_item_key"] == "fred_gasregw"
 
@@ -216,7 +210,7 @@ def test_invalid_source_request_summary_contains_expected_counters() -> None:
         requested_by="operator",
         trigger_type="on_demand",
         invalid_source_keys=["unknown-source"],
-        available_source_keys=["dummy_source"],
+        available_source_keys=["fred_fedfunds"],
     )
 
     assert summary["outcome_state"] == "failure"
