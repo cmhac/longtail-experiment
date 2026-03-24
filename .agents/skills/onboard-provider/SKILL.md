@@ -1,6 +1,7 @@
 ---
 name: onboard-provider
-description: Implement and wire a new data source provider into the Dagster ingestion pipeline.
+description:
+  Implement and wire a new data source provider into the Dagster ingestion pipeline.
   Use when the user provides a description, example code, or API reference for a new
   data source to ingest. Performs feasibility assessment, builds the source adapter,
   validates it standalone, then integrates it into the pipeline.
@@ -19,6 +20,7 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding. The input may be:
+
 - A verbal description of a data source and its API
 - Example code or API response snippets
 - A link to API documentation
@@ -42,20 +44,28 @@ Before writing any code, evaluate whether the described data source fits the pla
 
 From the user's input, identify and document:
 
-| Property | Value |
-|---|---|
-| **Provider name** | The organization or platform (e.g. "BLS", "World Bank") |
-| **API base URL** | The root HTTP endpoint |
-| **Authentication** | Open, API key, OAuth, etc. |
-| **Response format** | JSON, XML, CSV, etc. |
-| **Series to ingest** | List each series with: provider series ID, human name, frequency, geographic scope |
-| **Canonical series keys** | Propose keys following the `CATEGORY.COUNTRY.SERIES` convention (e.g. `LABOR.US.UNRATE`) |
-| **Source key** | Propose a `source_key` following the `<provider>_<primary_series>` convention |
-| **Provider group key** | The provider grouping key (e.g. "bls", "worldbank") |
-| **Schedule cadence** | How often new data is published (daily, weekly, monthly, quarterly) |
-| **Backfill support** | Whether the API accepts date-range or start-date parameters |
+| Property                        | Value                                                                                              |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Provider name**               | The organization or platform (e.g. "BLS", "World Bank")                                            |
+| **API base URL**                | The root HTTP endpoint                                                                             |
+| **Authentication**              | Open, API key, OAuth, etc.                                                                         |
+| **Response format**             | JSON, XML, CSV, etc.                                                                               |
+| **Series to ingest**            | List each series with: provider series ID, human name, frequency, geographic scope                 |
+| **Canonical series keys**       | Propose keys following the `CATEGORY.COUNTRY.SERIES` convention (e.g. `LABOR.US.UNRATE`)           |
+| **Source key**                  | Propose a `source_key` following the `<provider>_<primary_series>` convention                      |
+| **Provider group key**          | The provider grouping key (e.g. "bls", "worldbank")                                                |
+| **Schedule cadence**            | How often new data is published (daily, weekly, monthly, quarterly)                                |
+| **Backfill support**            | Whether the API accepts date-range or start-date parameters                                        |
+| **Data dimensionality**         | Whether records are single-series points or a high-dimensional cube (e.g., country x class x type) |
+| **Series cardinality strategy** | Static bounded series set vs dynamic/high-cardinality series generation                            |
 
 If any of these cannot be determined from the input, ask the user before proceeding.
+
+For high-dimensional sources, ask these additional required questions before Phase 2:
+
+1. Should dimensions (e.g., country, visa_class, visa_type) be modeled as `attributes` on observations or expanded into many canonical series keys?
+2. Is dynamic series-key generation acceptable, or must series remain statically declared in discovery specs?
+3. Do downstream APIs need first-class dimension filters now, or is dataset-level retrieval plus client-side filtering acceptable?
 
 ### 1b. Validate against platform constraints
 
@@ -74,6 +84,17 @@ Check each of these requirements. If any fail, stop and explain the blocker to t
    - `value` (numeric string) — the observation value
 4. **Stable series identifiers** — The provider must use persistent IDs for each series across API calls.
 5. **Free or free-tier access** — No paid commercial licensing. Free API keys requiring registration are fine.
+
+If the source is file-based (XLSX/PDF/CSV downloads discovered via HTML scraping), apply this decision rule:
+
+- Mark status as `NEEDS CLARIFICATION` unless the user explicitly accepts the scraping/file-extraction tradeoff.
+- Require a parser reliability plan before implementation: parse-success metrics per file, hard failure thresholds, and row-count sanity checks.
+
+If the source is high-dimensional (for example country x category x class), apply this decision rule:
+
+- Confirm whether product requirements need first-class API filtering by dimensions.
+- If yes and the current platform only supports static canonical series discovery, mark `BLOCKED` and explain required platform changes.
+- If no, map dimensions into `attributes` and keep a bounded static canonical series set.
 
 ### 1c. Check for conflicts
 
@@ -160,6 +181,7 @@ The module must export:
 
 4. **Record mapper function**: `_map_<provider>_records(rows, series_config) -> list[dict[str, object]]`
    Each mapped record must include all fields the canonical normalizer expects:
+
    ```python
    {
        "source_name": "<PROVIDER>",
@@ -217,6 +239,8 @@ The script should:
 
 4. **Test credential failure path** — Invoke the handler without credentials and without passthrough records. Verify it returns `status="failure"` with `outcome_reason_code="missing_credentials"` (only for sources that require authentication).
 
+5. **Test parser-loss guardrails** (required for file/PDF extraction sources) — Simulate malformed lines/rows and verify the adapter emits clear failure or quarantine behavior when parse loss exceeds threshold.
+
 Run the script:
 
 ```bash
@@ -273,6 +297,7 @@ SourceBuilderSpec(
 ```
 
 Constraints:
+
 - `series_item_keys` and `canonical_series_keys` must have equal length and matching index order.
 - `source_key` must be unique across all specs.
 
@@ -281,21 +306,25 @@ Constraints:
 Edit `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py`:
 
 1. Add entry to `SOURCE_CADENCE_DEFINITIONS`:
+
    ```python
    "<source_key>": ("<cron_expression>", "<cadence_label>"),
    ```
 
 2. Add entry to `SOURCE_SERIES_ITEM_DEFINITIONS`:
+
    ```python
    "<source_key>": (<tuple_of_series_item_keys>),
    ```
 
 3. Add entry to `SOURCE_PROVIDER_GROUP_DEFINITIONS`:
+
    ```python
    "<source_key>": "<provider_group_key>",
    ```
 
 4. Create the schedule and add to `SOURCE_ASSET_SCHEDULES`:
+
    ```python
    <source_key>_schedule = _make_source_schedule("<source_key>", "<cron>", "<cadence>")
 
@@ -325,6 +354,7 @@ def <provider>_<series>_source_asset(context) -> dict[str, Any]:
 Append all new assets to `SOURCE_DAGIT_ASSETS`.
 
 Conventions:
+
 - `key_prefix` must match `provider_group_key` from the discovery spec.
 - `name` is the series-specific part (e.g. `"unrate"` not `"bls_unrate"`).
 - For single-series sources, you can use `_run_single_source` instead of `_run_series_item`.
@@ -584,6 +614,7 @@ else:
 ```
 
 **If the run failed:**
+
 1. Read the error message and stack trace.
 2. Common failure causes:
    - **`missing_credentials`**: The source requires an API key. If the user has provided one, pass it as an environment variable to the Dagit container: stop the stack, add the variable to `docker-compose.yml` under the `dagit` service's `environment` section (or use `docker compose run -e <VAR>=<VALUE>`), and retry.
@@ -619,6 +650,7 @@ if not items:
 ```
 
 If no results are returned, this means either:
+
 - The records were not persisted (check run logs)
 - The search index fields (`dataset_title`, `dataset_description`, `topic_tags`) were empty or missing in the mapped records — go back and fix the record mapper
 
@@ -669,14 +701,14 @@ if not obs:
 
 **Validate the detail response against these expectations:**
 
-| Field | Expected |
-|---|---|
-| `title` | Non-empty, matches `dataset_title` / `metric_name` from the record mapper |
-| `description` | Non-empty, matches `dataset_description` from the record mapper |
-| `geographic_scope` | Non-empty, matches `dataset_geographic_scope` from the record mapper |
-| `source_name` | Matches the `source_name` constant in the adapter (e.g. `"BLS"`, `"WORLDBANK"`) |
-| `topic_tags` | Non-empty list, matches the `topic_tags` list from the series config |
-| `observations` | At least 1 observation with valid `date` and numeric `value` |
+| Field              | Expected                                                                        |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `title`            | Non-empty, matches `dataset_title` / `metric_name` from the record mapper       |
+| `description`      | Non-empty, matches `dataset_description` from the record mapper                 |
+| `geographic_scope` | Non-empty, matches `dataset_geographic_scope` from the record mapper            |
+| `source_name`      | Matches the `source_name` constant in the adapter (e.g. `"BLS"`, `"WORLDBANK"`) |
+| `topic_tags`       | Non-empty list, matches the `topic_tags` list from the series config            |
+| `observations`     | At least 1 observation with valid `date` and numeric `value`                    |
 
 If any field is missing or wrong, trace it back through the chain: record mapper output → canonical normalizer → persistence → query projection. Fix the root cause (almost always in the record mapper) and re-run from 5e.
 
