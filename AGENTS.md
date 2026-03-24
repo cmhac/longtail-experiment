@@ -4,55 +4,31 @@ Auto-generated from all feature plans. Last updated: 2026-03-23
 
 ## Active Technologies
 
-- Python 3.12 for backend runtime and query composition + Existing backend query/service modules in `apps/backend/src/query`, SQLAlchemy-based repository access in `libs/db/src/db/repositories`, Pydantic contract models in `apps/backend/src/contract`, psycopg/PostgreSQL runtime stack via existing local infrastructure (019-real-backend-api)
-- PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`, `observations`, topic tag tables) (019-real-backend-api)
+- Python 3.12 for backend and pipeline applications (`apps/backend`, `apps/pipeline`)
+- TypeScript 5.x for frontend application (`apps/frontend`) with Node.js 22 LTS runtime
+- Nx monorepo orchestration with pnpm 9 workspace management
 
-- TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js App Router runtime, React runtime from Next.js, HeroUI component system, existing Biome/Vitest/TypeScript/Nx toolchain (016-scaffold-site-furniture)
-- N/A (UI scaffold only, no persistence changes) (016-scaffold-site-furniture)
-- Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src` (017-dataset-discovery-api)
-- PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`, `observations`, topic tag relation tables) (017-dataset-discovery-api)
-- TypeScript 5.x with strict mode; Node.js 22 LTS + Next.js 15 (App Router), React 19, HeroUI 3, Recharts (new), Vitest 2, Biome (018-frontend-dataset-discovery)
-- N/A — read-only consumer of the 017 backend API (018-frontend-dataset-discovery)
+- Backend/pipeline stack: SQLAlchemy 2.x, Alembic, psycopg 3.x, Pydantic 2.x,
+  Dagster 1.x, structlog, OpenTelemetry API/SDK
+- Python quality tooling: uv, ruff, ty, pytest, pytest-cov
+- Frontend stack: Next.js 15 (App Router), React 19, HeroUI 3, Recharts
+- Frontend quality tooling: Biome, TypeScript compiler, Vitest, @vitest/coverage-v8
 
-- TypeScript 5.x (frontend), Node.js 22 LTS workspace runtime + Next.js (App Router baseline), React runtime from Next.js, existing Biome/Vitest/TypeScript toolchain, Nx run-commands targets (015-scaffold-page-furniture)
-- N/A for this scaffold-only feature (no data persistence changes) (015-scaffold-page-furniture)
-
-- PostgreSQL 16 runtime store plus canonical observation store (`source_profiles`, `data_series`, `observations`) (012-multi-series-adapters)
-
-- PostgreSQL 16 runtime store for ingestion run and source outcome visibility; legacy cadence/eligibility structures rationalized to historical-only (011-source-asset-cadence)
-
-- Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, structlog, OpenTelemetry API/SDK, uv, pytest, Nx tooling (010-source-asset-migration)
-- PostgreSQL 16 local runtime DB (`ingestion_runs`, `source_run_outcomes`, related orchestration tables) (010-source-asset-migration)
-
-- Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x with Dagit UI, existing pipeline orchestration modules, uv, pytest, Docker Compose local stack tooling (009-dagit-local-dev)
-- PostgreSQL 16 local runtime DB (existing local stack) for orchestration-backed views where required; no new production storage introduced (009-dagit-local-dev)
-
-- Python 3.12 (pipeline/backend/shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, Nx tooling (006-parallel-source-scheduling)
-- PostgreSQL 16 local runtime DB persisted via `ingestion_runs` and `source_run_outcomes` tables (006-parallel-source-scheduling)
-- Python 3.12 (pipeline/backend), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, psycopg 3.x, requests/httpx adapter for external provider calls, uv, pytes (008-add-fred-source)
-- PostgreSQL 16 local runtime DB; existing runtime tables plus new canonical observation persistence path (currently missing in runtime wiring) (008-add-fred-source)
-
-- Python 3.12 (pipeline and shared DB), TypeScript 5.x unchanged + Dagster 1.x, Pydantic 2.x, SQLAlchemy 2.x, Alembic, psycopg 3.x, structlog, OpenTelemetry API/SDK, Nx workspace tooling (005-dagster-ingest-pipeline)
-- PostgreSQL 16 local dev database with relational time-series persistence and migration authority under `libs/db/alembic` (005-dagster-ingest-pipeline)
-
-- Python 3.12 (backend and pipeline tooling), shell scripts for local verification + Docker Compose, PostgreSQL 16 image for local DB service, SQLAlchemy 2.x, Alembic, psycopg 3.x, uv, pytest, Nx quality scripts (004-local-dev-db)
-- PostgreSQL 16 local development database with persistent volume by default (004-local-dev-db)
-
-- Python 3.12 (pipeline and backend), TypeScript 5.x (frontend unchanged) + Nx workspace tooling, uv, ruff, ty, pytest, dagster baseline package, SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, structlog, OpenTelemetry SDK/API (003-define-data-contract)
-- PostgreSQL 16 with TimescaleDB 2.14 extension for hypertable time-series partitioning and relational integrity (003-define-data-contract)
-
-- Python 3.12 (backend and pipeline contract implementation), TypeScript 5.x (no feature scope changes) + Nx workspace tooling, uv, ruff, ty, pytest, baseline dagster package, contract documentation set under specs (003-define-data-contract)
-- Contract-target storage is relational time-series persistence with immutable provenance and revision linkage (exact engine selected in implementation phase) (003-define-data-contract)
-
-- Python 3.12 (pipeline/backend), TypeScript 5.x (frontend), Node.js 22 LTS + Nx workspace tooling, uv, ruff, ty, pytest, dagster (baseline package only), pnpm, Biome, Vitest, PMD CPD (002-pipeline-app-baseline)
-- N/A (scaffolding-only feature; no production persistence design) (002-pipeline-app-baseline)
-
-- Python 3.12 (backend), TypeScript 5.x (frontend), Node.js 22 LTS
-- Nx workspace orchestration
-- pnpm 9 workspace management
-- Backend tooling: uv, ruff, ty, pytest, pytest-cov
-- Frontend tooling: Biome, TypeScript compiler, Vitest, @vitest/coverage-v8
+- Data stores: PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`,
+  `observations`, topic-tag relation tables) and ingestion runtime tables
+  (`ingestion_runs`, `source_run_outcomes`, cadence/eligibility persistence)
+- Local runtime: unified Docker Compose stack plus Dagit local tooling under
+  `tools/quality/local-stack`
+- Shared DB library: `libs/db` with migration authority under `libs/db/alembic`
 - Cross-repo duplication tooling: PMD CPD 7.22.0 scripts
+
+Feature references for current stack shape:
+
+- 019-real-backend-api (backend runtime/query composition and canonical dataset APIs)
+- 018-frontend-dataset-discovery (frontend discovery UX stack and charting)
+- 017-dataset-discovery-api (dataset discovery/search backend contract)
+- 012-multi-series-adapters (provider grouping/series ownership runtime model)
+- 011-source-asset-cadence (source-owned schedule authority)
 
 ## Project Structure
 
@@ -200,13 +176,18 @@ Current migration head expected by local revision checks: `0008_dataset_discover
 
 ## Recent Changes
 
-- 019-real-backend-api: Added Python 3.12 for backend runtime and query composition + Existing backend query/service modules in `apps/backend/src/query`, SQLAlchemy-based repository access in `libs/db/src/db/repositories`, Pydantic contract models in `apps/backend/src/contract`, psycopg/PostgreSQL runtime stack via existing local infrastructure
-
-- 018-frontend-dataset-discovery: Added TypeScript 5.x with strict mode; Node.js 22 LTS + Next.js 15 (App Router), React 19, HeroUI 3, Recharts (new), Vitest 2, Biome
-- 017-dataset-discovery-api: Added Python 3.12 for backend query layer; SQL targeting PostgreSQL 16 + SQLAlchemy 2.x models/repositories in `libs/db`, psycopg 3.x runtime access, Pydantic 2.x contract models, existing backend contract/query modules in `apps/backend/src`
-
-  placeholder projects, strict quality gates, affected-only checks, PMD duplication
-  scripts, and Docker Compose local stack verification.
+- 019-real-backend-api: Delivered backend runtime/query composition against canonical
+  PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
+  in `apps/backend/src/contract`.
+- 018-frontend-dataset-discovery: Delivered dataset discovery UI on Next.js 15/React 19
+  with HeroUI/Recharts and strict TypeScript + Biome + Vitest quality tooling.
+- 017-dataset-discovery-api: Delivered backend dataset discovery/search contracts and
+  query layer integration with PostgreSQL 16 canonical tables.
+- 012-multi-series-adapters and 011-source-asset-cadence: Established grouped/split
+  provider ownership model and source-owned schedule authority in orchestration runtime.
+- Repository quality governance tightened: strict non-bypass full-suite test and
+  coverage stop gates (`nx run-many -t test --all` and `nx run-many -t coverage --all`),
+  plus all-project lint/format/typecheck/test/coverage enforcement.
 
 <!-- MANUAL ADDITIONS START -->
 
