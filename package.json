@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "provider:bootstrap": "uv run --project apps/pipeline python tools/provider_bootstrap/bootstrap_provider.py",
     "quality:lint:all": "pnpm exec nx run-many -t lint --all",
     "quality:format:all": "pnpm exec nx run-many -t format --all",
     "quality:typecheck:all": "pnpm exec nx run-many -t typecheck --all",

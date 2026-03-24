@@ -2,6 +2,16 @@
 
 This guide covers the end-to-end process for adding a new ingestion provider (or new series under an existing provider) to the Dagster orchestration runtime.
 
+## Standard Onboarding Entry Point (Required)
+
+The standard and required first step for new provider onboarding is generating the adapter scaffold via the root bootstrap command:
+
+```bash
+pnpm run provider:bootstrap -- --provider-group-key acme --source-key acme_cpi --module-name acme_cpi_source --cadence-label monthly --cron-schedule "0 0 1 * *" --series-item-key acme_cpi --canonical-series-key PRICE.US.CPI --provider-series-id CPIAUCSL
+```
+
+Do not start by manually authoring a new adapter file unless the bootstrap command is unavailable and an explicit exception is documented in the change notes.
+
 ## What Is and Isn't Automated
 
 **Automatically handled by dynamic registration** (no bootstrap edits required):
@@ -49,9 +59,9 @@ Provider adapters that emit canonical records feed the backend dataset discovery
 
 ---
 
-## Step 1: Implement the Source Adapter
+## Step 1: Generate Adapter Scaffold And Implement Source Logic
 
-Create `apps/pipeline/src/orchestration/jobs/sources/<provider>_source.py`.
+Run the standard bootstrap command first, then complete provider-specific logic in the generated file under `apps/pipeline/src/orchestration/jobs/sources/<provider>_source.py`.
 
 > **Naming is required**: the file must end in `_source.py` or dynamic discovery will skip it.
 
@@ -243,16 +253,14 @@ Only needed when the new source requires new runtime persistence fields or table
 
 Before opening a PR, confirm all of the following:
 
+- [ ] Adapter scaffold was generated via `pnpm run provider:bootstrap -- ...` (or exception documented)
 - [ ] Source adapter module file ends in `_source.py`
-- [ ] `SourceBuilderSpec` added to `_build_default_specs()` in `discovery.py`
 - [ ] `series_item_keys` and `canonical_series_keys` are equal length and index-aligned
 - [ ] `source_key` is unique across all existing specs (no duplicates)
-- [ ] Schedule cadence added to all four dicts in `source_asset_schedules.py`
-- [ ] Dagit assets added to `source_asset_definitions.py` with correct `key_prefix`
-- [ ] `WORKSPACE_DEFINITION_CATALOG` in `definitions.py` updated for new assets and schedule
-- [ ] Key identities consistent: `source_key`, `provider_group_key`, `series_item_key`, `canonical_series_key`
-- [ ] `grouped` vs `split` ownership decision is explicit in `SourceBuilderSpec.ownership_mode`
+- [ ] Key identities are consistent: `source_key`, `provider_group_key`, `series_item_key`, `canonical_series_key`
+- [ ] Source metadata (`cron_schedule`, `cadence_label`, `ownership_mode`) is accurate in `SOURCE_SPEC`
 - [ ] `pnpm exec nx run pipeline:test:orchestration:dynamic-registration` passes
+- [ ] `pnpm exec nx run pipeline:test:provider-bootstrap` passes
 - [ ] Affected quality gates pass (`lint`, `typecheck`, `test`, `coverage`)
 - [ ] Dagit endpoint returns ready and new assets are visible in catalog
 - [ ] Runbook / docs updated if any new cadence patterns or naming conventions were introduced

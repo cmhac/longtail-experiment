@@ -59,6 +59,12 @@
         "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_source_asset_discovery.py apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py apps/pipeline/tests/orchestration/test_definitions_smoke.py"
       }
     },
+    "test:provider-bootstrap": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/unit/test_provider_bootstrap_validation.py apps/pipeline/tests/unit/test_provider_bootstrap_collision_checks.py apps/pipeline/tests/unit/test_provider_bootstrap_render.py apps/pipeline/tests/integration/test_provider_bootstrap_cli_success.py apps/pipeline/tests/integration/test_provider_bootstrap_cli_invalid_input.py apps/pipeline/tests/integration/test_provider_bootstrap_cli_collisions.py apps/pipeline/tests/contract/test_provider_bootstrap_scaffold_contract.py apps/pipeline/tests/contract/test_provider_onboarding_runbook_standard.py apps/pipeline/tests/contract/test_onboard_provider_skill_bootstrap_standard.py"
+      }
+    },
     "test:orchestration:multi-series": {
       "executor": "nx:run-commands",
       "options": {

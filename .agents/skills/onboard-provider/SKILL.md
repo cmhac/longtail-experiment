@@ -29,6 +29,15 @@ You **MUST** consider the user input before proceeding. The input may be:
 
 If the input is empty, ask the user to describe the data source they want to add.
 
+## Mandatory Bootstrap-First Workflow
+
+Before creating or editing adapter implementation files, you MUST:
+
+1. Read `docs/runbooks/provider-onboarding.md`.
+2. Use `pnpm run provider:bootstrap -- ...` to generate the new adapter scaffold.
+
+Manual creation of a new adapter file is not the default path. Only proceed manually if the bootstrap command is unavailable and explicitly document the exception in your output.
+
 ---
 
 ## Phase 1: Feasibility Assessment
@@ -156,7 +165,7 @@ Read these files to ensure you follow established patterns exactly:
 
 ### 2b. Create the source module
 
-Create `apps/pipeline/src/orchestration/jobs/sources/<provider>_<series>_source.py`.
+Create the adapter by running `pnpm run provider:bootstrap -- ...` first, then complete implementation in `apps/pipeline/src/orchestration/jobs/sources/<provider>_<series>_source.py`.
 
 **Critical**: The filename **must** end in `_source.py`. The discovery filter in `discovery.py` enforces this.
 

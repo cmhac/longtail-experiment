@@ -1,0 +1,129 @@
+"""${provider_name} source workflow adapter."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from datetime import UTC, datetime
+from typing import Any
+
+from ..source_assets.discovery import ObservationCheckpointRepository
+from ..source_ingest_runner import SourceIngestRunner
+from ..source_schedule_policy import SourceSchedulePolicy
+from ..workflow_registry import SourceWorkflowRegistration
+from ..workflow_request import SourceWorkflowRequest
+from ..workflow_result import SourceWorkflowResult
+
+${source_constant_name} = "${source_key}"
+
+SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
+${series_configs}
+)
+
+
+def _map_records(*, rows: Sequence[dict[str, Any]], series_config: dict[str, Any]) -> list[dict[str, object]]:
+    mapped: list[dict[str, object]] = []
+    now_iso = datetime.now(tz=UTC).isoformat()
+    for row in rows:
+        mapped.append(
+            {
+                "source_name": "${provider_name}",
+                "source_type": "external",
+                "series_key": series_config["canonical_series_key"],
+                "metric_name": series_config["metric_name"],
+                "dataset_title": series_config["metric_name"],
+                "dataset_description": series_config["dataset_description"],
+                "dataset_geographic_scope": series_config["dataset_geographic_scope"],
+                "topic_tags": series_config["topic_tags"],
+                "frequency": series_config["frequency"],
+                "date": str(row.get("date", "")),
+                "reported_at": str(row.get("reported_at") or now_iso),
+                "value": str(row.get("value", "")),
+                "attributes": {"provider_series_id": series_config["provider_series_id"]},
+            }
+        )
+    return mapped
+
+
+def ${builder_function_name}(
+    runner: SourceIngestRunner,
+    *,
+    observation_repository: ObservationCheckpointRepository,
+    schedule_policy: SourceSchedulePolicy | None = None,
+) -> SourceWorkflowRegistration:
+    """Build workflow registration for ${source_key}."""
+
+    def _handler(request: SourceWorkflowRequest) -> SourceWorkflowResult:
+        passthrough_records = request.run_context.get("records")
+        if passthrough_records is not None:
+            if not isinstance(passthrough_records, list):
+                raise ValueError("run_context.records must be a list")
+            return runner.run_records(request=request, records=passthrough_records)
+
+        # TODO: Fetch provider rows here and map each series through _map_records.
+        # This generated baseline intentionally returns empty records until provider
+        # specific fetch/mapping is implemented.
+        accepted_count = 0
+        quarantined_count = 0
+        failed_count = 0
+        series_outcomes: list[dict[str, object]] = []
+
+        for series_config in SERIES_CONFIGS:
+            _ = observation_repository.read_latest_observed_on(
+                series_key=series_config["canonical_series_key"],
+            )
+            result = runner.run_records(request=request, records=[])
+            accepted_count += result.accepted_count
+            quarantined_count += result.quarantined_count
+            failed_count += result.failed_count
+            series_outcomes.append(
+                {
+                    "series_item_key": series_config["series_item_key"],
+                    "canonical_series_key": series_config["canonical_series_key"],
+                    "provider_series_id": series_config["provider_series_id"],
+                    "provider_group_key": "${provider_group_key}",
+                    "ownership_mode": "${ownership_mode}",
+                    "owner_adapter_key": request.source_key,
+                    "status": result.status,
+                    "accepted_count": result.accepted_count,
+                    "quarantined_count": result.quarantined_count,
+                    "failed_count": result.failed_count,
+                }
+            )
+
+        status = "success"
+        if failed_count > 0 and accepted_count == 0 and quarantined_count == 0:
+            status = "failure"
+        elif failed_count > 0 or quarantined_count > 0:
+            status = "partial_success"
+
+        return SourceWorkflowResult(
+            source_key=request.source_key,
+            status=status,
+            accepted_count=accepted_count,
+            quarantined_count=quarantined_count,
+            failed_count=failed_count,
+            outcome_reason_code=None,
+            message=None,
+            series_outcomes=series_outcomes,
+        )
+
+    return SourceWorkflowRegistration(
+        workflow_id="${workflow_id}",
+        source_key=${source_constant_name},
+        owner="pipeline",
+        supported_trigger_modes={"scheduled", "on_demand"},
+        handler=_handler,
+        schedule_policy=schedule_policy,
+    )
+
+
+SOURCE_SPEC: dict[str, Any] = {
+    "source_key": ${source_constant_name},
+    "provider_group_key": "${provider_group_key}",
+    "series_item_keys": (${series_item_keys},),
+    "canonical_series_keys": (${canonical_series_keys},),
+    "ownership_mode": "${ownership_mode}",
+    "cron_schedule": "${cron_schedule}",
+    "cadence_label": "${cadence_label}",
+    "builder": ${builder_function_name},
+}

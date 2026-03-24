@@ -1,6 +1,6 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-23
+Auto-generated from all feature plans. Last updated: 2026-03-24
 
 ## Active Technologies
 
@@ -84,6 +84,7 @@ Workspace bootstrap and validation:
 - pnpm install
 - uv sync --project apps/backend --frozen
 - uv sync --project apps/pipeline --frozen
+- pnpm run provider:bootstrap -- --provider-group-key acme --source-key acme_cpi --module-name acme_cpi_source --cadence-label monthly --cron-schedule "0 0 1 * *" --series-item-key acme_cpi --canonical-series-key PRICE.US.CPI --provider-series-id CPIAUCSL
 - pnpm run quality:all
 
 Affected-only quality checks:
@@ -175,20 +176,17 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   `pnpm exec nx run-many -t coverage --all` with minimum thresholds satisfied.
 
 ## Recent Changes
+- 021-bootstrap-provider-script: Added provider adapter bootstrap tooling (`tools/provider_bootstrap`) and root script `pnpm run provider:bootstrap` to standardize new source adapter scaffolding.
 
 - 019-real-backend-api: Delivered backend runtime/query composition against canonical
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
   in `apps/backend/src/contract`.
 - 018-frontend-dataset-discovery: Delivered dataset discovery UI on Next.js 15/React 19
   with HeroUI/Recharts and strict TypeScript + Biome + Vitest quality tooling.
-- 017-dataset-discovery-api: Delivered backend dataset discovery/search contracts and
   query layer integration with PostgreSQL 16 canonical tables.
-- 012-multi-series-adapters and 011-source-asset-cadence: Established grouped/split
   provider ownership model and source-owned schedule authority in orchestration runtime.
-- 020-self-describing-adapters: Source onboarding now uses module-level `SOURCE_SPEC`
   manifests discovered from `jobs/sources/*_source.py`, with schedules/assets/catalog/runtime
   derived dynamically and anti-hardcoding bootstrap guards.
-- Repository quality governance tightened: strict non-bypass full-suite test and
   coverage stop gates (`nx run-many -t test --all` and `nx run-many -t coverage --all`),
   plus all-project lint/format/typecheck/test/coverage enforcement.
 
