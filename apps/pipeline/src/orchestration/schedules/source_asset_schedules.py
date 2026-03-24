@@ -9,18 +9,22 @@ from __future__ import annotations
 
 from dagster import RunRequest, schedule
 
+from ..jobs.source_assets.discovery import scan_adapter_modules
+
+_DISCOVERED_SOURCE_SPECS = scan_adapter_modules()
+
 # --- Source cadence configuration ---
 # Maps source_key -> (cron_schedule, human-readable cadence label)
 SOURCE_CADENCE_DEFINITIONS: dict[str, tuple[str, str]] = {
-    "fred_fedfunds": ("0 0 * * *", "daily"),
+    spec.source_key: (spec.cron_schedule, spec.cadence_label) for spec in _DISCOVERED_SOURCE_SPECS
 }
 
 SOURCE_SERIES_ITEM_DEFINITIONS: dict[str, tuple[str, ...]] = {
-    "fred_fedfunds": ("fred_fedfunds", "fred_gasregw"),
+    spec.source_key: spec.series_item_keys for spec in _DISCOVERED_SOURCE_SPECS
 }
 
 SOURCE_PROVIDER_GROUP_DEFINITIONS: dict[str, str] = {
-    "fred_fedfunds": "fred",
+    spec.source_key: spec.provider_group_key for spec in _DISCOVERED_SOURCE_SPECS
 }
 
 
@@ -54,9 +58,7 @@ def _make_source_schedule(source_key: str, cron: str, cadence_label: str):
     return source_schedule
 
 
-fred_fedfunds_schedule = _make_source_schedule("fred_fedfunds", "0 0 * * *", "daily")
-
-
 SOURCE_ASSET_SCHEDULES = [
-    fred_fedfunds_schedule,
+    _make_source_schedule(source_key, cron_schedule, cadence_label)
+    for source_key, (cron_schedule, cadence_label) in sorted(SOURCE_CADENCE_DEFINITIONS.items())
 ]

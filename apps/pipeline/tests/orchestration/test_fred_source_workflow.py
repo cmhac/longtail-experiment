@@ -7,6 +7,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Protocol
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
@@ -99,20 +101,17 @@ def _build_registry(
 
 
 def test_fred_source_requires_credentials() -> None:
-    """Missing credentials should fail with explicit reason code."""
+    """Missing credentials must raise immediately rather than returning a soft failure."""
     client = _FakeClient(rows_by_series={})
     registry, _capture_repo = _build_registry(client=client)
 
-    result = registry.execute_for_source(
-        source_key=FRED_FEDFUNDS_SOURCE_KEY,
-        run_id="run-fred-missing-key",
-        trigger_type="on_demand",
-        run_context={},
-    )
-
-    assert result.status == "failure"
-    assert result.failed_count == 1
-    assert result.outcome_reason_code == "missing_credentials"
+    with pytest.raises(EnvironmentError, match="FRED_API_KEY"):
+        registry.execute_for_source(
+            source_key=FRED_FEDFUNDS_SOURCE_KEY,
+            run_id="run-fred-missing-key",
+            trigger_type="on_demand",
+            run_context={},
+        )
     assert len(client.calls) == 0
 
 

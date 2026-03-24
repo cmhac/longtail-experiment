@@ -10,6 +10,7 @@ from typing import Any, Protocol
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from ..source_assets.discovery import ObservationCheckpointRepository
 from ..source_ingest_runner import SourceIngestRunner
 from ..source_schedule_policy import SourceSchedulePolicy
 from ..workflow_registry import SourceWorkflowRegistration
@@ -110,13 +111,6 @@ class _DefaultFredClient:
         return [row for row in observations if isinstance(row, dict)]
 
 
-class ObservationCheckpointRepository(Protocol):
-    """Protocol for reading latest persisted canonical observation dates."""
-
-    def read_latest_observed_on(self, *, series_key: str) -> date | None:
-        """Return latest persisted observation date for one canonical series."""
-
-
 def _map_fred_records(
     *,
     rows: Sequence[dict[str, Any]],
@@ -179,13 +173,7 @@ def build_fred_fedfunds_source_workflow(
             env_key = os.getenv(FRED_API_KEY_ENV, "").strip()
             api_key = env_key or None
         if api_key is None:
-            return SourceWorkflowResult(
-                source_key=request.source_key,
-                status="failure",
-                failed_count=1,
-                outcome_reason_code="missing_credentials",
-                message="FRED_API_KEY is required for fred_fedfunds source",
-            )
+            raise OSError("FRED_API_KEY is required for fred_fedfunds source but is not set")
 
         accepted_count = 0
         quarantined_count = 0
@@ -295,3 +283,15 @@ def build_fred_fedfunds_source_workflow(
         handler=_handler,
         schedule_policy=schedule_policy,
     )
+
+
+SOURCE_SPEC: dict[str, Any] = {
+    "source_key": FRED_FEDFUNDS_SOURCE_KEY,
+    "provider_group_key": "fred",
+    "series_item_keys": ("fred_fedfunds", "fred_gasregw"),
+    "canonical_series_keys": (FRED_FEDFUNDS_CANONICAL_SERIES, FRED_GASREGW_CANONICAL_SERIES),
+    "ownership_mode": "grouped",
+    "cron_schedule": "0 0 * * *",
+    "cadence_label": "daily",
+    "builder": build_fred_fedfunds_source_workflow,
+}

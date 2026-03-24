@@ -19,7 +19,7 @@ from src.orchestration.definitions import (
     get_scheduling_authority_mode,
     get_workspace_definition_catalog,
 )
-from src.orchestration.jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
+from src.orchestration.jobs.source_assets.discovery import scan_adapter_modules
 from src.orchestration.runtime import (
     build_ingest_runtime,
     get_runtime_workspace_load_state,
@@ -56,8 +56,9 @@ def test_runtime_builder_registers_expected_sources() -> None:
     """Runtime wiring should register active source adapters."""
     runtime = build_ingest_runtime()
     registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - smoke assertion
+    expected_source_keys = [spec.source_key for spec in scan_adapter_modules()]
 
-    assert registry.list_source_keys() == [FRED_FEDFUNDS_SOURCE_KEY]
+    assert registry.list_source_keys() == expected_source_keys
 
 
 def test_runtime_registry_order_is_deterministic() -> None:
@@ -86,11 +87,26 @@ def test_runtime_wiring_validation_passes_for_dagit() -> None:
 
 def test_workspace_definition_catalog_lists_existing_definitions() -> None:
     """Workspace catalog should list expected definitions for local Dagit visibility."""
+    expected_specs = scan_adapter_modules()
+
+    def _asset_key(provider_group_key: str, series_item_key: str) -> str:
+        asset_name = series_item_key.split(f"{provider_group_key}_", 1)[-1].replace("-", "_")
+        return f"{provider_group_key}/{asset_name}"
+
+    expected_assets: tuple[str, ...] = tuple(
+        sorted(
+            _asset_key(spec.provider_group_key, series_item_key)
+            for spec in expected_specs
+            for series_item_key in spec.series_item_keys
+        )
+    )
+    expected_schedules = tuple(sorted(f"{spec.source_key}_schedule" for spec in expected_specs))
+
     catalog = get_workspace_definition_catalog()
 
     assert catalog["jobs"] == ("ingest_job",)
-    assert catalog["assets"] == ("fred/fedfunds", "fred/gasregw")
-    assert catalog["schedules"] == ("fred_fedfunds_schedule",)
+    assert catalog["assets"] == expected_assets
+    assert catalog["schedules"] == expected_schedules
     assert catalog["sensors"] == ("ondemand_sensor",)
 
 
@@ -98,9 +114,10 @@ def test_runtime_workspace_load_state_reports_loaded_for_default_runtime() -> No
     """Runtime load-state summary should report successful workspace wiring."""
     runtime = build_ingest_runtime()
     load_state = get_runtime_workspace_load_state(runtime)
+    expected_source_keys = tuple(spec.source_key for spec in scan_adapter_modules())
 
     assert load_state["workspace_loaded"] is True
-    assert FRED_FEDFUNDS_SOURCE_KEY in load_state["source_keys"]
+    assert load_state["source_keys"] == expected_source_keys
 
 
 def test_definitions_expose_dagster_only_authority_mode() -> None:
@@ -110,16 +127,17 @@ def test_definitions_expose_dagster_only_authority_mode() -> None:
 
 def test_definitions_recovery_plan_keeps_legacy_paths_disabled() -> None:
     """Recovery plans built from definitions should never re-enable legacy paths."""
+    first_source_key = scan_adapter_modules()[0].source_key
     plan = get_recovery_plan_for_source_results(
         [
-            {"source_key": FRED_FEDFUNDS_SOURCE_KEY, "status": "success"},
-            {"source_key": "fred_fedfunds", "status": "failure"},
+            {"source_key": first_source_key, "status": "success"},
+            {"source_key": first_source_key, "status": "failure"},
         ]
     )
 
     assert plan["authority_mode"] == "dagster_only"
     assert plan["legacy_paths_disabled"] is True
-    assert plan["failed_sources"] == ["fred_fedfunds"]
+    assert plan["failed_sources"] == [first_source_key]
 
 
 def test_dagit_endpoint_probe_reports_ready_when_endpoint_is_reachable() -> None:
@@ -190,14 +208,13 @@ def test_no_shared_all_source_schedule_in_definitions() -> None:
 
 def test_per_source_schedules_registered_in_definitions() -> None:
     """Feature 011: each active source should have its own schedule in definitions."""
+    expected_schedule_names = {f"{spec.source_key}_schedule" for spec in scan_adapter_modules()}
     schedule_names = {schedule_def.name for schedule_def in (defs.schedules or [])}
-    assert "fred_fedfunds_schedule" in schedule_names
+    assert expected_schedule_names.issubset(schedule_names)
 
 
 def test_grouped_fred_series_share_default_cadence_definition() -> None:
-    """Grouped series items should inherit one shared cadence by default."""
-    assert SOURCE_CADENCE_DEFINITIONS["fred_fedfunds"][1] == "daily"
-    assert SOURCE_SERIES_ITEM_DEFINITIONS["fred_fedfunds"] == (
-        "fred_fedfunds",
-        "fred_gasregw",
-    )
+    """Grouped series items should inherit one shared cadence by default per adapter."""
+    for spec in scan_adapter_modules():
+        assert SOURCE_CADENCE_DEFINITIONS[spec.source_key][1] == spec.cadence_label
+        assert SOURCE_SERIES_ITEM_DEFINITIONS[spec.source_key] == spec.series_item_keys

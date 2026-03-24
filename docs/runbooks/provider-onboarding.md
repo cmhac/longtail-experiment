@@ -6,7 +6,10 @@ This guide covers the end-to-end process for adding a new ingestion provider (or
 
 **Automatically handled by dynamic registration** (no bootstrap edits required):
 
-- Runtime workflow registration — adding a `SourceBuilderSpec` to `_build_default_specs()` is the only step needed for the runtime to discover and register the source. No changes to `runtime.py` are needed.
+- Runtime workflow registration — discovery scans `jobs/sources/*_source.py` modules and loads each module `SOURCE_SPEC`.
+- Schedule derivation — `SOURCE_CADENCE_DEFINITIONS`, provider-group tags, and `SOURCE_ASSET_SCHEDULES` are built from discovered specs.
+- Dagit asset derivation — `SOURCE_DAGIT_ASSETS` are generated from `SOURCE_SPEC.series_item_keys`.
+- Workspace catalog derivation — `WORKSPACE_DEFINITION_CATALOG` derives assets/schedules from generated definitions.
 - Duplicate source-key detection — the contract guard will fail fast at startup if `source_key` collides.
 - Deterministic registration ordering — discovery sorts by `source_key`; startup order is stable.
 
@@ -14,14 +17,10 @@ This guide covers the end-to-end process for adding a new ingestion provider (or
 
 **Still requires explicit code additions** for each new provider:
 
-| Surface                                | File                                                                  | Required                 |
-| -------------------------------------- | --------------------------------------------------------------------- | ------------------------ |
-| Source adapter implementation          | `apps/pipeline/src/orchestration/jobs/sources/<provider>_source.py`   | Always                   |
-| Discovery spec registration            | `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py`     | Always                   |
-| Schedule cadence + trigger tags        | `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py` | Always                   |
-| Dagit asset definitions                | `apps/pipeline/src/orchestration/source_asset_definitions.py`         | Always                   |
-| Definitions catalog smoke expectations | `apps/pipeline/src/orchestration/definitions.py`                      | Always                   |
-| DB model + Alembic migration           | `libs/db/src/db/models/`, `libs/db/alembic/versions/`                 | Only when schema changes |
+| Surface                       | File                                                                | Required                 |
+| ----------------------------- | ------------------------------------------------------------------- | ------------------------ |
+| Source adapter implementation | `apps/pipeline/src/orchestration/jobs/sources/<provider>_source.py` | Always                   |
+| DB model + Alembic migration  | `libs/db/src/db/models/`, `libs/db/alembic/versions/`               | Only when schema changes |
 
 ## Data Model Terms
 
@@ -60,6 +59,7 @@ Required interface:
 
 - Export a module-level constant `<PROVIDER>_SOURCE_KEY = "<provider>_source"` (or `"<provider>_<series>"` for multi-series grouped sources).
 - Export a `build_<provider>_source_workflow(runner, ...)` function that returns `SourceWorkflowRegistration`.
+- Export a module-level `SOURCE_SPEC` dictionary with all manifest fields consumed by discovery.
 - Set `workflow_id` to a stable unique string (e.g. `"wf-<provider>-source"`).
 - Support both trigger modes: `{"scheduled", "on_demand"}`.
 - Return `SourceWorkflowResult` from the handler with clear counts.
@@ -121,87 +121,48 @@ References:
 
 ---
 
-## Step 2: Register in the Discovery Spec Catalog
+## Step 2: Declare SOURCE_SPEC in the Adapter Module
 
-Edit `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py`.
-
-Add an import for your new source constants and builder at the top of the file alongside the existing imports, then add a `SourceBuilderSpec` entry to `_build_default_specs()`.
-
-**This is the only step required for dynamic runtime registration.** No changes to `runtime.py` or any other bootstrap file are needed.
+Add `SOURCE_SPEC` in the same `*_source.py` module you created in Step 1.
 
 ```python
-# In _build_default_specs() — add after the existing entries:
-SourceBuilderSpec(
-    source_key=ACME_CPI_SOURCE_KEY,
-    module_name="src.orchestration.jobs.sources.acme_cpi_source",
-    builder=lambda runner, observation_repository: build_acme_cpi_source_workflow(
-        runner,
-        schedule_policy=SourceSchedulePolicy(
-            source_key=ACME_CPI_SOURCE_KEY,
-            cadence_type="monthly",
-        ),
-    ),
-    provider_group_key="acme",
-    series_item_keys=("acme_cpi",),
-    canonical_series_keys=("PRICE.US.CPI",),
-    # ownership_mode defaults to "grouped"; use "split" only when series
-    # have independent cadence or operational ownership.
-),
+SOURCE_SPEC: dict[str, Any] = {
+    "source_key": ACME_CPI_SOURCE_KEY,
+    "provider_group_key": "acme",
+    "series_item_keys": ("acme_cpi",),
+    "canonical_series_keys": ("PRICE.US.CPI",),
+    "ownership_mode": "grouped",
+    "cron_schedule": "0 0 1 * *",
+    "cadence_label": "monthly",
+    "builder": build_acme_cpi_source_workflow,
+}
 ```
 
 Constraints:
 
 - `series_item_keys` and `canonical_series_keys` must have equal length and matching index order.
-- `source_key` must be unique across all specs — the contract guard will raise at startup if not.
-- Discovery ordering is deterministic by `source_key` (alphabetical). No manual ordering is needed.
+- `source_key` must be unique across all adapter modules.
+- `cron_schedule` must be valid five-field cron syntax.
+- `cadence_label` must be one of: `hourly`, `daily`, `weekly`, `monthly`, `custom_interval`.
+- Discovery ordering is deterministic by `source_key` (alphabetical).
 
 ---
 
 ## Step 3: Contract Validation (No Action — Automatic)
 
-Once an entry is in `_build_default_specs()`, the contract guard in `apps/pipeline/src/orchestration/jobs/source_assets/contracts.py` runs automatically at runtime startup and will fail fast if:
+Once `SOURCE_SPEC` is present, discovery and contract guards run automatically at runtime startup and fail fast if:
 
 - registration `status` is not `"active"`
 - `workflow_id` is empty
 - `source_key` is empty or a duplicate
 
-No code changes needed here. If a contract violation occurs, the error message will name the module path from `SourceBuilderSpec.module_name`.
+No code changes needed here. Violations include module path, source key, and reason.
 
 ---
 
-## Step 4: Configure Schedule Cadence and Trigger Tags
+## Step 4: Verify Derived Schedules and Assets (No Bootstrap Edits)
 
-Edit `apps/pipeline/src/orchestration/schedules/source_asset_schedules.py`.
-
-Add entries to each of the four configuration dictionaries and append a schedule object to `SOURCE_ASSET_SCHEDULES`:
-
-```python
-# 1. Cron schedule + human cadence label
-SOURCE_CADENCE_DEFINITIONS: dict[str, tuple[str, str]] = {
-    ...
-    "acme_cpi": ("0 0 1 * *", "monthly"),  # first of each month at midnight
-}
-
-# 2. Series items triggered by this source's schedule
-SOURCE_SERIES_ITEM_DEFINITIONS: dict[str, tuple[str, ...]] = {
-    ...
-    "acme_cpi": ("acme_cpi",),  # add multiple entries for multi-series grouped sources
-}
-
-# 3. Provider group key for run tag routing
-SOURCE_PROVIDER_GROUP_DEFINITIONS: dict[str, str] = {
-    ...
-    "acme_cpi": "acme",
-}
-
-# 4. Build and register the schedule object (add near the bottom of the file)
-acme_cpi_schedule = _make_source_schedule("acme_cpi", "0 0 1 * *", "monthly")
-
-SOURCE_ASSET_SCHEDULES = [
-    ...
-    acme_cpi_schedule,
-]
-```
+Do not edit schedule/asset bootstrap files for provider onboarding. They are derived from discovered specs.
 
 Each generated schedule will tag runs with:
 
@@ -214,84 +175,24 @@ series_item_keys=acme_cpi
 cadence_label=monthly
 ```
 
-For a multi-series grouped source (like `fred_fedfunds` which covers both `fred_fedfunds` and `fred_gasregw`), put all series item keys in `SOURCE_SERIES_ITEM_DEFINITIONS` under the single `source_key`. The schedule fires once and the handler filters which series to process per run.
+For a multi-series grouped source, include all series item keys in `SOURCE_SPEC.series_item_keys` under one `source_key`. The schedule fires once and the handler filters which series to process per run.
 
 ---
 
-## Step 5: Add Dagit Asset Definitions
+## Step 5: Verify Derived Workspace Catalog (No Bootstrap Edits)
 
-Edit `apps/pipeline/src/orchestration/source_asset_definitions.py`.
-
-Add one `@asset` per operator-visible series and append each to `SOURCE_DAGIT_ASSETS`.
-
-Asset key naming convention: use `key_prefix` for the provider group and `name` for the series identifier. The Dagit asset key becomes `<key_prefix>/<name>`.
-
-```python
-# Single-series source:
-@asset(name="cpi", key_prefix="acme", required_resource_keys={"run_coordinator"})
-def acme_cpi_source_asset(context) -> dict[str, Any]:
-    """Materialize source visibility entry for acme_cpi."""
-    return _run_single_source(context=context, source_key="acme_cpi")
-
-SOURCE_DAGIT_ASSETS = [
-    ...
-    acme_cpi_source_asset,
-]
-```
-
-For a multi-series grouped source, add one `@asset` per series item and use `_run_series_item` instead of `_run_single_source`:
-
-```python
-# Multi-series source — one asset per series_item_key:
-@asset(name="cpi", key_prefix="acme", required_resource_keys={"run_coordinator"})
-def acme_cpi_asset(context) -> dict[str, Any]:
-    """Materialize acme cpi series."""
-    return _run_series_item(context=context, source_key="acme_cpi", series_item_key="acme_cpi")
-
-@asset(name="ppi", key_prefix="acme", required_resource_keys={"run_coordinator"})
-def acme_ppi_asset(context) -> dict[str, Any]:
-    """Materialize acme ppi series."""
-    return _run_series_item(context=context, source_key="acme_cpi", series_item_key="acme_ppi")
-```
-
-Conventions:
-
-- `key_prefix` must match `provider_group_key` from the discovery spec.
-- `source_key` passed to `_run_single_source` / `_run_series_item` must match the `source_key` in the discovery spec.
-- `series_item_key` must be a member of `series_item_keys` from the discovery spec.
+`definitions.py` derives workspace catalog values from generated assets and schedules. No manual catalog edits are required for provider onboarding.
 
 ---
 
-## Step 6: Update the Definitions Catalog
-
-Edit `apps/pipeline/src/orchestration/definitions.py`.
-
-Update `WORKSPACE_DEFINITION_CATALOG` to include the new asset keys and schedule name. This dictionary drives smoke tests that verify the live workspace matches expected definitions.
-
-```python
-WORKSPACE_DEFINITION_CATALOG: dict[str, tuple[str, ...]] = {
-    "jobs": ("ingest_job",),
-    "assets": (
-        ...,
-        "acme/cpi",                 # key_prefix/name from Step 5
-    ),
-    "schedules": (
-        ...,
-        "acme_cpi_schedule",        # name from Step 4
-    ),
-    "sensors": ("ondemand_sensor",),
-}
-```
-
----
-
-## Step 7: Verify Locally
+## Step 6: Verify Locally
 
 Run targeted orchestration checks:
 
 ```bash
 # Dynamic registration, contract, and smoke tests
 pnpm exec nx run pipeline:test:orchestration:dynamic-registration
+uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_single_file_onboarding_guard.py
 
 # Full orchestration suite
 uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/

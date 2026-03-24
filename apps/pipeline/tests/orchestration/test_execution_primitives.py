@@ -23,10 +23,9 @@ from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 from src.orchestration.resources.source_lock_service import SourceLockService
 from src.orchestration.schedules.source_asset_schedules import _make_source_schedule
 from src.orchestration.source_asset_definitions import (
+    SOURCE_DAGIT_ASSETS,
     _run_series_item,
     _run_single_source,
-    fred_fedfunds_source_asset,
-    fred_gasregw_source_asset,
 )
 
 
@@ -197,8 +196,10 @@ def test_source_asset_helpers_run_source_and_series_variants() -> None:
 def test_source_asset_wrapper_assets_delegate_to_helpers() -> None:
     """Public asset wrappers should delegate to the internal run helpers."""
     context = build_op_context(resources={"run_coordinator": _Coordinator()})
-    fedfunds_result = cast(dict[str, object], fred_fedfunds_source_asset(context))
-    gas_result = cast(dict[str, object], fred_gasregw_source_asset(context))
+    by_asset_key = {asset_def.key.to_user_string(): asset_def for asset_def in SOURCE_DAGIT_ASSETS}
+
+    fedfunds_result = cast(dict[str, object], by_asset_key["fred/fedfunds"](context))
+    gas_result = cast(dict[str, object], by_asset_key["fred/gasregw"](context))
 
     assert fedfunds_result["series_item_key"] == "fred_fedfunds"
     assert gas_result["series_item_key"] == "fred_gasregw"

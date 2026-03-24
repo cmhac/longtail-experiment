@@ -6,6 +6,7 @@ from typing import Any
 
 from dagster import asset
 
+from .jobs.source_assets.discovery import scan_adapter_modules
 from .schedules.source_asset_schedules import SOURCE_CADENCE_DEFINITIONS
 
 
@@ -58,27 +59,50 @@ def _run_series_item(
     }
 
 
-@asset(name="fedfunds", key_prefix="fred", required_resource_keys={"run_coordinator"})
-def fred_fedfunds_source_asset(context) -> dict[str, Any]:
-    """Materialize source visibility entry for fred_fedfunds."""
-    return _run_series_item(
-        context=context,
-        source_key="fred_fedfunds",
-        series_item_key="fred_fedfunds",
+def _asset_name_for_series_item(*, provider_group_key: str, series_item_key: str) -> str:
+    prefix = f"{provider_group_key}_"
+    normalized = (
+        series_item_key[len(prefix) :] if series_item_key.startswith(prefix) else series_item_key
     )
+    return normalized.replace("-", "_")
 
 
-@asset(name="gasregw", key_prefix="fred", required_resource_keys={"run_coordinator"})
-def fred_gasregw_source_asset(context) -> dict[str, Any]:
-    """Materialize source visibility entry for fred_gasregw series."""
-    return _run_series_item(
-        context=context,
-        source_key="fred_fedfunds",
-        series_item_key="fred_gasregw",
+def _make_series_source_asset(
+    *,
+    source_key: str,
+    provider_group_key: str,
+    series_item_key: str,
+):
+    @asset(
+        name=_asset_name_for_series_item(
+            provider_group_key=provider_group_key,
+            series_item_key=series_item_key,
+        ),
+        key_prefix=provider_group_key,
+        required_resource_keys={"run_coordinator"},
     )
+    def _source_asset(context) -> dict[str, Any]:
+        return _run_series_item(
+            context=context,
+            source_key=source_key,
+            series_item_key=series_item_key,
+        )
+
+    return _source_asset
+
+
+_DISCOVERED_SOURCE_SPECS = scan_adapter_modules()
+
+_SOURCE_ASSET_REGISTRY: dict[str, Any] = {}
+for spec in _DISCOVERED_SOURCE_SPECS:
+    for series_item_key in spec.series_item_keys:
+        _SOURCE_ASSET_REGISTRY[series_item_key] = _make_series_source_asset(
+            source_key=spec.source_key,
+            provider_group_key=spec.provider_group_key,
+            series_item_key=series_item_key,
+        )
 
 
 SOURCE_DAGIT_ASSETS = [
-    fred_fedfunds_source_asset,
-    fred_gasregw_source_asset,
+    _SOURCE_ASSET_REGISTRY[series_item_key] for series_item_key in sorted(_SOURCE_ASSET_REGISTRY)
 ]

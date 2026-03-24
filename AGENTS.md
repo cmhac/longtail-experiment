@@ -185,6 +185,9 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   query layer integration with PostgreSQL 16 canonical tables.
 - 012-multi-series-adapters and 011-source-asset-cadence: Established grouped/split
   provider ownership model and source-owned schedule authority in orchestration runtime.
+- 020-self-describing-adapters: Source onboarding now uses module-level `SOURCE_SPEC`
+  manifests discovered from `jobs/sources/*_source.py`, with schedules/assets/catalog/runtime
+  derived dynamically and anti-hardcoding bootstrap guards.
 - Repository quality governance tightened: strict non-bypass full-suite test and
   coverage stop gates (`nx run-many -t test --all` and `nx run-many -t coverage --all`),
   plus all-project lint/format/typecheck/test/coverage enforcement.

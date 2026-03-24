@@ -20,6 +20,7 @@ from .jobs.source_assets.contracts import SourceAssetContractError, register_sou
 from .jobs.source_assets.discovery import (
     discover_series_catalog_entries,
     discover_source_registrations,
+    scan_adapter_modules,
 )
 from .jobs.source_assets.ownership_mode import (
     SeriesOwnershipModeRecord,
@@ -30,7 +31,6 @@ from .jobs.source_assets.series_catalog import (
     validate_series_catalog_entries,
 )
 from .jobs.source_ingest_runner import SourceIngestRunner
-from .jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
 from .jobs.workflow_registry import SourceWorkflowRegistry
 from .resources.postgres_observation_repository import PostgresObservationRepository
 from .resources.postgres_run_repository import PostgresRunRepository
@@ -38,7 +38,7 @@ from .resources.source_lock_service import SourceLockService
 
 logger = logging.getLogger(__name__)
 
-EXPECTED_RUNTIME_SOURCE_KEYS = (FRED_FEDFUNDS_SOURCE_KEY,)
+EXPECTED_RUNTIME_SOURCE_KEYS = tuple(spec.source_key for spec in scan_adapter_modules())
 
 RETIRED_LEGACY_CADENCE_ENTRYPOINTS = (
     "legacy_scheduler",
