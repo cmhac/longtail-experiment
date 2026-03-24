@@ -24,14 +24,11 @@ export const DatasetSearchBox = ({ initialQuery = "" }: DatasetSearchBoxProps): 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(initialQuery);
+  const urlQuery = searchParams.get("q") ?? "";
 
   useEffect(() => {
-    const incoming = searchParams.get("q") ?? "";
-
-    if (incoming !== query) {
-      setQuery(incoming);
-    }
-  }, [searchParams, query]);
+    setQuery(urlQuery);
+  }, [urlQuery]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();

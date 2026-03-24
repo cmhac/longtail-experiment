@@ -32,11 +32,17 @@ class PersistedDatasetDiscoveryRepository:
     def _normalize_text(row: dict[str, object]) -> str:
         tags = cast(list[object], row.get("topic_tags") or [])
         tags_text = " ".join(str(tag) for tag in tags)
+        source = cast(dict[str, object], row.get("source") or {})
+        metadata = cast(dict[str, object], row.get("metadata") or {})
         return " ".join(
             [
+                str(row.get("dataset_id", "")),
                 str(row.get("title", "")),
                 str(row.get("description", "")),
                 str(row.get("geographic_scope", "")),
+                str(source.get("id", "")),
+                str(source.get("name", "")),
+                str(metadata.get("metric_name", "")),
                 tags_text,
             ]
         ).lower()

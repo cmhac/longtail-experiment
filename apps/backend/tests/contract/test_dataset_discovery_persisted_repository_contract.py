@@ -188,3 +188,23 @@ def test_observations_apply_date_filters_and_shape() -> None:
             "attributes": {"revision": 1},
         }
     ]
+
+
+def test_search_matches_dataset_id_and_source_name_tokens() -> None:
+    repository = _build_repository()
+
+    dataset_id_rows, dataset_id_total = repository.search_datasets(
+        query_text="FEDFUNDS",
+        page=1,
+        page_size=10,
+    )
+    source_rows, source_total = repository.search_datasets(
+        query_text="federal reserve",
+        page=1,
+        page_size=10,
+    )
+
+    assert dataset_id_total == 1
+    assert dataset_id_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
+    assert source_total == 1
+    assert source_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
