@@ -14,6 +14,19 @@ ENDPOINT="http://${HOST}:${PORT}"
 STACK_ENV_FILE="${REPO_ROOT}/docker/compose/stack.env"
 SECRETS_ENV_FILE="${REPO_ROOT}/docker/compose/local.secrets.env"
 
+# Preserve caller-provided metadata vars (including explicit empty values) so
+# sourced env files do not override fail-fast test inputs.
+CALLER_SET_METADATA_HOST="${DAGSTER_METADATA_DB_HOST+x}"
+CALLER_SET_METADATA_PORT="${DAGSTER_METADATA_DB_PORT+x}"
+CALLER_SET_METADATA_NAME="${DAGSTER_METADATA_DB_NAME+x}"
+CALLER_SET_METADATA_USER="${DAGSTER_METADATA_DB_USER+x}"
+CALLER_SET_METADATA_PASSWORD="${DAGSTER_METADATA_DB_PASSWORD+x}"
+CALLER_METADATA_HOST="${DAGSTER_METADATA_DB_HOST-}"
+CALLER_METADATA_PORT="${DAGSTER_METADATA_DB_PORT-}"
+CALLER_METADATA_NAME="${DAGSTER_METADATA_DB_NAME-}"
+CALLER_METADATA_USER="${DAGSTER_METADATA_DB_USER-}"
+CALLER_METADATA_PASSWORD="${DAGSTER_METADATA_DB_PASSWORD-}"
+
 print_failure() {
   local code="$1"
   local message="$2"
@@ -48,17 +61,6 @@ fi
 
 mkdir -p "${REPO_ROOT}/.tmp" "${LOCAL_DAGSTER_HOME}"
 
-if [[ -f "$PID_FILE" ]]; then
-  existing_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
-  if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" 2>/dev/null; then
-    echo "DAGIT_START_STATUS=ready"
-    echo "DAGIT_ENDPOINT=${ENDPOINT}"
-    echo "DAGIT_MESSAGE=Dagit already running (pid=${existing_pid})"
-    exit 0
-  fi
-  rm -f "$PID_FILE"
-fi
-
 if [[ -f "$STACK_ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$STACK_ENV_FILE"
@@ -67,6 +69,22 @@ fi
 if [[ -f "$SECRETS_ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$SECRETS_ENV_FILE"
+fi
+
+if [[ -n "$CALLER_SET_METADATA_HOST" ]]; then
+  export DAGSTER_METADATA_DB_HOST="$CALLER_METADATA_HOST"
+fi
+if [[ -n "$CALLER_SET_METADATA_PORT" ]]; then
+  export DAGSTER_METADATA_DB_PORT="$CALLER_METADATA_PORT"
+fi
+if [[ -n "$CALLER_SET_METADATA_NAME" ]]; then
+  export DAGSTER_METADATA_DB_NAME="$CALLER_METADATA_NAME"
+fi
+if [[ -n "$CALLER_SET_METADATA_USER" ]]; then
+  export DAGSTER_METADATA_DB_USER="$CALLER_METADATA_USER"
+fi
+if [[ -n "$CALLER_SET_METADATA_PASSWORD" ]]; then
+  export DAGSTER_METADATA_DB_PASSWORD="$CALLER_METADATA_PASSWORD"
 fi
 
 export DAGSTER_METADATA_DB_HOST="${DAGSTER_METADATA_DB_HOST:-127.0.0.1}"
@@ -84,6 +102,17 @@ done
 if [[ "${#missing_vars[@]}" -gt 0 ]]; then
   print_failure "metadata_config_missing" "Missing required metadata DB vars: ${missing_vars[*]}"
   exit 1
+fi
+
+if [[ -f "$PID_FILE" ]]; then
+  existing_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
+  if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" 2>/dev/null; then
+    echo "DAGIT_START_STATUS=ready"
+    echo "DAGIT_ENDPOINT=${ENDPOINT}"
+    echo "DAGIT_MESSAGE=Dagit already running (pid=${existing_pid})"
+    exit 0
+  fi
+  rm -f "$PID_FILE"
 fi
 
 if ! command -v uv >/dev/null 2>&1; then
