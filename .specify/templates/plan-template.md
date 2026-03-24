@@ -35,6 +35,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
   cross-layer contract updates for vertical-slice changes?
 - Quality gate enforcement: Are lint, format, type-check, and test gates defined with no
   suppression, bypass, or workaround strategy?
+- Full-suite stop rule: Does the plan require `pnpm exec nx run-many -t test --all` to
+  pass before any commit and before any AI agent ends work, with no exceptions?
 - Test and coverage discipline: Does the plan include automated tests needed to maintain
   > = 90% coverage across affected backend/frontend projects?
 - Local-first parity: Can the complete impacted flow run locally via unified Docker

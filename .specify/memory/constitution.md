@@ -1,8 +1,11 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 -> 1.1.1
+- Version change: 1.1.1 -> 1.2.0
 - Modified principles:
-  - VI. Documentation Fidelity and Change Traceability -> VI. Documentation Fidelity and Change Traceability
+  - II. Uniform Quality Gates (Non-Negotiable) -> II. Uniform Quality Gates and Full-Suite Stop Rule (Non-Negotiable)
+- Modified sections:
+  - Development Workflow and Enforcement
+  - Governance
 - Added sections:
   - None
 - Removed sections:
@@ -11,6 +14,7 @@ Sync Impact Report
 	- .specify/templates/plan-template.md: ✅ updated
 	- .specify/templates/spec-template.md: ✅ updated
 	- .specify/templates/tasks-template.md: ✅ updated
+  - AGENTS.md: ✅ updated
   - .specify/templates/commands/*.md: ⚠ pending (directory not present)
 - Follow-up TODOs:
 	- None
@@ -29,12 +33,16 @@ updated contracts, tests, and documentation in the same change.
 Rationale: The product goal depends on tightly coupled ingest, analytics, alerting, and
 client delivery; monorepo coordination reduces drift and integration failures.
 
-### II. Uniform Quality Gates (Non-Negotiable)
+### II. Uniform Quality Gates and Full-Suite Stop Rule (Non-Negotiable)
 
 Strict linting, formatting, type checking, and test gates MUST be enforced for both
 backend and frontend through pre-commit hooks and CI. Rule suppression, rule disabling,
 temporary bypasses, and one-off gate workarounds are forbidden unless explicitly
 authorized by the repository owner for a specific change.
+Before any commit, and before any AI agent stops work or hands off work, the full
+repository test suite across all apps MUST pass using the canonical command
+`pnpm exec nx run-many -t test --all`. Targeted test runs MAY be used during
+development, but they do not satisfy this mandatory stop rule.
 Rationale: Consistent, automated quality controls are required to keep reliability high
 as the codebase and team scale.
 
@@ -94,12 +102,16 @@ spots.
 ## Development Workflow and Enforcement
 
 - Every change MUST pass local pre-commit hooks before review.
+- Before any commit and before any AI agent ends a work session, the full monorepo test
+  suite MUST be executed with `pnpm exec nx run-many -t test --all` and MUST pass.
 - Pull requests MUST show successful lint, format, type-check, and test results for all
   affected projects.
 - Any proposal to relax a quality gate MUST be documented in the PR and explicitly
   approved by the repository owner before implementation.
 - Non-standard implementations designed only to satisfy gates without preserving intent
   are disallowed.
+- Partial, targeted, or affected-only test execution is insufficient for commit or
+  agent-stop approval, even when those checks pass.
 - Work items MUST include test updates and, when relevant, Docker Compose integration
   updates.
 - Work items MUST include documentation impact assessment and required updates before
@@ -118,9 +130,9 @@ spots.
   - MINOR: New principle/section or materially expanded guidance.
   - PATCH: Clarifications, wording improvements, or non-semantic edits.
 - Compliance review is mandatory for every pull request; reviewers MUST confirm
-  constitution alignment, including quality gates, local-stack runability, and required
-  documentation updates.
+  constitution alignment, including full-suite test stop-rule compliance, quality gates,
+  local-stack runability, and required documentation updates.
 - This constitution is expected to evolve with the product; refinements that tighten
   standards across backend, frontend, data pipelines, and operations are encouraged.
 
-**Version**: 1.1.1 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-21
+**Version**: 1.2.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-23

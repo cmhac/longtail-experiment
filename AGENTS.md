@@ -119,6 +119,13 @@ Affected-only quality checks:
 - pnpm run affected:coverage
 - pnpm run affected:duplication
 
+Mandatory full-suite stop gate (non-bypass):
+
+- Before any commit, and before any AI agent stops work or hands off, run:
+  `pnpm exec nx run-many -t test --all`
+- This command MUST pass with no exceptions. Targeted or affected-only tests are
+  insufficient for this stop gate.
+
 Backend quality commands:
 
 - uv run --project apps/backend ruff check apps/backend
@@ -182,6 +189,8 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   lint/format authority.
 - Quality gates: lint, format, typecheck, test, coverage, and duplication must pass via
   affected targets and pre-commit hooks.
+- Mandatory stop rule: before any commit and before AI agent handoff/stop, the full
+  monorepo test suite MUST pass via `pnpm exec nx run-many -t test --all`.
 
 ## Recent Changes
 

@@ -122,7 +122,9 @@ _Example of marking unclear requirements:_
 -->
 
 - **CA-001 Quality Gates**: Feature can satisfy linting, formatting, type checking, and
-  automated test gates without suppressions, bypasses, or workaround-only code. (Yes/No)
+  automated test gates without suppressions, bypasses, or workaround-only code, and the
+  full-suite stop rule (`pnpm exec nx run-many -t test --all`) can be satisfied before
+  commit and before AI agent handoff/end of work. (Yes/No)
 - **CA-002 Coverage**: Feature includes tests to keep backend/frontend coverage at or
   above 90% in affected projects. (Yes/No)
 - **CA-003 Local Stack**: Feature is runnable in the unified local Docker Compose stack,

@@ -9,7 +9,9 @@ description: "Task list template for feature implementation"
 
 **Tests**: Test tasks are REQUIRED. Every user story and foundational component MUST
 include automated test coverage sufficient to maintain >= 90% coverage in affected
-projects.
+projects. Before any commit and before any AI agent stops work, the full repository
+suite MUST pass via `pnpm exec nx run-many -t test --all`; targeted tests alone are
+never sufficient for this stop gate.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -171,6 +173,8 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 - [ ] TXXX Run full local stack via unified Docker Compose and verify end-to-end behavior
+- [ ] TXXX Run `pnpm exec nx run-many -t test --all` and verify pass before commit and
+      before agent handoff/end of work
 
 ---
 
@@ -261,6 +265,8 @@ With multiple developers:
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - Coverage MUST remain >= 90% in every affected project
+- Before any commit and before any AI agent stops work, `pnpm exec nx run-many -t test --all`
+  MUST pass; targeted tests do not satisfy this requirement
 - Relevant documentation MUST be updated in the same change as impacted code
 - AGENTS.md MUST be updated when repository structure, workflows, or canonical commands change
 - Verify tests fail before implementing
