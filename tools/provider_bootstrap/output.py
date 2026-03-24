@@ -14,7 +14,9 @@ class BootstrapError(Exception):
         return self.message
 
 
-def emit_success(*, generated_file: str, source_key: str, next_steps: list[str]) -> None:
+def emit_success(
+    *, generated_file: str, source_key: str, next_steps: list[str]
+) -> None:
     print("STATUS: success")
     print(f"GENERATED_FILE: {generated_file}")
     print(f"SOURCE_KEY: {source_key}")

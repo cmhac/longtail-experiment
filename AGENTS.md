@@ -84,7 +84,7 @@ Workspace bootstrap and validation:
 - pnpm install
 - uv sync --project apps/backend --frozen
 - uv sync --project apps/pipeline --frozen
-- pnpm run provider:bootstrap -- --provider-group-key acme --source-key acme_cpi --module-name acme_cpi_source --cadence-label monthly --cron-schedule "0 0 1 * *" --series-item-key acme_cpi --canonical-series-key PRICE.US.CPI --provider-series-id CPIAUCSL
+- pnpm run provider:bootstrap -- --provider-group-key acme --source-key acme_cpi --module-name acme_cpi_source --cadence-label monthly --cron-schedule "0 0 1 \* \*" --series-item-key acme_cpi --canonical-series-key PRICE.US.CPI --provider-series-id CPIAUCSL
 - pnpm run quality:all
 
 Affected-only quality checks:
@@ -176,6 +176,7 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   `pnpm exec nx run-many -t coverage --all` with minimum thresholds satisfied.
 
 ## Recent Changes
+
 - 021-bootstrap-provider-script: Added provider adapter bootstrap tooling (`tools/provider_bootstrap`) and root script `pnpm run provider:bootstrap` to standardize new source adapter scaffolding.
 
 - 019-real-backend-api: Delivered backend runtime/query composition against canonical

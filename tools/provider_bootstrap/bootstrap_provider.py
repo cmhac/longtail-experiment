@@ -5,10 +5,14 @@ from __future__ import annotations
 import argparse
 import sys
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:  # pragma: no cover - import resolution boundary for script vs package execution
-    from .collision_checks import ensure_output_path_available, ensure_source_key_available
+    from .collision_checks import (
+        ensure_output_path_available,
+        ensure_source_key_available,
+    )
     from .output import BootstrapError, emit_failure, emit_success
     from .render import render_scaffold
     from .validation import (
@@ -21,7 +25,10 @@ try:  # pragma: no cover - import resolution boundary for script vs package exec
         validate_snake_identifier,
     )
 except ImportError:  # pragma: no cover
-    from collision_checks import ensure_output_path_available, ensure_source_key_available
+    from collision_checks import (
+        ensure_output_path_available,
+        ensure_source_key_available,
+    )
     from output import BootstrapError, emit_failure, emit_success
     from render import render_scaffold
     from validation import (
@@ -36,7 +43,14 @@ except ImportError:  # pragma: no cover
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "apps/pipeline/src/orchestration/jobs/sources"
-TEMPLATE_PATH = Path(__file__).resolve().parent / "templates/provider_source_template.py.tmpl"
+TEMPLATE_PATH = (
+    Path(__file__).resolve().parent / "templates/provider_source_template.py.tmpl"
+)
+
+DEFAULT_PROVIDER_GROUP_KEY = "generic_provider"
+DEFAULT_CADENCE_LABEL = "monthly"
+DEFAULT_CRON_SCHEDULE = "0 0 1 * *"
+DEFAULT_CANONICAL_SERIES_PREFIX = "GENERIC.GLOBAL.SERIES"
 
 
 @dataclass(slots=True)
@@ -59,15 +73,17 @@ class BootstrapRequest:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Bootstrap a provider adapter scaffold")
-    parser.add_argument("--provider-group-key", required=True)
-    parser.add_argument("--source-key", required=True)
-    parser.add_argument("--module-name", required=True)
-    parser.add_argument("--cadence-label", required=True)
-    parser.add_argument("--cron-schedule", required=True)
-    parser.add_argument("--series-item-key", action="append", required=True)
-    parser.add_argument("--canonical-series-key", action="append", required=True)
-    parser.add_argument("--provider-series-id", action="append", required=True)
+    parser = argparse.ArgumentParser(
+        description="Bootstrap a provider adapter scaffold"
+    )
+    parser.add_argument("--provider-group-key")
+    parser.add_argument("--source-key")
+    parser.add_argument("--module-name")
+    parser.add_argument("--cadence-label", default=DEFAULT_CADENCE_LABEL)
+    parser.add_argument("--cron-schedule", default=DEFAULT_CRON_SCHEDULE)
+    parser.add_argument("--series-item-key", action="append")
+    parser.add_argument("--canonical-series-key", action="append")
+    parser.add_argument("--provider-series-id", action="append")
     parser.add_argument("--provider-name", default="TODO_PROVIDER_NAME")
     parser.add_argument("--metric-name", default="TODO_METRIC_NAME")
     parser.add_argument("--dataset-description", default="TODO_DATASET_DESCRIPTION")
@@ -81,33 +97,44 @@ def build_parser() -> argparse.ArgumentParser:
 def parse_request(argv: list[str]) -> BootstrapRequest:
     args = build_parser().parse_args(argv)
 
-    module_stem = normalize_module_name(args.module_name)
-    validate_snake_identifier(args.provider_group_key, field="provider_group_key")
-    validate_snake_identifier(args.source_key, field="source_key")
+    seed = _timestamp_seed()
+    provider_group_key = args.provider_group_key or DEFAULT_PROVIDER_GROUP_KEY
+    source_key = args.source_key or f"{provider_group_key}_{seed}"
+    module_name = args.module_name or f"{source_key}_source"
+
+    series_item_keys = args.series_item_key or [f"{provider_group_key}_series_{seed}"]
+    canonical_series_keys = args.canonical_series_key or [
+        f"{DEFAULT_CANONICAL_SERIES_PREFIX}_{seed.upper()}"
+    ]
+    provider_series_ids = args.provider_series_id or [f"SERIES_ID_{seed.upper()}"]
+
+    module_stem = normalize_module_name(module_name)
+    validate_snake_identifier(provider_group_key, field="provider_group_key")
+    validate_snake_identifier(source_key, field="source_key")
     validate_cadence_label(args.cadence_label)
     validate_ownership_mode(args.ownership_mode)
     validate_cron_schedule(args.cron_schedule)
     validate_series_alignment(
-        series_item_keys=args.series_item_key,
-        canonical_series_keys=args.canonical_series_key,
-        provider_series_ids=args.provider_series_id,
+        series_item_keys=series_item_keys,
+        canonical_series_keys=canonical_series_keys,
+        provider_series_ids=provider_series_ids,
     )
 
-    for key in args.series_item_key:
+    for key in series_item_keys:
         validate_snake_identifier(key, field="series_item_key")
-    for key in args.canonical_series_key:
+    for key in canonical_series_keys:
         validate_canonical_key(key)
 
     output_dir = Path(args.output_dir).resolve()
     return BootstrapRequest(
-        provider_group_key=args.provider_group_key,
-        source_key=args.source_key,
+        provider_group_key=provider_group_key,
+        source_key=source_key,
         module_name=module_stem,
         cadence_label=args.cadence_label,
         cron_schedule=args.cron_schedule,
-        series_item_keys=args.series_item_key,
-        canonical_series_keys=args.canonical_series_key,
-        provider_series_ids=args.provider_series_id,
+        series_item_keys=series_item_keys,
+        canonical_series_keys=canonical_series_keys,
+        provider_series_ids=provider_series_ids,
         provider_name=args.provider_name,
         ownership_mode=args.ownership_mode,
         output_dir=output_dir,
@@ -118,12 +145,19 @@ def parse_request(argv: list[str]) -> BootstrapRequest:
     )
 
 
+def _timestamp_seed() -> str:
+    """Return a UTC timestamp seed suitable for unique default identifiers."""
+    return datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S%f")
+
+
 def build_context(request: BootstrapRequest) -> dict[str, str]:
     provider_upper = request.provider_group_key.upper()
     source_constant_name = f"{provider_upper}_{request.module_name.upper()}_KEY"
     builder_function_name = f"build_{request.module_name}_workflow"
     workflow_id = f"wf-{request.source_key}"
-    topic_tags_literal = ", ".join(f'"{tag}"' for tag in request.topic_tags) or '"TODO_TOPIC"'
+    topic_tags_literal = (
+        ", ".join(f'"{tag}"' for tag in request.topic_tags) or '"TODO_TOPIC"'
+    )
 
     series_rows = []
     for idx, (series_item, provider_series, canonical_key) in enumerate(
@@ -137,14 +171,14 @@ def build_context(request: BootstrapRequest) -> dict[str, str]:
     ):
         series_rows.append(
             "    {\n"
-            f"        \"series_item_key\": \"{series_item}\",\n"
-            f"        \"provider_series_id\": \"{provider_series}\",\n"
-            f"        \"canonical_series_key\": \"{canonical_key}\",\n"
-            f"        \"metric_name\": \"{request.metric_name}_{idx}\",\n"
-            f"        \"dataset_description\": \"{request.dataset_description}\",\n"
-            f"        \"dataset_geographic_scope\": \"{request.dataset_geographic_scope}\",\n"
-            f"        \"topic_tags\": [{topic_tags_literal}],\n"
-            f"        \"frequency\": \"{request.cadence_label}\",\n"
+            f'        "series_item_key": "{series_item}",\n'
+            f'        "provider_series_id": "{provider_series}",\n'
+            f'        "canonical_series_key": "{canonical_key}",\n'
+            f'        "metric_name": "{request.metric_name}_{idx}",\n'
+            f'        "dataset_description": "{request.dataset_description}",\n'
+            f'        "dataset_geographic_scope": "{request.dataset_geographic_scope}",\n'
+            f'        "topic_tags": [{topic_tags_literal}],\n'
+            f'        "frequency": "{request.cadence_label}",\n'
             "    },"
         )
 
@@ -158,7 +192,9 @@ def build_context(request: BootstrapRequest) -> dict[str, str]:
         "workflow_id": workflow_id,
         "series_configs": "\n".join(series_rows),
         "series_item_keys": ", ".join(f'"{x}"' for x in request.series_item_keys),
-        "canonical_series_keys": ", ".join(f'"{x}"' for x in request.canonical_series_keys),
+        "canonical_series_keys": ", ".join(
+            f'"{x}"' for x in request.canonical_series_keys
+        ),
         "ownership_mode": request.ownership_mode,
         "cron_schedule": request.cron_schedule,
         "cadence_label": request.cadence_label,
