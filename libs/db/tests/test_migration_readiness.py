@@ -29,5 +29,5 @@ def test_migration_command_contracts_present() -> None:
     check_script = Path("tools/quality/local-stack/check-db-revision.sh").read_text(
         encoding="utf-8"
     )
-    assert "alembic -c \"$ALEMBIC_INI\" upgrade head" in run_script
-    assert "alembic -c \"$ALEMBIC_INI\" current" in check_script
+    assert 'alembic -c "$ALEMBIC_INI" upgrade head' in run_script
+    assert 'alembic -c "$ALEMBIC_INI" current' in check_script

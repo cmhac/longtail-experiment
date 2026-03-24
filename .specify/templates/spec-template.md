@@ -126,7 +126,8 @@ _Example of marking unclear requirements:_
   full-suite stop rule (`pnpm exec nx run-many -t test --all`) can be satisfied before
   commit and before AI agent handoff/end of work. (Yes/No)
 - **CA-002 Coverage**: Feature includes tests to keep backend/frontend coverage at or
-  above 90% in affected projects. (Yes/No)
+  above 90% in affected projects, and can satisfy the commit-time coverage stop rule
+  (`pnpm exec nx run-many -t coverage --all`). (Yes/No)
 - **CA-003 Local Stack**: Feature is runnable in the unified local Docker Compose stack,
   or explicitly lists compose updates needed. (Yes/No)
 - **CA-004 Contracts and Data Integrity**: Data/interface contract changes,

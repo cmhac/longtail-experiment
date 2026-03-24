@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, datetime
-from typing import Any
+from datetime import date
+from typing import Any, cast
 
 
 class InMemoryDatasetDiscoveryRepository:
@@ -21,7 +21,8 @@ class InMemoryDatasetDiscoveryRepository:
 
     @staticmethod
     def _normalized_text(row: dict[str, object]) -> str:
-        tags = row.get("topic_tags") or []
+        raw_tags = row.get("topic_tags")
+        tags = raw_tags if isinstance(raw_tags, list) else []
         tags_text = " ".join(str(tag) for tag in tags)
         return " ".join(
             [
@@ -62,7 +63,9 @@ class InMemoryDatasetDiscoveryRepository:
             if normalized and normalized not in self._normalized_text(row):
                 continue
             projected = dict(row)
-            projected["latest_update_at"] = latest_update.get(str(row.get("dataset_id", "")))
+            projected["latest_update_at"] = latest_update.get(
+                str(row.get("dataset_id", ""))
+            )
             rows.append(projected)
         rows.sort(
             key=lambda item: (
@@ -161,7 +164,10 @@ class InMemoryDatasetDiscoveryRepository:
             filtered.append(projected)
 
         filtered.sort(
-            key=lambda item: (str(item.get("observed_on", "")), str(item.get("reported_at", "")))
+            key=lambda item: (
+                str(item.get("observed_on", "")),
+                str(item.get("reported_at", "")),
+            )
         )
         return filtered
 
@@ -172,7 +178,12 @@ class InMemoryDatasetDiscoveryRepository:
 
         grouped: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
         for row in rows:
-            source = row.get("source") or {}
+            raw_source = row.get("source")
+            source: dict[str, object]
+            if isinstance(raw_source, dict):
+                source = cast(dict[str, object], raw_source)
+            else:
+                source = {}
             source_id = str(source.get("id", ""))
             source_name = str(source.get("name", ""))
             grouped[(source_name, source_id)].append(row)

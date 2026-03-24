@@ -18,10 +18,13 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Add dataset metadata columns and normalized topic tag tables."""
-    op.add_column("data_series", sa.Column("title", sa.String(length=255), nullable=True))
+    op.add_column(
+        "data_series", sa.Column("title", sa.String(length=255), nullable=True)
+    )
     op.add_column("data_series", sa.Column("description", sa.Text(), nullable=True))
     op.add_column(
-        "data_series", sa.Column("geographic_scope", sa.String(length=255), nullable=True)
+        "data_series",
+        sa.Column("geographic_scope", sa.String(length=255), nullable=True),
     )
 
     op.execute(
@@ -45,8 +48,12 @@ def upgrade() -> None:
         "data_series_topic_tags",
         sa.Column("data_series_id", sa.UUID(), nullable=False),
         sa.Column("topic_tag_id", sa.UUID(), nullable=False),
-        sa.ForeignKeyConstraint(["data_series_id"], ["data_series.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["topic_tag_id"], ["topic_tags.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["data_series_id"], ["data_series.id"], ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["topic_tag_id"], ["topic_tags.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("data_series_id", "topic_tag_id"),
     )
     op.create_index(
@@ -59,7 +66,9 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove dataset metadata columns and topic-tag relationship tables."""
-    op.drop_index("ix_data_series_topic_tags_topic_tag_id", table_name="data_series_topic_tags")
+    op.drop_index(
+        "ix_data_series_topic_tags_topic_tag_id", table_name="data_series_topic_tags"
+    )
     op.drop_table("data_series_topic_tags")
     op.drop_table("topic_tags")
     op.drop_column("data_series", "geographic_scope")

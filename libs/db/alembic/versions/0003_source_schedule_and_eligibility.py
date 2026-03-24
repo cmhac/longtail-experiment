@@ -58,12 +58,17 @@ def upgrade() -> None:
         sa.Column("source_key", sa.String(length=255), nullable=False),
         sa.Column("cadence_type", sa.String(length=32), nullable=False),
         sa.Column("cadence_value", sa.Integer(), nullable=True),
-        sa.Column("timezone", sa.String(length=64), nullable=False, server_default="UTC"),
+        sa.Column(
+            "timezone", sa.String(length=64), nullable=False, server_default="UTC"
+        ),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("last_successful_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("next_eligible_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
-            "priority_class", sa.String(length=32), nullable=False, server_default="normal"
+            "priority_class",
+            sa.String(length=32),
+            nullable=False,
+            server_default="normal",
         ),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -79,7 +84,12 @@ def upgrade() -> None:
         sa.Column("reason_code", sa.String(length=64), nullable=False),
         sa.Column("evaluated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("due_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("selected_for_execution", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column(
+            "selected_for_execution",
+            sa.Boolean(),
+            nullable=False,
+            server_default=sa.false(),
+        ),
         sa.ForeignKeyConstraint(["run_id"], ["ingestion_runs.run_id"]),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("run_id", "source_key", name="uq_eligibility_run_source"),

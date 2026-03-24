@@ -1,64 +1,29 @@
 repos:
   - repo: local
     hooks:
-      - id: backend-lint
-        name: backend-lint
-        entry: uv run --project apps/backend ruff check apps/backend
+      - id: monorepo-lint-all
+        name: monorepo-lint-all
+        entry: pnpm exec nx run-many -t lint --all
         language: system
         pass_filenames: false
-      - id: backend-format-check
-        name: backend-format-check
-        entry: uv run --project apps/backend ruff format --check apps/backend
+      - id: monorepo-format-all
+        name: monorepo-format-all
+        entry: pnpm exec nx run-many -t format --all
         language: system
         pass_filenames: false
-      - id: backend-typecheck
-        name: backend-typecheck
-        entry: uv run --project apps/backend ty check apps/backend
+      - id: monorepo-typecheck-all
+        name: monorepo-typecheck-all
+        entry: pnpm exec nx run-many -t typecheck --all
         language: system
         pass_filenames: false
-      - id: backend-tests
-        name: backend-tests
-        entry: uv run --project apps/backend pytest apps/backend/tests
+      - id: monorepo-test-all
+        name: monorepo-test-all
+        entry: pnpm exec nx run-many -t test --all
         language: system
         pass_filenames: false
-      - id: pipeline-lint
-        name: pipeline-lint
-        entry: uv run --project apps/pipeline ruff check apps/pipeline
-        language: system
-        pass_filenames: false
-      - id: pipeline-format-check
-        name: pipeline-format-check
-        entry: uv run --project apps/pipeline ruff format --check apps/pipeline
-        language: system
-        pass_filenames: false
-      - id: pipeline-typecheck
-        name: pipeline-typecheck
-        entry: uv run --project apps/pipeline ty check apps/pipeline
-        language: system
-        pass_filenames: false
-      - id: pipeline-tests
-        name: pipeline-tests
-        entry: uv run --project apps/pipeline pytest apps/pipeline/tests
-        language: system
-        pass_filenames: false
-      - id: frontend-lint
-        name: frontend-lint
-        entry: pnpm --dir apps/frontend lint
-        language: system
-        pass_filenames: false
-      - id: frontend-format-check
-        name: frontend-format-check
-        entry: pnpm --dir apps/frontend exec biome check .
-        language: system
-        pass_filenames: false
-      - id: frontend-typecheck
-        name: frontend-typecheck
-        entry: pnpm --dir apps/frontend typecheck
-        language: system
-        pass_filenames: false
-      - id: frontend-tests
-        name: frontend-tests
-        entry: pnpm --dir apps/frontend test
+      - id: monorepo-coverage-all
+        name: monorepo-coverage-all
+        entry: pnpm exec nx run-many -t coverage --all
         language: system
         pass_filenames: false
       - id: duplication-check

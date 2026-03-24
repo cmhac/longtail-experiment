@@ -10,7 +10,7 @@ def test_revision_check_uses_expected_baseline_default() -> None:
         encoding="utf-8"
     )
     assert (
-        'EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0007_dataset_metadata_topic_tags}"'
+        'EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0008_dataset_discovery_indexes}"'
         in script
     )
 

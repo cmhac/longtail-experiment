@@ -4,6 +4,12 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "quality:lint:all": "pnpm exec nx run-many -t lint --all",
+    "quality:format:all": "pnpm exec nx run-many -t format --all",
+    "quality:typecheck:all": "pnpm exec nx run-many -t typecheck --all",
+    "quality:test:all": "pnpm exec nx run-many -t test --all",
+    "quality:coverage:all": "pnpm exec nx run-many -t coverage --all",
+    "quality:commit": "pnpm run quality:lint:all && pnpm run quality:format:all && pnpm run quality:typecheck:all && pnpm run quality:test:all && pnpm run quality:coverage:all && pnpm run affected:duplication",
     "pipeline:lint": "uv run --project apps/pipeline ruff check apps/pipeline",
     "pipeline:format": "uv run --project apps/pipeline ruff format --check apps/pipeline",
     "pipeline:typecheck": "uv run --project apps/pipeline ty check apps/pipeline",
@@ -16,7 +22,7 @@
     "affected:coverage": "nx affected -t coverage",
     "affected:duplication": "nx affected -t duplication",
     "quality:pipeline": "pnpm run pipeline:lint && pnpm run pipeline:format && pnpm run pipeline:typecheck && pnpm run pipeline:test && pnpm run pipeline:coverage",
-    "quality:all": "pnpm run quality:pipeline && pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage && pnpm run affected:duplication"
+    "quality:all": "pnpm run quality:commit"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

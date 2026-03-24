@@ -37,6 +37,8 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
   suppression, bypass, or workaround strategy?
 - Full-suite stop rule: Does the plan require `pnpm exec nx run-many -t test --all` to
   pass before any commit and before any AI agent ends work, with no exceptions?
+- Coverage stop rule: Does the plan require `pnpm exec nx run-many -t coverage --all`
+  to pass before any commit with >= 90% thresholds for every project?
 - Test and coverage discipline: Does the plan include automated tests needed to maintain
   > = 90% coverage across affected backend/frontend projects?
 - Local-first parity: Can the complete impacted flow run locally via unified Docker

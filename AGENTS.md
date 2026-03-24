@@ -125,6 +125,10 @@ Mandatory full-suite stop gate (non-bypass):
   `pnpm exec nx run-many -t test --all`
 - This command MUST pass with no exceptions. Targeted or affected-only tests are
   insufficient for this stop gate.
+- Before any commit, run:
+  `pnpm exec nx run-many -t coverage --all`
+- Coverage MUST meet configured minimums (90% or higher) for every project; exceptions
+  and bypasses are not allowed.
 
 Backend quality commands:
 
@@ -191,6 +195,8 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   affected targets and pre-commit hooks.
 - Mandatory stop rule: before any commit and before AI agent handoff/stop, the full
   monorepo test suite MUST pass via `pnpm exec nx run-many -t test --all`.
+- Mandatory commit rule: before any commit, monorepo coverage MUST pass via
+  `pnpm exec nx run-many -t coverage --all` with minimum thresholds satisfied.
 
 ## Recent Changes
 

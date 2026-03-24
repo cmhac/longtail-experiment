@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.1 -> 1.2.0
+- Version change: 1.2.0 -> 1.3.0
 - Modified principles:
-  - II. Uniform Quality Gates (Non-Negotiable) -> II. Uniform Quality Gates and Full-Suite Stop Rule (Non-Negotiable)
+  - II. Uniform Quality Gates and Full-Suite Stop Rule (Non-Negotiable) -> II. Uniform Quality Gates and Full-Suite Stop Rule (Non-Negotiable)
 - Modified sections:
   - Development Workflow and Enforcement
   - Governance
@@ -43,6 +43,9 @@ Before any commit, and before any AI agent stops work or hands off work, the ful
 repository test suite across all apps MUST pass using the canonical command
 `pnpm exec nx run-many -t test --all`. Targeted test runs MAY be used during
 development, but they do not satisfy this mandatory stop rule.
+Before any commit, repository-wide coverage enforcement MUST pass using
+`pnpm exec nx run-many -t coverage --all`, with minimum thresholds of 90% or
+higher required for every project.
 Rationale: Consistent, automated quality controls are required to keep reliability high
 as the codebase and team scale.
 
@@ -104,6 +107,9 @@ spots.
 - Every change MUST pass local pre-commit hooks before review.
 - Before any commit and before any AI agent ends a work session, the full monorepo test
   suite MUST be executed with `pnpm exec nx run-many -t test --all` and MUST pass.
+- Before any commit, monorepo coverage MUST be executed with
+  `pnpm exec nx run-many -t coverage --all` and MUST pass with per-project minimums
+  of 90% or higher.
 - Pull requests MUST show successful lint, format, type-check, and test results for all
   affected projects.
 - Any proposal to relax a quality gate MUST be documented in the PR and explicitly
@@ -130,9 +136,10 @@ spots.
   - MINOR: New principle/section or materially expanded guidance.
   - PATCH: Clarifications, wording improvements, or non-semantic edits.
 - Compliance review is mandatory for every pull request; reviewers MUST confirm
-  constitution alignment, including full-suite test stop-rule compliance, quality gates,
-  local-stack runability, and required documentation updates.
+  constitution alignment, including full-suite test stop-rule compliance,
+  commit-time coverage stop-rule compliance, quality gates, local-stack runability,
+  and required documentation updates.
 - This constitution is expected to evolve with the product; refinements that tighten
   standards across backend, frontend, data pipelines, and operations are encouraged.
 
-**Version**: 1.2.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-23
+**Version**: 1.3.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-23

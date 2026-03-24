@@ -30,7 +30,9 @@ def upgrade() -> None:
         sa.Column("owner_adapter_key", sa.String(length=255), nullable=False),
         sa.Column("state", sa.String(length=32), nullable=False),
         sa.Column("accepted_count", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column("quarantined_count", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column(
+            "quarantined_count", sa.Integer(), nullable=False, server_default="0"
+        ),
         sa.Column("failed_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("outcome_reason_code", sa.String(length=64), nullable=True),
         sa.Column("message", sa.Text(), nullable=True),

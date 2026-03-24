@@ -11,7 +11,8 @@ description: "Task list template for feature implementation"
 include automated test coverage sufficient to maintain >= 90% coverage in affected
 projects. Before any commit and before any AI agent stops work, the full repository
 suite MUST pass via `pnpm exec nx run-many -t test --all`; targeted tests alone are
-never sufficient for this stop gate.
+never sufficient for this stop gate. Before any commit, monorepo coverage MUST pass via
+`pnpm exec nx run-many -t coverage --all` with >= 90% thresholds in every project.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -175,6 +176,8 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Run full local stack via unified Docker Compose and verify end-to-end behavior
 - [ ] TXXX Run `pnpm exec nx run-many -t test --all` and verify pass before commit and
       before agent handoff/end of work
+- [ ] TXXX Run `pnpm exec nx run-many -t coverage --all` and verify >= 90% coverage
+      thresholds are satisfied before commit
 
 ---
 
@@ -267,6 +270,8 @@ With multiple developers:
 - Coverage MUST remain >= 90% in every affected project
 - Before any commit and before any AI agent stops work, `pnpm exec nx run-many -t test --all`
   MUST pass; targeted tests do not satisfy this requirement
+- Before any commit, `pnpm exec nx run-many -t coverage --all` MUST pass with >= 90%
+  coverage thresholds in every project
 - Relevant documentation MUST be updated in the same change as impacted code
 - AGENTS.md MUST be updated when repository structure, workflows, or canonical commands change
 - Verify tests fail before implementing
