@@ -22,6 +22,9 @@ from src.orchestration.resources.postgres_observation_repository import (
 
 def test_ingest_job_executes_and_persists_fred_source_outcomes() -> None:
     """Dagster ingest job should persist run and FRED source outcome rows in Postgres."""
+    if not os.getenv("FRED_API_KEY", "").strip():
+        pytest.skip("FRED_API_KEY not set; skipping live FRED ingest job integration")
+
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository
     observation_repo = PostgresObservationRepository()
@@ -125,6 +128,9 @@ def test_ingest_job_persists_schedule_policy_rows_for_registered_sources() -> No
 
 def test_ingest_job_reports_fred_source_outcome_visibility() -> None:
     """Run output should include a row for the FRED source outcome."""
+    if not os.getenv("FRED_API_KEY", "").strip():
+        pytest.skip("FRED_API_KEY not set; skipping live FRED source outcome visibility integration")
+
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository
 
@@ -152,6 +158,9 @@ def test_ingest_job_reports_fred_source_outcome_visibility() -> None:
 
 def test_ingest_job_series_targeted_request_executes_selected_series_only() -> None:
     """Series-targeted trigger should execute selected series item without unrelated slices."""
+    if not os.getenv("FRED_API_KEY", "").strip():
+        pytest.skip("FRED_API_KEY not set; skipping live FRED series-targeted ingest integration")
+
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository
 

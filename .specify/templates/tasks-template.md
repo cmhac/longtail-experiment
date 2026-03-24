@@ -73,8 +73,11 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T008 [P] Setup API routing and middleware structure
 - [ ] T009 Create base models/entities that all stories depend on
 - [ ] T010 Configure error handling and logging infrastructure
-- [ ] T011 Setup environment configuration management
-- [ ] T012 Integrate/update unified Docker Compose services for full local stack runability
+- [ ] T011 Setup environment configuration management — required env vars MUST raise hard
+      errors when absent; no soft fallbacks or silent outcomes for missing credentials
+- [ ] T012 Integrate/update unified Docker Compose services for full local stack
+      runability; declare `docker/compose/local.secrets.env` as `env_file` source for
+      any service that requires secrets
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

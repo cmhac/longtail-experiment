@@ -137,3 +137,8 @@ _Example of marking unclear requirements:_
   created or updated in the same change for any impacted behavior, contracts, setup, or
   runbooks, including AGENTS.md when repository structure/workflows/tooling change.
   (Yes/No)
+- **CA-006 Configuration Integrity**: Any new service or pipeline component that requires
+  credentials or external API keys will fail hard (exception/non-zero exit/job-level
+  failure) when those variables are absent — no soft outcome recording, no silent
+  swallowing. `docker/compose/local.secrets.env` is declared as an `env_file` source
+  for any Docker Compose service that requires secrets. (Yes/No/N/A)

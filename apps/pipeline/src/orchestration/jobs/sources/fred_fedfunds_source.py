@@ -179,12 +179,8 @@ def build_fred_fedfunds_source_workflow(
             env_key = os.getenv(FRED_API_KEY_ENV, "").strip()
             api_key = env_key or None
         if api_key is None:
-            return SourceWorkflowResult(
-                source_key=request.source_key,
-                status="failure",
-                failed_count=1,
-                outcome_reason_code="missing_credentials",
-                message="FRED_API_KEY is required for fred_fedfunds source",
+            raise EnvironmentError(
+                "FRED_API_KEY is required for fred_fedfunds source but is not set"
             )
 
         accepted_count = 0

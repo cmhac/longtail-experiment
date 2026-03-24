@@ -50,12 +50,13 @@ services:
       LOCAL_DB_NAME: ${LOCAL_DB_NAME:-longtail_local}
       LOCAL_DB_USER: ${LOCAL_DB_USER:-longtail}
       LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
+      DATABASE_URL: postgresql+psycopg://${LOCAL_DB_USER:-longtail}:${LOCAL_DB_PASSWORD:-longtail}@db:5432/${LOCAL_DB_NAME:-longtail_local}
     working_dir: /workspace
     command:
       [
         "sh",
         "-c",
-        "uv sync --project apps/backend --frozen && uv run --project apps/backend python -m src.http_api_server --host 0.0.0.0 --port 8080",
+        "uv sync --project apps/backend --frozen && uv run --project apps/backend alembic -c libs/db/alembic.ini upgrade head && uv run --project apps/backend python -m src.http_api_server --host 0.0.0.0 --port 8080",
       ]
     volumes:
       - ./:/workspace
@@ -103,6 +104,7 @@ services:
     image: ghcr.io/astral-sh/uv:python3.12-bookworm
     env_file:
       - docker/compose/stack.env
+      - docker/compose/local.secrets.env
     environment:
       UV_HTTP_TIMEOUT: "180"
       UV_HTTP_RETRIES: "5"
