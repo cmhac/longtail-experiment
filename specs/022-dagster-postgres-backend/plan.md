@@ -122,9 +122,6 @@ docker-compose.yml
 AGENTS.md
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
-
 **Structure Decision**: Use existing monorepo runtime/configuration and runbook surfaces without creating new apps or libraries. Keep orchestration metadata DB concerns in pipeline/compose/verification paths and preserve backend canonical data responsibilities.
 
 ## Implementation Phases
@@ -153,3 +150,9 @@ directories captured above]
 ## Complexity Tracking
 
 No constitution violations or exceptional complexity justifications are required for this plan.
+
+## Post-Implementation Snapshot
+
+- Added a dedicated `dagster_db` PostgreSQL service to local compose and wired Dagit metadata storage env vars separately from canonical output DB vars.
+- Added local runtime fail-fast metadata configuration guards for Dagit startup/probe helpers and orchestration definitions enforcement mode.
+- Added orchestration/local-stack tests covering metadata storage config, fail-fast diagnostics, dual-role readiness wiring, and script portability.

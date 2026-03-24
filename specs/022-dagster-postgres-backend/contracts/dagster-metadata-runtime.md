@@ -52,6 +52,12 @@ All required inputs must be available before orchestration services are consider
 - Service startup or run launch fails with explicit diagnostic reason when metadata connectivity/configuration is invalid.
 - No partial-success orchestration state is reported.
 
+### Diagnostic categories
+
+- `metadata_config_missing`: required metadata DB inputs are missing.
+- `endpoint_unavailable`: endpoint probe cannot reach Dagit.
+- `workspace_load_failed`: Dagit endpoint is reachable but workspace load checks fail.
+
 ## Compatibility and Versioning
 
 - Contract version: 1.0

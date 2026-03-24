@@ -71,6 +71,12 @@
         "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration -k \"series or grouped or split or ownership_transition\""
       }
     },
+    "test:orchestration:metadata-store": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_dagster_metadata_storage_config.py apps/pipeline/tests/orchestration/test_dagit_runtime_fail_fast.py apps/pipeline/tests/orchestration/test_dagster_metadata_concurrency.py"
+      }
+    },
     "verify:multi-series": {
       "executor": "nx:run-commands",
       "options": {

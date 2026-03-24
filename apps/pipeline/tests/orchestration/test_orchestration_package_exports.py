@@ -91,6 +91,11 @@ def test_dagit_endpoint_probe_fails_for_empty_workspace_graphql_response() -> No
                 **os.environ,
                 "DAGIT_ENDPOINT": f"http://127.0.0.1:{server.server_port}",
                 "DAGIT_VERIFY_WORKSPACE": "1",
+                "DAGSTER_METADATA_DB_HOST": "127.0.0.1",
+                "DAGSTER_METADATA_DB_PORT": "55433",
+                "DAGSTER_METADATA_DB_NAME": "dagster_local",
+                "DAGSTER_METADATA_DB_USER": "dagster",
+                "DAGSTER_METADATA_DB_PASSWORD": "test",
             },
         )
     finally:

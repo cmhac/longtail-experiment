@@ -23,18 +23,20 @@ Dagit is available as a Docker Compose service in this stack. Use these helpers 
 If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 
 - `prerequisite_missing`: missing local prerequisites or wrong command context.
+- `metadata_config_missing`: required Dagster metadata DB settings are absent.
 - `endpoint_unavailable`: process started but endpoint is unreachable.
 - `workspace_load_failed`: UI endpoint responds but workspace definitions are not loaded.
 - `partial_environment`: startup failed due to incomplete local runtime context.
 
 ### Dagit Failure Matrix
 
-| Failure Category        | Observable Symptom                                  | Likely Root Cause                                                         | Recovery Steps                                                                     | Verification Step                                                                           |
-| ----------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `prerequisite_missing`  | Helper exits immediately before endpoint probe      | Missing `uv`, wrong working directory, or incomplete dependency setup     | Install prerequisites, switch to repository root, rerun startup helper             | `bash tools/quality/local-stack/start-dagit-local.sh` returns `DAGIT_START_STATUS=ready`    |
-| `endpoint_unavailable`  | Startup reports running but endpoint check fails    | Port conflict, webserver startup failure, or process crash                | Stop conflicting process, inspect `.tmp/dagit-local.log`, restart helper           | `bash tools/quality/local-stack/test-dagit-endpoint.sh` returns `DAGIT_HEALTH_STATUS=ready` |
-| `workspace_load_failed` | Endpoint reachable but workspace verification fails | Definitions module load error or empty workspace location entries         | Validate `src.orchestration.definitions` imports and runtime wiring, restart Dagit | `DAGIT_VERIFY_WORKSPACE=1 bash tools/quality/local-stack/test-dagit-endpoint.sh` passes     |
-| `partial_environment`   | Startup helper emits fallback degraded category     | Mixed env state, stale pid/log state, or partial local stack availability | Run stop helper, clear stale state, ensure compose stack healthy, restart          | Stop/start cycle and endpoint probe both succeed                                            |
+| Failure Category          | Observable Symptom                                      | Likely Root Cause                                                         | Recovery Steps                                                                                         | Verification Step                                                                           |
+| ------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `prerequisite_missing`    | Helper exits immediately before endpoint probe          | Missing `uv`, wrong working directory, or incomplete dependency setup     | Install prerequisites, switch to repository root, rerun startup helper                                 | `bash tools/quality/local-stack/start-dagit-local.sh` returns `DAGIT_START_STATUS=ready`    |
+| `metadata_config_missing` | Helper exits before Dagit launch and lists missing vars | `DAGSTER_METADATA_DB_*` values are unset or blank                         | Populate metadata DB vars in `docker/compose/stack.env` + `docker/compose/local.secrets.env` and rerun | `bash tools/quality/local-stack/start-dagit-local.sh` returns `DAGIT_START_STATUS=ready`    |
+| `endpoint_unavailable`    | Startup reports running but endpoint check fails        | Port conflict, webserver startup failure, or process crash                | Stop conflicting process, inspect `.tmp/dagit-local.log`, restart helper                               | `bash tools/quality/local-stack/test-dagit-endpoint.sh` returns `DAGIT_HEALTH_STATUS=ready` |
+| `workspace_load_failed`   | Endpoint reachable but workspace verification fails     | Definitions module load error or empty workspace location entries         | Validate `src.orchestration.definitions` imports and runtime wiring, restart Dagit                     | `DAGIT_VERIFY_WORKSPACE=1 bash tools/quality/local-stack/test-dagit-endpoint.sh` passes     |
+| `partial_environment`     | Startup helper emits fallback degraded category         | Mixed env state, stale pid/log state, or partial local stack availability | Run stop helper, clear stale state, ensure compose stack healthy, restart                              | Stop/start cycle and endpoint probe both succeed                                            |
 
 ## Healthy State
 
@@ -43,6 +45,7 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 - frontend service is listed and healthy.
 - dagit service is listed and healthy.
 - db service is listed and healthy.
+- dagster_db service is listed and healthy.
 
 ## Frontend Shell Readiness (Feature 016)
 
@@ -75,6 +78,7 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 - If frontend is unhealthy, inspect: docker compose logs frontend
 - If pipeline is unhealthy, inspect: docker compose logs pipeline
 - If db is unhealthy, inspect: docker compose logs db
+- If dagster_db is unhealthy, inspect: docker compose logs dagster_db
 - If any service fails health checks, stop stack with docker compose down and fix configuration before retry.
 - If migrations fail with role/auth errors on port 5432, verify local defaults from `docker/compose/stack.env` and ensure commands target `LOCAL_DB_PORT=55432`.
 - If migration or revision scripts fail while DB is stopped, rerun the same command; scripts now auto-start `db` and then wait for healthy status.

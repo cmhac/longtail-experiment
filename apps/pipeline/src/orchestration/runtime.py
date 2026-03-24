@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 from typing import TypedDict, cast
 
@@ -47,6 +48,43 @@ RETIRED_LEGACY_CADENCE_ENTRYPOINTS = (
 
 ACTIVE_SCHEDULE_MODEL = "per_source"
 """Post-cutover schedule model: each source asset owns its own Dagster schedule."""
+
+REQUIRED_DAGSTER_METADATA_ENV_VARS: tuple[str, ...] = (
+    "DAGSTER_METADATA_DB_HOST",
+    "DAGSTER_METADATA_DB_PORT",
+    "DAGSTER_METADATA_DB_NAME",
+    "DAGSTER_METADATA_DB_USER",
+    "DAGSTER_METADATA_DB_PASSWORD",
+)
+
+
+def metadata_storage_enforcement_enabled() -> bool:
+    """Return whether metadata DB env validation is enforced for Dagster startup."""
+    return os.getenv("DAGSTER_METADATA_ENFORCE", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def get_dagster_metadata_storage_config() -> dict[str, str]:
+    """Return resolved metadata DB env values for Dagster storage configuration."""
+    return {key: os.getenv(key, "").strip() for key in REQUIRED_DAGSTER_METADATA_ENV_VARS}
+
+
+def validate_dagster_metadata_storage_config() -> dict[str, str]:
+    """Validate required metadata DB env values and raise on missing entries."""
+    config = get_dagster_metadata_storage_config()
+    missing = sorted(key for key, value in config.items() if not value)
+    if missing:
+        joined = ", ".join(missing)
+        raise RuntimeError(
+            "Missing required Dagster metadata DB environment variables: "
+            f"{joined}. Dagster metadata storage is configured for PostgreSQL; "
+            "do not fall back to SQLite."
+        )
+    return config
 
 
 class RuntimeWorkspaceLoadState(TypedDict):

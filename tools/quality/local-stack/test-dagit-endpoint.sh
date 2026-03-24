@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+STACK_ENV_FILE="${REPO_ROOT}/docker/compose/stack.env"
+SECRETS_ENV_FILE="${REPO_ROOT}/docker/compose/local.secrets.env"
+
 HOST="${DAGIT_HOST:-127.0.0.1}"
 PORT="${DAGIT_PORT:-3001}"
 ENDPOINT="${DAGIT_ENDPOINT:-http://${HOST}:${PORT}}"
@@ -9,6 +14,21 @@ DELAY_SECONDS="${DAGIT_ENDPOINT_DELAY_SECONDS:-1}"
 VERIFY_WORKSPACE="${DAGIT_VERIFY_WORKSPACE:-1}"
 MIN_LOCATION_ENTRIES="${DAGIT_MIN_LOCATION_ENTRIES:-1}"
 
+if [[ -f "$STACK_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$STACK_ENV_FILE"
+fi
+
+if [[ -f "$SECRETS_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$SECRETS_ENV_FILE"
+fi
+
+export DAGSTER_METADATA_DB_HOST="${DAGSTER_METADATA_DB_HOST:-127.0.0.1}"
+export DAGSTER_METADATA_DB_PORT="${DAGSTER_METADATA_DB_PORT:-55433}"
+export DAGSTER_METADATA_DB_NAME="${DAGSTER_METADATA_DB_NAME:-dagster_local}"
+export DAGSTER_METADATA_DB_USER="${DAGSTER_METADATA_DB_USER:-dagster}"
+
 print_failure() {
   local code="$1"
   local message="$2"
@@ -16,6 +36,9 @@ print_failure() {
   case "$code" in
     endpoint_unavailable)
       remediation_hint="Confirm Dagit is running and endpoint host/port are correct."
+      ;;
+    metadata_config_missing)
+      remediation_hint="Export DAGSTER_METADATA_DB_* vars or source docker/compose env files before probing."
       ;;
     workspace_load_failed)
       remediation_hint="Confirm workspace definitions load and DAGIT_VERIFY_WORKSPACE settings are correct."
@@ -32,6 +55,18 @@ print_failure() {
   echo "DAGIT_MESSAGE=${message}"
   echo "DAGIT_REMEDIATION_HINT=${remediation_hint}"
 }
+
+missing_vars=()
+for required_var in DAGSTER_METADATA_DB_HOST DAGSTER_METADATA_DB_PORT DAGSTER_METADATA_DB_NAME DAGSTER_METADATA_DB_USER DAGSTER_METADATA_DB_PASSWORD; do
+  if [[ -z "${!required_var:-}" ]]; then
+    missing_vars+=("${required_var}")
+  fi
+done
+
+if [[ "${#missing_vars[@]}" -gt 0 ]]; then
+  print_failure "metadata_config_missing" "Missing required metadata DB vars: ${missing_vars[*]}"
+  exit 1
+fi
 
 for _ in $(seq 1 "$RETRIES"); do
   if curl -fsS "$ENDPOINT" >/dev/null 2>&1; then

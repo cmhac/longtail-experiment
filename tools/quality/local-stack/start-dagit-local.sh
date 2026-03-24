@@ -11,6 +11,8 @@ PIPELINE_PYTHONPATH="${REPO_ROOT}/apps/pipeline"
 HOST="${DAGIT_HOST:-127.0.0.1}"
 PORT="${DAGIT_PORT:-3001}"
 ENDPOINT="http://${HOST}:${PORT}"
+STACK_ENV_FILE="${REPO_ROOT}/docker/compose/stack.env"
+SECRETS_ENV_FILE="${REPO_ROOT}/docker/compose/local.secrets.env"
 
 print_failure() {
   local code="$1"
@@ -22,6 +24,9 @@ print_failure() {
       ;;
     endpoint_unavailable)
       remediation_hint="Check ${LOG_FILE} for startup errors and port conflicts, then retry."
+      ;;
+    metadata_config_missing)
+      remediation_hint="Set DAGSTER_METADATA_DB_* vars (host, port, name, user, password), then retry."
       ;;
     workspace_load_failed)
       remediation_hint="Inspect definitions module loading in apps/pipeline/src/orchestration/definitions.py."
@@ -41,11 +46,6 @@ if [[ "$PWD" != "$REPO_ROOT" ]]; then
   exit 1
 fi
 
-if ! command -v uv >/dev/null 2>&1; then
-  print_failure "prerequisite_missing" "uv is required to launch Dagit locally"
-  exit 1
-fi
-
 mkdir -p "${REPO_ROOT}/.tmp" "${LOCAL_DAGSTER_HOME}"
 
 if [[ -f "$PID_FILE" ]]; then
@@ -59,9 +59,42 @@ if [[ -f "$PID_FILE" ]]; then
   rm -f "$PID_FILE"
 fi
 
+if [[ -f "$STACK_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$STACK_ENV_FILE"
+fi
+
+if [[ -f "$SECRETS_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$SECRETS_ENV_FILE"
+fi
+
+export DAGSTER_METADATA_DB_HOST="${DAGSTER_METADATA_DB_HOST:-127.0.0.1}"
+export DAGSTER_METADATA_DB_PORT="${DAGSTER_METADATA_DB_PORT:-55433}"
+export DAGSTER_METADATA_DB_NAME="${DAGSTER_METADATA_DB_NAME:-dagster_local}"
+export DAGSTER_METADATA_DB_USER="${DAGSTER_METADATA_DB_USER:-dagster}"
+
+missing_vars=()
+for required_var in DAGSTER_METADATA_DB_HOST DAGSTER_METADATA_DB_PORT DAGSTER_METADATA_DB_NAME DAGSTER_METADATA_DB_USER DAGSTER_METADATA_DB_PASSWORD; do
+  if [[ -z "${!required_var:-}" ]]; then
+    missing_vars+=("${required_var}")
+  fi
+done
+
+if [[ "${#missing_vars[@]}" -gt 0 ]]; then
+  print_failure "metadata_config_missing" "Missing required metadata DB vars: ${missing_vars[*]}"
+  exit 1
+fi
+
+if ! command -v uv >/dev/null 2>&1; then
+  print_failure "prerequisite_missing" "uv is required to launch Dagit locally"
+  exit 1
+fi
+
 set +e
 nohup env \
   DAGSTER_HOME="${LOCAL_DAGSTER_HOME}" \
+  DAGSTER_METADATA_ENFORCE="1" \
   PYTHONPATH="${PIPELINE_PYTHONPATH}${PYTHONPATH:+:${PYTHONPATH}}" \
   uv run --project apps/pipeline dagster dev \
     -d "${PIPELINE_WORKDIR}" \

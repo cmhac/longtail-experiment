@@ -3,6 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2026-03-24
 
 ## Active Technologies
+
 - Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers (022-dagster-postgres-backend)
 - Two local PostgreSQL database roles: orchestration metadata store and canonical output-data store (022-dagster-postgres-backend)
 
@@ -126,6 +127,7 @@ Pipeline quality commands:
 - pnpm exec nx run pipeline:test:orchestration:cadence
 - pnpm exec nx run pipeline:test:orchestration:parallel
 - pnpm exec nx run pipeline:test:orchestration:source-assets
+- pnpm exec nx run pipeline:test:orchestration:metadata-store
 
 Frontend quality commands:
 
@@ -157,6 +159,7 @@ Local stack and duplication:
 - bash tools/quality/local-stack/test-db-readiness.sh
 - uv run --project apps/backend pytest apps/backend/tests/contract/test_ingest_audit_query_contract.py apps/backend/tests/contract/test_revision_lineage_traceability.py
 - bash tools/quality/local-stack/test-compose-stack.sh
+- uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_dagster_metadata_storage_config.py apps/pipeline/tests/orchestration/test_dagit_runtime_fail_fast.py apps/pipeline/tests/orchestration/test_dagster_metadata_concurrency.py
 - bash tools/quality/local-stack/test-discovery-persisted-parity.sh
 - docker compose up -d
 - docker compose ps
@@ -178,6 +181,7 @@ Current migration head expected by local revision checks: `0008_dataset_discover
   `pnpm exec nx run-many -t coverage --all` with minimum thresholds satisfied.
 
 ## Recent Changes
+
 - 022-dagster-postgres-backend: Added Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers
 
 - 021-bootstrap-provider-script: Added provider adapter bootstrap tooling (`tools/provider_bootstrap`) and root script `pnpm run provider:bootstrap` to standardize new source adapter scaffolding.

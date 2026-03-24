@@ -21,6 +21,29 @@ services:
       timeout: 5s
       retries: 12
 
+  dagster_db:
+    image: postgres:16-alpine
+    env_file:
+      - docker/compose/stack.env
+      - docker/compose/local.secrets.env
+    environment:
+      POSTGRES_DB: ${DAGSTER_METADATA_DB_NAME:-dagster_local}
+      POSTGRES_USER: ${DAGSTER_METADATA_DB_USER:-dagster}
+      POSTGRES_PASSWORD: ${DAGSTER_METADATA_DB_PASSWORD:-longtail}
+    ports:
+      - "${DAGSTER_METADATA_DB_PORT:-55433}:5432"
+    volumes:
+      - dagster_metadata_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DAGSTER_METADATA_DB_USER:-dagster} -d ${DAGSTER_METADATA_DB_NAME:-dagster_local}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   pipeline:
     image: python:3.12-alpine
     command: ["sh", "-c", "python -m http.server 8090"]
@@ -113,6 +136,12 @@ services:
       LOCAL_DB_NAME: ${LOCAL_DB_NAME:-longtail_local}
       LOCAL_DB_USER: ${LOCAL_DB_USER:-longtail}
       LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
+      DAGSTER_METADATA_DB_HOST: dagster_db
+      DAGSTER_METADATA_DB_PORT: 5432
+      DAGSTER_METADATA_DB_NAME: ${DAGSTER_METADATA_DB_NAME:-dagster_local}
+      DAGSTER_METADATA_DB_USER: ${DAGSTER_METADATA_DB_USER:-dagster}
+      DAGSTER_METADATA_DB_PASSWORD: ${DAGSTER_METADATA_DB_PASSWORD:-longtail}
+      DAGSTER_METADATA_ENFORCE: "1"
       DAGSTER_HOME: /workspace/.tmp/dagster-home
     working_dir: /workspace
     command:
@@ -130,6 +159,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      dagster_db:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -142,6 +173,7 @@ services:
 
 volumes:
   local_db_data:
+  dagster_metadata_db_data:
   frontend_node_modules:
   backend_venv:
   backend_uv_cache:

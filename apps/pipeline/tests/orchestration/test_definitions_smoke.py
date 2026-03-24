@@ -169,6 +169,11 @@ def test_dagit_endpoint_probe_reports_ready_when_endpoint_is_reachable() -> None
                 **os.environ,
                 "DAGIT_ENDPOINT": f"http://127.0.0.1:{port}",
                 "DAGIT_VERIFY_WORKSPACE": "0",
+                "DAGSTER_METADATA_DB_HOST": "127.0.0.1",
+                "DAGSTER_METADATA_DB_PORT": "55433",
+                "DAGSTER_METADATA_DB_NAME": "dagster_local",
+                "DAGSTER_METADATA_DB_USER": "dagster",
+                "DAGSTER_METADATA_DB_PASSWORD": "test",
             },
         )
     finally:
@@ -193,6 +198,11 @@ def test_dagit_endpoint_probe_reports_unavailable_for_unreachable_endpoint() -> 
             "DAGIT_ENDPOINT": "http://127.0.0.1:9",
             "DAGIT_ENDPOINT_RETRIES": "1",
             "DAGIT_ENDPOINT_DELAY_SECONDS": "0",
+            "DAGSTER_METADATA_DB_HOST": "127.0.0.1",
+            "DAGSTER_METADATA_DB_PORT": "55433",
+            "DAGSTER_METADATA_DB_NAME": "dagster_local",
+            "DAGSTER_METADATA_DB_USER": "dagster",
+            "DAGSTER_METADATA_DB_PASSWORD": "test",
         },
     )
 
@@ -218,3 +228,35 @@ def test_grouped_fred_series_share_default_cadence_definition() -> None:
     for spec in scan_adapter_modules():
         assert SOURCE_CADENCE_DEFINITIONS[spec.source_key][1] == spec.cadence_label
         assert SOURCE_SERIES_ITEM_DEFINITIONS[spec.source_key] == spec.series_item_keys
+
+
+def test_compose_declares_dual_database_health_dependencies_for_dagit() -> None:
+    """Dagit should depend on both canonical and metadata database health checks."""
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
+
+    assert "dagster_db:" in compose
+    assert "depends_on:" in compose
+    assert 'DAGSTER_METADATA_ENFORCE: "1"' in compose
+
+
+def test_dagit_endpoint_probe_reports_metadata_config_missing_when_unset() -> None:
+    """Endpoint probe should fail before HTTP checks when metadata env vars are absent."""
+    repo_root = Path(__file__).resolve().parents[4]
+    completed = subprocess.run(
+        ["bash", "tools/quality/local-stack/test-dagit-endpoint.sh"],
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "DAGSTER_METADATA_DB_HOST": "",
+            "DAGSTER_METADATA_DB_PORT": "",
+            "DAGSTER_METADATA_DB_NAME": "",
+            "DAGSTER_METADATA_DB_USER": "",
+            "DAGSTER_METADATA_DB_PASSWORD": "",
+        },
+    )
+
+    assert completed.returncode == 1
+    assert "DAGIT_FAILURE_CATEGORY=metadata_config_missing" in completed.stdout
