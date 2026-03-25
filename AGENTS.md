@@ -180,6 +180,30 @@ Current migration head expected by local revision checks: `0008_dataset_discover
 - Mandatory commit rule: before any commit, monorepo coverage MUST pass via
   `pnpm exec nx run-many -t coverage --all` with minimum thresholds satisfied.
 
+## Testing Guidelines
+
+CRITICAL: each time you finish working on a given task, before you stop work, you MUST go through two steps: manual testing, and monorepo-wide quality gates.
+
+### Manual Testing
+
+Once you finish implementing a change, verify it by executing the code in a real-world scenario using the local development environment rather than assuming it works: first run any existing automated tests, then perform manual testing using the most appropriate mechanism for the stack.
+
+For example, if you updated an API route, start the local development server and use a CURL command, python script, or other means to send a request to that route and confirm the expected response. If you updated a database migration, run the migration against a local database instance and check the schema changes. If you updated a data processing function, execute it with real input data and verify the output. If you updated a frontend component, start the development server and interact with the UI to confirm the change is reflected as expected. If you updated an orchestration job, run it in the local Dagster environment and check the logs and outputs.
+
+If you encounter any issues during manual testing, fix them immediately and then re-test until the change works as expected in the local environment. Do not skip or rush through this step, as it is critical for catching issues that may not be covered by automated tests and for ensuring that your change works in a realistic scenario.
+
+CRITICAL: each time you do this, first take down the local development environment to ensure a clean state, then bring it back up to test the change in a realistic scenario. This is especially important for changes that affect startup behavior, database configuration, or orchestration runtimes, where the change may not be fully exercised until the environment is restarted.
+
+### Monorepo-wide Quality Gates
+
+After manual testing, you MUST run the full monorepo test suite and coverage checks to ensure that your change does not introduce regressions or reduce test coverage. This is a mandatory stop gate before committing any changes, and it applies to both human and AI agent contributions.
+
+Use this exact command to run the full suite: `pre-commit run --all-files`.
+
+If you discover any test failures or coverage reductions, you MUST fix them before committing. This may involve writing new tests to cover uncovered code paths, or updating existing tests to reflect the new behavior. The goal is to maintain a high standard of quality and ensure that all changes are thoroughly tested and documented.
+
+<!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
+
 ## Recent Changes
 
 - 022-dagster-postgres-backend: Added Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers
