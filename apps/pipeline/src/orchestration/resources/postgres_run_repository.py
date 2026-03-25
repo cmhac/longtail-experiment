@@ -449,6 +449,16 @@ class PostgresRunRepository:
             )
 
     @staticmethod
+    def as_datetime(value: object) -> datetime:
+        """Coerce an input value into datetime for payload normalization."""
+        return PostgresRunRepository._as_datetime(value)
+
+    @staticmethod
+    def as_int(value: object) -> int:
+        """Coerce an input value into int for payload normalization."""
+        return PostgresRunRepository._as_int(value)
+
+    @staticmethod
     def _as_datetime(value: object) -> datetime:
         if isinstance(value, datetime):
             return value

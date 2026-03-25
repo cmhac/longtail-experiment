@@ -17,7 +17,9 @@ from src.orchestration.definitions import defs, get_ingest_runtime
 def test_eligibility_snapshots_are_persisted_for_each_run() -> None:
     """Ingest runs should persist per-source eligibility snapshots with reason codes."""
     if not os.getenv("FRED_API_KEY", "").strip():
-        pytest.skip("FRED_API_KEY not set; skipping live FRED eligibility snapshot persistence integration")
+        pytest.skip(
+            "FRED_API_KEY not set; skipping live FRED eligibility snapshot persistence integration"
+        )
 
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository

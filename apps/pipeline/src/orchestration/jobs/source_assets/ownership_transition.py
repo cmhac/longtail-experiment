@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TypedDict, Unpack
 
 from .ownership_mode import (
     OwnershipMode,
@@ -11,16 +12,26 @@ from .ownership_mode import (
 )
 
 
-def apply_ownership_transition(  # noqa: PLR0913
+class OwnershipTransitionParams(TypedDict, total=False):
+    """Keyword params for ownership transition updates."""
+
+    new_owner_adapter_key: str
+    new_mode: OwnershipMode
+    effective_from: datetime
+    transition_reason: str | None
+
+
+def apply_ownership_transition(
     *,
     existing_records: list[SeriesOwnershipModeRecord],
     series_item_key: str,
-    new_owner_adapter_key: str,
-    new_mode: OwnershipMode,
-    effective_from: datetime,
-    transition_reason: str | None = None,
+    **transition: Unpack[OwnershipTransitionParams],
 ) -> list[SeriesOwnershipModeRecord]:
     """Apply one ownership transition by closing prior active window then appending new record."""
+    new_owner_adapter_key = transition["new_owner_adapter_key"]
+    new_mode = transition["new_mode"]
+    effective_from = transition["effective_from"]
+
     if new_mode not in {"grouped", "split"}:
         raise ValueError("new_mode must be grouped or split")
 

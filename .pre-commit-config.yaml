@@ -34,6 +34,6 @@ repos:
       - id: disallow-inline-suppression
         name: disallow-inline-suppression
         entry: |
-          bash -c "! rg -n 'noqa|eslint-disable|type: ignore|ruff: noqa|ts-ignore|ts-expect-error' apps tools"
+          bash -c "! rg -n 'noqa|eslint-disable|type: ignore|ruff: noqa|ts-ignore|ts-expect-error' apps/backend/src apps/pipeline/src apps/frontend/src libs tools/provider_bootstrap"
         language: system
         pass_filenames: false

@@ -173,8 +173,8 @@ def test_clear_operations_and_resolvers_execute_expected_paths(monkeypatch) -> N
         )
         == "postgresql://override"
     )
-    assert isinstance(repository._as_int("12"), int)  # noqa: SLF001
-    assert isinstance(repository._as_datetime(datetime.now(tz=UTC)), datetime)  # noqa: SLF001
+    assert isinstance(repository.as_int("12"), int)
+    assert isinstance(repository.as_datetime(datetime.now(tz=UTC)), datetime)
 
 
 def test_eligibility_snapshot_write_and_read_paths(monkeypatch) -> None:

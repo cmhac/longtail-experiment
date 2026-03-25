@@ -129,7 +129,9 @@ def test_ingest_job_persists_schedule_policy_rows_for_registered_sources() -> No
 def test_ingest_job_reports_fred_source_outcome_visibility() -> None:
     """Run output should include a row for the FRED source outcome."""
     if not os.getenv("FRED_API_KEY", "").strip():
-        pytest.skip("FRED_API_KEY not set; skipping live FRED source outcome visibility integration")
+        pytest.skip(
+            "FRED_API_KEY not set; skipping live FRED source outcome visibility integration"
+        )
 
     runtime = get_ingest_runtime()
     run_repo = runtime.run_repository

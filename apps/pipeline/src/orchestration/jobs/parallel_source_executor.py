@@ -103,7 +103,7 @@ class ParallelSourceExecutor:
     def _run_one(handler: SourceExecutionHandler, source_key: str) -> SourceWorkflowResult:
         try:
             return handler(source_key)
-        except EnvironmentError:  # pragma: no cover - hard fail-fast: missing credentials/config
+        except OSError:  # pragma: no cover - hard fail-fast: missing credentials/config
             raise
         except Exception as exc:  # pragma: no cover - runtime protection path
             return SourceWorkflowResult(

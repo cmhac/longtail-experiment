@@ -203,8 +203,7 @@ def verify_runtime_wiring_for_dagit(runtime: IngestRuntime) -> tuple[bool, list[
         except RuntimeError as exc:
             errors.append(str(exc))
 
-    registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - runtime validation helper
-    registered = tuple(registry.list_source_keys())
+    registered = runtime.run_coordinator.list_registered_source_keys()
     for key in EXPECTED_RUNTIME_SOURCE_KEYS:
         if key not in registered:
             errors.append(f"Missing source workflow registration: {key}")
@@ -215,12 +214,11 @@ def verify_runtime_wiring_for_dagit(runtime: IngestRuntime) -> tuple[bool, list[
 def get_runtime_workspace_load_state(runtime: IngestRuntime) -> RuntimeWorkspaceLoadState:
     """Expose a compact runtime load-state summary for local Dagit verification."""
     is_valid, errors = verify_runtime_wiring_for_dagit(runtime)
-    registry = runtime.run_coordinator._workflow_registry  # noqa: SLF001 - verification helper
 
     return {
         "workspace_loaded": is_valid,
         "errors": errors,
-        "source_keys": tuple(registry.list_source_keys()),
+        "source_keys": tuple(runtime.run_coordinator.list_registered_source_keys()),
     }
 
 

@@ -1,7 +1,5 @@
 """Test-only in-memory repository for dataset discovery contract fixtures."""
 
-# ruff: noqa: D102, D107
-
 from __future__ import annotations
 
 from collections import defaultdict
@@ -18,6 +16,7 @@ class InMemoryDatasetDiscoveryRepository:
         datasets: list[dict[str, Any]] | None = None,
         observations: list[dict[str, Any]] | None = None,
     ) -> None:
+        """Initialize fixture rows for datasets and observations."""
         self._datasets = list(datasets or [])
         self._observations = list(observations or [])
 
@@ -35,6 +34,7 @@ class InMemoryDatasetDiscoveryRepository:
         ).lower()
 
     def _latest_update_by_dataset(self) -> dict[str, str | None]:
+        """Return latest reported timestamp for each dataset."""
         latest: dict[str, str] = {}
         for row in self._observations:
             dataset_id = str(row.get("dataset_id", ""))
@@ -53,6 +53,7 @@ class InMemoryDatasetDiscoveryRepository:
     def _apply_search(
         self, *, query_text: str | None, source_id: str | None = None
     ) -> list[dict[str, Any]]:
+        """Filter and project dataset rows for search-like queries."""
         normalized = (query_text or "").strip().lower()
         rows: list[dict[str, Any]] = []
         latest_update = self._latest_update_by_dataset()
@@ -80,6 +81,7 @@ class InMemoryDatasetDiscoveryRepository:
     def _paginate(
         rows: list[dict[str, Any]], *, page: int, page_size: int
     ) -> tuple[list[dict[str, Any]], int]:
+        """Return one page slice and total count."""
         total = len(rows)
         start = (page - 1) * page_size
         end = start + page_size
@@ -92,10 +94,12 @@ class InMemoryDatasetDiscoveryRepository:
         page: int,
         page_size: int,
     ) -> tuple[list[dict[str, Any]], int]:
+        """Return paged dataset search results."""
         rows = self._apply_search(query_text=query_text)
         return self._paginate(rows, page=page, page_size=page_size)
 
     def list_recent_datasets(self, *, limit: int) -> list[dict[str, Any]]:
+        """Return most recently updated datasets up to limit."""
         rows = self._apply_search(query_text=None)
         return rows[:limit]
 
@@ -107,6 +111,7 @@ class InMemoryDatasetDiscoveryRepository:
         page: int,
         page_size: int,
     ) -> tuple[list[dict[str, Any]], int]:
+        """Return paged catalog rows sorted by source and title."""
         rows = self._apply_search(query_text=query_text, source_id=source_id)
         rows.sort(
             key=lambda item: (
@@ -118,6 +123,7 @@ class InMemoryDatasetDiscoveryRepository:
         return self._paginate(rows, page=page, page_size=page_size)
 
     def get_dataset_detail(self, *, dataset_id: str) -> dict[str, Any] | None:
+        """Return one dataset by identifier when available."""
         for row in self._datasets:
             if str(row.get("dataset_id", "")) == dataset_id:
                 return dict(row)
@@ -130,6 +136,7 @@ class InMemoryDatasetDiscoveryRepository:
         from_date: date | None,
         to_date: date | None,
     ) -> list[dict[str, Any]]:
+        """Return observations for one dataset with optional date bounds."""
         rows = [row for row in self._observations if str(row.get("dataset_id", "")) == dataset_id]
 
         filtered: list[dict[str, Any]] = []
@@ -149,6 +156,7 @@ class InMemoryDatasetDiscoveryRepository:
         return filtered
 
     def group_catalog_by_source(self, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Group catalog rows by source metadata for contract assertions."""
         grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
         for row in rows:
             source = row.get("source") or {}

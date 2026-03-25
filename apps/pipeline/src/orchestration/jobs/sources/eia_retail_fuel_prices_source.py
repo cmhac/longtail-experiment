@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from datetime import UTC, date, datetime, timedelta
 from typing import Any, Protocol
 from urllib.parse import urlencode
-from urllib.request import urlopen
+from urllib.request import build_opener
 
 from ..source_assets.discovery import ObservationCheckpointRepository
 from ..source_ingest_runner import SourceIngestRunner
@@ -63,6 +63,7 @@ class _DefaultEiaClient:
         self._base_url = base_url
         self._timeout = timeout
         self._page_size = page_size
+        self._opener = build_opener()
 
     def fetch_observations(
         self,
@@ -92,7 +93,7 @@ class _DefaultEiaClient:
 
             url = f"{self._base_url}?{urlencode(params)}"
             try:
-                with urlopen(url, timeout=self._timeout) as response:  # noqa: S310 - trusted EIA endpoint
+                with self._opener.open(url, timeout=self._timeout) as response:
                     payload = json.loads(response.read().decode("utf-8"))
             except Exception as exc:  # pragma: no cover - network boundary
                 raise RuntimeError("eia request failed") from exc

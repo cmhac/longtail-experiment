@@ -4,8 +4,12 @@ from dagster import Definitions
 
 from .jobs.ingest_job import ingest_job
 from .jobs.source_assets.recovery import build_post_cutover_recovery_plan
-from .runtime import IngestRuntime, build_ingest_runtime
-from .runtime import metadata_storage_enforcement_enabled, validate_dagster_metadata_storage_config
+from .runtime import (
+    IngestRuntime,
+    build_ingest_runtime,
+    metadata_storage_enforcement_enabled,
+    validate_dagster_metadata_storage_config,
+)
 from .schedules.source_asset_schedules import SOURCE_ASSET_SCHEDULES
 from .sensors.ondemand_sensor import ondemand_sensor
 from .source_asset_definitions import SOURCE_DAGIT_ASSETS

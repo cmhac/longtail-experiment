@@ -92,11 +92,7 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
-        """Reduce handler logging noise; keep default behavior minimal."""
-        del format, args
-
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         """Handle read-only dataset discovery API requests."""
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)

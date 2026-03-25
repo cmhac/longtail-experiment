@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict, Unpack, cast
 from uuid import uuid4
 
 from src.orchestration.resources.source_lock_service import SourceLockService
@@ -47,21 +47,31 @@ class RunSummary(TypedDict):
     not_due_source_count: int
 
 
+class RunCoordinatorOptions(TypedDict, total=False):
+    """Optional constructor dependencies for RunCoordinator."""
+
+    run_repository: object | None
+    series_catalog_entries: tuple[SeriesCatalogEntry, ...]
+    ownership_mode_registry: dict[str, SeriesOwnershipModeRecord] | None
+
+
 class RunCoordinator:
     """Execute all registered source workflows and aggregate run outcomes."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         *,
         workflow_registry: SourceWorkflowRegistry,
         source_lock_service: SourceLockService,
         due_source_selector: DueSourceSelector,
         parallel_source_executor: ParallelSourceExecutor,
-        run_repository: object | None = None,
-        series_catalog_entries: tuple[SeriesCatalogEntry, ...] = (),
-        ownership_mode_registry: dict[str, SeriesOwnershipModeRecord] | None = None,
+        **options: Unpack[RunCoordinatorOptions],
     ) -> None:
         """Initialize coordinator with registry, lock, aggregation, and persistence dependencies."""
+        run_repository = options.get("run_repository")
+        series_catalog_entries = options.get("series_catalog_entries", ())
+        ownership_mode_registry = options.get("ownership_mode_registry")
+
         self._workflow_registry = workflow_registry
         self._source_lock_service = source_lock_service
         self._run_outcome_service = RunOutcomeService()
