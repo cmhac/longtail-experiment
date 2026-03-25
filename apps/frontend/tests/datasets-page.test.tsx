@@ -65,6 +65,7 @@ describe("datasets page", () => {
     expect(markup).toContain('data-testid="dataset-source-filter"');
     expect(markup).toContain('data-testid="dataset-category-filter"');
     expect(markup).toContain('data-testid="dataset-sort-control"');
+    expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
   });
 
@@ -225,6 +226,16 @@ describe("datasets page", () => {
 
     const duplicateCardCount = markup.match(/href="\/datasets\/BLS\.CPI\.CORE"/g)?.length ?? 0;
     expect(duplicateCardCount).toBe(1);
+  });
+
+  it("renders geography as an emphasized pill in unified row output", async () => {
+    mockCatalogResponse();
+
+    const element = await CatalogPage({ searchParams: Promise.resolve({}) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain('class="recent-updates-pill recent-updates-geography-pill"');
+    expect(markup).toContain("Colorado");
   });
 
   it("renders fallback state when catalog request fails", async () => {

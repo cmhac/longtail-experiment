@@ -143,7 +143,15 @@ describe("shell structure and monochrome contract", () => {
     expect(markup).toContain('data-testid="dataset-list-page-header"');
     expect(markup).toContain('data-testid="dataset-list-controls"');
     expect(markup).toContain('data-testid="catalog-flat-list"');
+    expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
+  });
+
+  it("asserts home recent updates also use shared row markers", async () => {
+    const markup = await renderHomePage();
+
+    expect(markup).toContain('data-testid="recent-updates-feed"');
+    expect(markup).toContain('data-testid="unified-dataset-row"');
   });
 
   it("asserts header uses monochrome classes and tokens only", async () => {

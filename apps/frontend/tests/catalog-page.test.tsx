@@ -37,6 +37,7 @@ describe("catalog page", () => {
     expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
     expect(markup).toContain('data-testid="catalog-page"');
     expect(markup).toContain('data-testid="dataset-list-controls"');
+    expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
     expect(markup).toContain("Unemployment Rate");
   });

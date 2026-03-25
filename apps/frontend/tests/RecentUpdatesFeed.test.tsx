@@ -19,9 +19,11 @@ describe("RecentUpdatesFeed", () => {
   it("renders row metadata hierarchy and row-wide detail link", () => {
     const markup = renderMarkup(<RecentUpdatesFeed items={makeEditorialFeedItems(1)} />);
 
+    expect(markup).toContain('data-testid="unified-dataset-row"');
+    expect(markup).toContain('data-testid="unified-dataset-row-title"');
     expect(markup).toContain("EIA");
     expect(markup).toContain("Weekly update summary for editorial dataset 1.");
-    expect(markup).toContain('data-testid="recent-updates-pills"');
+    expect(markup).toContain('data-testid="unified-dataset-row-pills"');
     expect(markup).toContain(">US<");
     expect(markup).toContain("energy");
     expect(markup).toContain("retail fuel prices");

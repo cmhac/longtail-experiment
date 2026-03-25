@@ -4,7 +4,7 @@ import { DatasetCard } from "../src/components/discovery/DatasetCard";
 import { renderMarkup } from "./test-utils";
 
 describe("DatasetCard", () => {
-  it("renders title, source, summary metadata, update date, tags, and destination link", () => {
+  it("renders title, source, summary metadata, date label, tags, and destination link", () => {
     const markup = renderMarkup(
       <DatasetCard
         item={{
@@ -23,10 +23,10 @@ describe("DatasetCard", () => {
     expect(markup).toContain("FRED");
     expect(markup).toContain("Civilian unemployment rate");
     expect(markup).toContain("labor");
-    expect(markup).toContain("Last updated:");
+    expect(markup).toContain("Feb 01, 2026");
     expect(markup).toContain('href="/datasets/UNRATE"');
     expect(markup).not.toContain("#labor");
-    expect(markup).not.toContain('data-testid="dataset-card-actions"');
+    expect(markup).toContain('data-testid="unified-dataset-row"');
   });
 
   it("falls back to raw date string when update timestamp is invalid", () => {
@@ -44,7 +44,7 @@ describe("DatasetCard", () => {
       />,
     );
 
-    expect(markup).toContain("Last updated: not-a-date");
+    expect(markup).toContain("not-a-date");
   });
 
   it("falls back to placeholder summary when description is unavailable", () => {

@@ -1,8 +1,9 @@
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetSummary } from "../../lib/api/discovery-types";
-import { DatasetCard } from "./DatasetCard";
 import { EmptyState } from "./EmptyState";
+import { UnifiedDatasetRow } from "./UnifiedDatasetRow";
+import { toUnifiedCatalogRow } from "./unified-dataset-row-mappers";
 
 interface DatasetCatalogListProps {
   items: DatasetSummary[];
@@ -22,7 +23,7 @@ export const DatasetCatalogList = ({
   return (
     <section className="dataset-list-results" data-testid="catalog-flat-list">
       {dedupedItems.map((item) => (
-        <DatasetCard item={item} key={item.dataset_id} />
+        <UnifiedDatasetRow key={item.dataset_id} {...toUnifiedCatalogRow(item)} />
       ))}
     </section>
   );
