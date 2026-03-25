@@ -1,3 +1,5 @@
+@import "@heroui/react/styles";
+
 :root {
   --shell-background: #f5f5f5;
   --shell-surface: #ffffff;
@@ -60,6 +62,11 @@ html[data-theme-preference="dark"] {
   border: 1px solid var(--shell-border) !important;
 }
 
+.shell-monochrome > [data-slot="card"] {
+  background: var(--shell-surface) !important;
+  border: 1px solid var(--shell-border) !important;
+}
+
 .shell-readable {
   color: var(--shell-foreground);
 }
@@ -95,6 +102,115 @@ html[data-theme-preference="dark"] {
 
 .shell-divider {
   margin: 0 0 0.65rem;
+}
+
+.shell-scroll-anchor {
+  scroll-margin-top: 1rem;
+}
+
+main[data-testid="home-content"],
+main[data-testid="catalog-page"],
+main[data-testid="dataset-detail-page"] {
+  display: grid;
+  gap: 1rem;
+}
+
+form[data-testid="dataset-search-form"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--shell-border);
+  border-radius: 0.5rem;
+  background: var(--shell-surface);
+}
+
+form[data-testid="dataset-search-form"] label {
+  font-size: 0.9rem;
+  color: var(--shell-muted);
+}
+
+form[data-testid="dataset-search-form"] input,
+form[data-testid="dataset-search-form"] button,
+button[data-testid="group-by-source-toggle"] {
+  font: inherit;
+  color: inherit;
+  background: var(--shell-surface);
+  border: 1px solid var(--shell-border);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.65rem;
+}
+
+section[data-testid="recent-updates-feed"],
+section[data-testid="dataset-search-results"],
+section[data-testid="catalog-flat-list"],
+section[data-testid="catalog-grouped-list"],
+section[data-testid="catalog-source-group"] {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.discovery-dataset-card {
+  padding: 0.75rem;
+  border: 1px solid var(--shell-border);
+  border-radius: 0.5rem;
+  background: var(--shell-surface);
+}
+
+.discovery-dataset-card h3,
+.discovery-dataset-card p {
+  margin: 0;
+}
+
+.discovery-dataset-card h3 {
+  font-size: 1rem;
+}
+
+.discovery-dataset-card p + p {
+  margin-top: 0.25rem;
+  color: var(--shell-muted);
+}
+
+.discovery-dataset-detail-header,
+.discovery-error-state,
+.discovery-empty-state {
+  padding: 0.75rem;
+  border: 1px solid var(--shell-border);
+  border-radius: 0.5rem;
+  background: var(--shell-surface);
+}
+
+.discovery-topic-tag {
+  display: inline-block;
+  margin: 0.2rem 0.35rem 0 0;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--shell-border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--shell-muted);
+}
+
+.discovery-observations-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--shell-border);
+  background: var(--shell-surface);
+}
+
+.discovery-observations-table th,
+.discovery-observations-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--shell-border);
+}
+
+div[data-testid="observations-chart"] {
+  overflow-x: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--shell-border);
+  border-radius: 0.5rem;
+  background: var(--shell-surface);
 }
 
 @media (max-width: 720px) {
