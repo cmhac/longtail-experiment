@@ -141,6 +141,9 @@ export const fetchRecentDatasets = async (params?: {
 export const fetchDatasetCatalog = async (params: {
   q?: string;
   groupBySource?: boolean;
+  source?: string;
+  category?: string;
+  sort?: string;
   page?: number;
   pageSize?: number;
 }): Promise<DatasetCatalogResponse> => {
@@ -152,6 +155,18 @@ export const fetchDatasetCatalog = async (params: {
 
   if (params.groupBySource) {
     query.group_by_source = "true";
+  }
+
+  if (params.source) {
+    query.source = params.source;
+  }
+
+  if (params.category) {
+    query.category = params.category;
+  }
+
+  if (params.sort) {
+    query.sort = params.sort;
   }
 
   if (params.page) {

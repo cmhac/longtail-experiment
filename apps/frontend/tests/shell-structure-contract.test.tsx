@@ -1,5 +1,6 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
+import CatalogPage from "../src/app/datasets/page";
 import HomePage from "../src/app/page";
 import * as discoveryClient from "../src/lib/api/discovery-client";
 import { SITE_FOOTER_VARIANT } from "../src/shell/site-footer";
@@ -43,6 +44,31 @@ const renderHomePage = async (): Promise<string> => {
   });
 
   const element = await HomePage({ searchParams: Promise.resolve({}) });
+  return renderMarkup(element);
+};
+
+const renderCatalogPage = async (): Promise<string> => {
+  vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+    items: [
+      {
+        dataset_id: "FEDFUNDS",
+        source: { id: "fred", name: "FRED" },
+        title: "Federal Funds Effective Rate",
+        description: "Policy rate update",
+        geographic_scope: "US",
+        topic_tags: ["rates"],
+        latest_update_at: "2026-02-01T00:00:00Z",
+      },
+    ],
+    groups: null,
+    page: 1,
+    page_size: 20,
+    total_items: 1,
+    total_pages: 1,
+    sort: "latest_update_at_desc",
+  });
+
+  const element = await CatalogPage({ searchParams: Promise.resolve({}) });
   return renderMarkup(element);
 };
 
@@ -108,6 +134,16 @@ describe("shell structure and monochrome contract", () => {
 
     expect(markup).toContain('class="shell-page shell-scroll-anchor"');
     expect(markup).toContain('data-testid="footer-content-container"');
+  });
+
+  it("asserts datasets page regions include heading, controls, and list container", async () => {
+    const markup = await renderCatalogPage();
+
+    expect(markup).toContain('data-testid="catalog-page"');
+    expect(markup).toContain('data-testid="dataset-list-page-header"');
+    expect(markup).toContain('data-testid="dataset-list-controls"');
+    expect(markup).toContain('data-testid="catalog-flat-list"');
+    expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
   });
 
   it("asserts header uses monochrome classes and tokens only", async () => {

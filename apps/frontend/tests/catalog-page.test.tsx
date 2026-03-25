@@ -5,12 +5,12 @@ import { renderMarkup } from "./test-utils";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/datasets",
-  useRouter: () => ({ push: () => undefined }),
+  useRouter: () => ({ replace: () => undefined }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("catalog page", () => {
-  it("renders search controls and catalog list from API response", async () => {
+  it("renders list controls and catalog list from API response", async () => {
     const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
       items: [
         {
@@ -23,37 +23,62 @@ describe("catalog page", () => {
           latest_update_at: "2026-02-01T00:00:00Z",
         },
       ],
-      groups: [],
+      groups: null,
       page: 1,
       page_size: 20,
       total_items: 1,
       total_pages: 1,
-      sort: "source_name_asc",
+      sort: "latest_update_at_desc",
     });
 
-    const element = await CatalogPage({ searchParams: Promise.resolve({ q: "rate" }) });
+    const element = await CatalogPage({ searchParams: Promise.resolve({}) });
     const markup = renderMarkup(element);
 
-    expect(catalogSpy).toHaveBeenCalledWith({ groupBySource: false, q: "rate" });
+    expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
     expect(markup).toContain('data-testid="catalog-page"');
-    expect(markup).toContain('data-testid="group-by-source-toggle"');
+    expect(markup).toContain('data-testid="dataset-list-controls"');
+    expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
     expect(markup).toContain("Unemployment Rate");
   });
 
-  it("passes group_by_source=true in grouped mode", async () => {
+  it("applies source/category filtering from URL parameters", async () => {
     const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
-      items: [],
-      groups: [],
+      items: [
+        {
+          dataset_id: "UNRATE",
+          source: { id: "fred", name: "FRED" },
+          title: "Unemployment Rate",
+          description: null,
+          geographic_scope: "US",
+          topic_tags: ["labor"],
+          latest_update_at: "2026-02-01T00:00:00Z",
+        },
+        {
+          dataset_id: "DCOILWTICO",
+          source: { id: "eia", name: "EIA" },
+          title: "Crude Oil Prices",
+          description: null,
+          geographic_scope: "US",
+          topic_tags: ["energy"],
+          latest_update_at: "2026-02-02T00:00:00Z",
+        },
+      ],
+      groups: null,
       page: 1,
       page_size: 20,
-      total_items: 0,
-      total_pages: 0,
-      sort: "source_name_asc",
+      total_items: 2,
+      total_pages: 1,
+      sort: "latest_update_at_desc",
     });
 
-    await CatalogPage({ searchParams: Promise.resolve({ group: "source" }) });
+    const element = await CatalogPage({
+      searchParams: Promise.resolve({ source: "eia", category: "energy" }),
+    });
+    const markup = renderMarkup(element);
 
-    expect(catalogSpy).toHaveBeenCalledWith({ groupBySource: true, q: undefined });
+    expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
+    expect(markup).toContain("Crude Oil Prices");
+    expect(markup).not.toContain("Unemployment Rate");
   });
 
   it("renders error state when fetch fails", async () => {

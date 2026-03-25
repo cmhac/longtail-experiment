@@ -1,50 +1,28 @@
 import React from "react";
 import type { JSX } from "react";
-import type {
-  CatalogViewMode,
-  DatasetSourceGroup,
-  DatasetSummary,
-} from "../../lib/api/discovery-types";
+import type { DatasetSummary } from "../../lib/api/discovery-types";
 import { DatasetCard } from "./DatasetCard";
 import { EmptyState } from "./EmptyState";
 
 interface DatasetCatalogListProps {
   items: DatasetSummary[];
-  groups: DatasetSourceGroup[] | null;
-  viewMode: CatalogViewMode;
+  emptyMessage?: string;
 }
 
 export const DatasetCatalogList = ({
   items,
-  groups,
-  viewMode,
+  emptyMessage = "No datasets match the selected filters. Reset filters to see the full catalog.",
 }: DatasetCatalogListProps): JSX.Element => {
-  if (items.length === 0) {
-    return <EmptyState />;
-  }
+  const dedupedItems = [...new Map(items.map((item) => [item.dataset_id, item])).values()];
 
-  if (viewMode === "flat" || !groups) {
-    return (
-      <section data-testid="catalog-flat-list">
-        {items.map((item) => (
-          <DatasetCard item={item} key={item.dataset_id} />
-        ))}
-      </section>
-    );
+  if (dedupedItems.length === 0) {
+    return <EmptyState message={emptyMessage} />;
   }
-
-  const itemMap = new Map(items.map((item) => [item.dataset_id, item]));
 
   return (
-    <section data-testid="catalog-grouped-list">
-      {groups.map((group) => (
-        <section data-testid="catalog-source-group" key={group.source.id}>
-          <h2>{group.source.name}</h2>
-          {group.dataset_ids.map((datasetId) => {
-            const item = itemMap.get(datasetId);
-            return item ? <DatasetCard item={item} key={item.dataset_id} /> : null;
-          })}
-        </section>
+    <section className="dataset-list-results" data-testid="catalog-flat-list">
+      {dedupedItems.map((item) => (
+        <DatasetCard item={item} key={item.dataset_id} />
       ))}
     </section>
   );

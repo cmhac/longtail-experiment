@@ -143,6 +143,27 @@ describe("discovery client", () => {
     expect(calledUrl).toContain("group_by_source=true");
   });
 
+  it("sends optional source/category/sort parameters for catalog requests", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        items: [],
+        groups: [],
+        page: 1,
+        page_size: 20,
+        total_items: 0,
+        total_pages: 0,
+        sort: "latest_update_at_desc",
+      }),
+    );
+
+    await fetchDatasetCatalog({ source: "eia", category: "energy", sort: "title_asc" });
+
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toContain("source=eia");
+    expect(calledUrl).toContain("category=energy");
+    expect(calledUrl).toContain("sort=title_asc");
+  });
+
   it("encodes dataset id on detail endpoint", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({
