@@ -141,6 +141,15 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
     assert summary_payload["active_source_count"] == 1
     assert suggestions_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert recent_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
+    assert recent_payload["items"][0]["description"] == "Policy rate"
+    assert recent_payload["items"][0]["geographic_scope"] == "US"
+    assert (
+        recent_payload["items"][0]["action_links"]["view_table_href"] == "/datasets/INT.US.FEDFUNDS"
+    )
+    assert (
+        recent_payload["items"][0]["action_links"]["download_csv_href"]
+        == "/api/datasets/INT.US.FEDFUNDS.csv"
+    )
     assert catalog_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert detail_payload["dataset_id"] == "INT.US.FEDFUNDS"
 

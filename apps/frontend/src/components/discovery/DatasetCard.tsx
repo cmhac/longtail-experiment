@@ -1,12 +1,10 @@
 import Link from "next/link";
 import React from "react";
 import type { JSX } from "react";
-import type { DatasetRecentItem, DatasetSummary } from "../../lib/api/discovery-types";
-
-type DatasetCardItem = DatasetSummary | DatasetRecentItem;
+import type { DatasetSummary } from "../../lib/api/discovery-types";
 
 interface DatasetCardProps {
-  item: DatasetCardItem;
+  item: DatasetSummary;
 }
 
 const formatDate = (value: string): string => {

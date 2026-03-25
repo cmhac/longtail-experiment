@@ -17,7 +17,14 @@ export interface DatasetRecentItem {
   dataset_id: string;
   source: SourceRef;
   title: string;
+  description?: string | null;
+  geographic_scope?: string | null;
+  topic_tags: string[];
   latest_update_at: string;
+  action_links: {
+    view_table_href: string;
+    download_csv_href: string;
+  };
 }
 
 export interface DatasetSourceGroup {

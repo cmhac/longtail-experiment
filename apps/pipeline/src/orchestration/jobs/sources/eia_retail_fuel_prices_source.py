@@ -266,7 +266,7 @@ def _build_series_configs() -> tuple[dict[str, Any], ...]:
                     ),
                     "metric_name": f"{product['metric_name']} - {geography['scope']}",
                     "dataset_description": (
-                        f"{product['dataset_description']} Geography: {geography['scope']}."
+                        f"{product['dataset_description']} Geography: {geography['scope']}"
                     ),
                     "dataset_geographic_scope": geography["scope"],
                     "topic_tags": [*product["topic_tags"], geography["level_tag"]],

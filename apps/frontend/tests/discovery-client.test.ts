@@ -53,15 +53,34 @@ describe("discovery client", () => {
   });
 
   it("sends recent limit query parameter", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(mockJsonResponse({ items: [], limit: 5, sort: "latest_update_at_desc" }));
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        items: [
+          {
+            dataset_id: "ENERGY.US.GASREGW",
+            source: { id: "eia", name: "EIA" },
+            title: "Regular Retail Gasoline Prices",
+            description: "Weekly gasoline price update",
+            geographic_scope: "US",
+            topic_tags: ["energy", "gasoline"],
+            latest_update_at: "2026-03-24T00:00:00Z",
+            action_links: {
+              view_table_href: "/datasets/ENERGY.US.GASREGW",
+              download_csv_href: "/api/datasets/ENERGY.US.GASREGW.csv",
+            },
+          },
+        ],
+        limit: 5,
+        sort: "latest_update_at_desc",
+      }),
+    );
 
-    await fetchRecentDatasets({ limit: 5 });
+    const response = await fetchRecentDatasets({ limit: 5 });
 
     const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
     expect(calledUrl).toContain("/api/datasets/recent");
     expect(calledUrl).toContain("limit=5");
+    expect(response.items[0]?.action_links.download_csv_href).toContain(".csv");
   });
 
   it("calls recent endpoint without limit when params are omitted", async () => {
@@ -74,6 +93,33 @@ describe("discovery client", () => {
     const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
     expect(calledUrl).toContain("/api/datasets/recent");
     expect(calledUrl).not.toContain("limit=");
+  });
+
+  it("fills missing editorial optional fields and action links for recent payloads", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        items: [
+          {
+            dataset_id: "ID WITH SPACE",
+            source: { id: "fred", name: "FRED" },
+            title: "Dataset With Space",
+            latest_update_at: "2026-03-24T00:00:00Z",
+          },
+        ],
+        limit: 5,
+        sort: "latest_update_at_desc",
+      }),
+    );
+
+    const response = await fetchRecentDatasets({ limit: 5 });
+
+    expect(response.items[0]?.description).toBeNull();
+    expect(response.items[0]?.geographic_scope).toBeNull();
+    expect(response.items[0]?.topic_tags).toEqual([]);
+    expect(response.items[0]?.action_links.view_table_href).toBe("/datasets/ID%20WITH%20SPACE");
+    expect(response.items[0]?.action_links.download_csv_href).toBe(
+      "/api/datasets/ID%20WITH%20SPACE.csv",
+    );
   });
 
   it("sends catalog group_by_source parameter when enabled", async () => {

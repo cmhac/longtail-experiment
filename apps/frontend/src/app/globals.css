@@ -421,6 +421,102 @@ section[data-testid="catalog-source-group"] {
   gap: 0.65rem;
 }
 
+.recent-updates-feed {
+  gap: 0;
+}
+
+.recent-updates-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--shell-border) 82%, transparent);
+}
+
+.recent-updates-header h2 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: clamp(1.7rem, 2.3vw, 2.05rem);
+  line-height: 1.1;
+}
+
+.recent-updates-row {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 9.25rem) 1fr;
+  gap: 1.15rem;
+  padding: 1.55rem 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.recent-updates-row + .recent-updates-row {
+  border-top: 1px solid color-mix(in srgb, var(--shell-border) 68%, transparent);
+}
+
+.recent-updates-meta-rail {
+  display: grid;
+  align-content: start;
+  gap: 0.32rem;
+  min-width: 0;
+}
+
+.recent-updates-source {
+  font-size: 0.73rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.recent-updates-date {
+  color: var(--shell-muted);
+  font-size: 0.82rem;
+}
+
+.recent-updates-body {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.recent-updates-body h3 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: clamp(1.18rem, 2.1vw, 1.95rem);
+  line-height: 1.05;
+}
+
+.recent-updates-body p {
+  margin: 0;
+  color: var(--shell-muted);
+  line-height: 1.4;
+  max-width: 70ch;
+}
+
+.recent-updates-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.18rem;
+}
+
+.recent-updates-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.52rem;
+  border-radius: 999px;
+  border: 1px solid var(--shell-border);
+  background: color-mix(in srgb, var(--shell-surface) 78%, transparent);
+  color: var(--shell-muted);
+  font-size: 0.72rem;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+.recent-updates-geography-pill {
+  color: var(--shell-foreground);
+  font-weight: 600;
+}
+
 .discovery-dataset-card {
   padding: 0.75rem;
   border: 1px solid var(--shell-border);
@@ -546,5 +642,27 @@ div[data-testid="observations-chart"] {
   .dataset-search-suggestion-meta {
     gap: 0.75rem;
     flex-wrap: wrap;
+  }
+
+  .recent-updates-header {
+    align-items: flex-start;
+    gap: 0.45rem;
+    flex-direction: column;
+  }
+
+  .recent-updates-row {
+    grid-template-columns: 1fr;
+    gap: 0.52rem;
+    padding: 1.1rem 0;
+  }
+
+  .recent-updates-meta-rail {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .recent-updates-body h3 {
+    line-height: 1.13;
   }
 }

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
+from urllib.parse import quote
 
 from src.contract.errors import ContractQueryError
 
@@ -154,8 +155,49 @@ class DatasetDiscoveryService:
         items = self._repository.list_recent_datasets(limit=normalized_limit)
         if not isinstance(items, list):
             raise ContractQueryError("Repository returned invalid recent updates payload")
+
+        projected: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ContractQueryError("Repository returned invalid recent updates item")
+
+            dataset_id = str(item.get("dataset_id", "")).strip()
+            if dataset_id == "":
+                raise ContractQueryError("Repository returned recent item without dataset_id")
+
+            source_value = item.get("source")
+            source = deepcopy(source_value) if isinstance(source_value, dict) else {}
+            source_id = str(source.get("id", "")).strip()
+            source_name = str(source.get("name", "")).strip()
+            if source_id == "" or source_name == "":
+                raise ContractQueryError("Repository returned recent item without source")
+
+            projected.append(
+                {
+                    "dataset_id": dataset_id,
+                    "source": {
+                        "id": source_id,
+                        "name": source_name,
+                    },
+                    "title": str(item.get("title", "")).strip(),
+                    "description": item.get("description")
+                    if isinstance(item.get("description"), str) or item.get("description") is None
+                    else str(item.get("description")),
+                    "geographic_scope": item.get("geographic_scope")
+                    if isinstance(item.get("geographic_scope"), str)
+                    or item.get("geographic_scope") is None
+                    else str(item.get("geographic_scope")),
+                    "topic_tags": [str(tag) for tag in list(item.get("topic_tags") or [])],
+                    "latest_update_at": item.get("latest_update_at"),
+                    "action_links": {
+                        "view_table_href": f"/datasets/{quote(dataset_id, safe='')}",
+                        "download_csv_href": f"/api/datasets/{quote(dataset_id, safe='')}.csv",
+                    },
+                }
+            )
+
         return {
-            "items": deepcopy(items),
+            "items": projected,
             "limit": normalized_limit,
             "sort": "latest_update_at_desc,title_asc,dataset_id_asc",
         }
