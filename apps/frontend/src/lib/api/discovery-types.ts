@@ -8,6 +8,7 @@ export interface DatasetSummary {
   source: SourceRef;
   title: string;
   description: string | null;
+  category?: string | null;
   geographic_scope: string | null;
   topic_tags: string[];
   latest_update_at: string;

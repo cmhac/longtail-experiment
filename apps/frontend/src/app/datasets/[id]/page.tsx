@@ -6,6 +6,7 @@ import { ErrorState } from "../../../components/discovery/ErrorState";
 import { ObservationsChart } from "../../../components/discovery/ObservationsChart";
 import { ObservationsTable } from "../../../components/discovery/ObservationsTable";
 import { fetchDatasetDetail } from "../../../lib/api/discovery-client";
+import { SiteHeader } from "../../../shell/site-header";
 
 interface DatasetDetailPageProps {
   params: Promise<{ id: string }>;
@@ -25,18 +26,28 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
     const detail = await fetchDatasetDetail(id);
 
     return (
-      <main data-testid="dataset-detail-page">
-        <DatasetDetailHeader data={detail} />
-        <ObservationsChart observations={detail.observations} />
-        <ObservationsTable observations={detail.observations} />
-      </main>
+      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
+        <SiteHeader activeTab="datasets" />
+        <main data-testid="dataset-detail-page">
+          <DatasetDetailHeader data={detail} />
+          <ObservationsChart observations={detail.observations} />
+          <ObservationsTable observations={detail.observations} />
+        </main>
+      </div>
     );
   } catch (error) {
     if (isNotFoundError(error)) {
       notFound();
     }
 
-    return <ErrorState />;
+    return (
+      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
+        <SiteHeader activeTab="datasets" />
+        <main data-testid="dataset-detail-page">
+          <ErrorState />
+        </main>
+      </div>
+    );
   }
 };
 

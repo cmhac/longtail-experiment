@@ -37,6 +37,10 @@ describe("dataset detail page", () => {
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Federal Funds Effective Rate");
+    expect(markup).toContain('data-testid="site-shell"');
+    expect(markup).toContain('data-testid="shell-header"');
+    expect(markup).toContain('data-testid="navbar-tab-datasets" href="/datasets"');
+    expect(markup).toContain('aria-current="page" data-testid="navbar-tab-datasets"');
     expect(markup).toContain('data-testid="observations-chart"');
     expect(markup).toContain('data-testid="observations-table"');
     expect(discoveryClient.fetchDatasetDetail).toHaveBeenCalledWith("FEDFUNDS");
@@ -51,6 +55,8 @@ describe("dataset detail page", () => {
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Unable to load data. Please try again.");
+    expect(markup).toContain('data-testid="shell-header"');
+    expect(markup).toContain('data-testid="navbar-tab-datasets" href="/datasets"');
   });
 
   it("calls notFound for 404-like errors", async () => {

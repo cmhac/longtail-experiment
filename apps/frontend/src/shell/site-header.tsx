@@ -5,13 +5,18 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
-import { NAVBAR_TABS } from "./navbar-config";
+import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
 export const SITE_HEADER_VARIANT = "light";
 
-export const SiteHeader = (): JSX.Element => {
+interface SiteHeaderProps {
+  activeTab?: NavbarTabKey;
+}
+
+export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const tabs = resolveNavbarTabs(activeTab);
 
   useEffect(() => {
     const handleDocumentPointerDown = (event: MouseEvent): void => {
@@ -50,7 +55,7 @@ export const SiteHeader = (): JSX.Element => {
           </div>
 
           <div className={SHELL_NAVBAR_CLASS_NAMES.tabRegion}>
-            {NAVBAR_TABS.map((tab) => {
+            {tabs.map((tab) => {
               if (tab.isEnabled && tab.href) {
                 return (
                   <Link

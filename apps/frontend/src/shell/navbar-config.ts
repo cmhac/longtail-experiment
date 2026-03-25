@@ -16,27 +16,32 @@ export interface NavbarUtilityControlConfig {
   isEnabled: boolean;
 }
 
-export const NAVBAR_TABS: readonly NavbarTabConfig[] = [
+const BASE_NAVBAR_TABS: readonly Omit<NavbarTabConfig, "isActive">[] = [
   {
     key: "home",
     label: "Home",
     href: "/",
     isEnabled: true,
-    isActive: true,
   },
   {
     key: "datasets",
     label: "Datasets",
-    isEnabled: false,
-    isActive: false,
+    href: "/datasets",
+    isEnabled: true,
   },
   {
     key: "trends",
     label: "Trends",
     isEnabled: false,
-    isActive: false,
   },
 ] as const;
+
+export const resolveNavbarTabs = (activeTab: NavbarTabKey): readonly NavbarTabConfig[] => {
+  return BASE_NAVBAR_TABS.map((tab) => ({
+    ...tab,
+    isActive: tab.key === activeTab,
+  }));
+};
 
 export const NAVBAR_UTILITY_CONTROLS: readonly NavbarUtilityControlConfig[] = [
   {
