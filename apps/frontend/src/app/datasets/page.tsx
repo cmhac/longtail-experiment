@@ -9,6 +9,7 @@ import { ErrorState } from "../../components/discovery/ErrorState";
 import { fetchDatasetCatalog } from "../../lib/api/discovery-client";
 import type { DatasetSummary } from "../../lib/api/discovery-types";
 import { SiteHeader } from "../../shell/site-header";
+import { SHELL_LAYOUT_CLASS_NAMES } from "../../theme/monochrome-theme";
 
 interface CatalogPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -125,7 +126,7 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader activeTab="datasets" />
-        <main data-testid="catalog-page">
+        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="catalog-page">
           <header className="dataset-list-page-header" data-testid="dataset-list-page-header">
             <div>
               <h1 className="dataset-list-title">Datasets</h1>
@@ -151,7 +152,7 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader activeTab="datasets" />
-        <main data-testid="catalog-page">
+        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="catalog-page">
           <header className="dataset-list-page-header" data-testid="dataset-list-page-header">
             <div>
               <h1 className="dataset-list-title">Datasets</h1>

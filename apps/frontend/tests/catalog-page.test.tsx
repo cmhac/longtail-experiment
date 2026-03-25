@@ -36,6 +36,7 @@ describe("catalog page", () => {
 
     expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
     expect(markup).toContain('data-testid="catalog-page"');
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="dataset-list-controls"');
     expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
@@ -78,6 +79,7 @@ describe("catalog page", () => {
     const markup = renderMarkup(element);
 
     expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain("Crude Oil Prices");
     expect(markup).not.toContain("Unemployment Rate");
   });
@@ -88,6 +90,7 @@ describe("catalog page", () => {
     const element = await CatalogPage({ searchParams: Promise.resolve({}) });
     const markup = renderMarkup(element);
 
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain("Unable to load data. Please try again.");
   });
 });
