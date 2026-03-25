@@ -75,6 +75,42 @@ html[data-theme-preference="dark"] {
   min-height: 40dvh;
 }
 
+.shell-region-footer {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-bottom: -1rem;
+  padding: 0;
+  border-top: 1px solid var(--shell-border);
+  background: var(--shell-surface);
+}
+
+.shell-footer-content {
+  width: min(100%, 74rem);
+  margin: 0 auto;
+  padding: 1.5rem 1.2rem 1.8rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.shell-footer-brand {
+  margin: 0;
+  color: var(--shell-foreground);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.shell-footer-mission {
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+
 .shell-navbar-card {
   width: 100%;
   background: transparent;
@@ -596,6 +632,10 @@ div[data-testid="observations-chart"] {
     padding: 0;
   }
 
+  .shell-region-footer {
+    margin-bottom: -0.8rem;
+  }
+
   .shell-navbar {
     padding: 0.65rem 0.8rem;
   }
@@ -618,6 +658,19 @@ div[data-testid="observations-chart"] {
 
   .search-hero {
     padding-top: 1.7rem;
+  }
+
+  .shell-footer-content {
+    padding: 1.25rem 1rem 1.45rem;
+  }
+
+  .shell-footer-brand {
+    font-size: 1.05rem;
+  }
+
+  .shell-footer-mission {
+    font-size: 0.9rem;
+    max-width: none;
   }
 
   .dataset-search-input-wrap {

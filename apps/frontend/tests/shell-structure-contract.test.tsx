@@ -93,13 +93,21 @@ describe("shell structure and monochrome contract", () => {
     expect(headerIndex).toBeGreaterThan(-1);
     expect(mainIndex).toBeGreaterThan(headerIndex);
     expect(footerIndex).toBeGreaterThan(mainIndex);
+    expect(markup).toContain('data-testid="footer-content-container"');
+    expect(markup).toContain('data-testid="footer-brand"');
+    expect(markup).toContain('data-testid="footer-mission"');
+    expect(markup).toContain(
+      "An editorial archive of time series data across sources, topics, and geographies.",
+    );
+    expect(markup).toContain('class="shell-footer-brand"');
+    expect(markup).toContain('class="shell-footer-mission"');
   });
 
   it("asserts shell remains structurally valid during page scroll", async () => {
     const markup = await renderHomePage();
 
     expect(markup).toContain('class="shell-page shell-scroll-anchor"');
-    expect(markup).toContain("Baseline shell footer for release readiness.");
+    expect(markup).toContain('data-testid="footer-content-container"');
   });
 
   it("asserts header uses monochrome classes and tokens only", async () => {
@@ -122,6 +130,8 @@ describe("shell structure and monochrome contract", () => {
 
     expect(markup).toContain('data-shell-region="footer"');
     expect(markup).toContain("shell-monochrome");
+    expect(markup).toContain("shell-readable");
+    expect(markup).toContain('class="shell-footer-content"');
     expect(isMonochromeVariantAllowed(SITE_FOOTER_VARIANT)).toBe(true);
   });
 
