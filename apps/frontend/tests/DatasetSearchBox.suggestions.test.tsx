@@ -52,6 +52,7 @@ describe("DatasetSearchBox suggestions", () => {
     render(<DatasetSearchBox initialQuery="" summary={null} />);
 
     const input = screen.getByPlaceholderText("Search datasets");
+    fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "fund" } });
 
     await waitFor(() => {
@@ -75,7 +76,7 @@ describe("DatasetSearchBox suggestions", () => {
     fireEvent.mouseDown(screen.getByTestId("dataset-search-suggestion-item"));
     fireEvent.click(screen.getByTestId("dataset-search-suggestion-item"));
 
-    expect(routerPushMock).toHaveBeenCalledWith("/?q=Federal+Funds+Effective+Rate");
+    expect(routerPushMock).toHaveBeenCalledWith("/datasets/FEDFUNDS");
   });
 
   it("clears stale suggestions when latest request returns no matches", async () => {
@@ -101,6 +102,7 @@ describe("DatasetSearchBox suggestions", () => {
     render(<DatasetSearchBox initialQuery="" summary={null} />);
 
     const input = screen.getByPlaceholderText("Search datasets");
+    fireEvent.focus(input);
     fireEvent.change(input, { target: { value: "fund" } });
 
     await waitFor(() => {

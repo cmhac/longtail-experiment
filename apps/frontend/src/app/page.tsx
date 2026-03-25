@@ -1,14 +1,8 @@
 import React from "react";
 import type { JSX } from "react";
 import { DatasetSearchBox } from "../components/discovery/DatasetSearchBox";
-import { DatasetSearchResults } from "../components/discovery/DatasetSearchResults";
-import { ErrorState } from "../components/discovery/ErrorState";
 import { RecentUpdatesFeed } from "../components/discovery/RecentUpdatesFeed";
-import {
-  fetchDatasetSearch,
-  fetchRecentDatasets,
-  fetchSearchSummary,
-} from "../lib/api/discovery-client";
+import { fetchRecentDatasets, fetchSearchSummary } from "../lib/api/discovery-client";
 import { SiteFooter } from "../shell/site-footer";
 import { SiteHeader } from "../shell/site-header";
 import { SHELL_LAYOUT_CLASS_NAMES } from "../theme/monochrome-theme";
@@ -28,46 +22,32 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
       unavailable: true,
     }));
 
-  try {
-    const [recent, search, summary] = await Promise.all([
-      recentPromise,
-      query.length > 0 ? fetchDatasetSearch({ q: query }) : Promise.resolve(null),
-      fetchSearchSummary().catch(() => null),
-    ]);
+  const [recent, summary] = await Promise.all([
+    recentPromise,
+    fetchSearchSummary().catch(() => null),
+  ]);
 
-    return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader />
-        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="home-content">
-          <DatasetSearchBox
-            initialQuery={query}
-            summary={
-              summary
-                ? {
-                    activeDatasetCount: summary.active_dataset_count,
-                    activeSourceCount: summary.active_source_count,
-                  }
-                : null
-            }
-          />
-          {search ? <DatasetSearchResults items={search.items} query={query} /> : null}
-          <RecentUpdatesFeed items={recent.payload.items} unavailable={recent.unavailable} />
-        </main>
-        <SiteFooter />
-      </div>
-    );
-  } catch {
-    return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader />
-        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="home-content">
-          <DatasetSearchBox initialQuery={query} summary={null} />
-          <ErrorState />
-        </main>
-        <SiteFooter />
-      </div>
-    );
-  }
+  return (
+    <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
+      <SiteHeader />
+      <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="home-content">
+        <DatasetSearchBox
+          initialQuery={query}
+          submitPath="/search"
+          summary={
+            summary
+              ? {
+                  activeDatasetCount: summary.active_dataset_count,
+                  activeSourceCount: summary.active_source_count,
+                }
+              : null
+          }
+        />
+        <RecentUpdatesFeed items={recent.payload.items} unavailable={recent.unavailable} />
+      </main>
+      <SiteFooter />
+    </div>
+  );
 };
 
 export default HomePage;

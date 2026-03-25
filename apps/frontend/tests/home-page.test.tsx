@@ -30,14 +30,6 @@ describe("home page", () => {
       limit: 5,
       sort: "latest_update_at_desc",
     });
-    vi.spyOn(discoveryClient, "fetchDatasetSearch").mockResolvedValue({
-      items: [],
-      page: 1,
-      page_size: 20,
-      total_items: 0,
-      total_pages: 0,
-      sort: "latest_update_at_desc",
-    });
     vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
       active_dataset_count: 48,
       active_source_count: 3,
@@ -68,7 +60,6 @@ describe("home page", () => {
     expect(markup).toContain('data-testid="navbar-tab-trends"');
     expect(markup).toContain('data-testid="navbar-search-control"');
     expect(markup).toContain('aria-label="Search"');
-    expect(markup).toContain('disabled=""');
     expect(markup).toContain('data-testid="shell-footer"');
     expect(markup).toContain("shell-region-full-width");
     expect(markup).toContain('data-testid="footer-content-container"');
@@ -85,30 +76,13 @@ describe("home page", () => {
     expect(markup).not.toContain('data-testid="footer-utility-links"');
   });
 
-  it("renders search results when q is present", async () => {
+  it("keeps homepage as search entry only when q is present", async () => {
     vi.spyOn(discoveryClient, "fetchRecentDatasets").mockResolvedValue({
       items: [],
       limit: 5,
       sort: "latest_update_at_desc",
     });
-    const searchSpy = vi.spyOn(discoveryClient, "fetchDatasetSearch").mockResolvedValue({
-      items: [
-        {
-          dataset_id: "UNRATE",
-          source: { id: "fred", name: "FRED" },
-          title: "Unemployment Rate",
-          description: null,
-          geographic_scope: "US",
-          topic_tags: [],
-          latest_update_at: "2026-02-01T00:00:00Z",
-        },
-      ],
-      page: 1,
-      page_size: 20,
-      total_items: 1,
-      total_pages: 1,
-      sort: "latest_update_at_desc",
-    });
+    const searchSpy = vi.spyOn(discoveryClient, "fetchDatasetSearch");
     vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
       active_dataset_count: 48,
       active_source_count: 3,
@@ -118,10 +92,10 @@ describe("home page", () => {
     const element = await HomePage({ searchParams: Promise.resolve({ q: "unemployment" }) });
     const markup = renderMarkup(element);
 
-    expect(searchSpy).toHaveBeenCalledWith({ q: "unemployment" });
-    expect(markup).toContain('data-testid="dataset-search-results"');
+    expect(searchSpy).not.toHaveBeenCalled();
+    expect(markup).not.toContain('data-testid="dataset-search-results"');
     expect(markup).toContain("shell-content-constrained");
-    expect(markup).toContain("Unemployment Rate");
+    expect(markup).toContain('value="unemployment"');
     expect(markup).toContain('data-testid="footer-brand"');
   });
 
@@ -132,40 +106,10 @@ describe("home page", () => {
       active_source_count: 3,
       generated_at: "2026-03-24T00:00:00Z",
     });
-    vi.spyOn(discoveryClient, "fetchDatasetSearch").mockResolvedValue({
-      items: [],
-      page: 1,
-      page_size: 20,
-      total_items: 0,
-      total_pages: 0,
-      sort: "latest_update_at_desc",
-    });
-
-    const element = await HomePage({ searchParams: Promise.resolve({}) });
-    const markup = renderMarkup(element);
-
-    expect(markup).toContain("Recent updates are temporarily unavailable.");
-    expect(markup).toContain("shell-content-constrained");
-    expect(markup).not.toContain("Unable to load data. Please try again.");
-  });
-
-  it("renders global error state when dataset search request fails", async () => {
-    vi.spyOn(discoveryClient, "fetchRecentDatasets").mockResolvedValue({
-      items: [],
-      limit: 5,
-      sort: "latest_update_at_desc",
-    });
-    vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
-      active_dataset_count: 48,
-      active_source_count: 3,
-      generated_at: "2026-03-24T00:00:00Z",
-    });
-    vi.spyOn(discoveryClient, "fetchDatasetSearch").mockRejectedValue(new Error("search down"));
-
     const element = await HomePage({ searchParams: Promise.resolve({ q: "rates" }) });
     const markup = renderMarkup(element);
 
-    expect(markup).toContain("Unable to load data. Please try again.");
+    expect(markup).toContain("Recent updates are temporarily unavailable.");
     expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="footer-content-container"');
     expect(markup).toContain('class="shell-footer-mission"');

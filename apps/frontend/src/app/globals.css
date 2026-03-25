@@ -199,6 +199,33 @@ html[data-theme-preference="dark"] {
   flex: 0 0 auto;
 }
 
+.shell-navbar-search-wrapper {
+  position: relative;
+}
+
+.shell-navbar-search-toggle {
+  border: 1px solid transparent;
+}
+
+.shell-navbar-search-toggle[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--shell-border) 70%, transparent);
+}
+
+.shell-navbar-search-expanded {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: min(30rem, calc(100vw - 2rem));
+  z-index: 130;
+}
+
+.shell-navbar-search-surface {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--shell-border);
+  background: var(--shell-surface);
+}
+
 .shell-navbar-icon-button {
   width: 2rem;
   height: 2rem;
@@ -382,6 +409,14 @@ form[data-testid="dataset-search-form"] {
   z-index: 30;
 }
 
+form[data-testid="navbar-search-form"] {
+  width: 100%;
+  display: grid;
+  gap: 0.3rem;
+  position: relative;
+  z-index: 30;
+}
+
 .dataset-search-input-wrap {
   width: 100%;
   display: grid;
@@ -411,6 +446,8 @@ form[data-testid="dataset-search-form"] {
 
 form[data-testid="dataset-search-form"] input,
 form[data-testid="dataset-search-form"] button,
+form[data-testid="navbar-search-form"] input,
+form[data-testid="navbar-search-form"] button,
 button[data-testid="group-by-source-toggle"] {
   font: inherit;
   color: inherit;
@@ -424,6 +461,16 @@ form[data-testid="dataset-search-form"] input {
   border-radius: 0;
   padding: 1rem 1rem 1rem 3.35rem;
   font-size: 1.16rem;
+  border: 1px solid color-mix(in srgb, var(--shell-border) 75%, transparent);
+  box-shadow: none;
+}
+
+form[data-testid="navbar-search-form"] input {
+  width: 100%;
+  min-height: 2.65rem;
+  border-radius: 0;
+  padding: 0.62rem 0.75rem 0.62rem 2.6rem;
+  font-size: 0.95rem;
   border: 1px solid color-mix(in srgb, var(--shell-border) 75%, transparent);
   box-shadow: none;
 }
@@ -463,6 +510,11 @@ form[data-testid="dataset-search-form"] input::placeholder {
   contain: paint;
   will-change: scroll-position;
   isolation: isolate;
+}
+
+.shell-navbar-search-surface .dataset-search-suggestions {
+  top: calc(100% + 0.35rem);
+  max-height: min(55vh, 22rem);
 }
 
 .dataset-search-suggestions > li {
@@ -517,7 +569,7 @@ form[data-testid="dataset-search-form"] input::placeholder {
 
 .dataset-search-suggestion-title {
   font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
-  font-size: clamp(1.34rem, 2.1vw, 1.9rem);
+  font-size: clamp(1.08rem, 1.6vw, 1.5rem);
   line-height: 1.1;
   font-weight: 700;
   color: var(--shell-foreground);
@@ -723,6 +775,12 @@ div[data-testid="observations-chart"] {
     margin-left: auto;
   }
 
+  .shell-navbar-search-expanded {
+    right: 0;
+    left: auto;
+    width: min(26rem, calc(100vw - 1.6rem));
+  }
+
   .search-hero {
     padding-top: 1.7rem;
   }
@@ -756,7 +814,7 @@ div[data-testid="observations-chart"] {
   }
 
   .dataset-search-suggestion-title {
-    font-size: 1.38rem;
+    font-size: 1.12rem;
   }
 
   .dataset-search-suggestion-meta {

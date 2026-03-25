@@ -2,8 +2,14 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SiteHeader } from "../src/shell/site-header";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: () => undefined }),
+  useSearchParams: () => new URLSearchParams("q="),
+}));
 
 afterEach(() => {
   document.body.innerHTML = "";

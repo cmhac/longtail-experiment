@@ -2,11 +2,33 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SiteHeader } from "../src/shell/site-header";
+
+const { navigationState, routerPushMock } = vi.hoisted(() => {
+  let searchParams = new URLSearchParams("q=");
+
+  return {
+    navigationState: {
+      setSearchParams: (nextQuery: string) => {
+        searchParams = new URLSearchParams(nextQuery);
+      },
+      getSearchParams: () => searchParams,
+    },
+    routerPushMock: vi.fn(),
+  };
+});
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: routerPushMock }),
+  useSearchParams: () => navigationState.getSearchParams(),
+}));
 
 afterEach(() => {
   document.body.innerHTML = "";
+  routerPushMock.mockReset();
+  navigationState.setSearchParams("");
 });
 
 describe("navbar limited-scope interactions", () => {
@@ -22,13 +44,29 @@ describe("navbar limited-scope interactions", () => {
     expect(trendsButton.getAttribute("disabled")).not.toBeNull();
   });
 
-  it("keeps search control disabled and inert", () => {
+  it("expands and collapses search control", () => {
     render(<SiteHeader />);
 
     const searchButton = screen.getByTestId("navbar-search-control");
-    fireEvent.click(searchButton);
+    expect(screen.queryByTestId("navbar-search-expanded")).toBeNull();
 
-    expect(searchButton.getAttribute("disabled")).not.toBeNull();
+    fireEvent.click(searchButton);
+    expect(screen.getByTestId("navbar-search-expanded")).not.toBeNull();
+
+    fireEvent.click(searchButton);
+    expect(screen.queryByTestId("navbar-search-expanded")).toBeNull();
+  });
+
+  it("submits navbar search to dedicated search route", () => {
+    render(<SiteHeader />);
+
+    fireEvent.click(screen.getByTestId("navbar-search-control"));
+
+    const input = screen.getByLabelText("Search datasets");
+    fireEvent.change(input, { target: { value: "cpi" } });
+    fireEvent.submit(screen.getByTestId("navbar-search-form"));
+
+    expect(routerPushMock).toHaveBeenCalledWith("/search?q=cpi");
   });
 
   it("routes brand link to homepage", () => {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
+import { UnifiedSearchSurface } from "../components/discovery/UnifiedSearchSurface";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
@@ -15,17 +16,21 @@ interface SiteHeaderProps {
 
 export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const searchControlRef = useRef<HTMLDivElement | null>(null);
   const tabs = resolveNavbarTabs(activeTab);
 
   useEffect(() => {
     const handleDocumentPointerDown = (event: MouseEvent): void => {
-      if (!profileMenuRef.current) {
-        return;
-      }
+      if (event.target instanceof Node) {
+        if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+          setIsProfileMenuOpen(false);
+        }
 
-      if (event.target instanceof Node && !profileMenuRef.current.contains(event.target)) {
-        setIsProfileMenuOpen(false);
+        if (searchControlRef.current && !searchControlRef.current.contains(event.target)) {
+          setIsSearchExpanded(false);
+        }
       }
     };
 
@@ -88,20 +93,42 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
           </div>
 
           <div className={SHELL_NAVBAR_CLASS_NAMES.utilityRegion}>
-            <button
-              type="button"
-              className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} ${SHELL_NAVBAR_CLASS_NAMES.iconDisabled}`}
-              data-testid="navbar-search-control"
-              aria-label="Search"
-              disabled
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
-                <path
-                  d="M10.5 3a7.5 7.5 0 0 1 5.97 12.05l4.74 4.74-1.41 1.41-4.74-4.74A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
+            <div className={SHELL_NAVBAR_CLASS_NAMES.searchWrapper} ref={searchControlRef}>
+              <button
+                type="button"
+                className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} ${SHELL_NAVBAR_CLASS_NAMES.searchToggle}`}
+                data-testid="navbar-search-control"
+                aria-label="Search"
+                aria-controls="navbar-search-expanded"
+                aria-expanded={isSearchExpanded ? "true" : "false"}
+                onClick={() => {
+                  setIsSearchExpanded((previous) => !previous);
+                }}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
+                  <path
+                    d="M10.5 3a7.5 7.5 0 0 1 5.97 12.05l4.74 4.74-1.41 1.41-4.74-4.74A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+
+              {isSearchExpanded ? (
+                <div
+                  id="navbar-search-expanded"
+                  className={SHELL_NAVBAR_CLASS_NAMES.searchExpanded}
+                  data-testid="navbar-search-expanded"
+                >
+                  <UnifiedSearchSurface
+                    onQuerySubmitted={() => {
+                      setIsSearchExpanded(false);
+                    }}
+                    submitPath="/search"
+                    variant="navbar"
+                  />
+                </div>
+              ) : null}
+            </div>
 
             <div className="shell-navbar-profile-wrapper" ref={profileMenuRef}>
               <button
