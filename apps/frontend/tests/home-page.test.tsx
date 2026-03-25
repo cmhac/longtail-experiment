@@ -31,11 +31,18 @@ describe("home page", () => {
       total_pages: 0,
       sort: "latest_update_at_desc",
     });
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
+      active_dataset_count: 48,
+      active_source_count: 3,
+      generated_at: "2026-03-24T00:00:00Z",
+    });
 
     const element = await HomePage({ searchParams: Promise.resolve({}) });
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Search datasets");
+    expect(markup).toContain('data-testid="dataset-search-hero"');
+    expect(markup).toContain("Searching 48 active datasets from 3 sources.");
     expect(markup).toContain('data-testid="recent-updates-feed"');
     expect(markup).toContain("Federal Funds Effective Rate");
     expect(markup).toContain('data-testid="navbar-brand-link"');
@@ -77,6 +84,11 @@ describe("home page", () => {
       total_pages: 1,
       sort: "latest_update_at_desc",
     });
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
+      active_dataset_count: 48,
+      active_source_count: 3,
+      generated_at: "2026-03-24T00:00:00Z",
+    });
 
     const element = await HomePage({ searchParams: Promise.resolve({ q: "unemployment" }) });
     const markup = renderMarkup(element);
@@ -88,6 +100,7 @@ describe("home page", () => {
 
   it("renders error state when backend requests fail", async () => {
     vi.spyOn(discoveryClient, "fetchRecentDatasets").mockRejectedValue(new Error("down"));
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockRejectedValue(new Error("down"));
 
     const element = await HomePage({ searchParams: Promise.resolve({}) });
     const markup = renderMarkup(element);

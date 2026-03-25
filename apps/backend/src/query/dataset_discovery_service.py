@@ -16,6 +16,10 @@ from .dataset_discovery_validators import (
     validate_date_range,
 )
 
+DEFAULT_SUGGESTION_LIMIT = 5
+MIN_SUGGESTION_LIMIT = 1
+MAX_SUGGESTION_LIMIT = 10
+
 
 class DatasetDiscoveryService:
     """Coordinates search, recent, catalog, and detail query behavior."""
@@ -71,6 +75,74 @@ class DatasetDiscoveryService:
             "total_items": total_items,
             "total_pages": total_pages,
             "sort": "latest_update_at_desc,title_asc,dataset_id_asc",
+        }
+
+    def get_search_summary(self) -> dict[str, Any]:
+        """Return aggregate summary counts for homepage search scope text."""
+        if not hasattr(self._repository, "get_search_summary"):
+            raise ContractQueryError("Repository does not provide get_search_summary")
+
+        payload = self._repository.get_search_summary()
+        if not isinstance(payload, dict):
+            raise ContractQueryError("Repository returned invalid search summary payload")
+
+        dataset_count = payload.get("active_dataset_count")
+        source_count = payload.get("active_source_count")
+        if not isinstance(dataset_count, int) or not isinstance(source_count, int):
+            raise ContractQueryError("Repository returned invalid search summary counts")
+        if dataset_count < 0 or source_count < 0:
+            raise ContractQueryError("Repository returned negative search summary counts")
+
+        return {
+            "active_dataset_count": dataset_count,
+            "active_source_count": source_count,
+            "generated_at": payload.get("generated_at"),
+        }
+
+    def search_suggestions(
+        self,
+        *,
+        query_text: str | None,
+        limit: int | None,
+    ) -> dict[str, Any]:
+        """Return likely-match suggestions for current query text."""
+        if not hasattr(self._repository, "search_suggestions"):
+            raise ContractQueryError("Repository does not provide search_suggestions")
+
+        normalized_query = normalize_query_text(query_text)
+        if normalized_query is None:
+            raise ContractQueryError("q must be provided")
+
+        normalized_limit = DEFAULT_SUGGESTION_LIMIT if limit is None else limit
+        if normalized_limit < MIN_SUGGESTION_LIMIT or normalized_limit > MAX_SUGGESTION_LIMIT:
+            raise ContractQueryError(
+                f"limit must be between {MIN_SUGGESTION_LIMIT} and {MAX_SUGGESTION_LIMIT}"
+            )
+
+        items = self._repository.search_suggestions(
+            query_text=normalized_query,
+            limit=normalized_limit,
+        )
+        if not isinstance(items, list):
+            raise ContractQueryError("Repository returned invalid suggestions payload")
+
+        projected: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ContractQueryError("Repository returned invalid suggestion item")
+            projected.append(
+                {
+                    "dataset_id": str(item.get("dataset_id", "")),
+                    "source": deepcopy(item.get("source", {})),
+                    "title": str(item.get("title", "")),
+                    "rank_score": float(item.get("rank_score", 0.0)),
+                }
+            )
+
+        return {
+            "query": normalized_query,
+            "limit": normalized_limit,
+            "items": projected,
         }
 
     def list_recent_updates(self, *, limit: int | None) -> dict[str, Any]:

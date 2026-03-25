@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -28,6 +28,8 @@ from src.query.dataset_discovery_persisted_repository import (
 from src.query.dataset_discovery_service import DatasetDiscoveryService
 from src.query.dataset_recent_updates_query import execute_recent_updates
 from src.query.dataset_search_query import execute_dataset_search
+from src.query.dataset_search_suggestions_query import execute_dataset_search_suggestions
+from src.query.dataset_search_summary_query import execute_search_summary
 
 
 def _env_value(environment: Mapping[str, str], key: str, default: str) -> str:
@@ -92,10 +94,102 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _handle_search(
+        self, query: dict[str, list[str]], service: DatasetDiscoveryService
+    ) -> dict[str, object]:
+        q = query.get("q", [None])[0]
+        page = query.get("page", [None])[0]
+        page_size = query.get("page_size", [None])[0]
+        return execute_dataset_search(
+            service,
+            query_text=q,
+            page=int(page) if page is not None else None,
+            page_size=int(page_size) if page_size is not None else None,
+        ).model_dump()
+
+    def _handle_summary(self, service: DatasetDiscoveryService) -> dict[str, object]:
+        return execute_search_summary(service).model_dump()
+
+    def _handle_suggestions(
+        self, query: dict[str, list[str]], service: DatasetDiscoveryService
+    ) -> dict[str, object]:
+        q = query.get("q", [None])[0]
+        limit = query.get("limit", [None])[0]
+        return execute_dataset_search_suggestions(
+            service,
+            query_text=q,
+            limit=int(limit) if limit is not None else None,
+        ).model_dump()
+
+    def _handle_recent(
+        self, query: dict[str, list[str]], service: DatasetDiscoveryService
+    ) -> dict[str, object]:
+        limit = query.get("limit", [None])[0]
+        return execute_recent_updates(
+            service,
+            limit=int(limit) if limit is not None else None,
+        ).model_dump()
+
+    def _handle_catalog(
+        self, query: dict[str, list[str]], service: DatasetDiscoveryService
+    ) -> dict[str, object]:
+        q = query.get("q", [None])[0]
+        source_id = query.get("source_id", [None])[0]
+        page = query.get("page", [None])[0]
+        page_size = query.get("page_size", [None])[0]
+        group_by_source = query.get("group_by_source", ["false"])[0].lower() == "true"
+        return execute_dataset_catalog(
+            service,
+            query_text=q,
+            source_id=source_id,
+            page=int(page) if page is not None else None,
+            page_size=int(page_size) if page_size is not None else None,
+            group_by_source=group_by_source,
+        ).model_dump()
+
+    def _handle_detail(
+        self,
+        parsed_path: str,
+        query: dict[str, list[str]],
+        service: DatasetDiscoveryService,
+    ) -> dict[str, object]:
+        dataset_id = parsed_path.split("/", maxsplit=3)[3]
+        return execute_dataset_detail(
+            service,
+            dataset_id=dataset_id,
+            from_date=query.get("from_date", [None])[0],
+            to_date=query.get("to_date", [None])[0],
+        ).model_dump()
+
+    def _dispatch_get(
+        self,
+        *,
+        path: str,
+        query: dict[str, list[str]],
+        service: DatasetDiscoveryService,
+    ) -> tuple[HTTPStatus, dict[str, object]]:
+        exact_routes: dict[str, Callable[[], dict[str, object]]] = {
+            "/api/health": lambda: {"status": "ok"},
+            "/api/datasets/search": lambda: self._handle_search(query, service),
+            "/api/datasets/search/summary": lambda: self._handle_summary(service),
+            "/api/datasets/search/suggestions": lambda: self._handle_suggestions(query, service),
+            "/api/datasets/recent": lambda: self._handle_recent(query, service),
+            "/api/datasets": lambda: self._handle_catalog(query, service),
+        }
+
+        if path in exact_routes:
+            return HTTPStatus.OK, exact_routes[path]()
+        if path.startswith("/api/datasets/"):
+            return HTTPStatus.OK, self._handle_detail(path, query, service)
+        return HTTPStatus.NOT_FOUND, {
+            "error": {"code": "not_found", "message": "Endpoint not found"}
+        }
+
     def do_GET(self) -> None:
         """Handle read-only dataset discovery API requests."""
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
+
         if self.service is None:
             self._write_json(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -104,81 +198,24 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            if parsed.path == "/api/health":
-                self._write_json(HTTPStatus.OK, {"status": "ok"})
-                return
-
-            if parsed.path == "/api/datasets/search":
-                q = query.get("q", [None])[0]
-                page = query.get("page", [None])[0]
-                page_size = query.get("page_size", [None])[0]
-                response = execute_dataset_search(
-                    self.service,
-                    query_text=q,
-                    page=int(page) if page is not None else None,
-                    page_size=int(page_size) if page_size is not None else None,
-                )
-                self._write_json(HTTPStatus.OK, response.model_dump())
-                return
-
-            if parsed.path == "/api/datasets/recent":
-                limit = query.get("limit", [None])[0]
-                response = execute_recent_updates(
-                    self.service,
-                    limit=int(limit) if limit is not None else None,
-                )
-                self._write_json(HTTPStatus.OK, response.model_dump())
-                return
-
-            if parsed.path == "/api/datasets":
-                q = query.get("q", [None])[0]
-                source_id = query.get("source_id", [None])[0]
-                page = query.get("page", [None])[0]
-                page_size = query.get("page_size", [None])[0]
-                group_by_source = query.get("group_by_source", ["false"])[0].lower() == "true"
-                response = execute_dataset_catalog(
-                    self.service,
-                    query_text=q,
-                    source_id=source_id,
-                    page=int(page) if page is not None else None,
-                    page_size=int(page_size) if page_size is not None else None,
-                    group_by_source=group_by_source,
-                )
-                self._write_json(HTTPStatus.OK, response.model_dump())
-                return
-
-            if parsed.path.startswith("/api/datasets/"):
-                dataset_id = parsed.path.split("/", maxsplit=3)[3]
-                response = execute_dataset_detail(
-                    self.service,
-                    dataset_id=dataset_id,
-                    from_date=query.get("from_date", [None])[0],
-                    to_date=query.get("to_date", [None])[0],
-                )
-                self._write_json(HTTPStatus.OK, response.model_dump())
-                return
-
-            self._write_json(
-                HTTPStatus.NOT_FOUND,
-                {"error": {"code": "not_found", "message": "Endpoint not found"}},
+            response_status, response_payload = self._dispatch_get(
+                path=parsed.path,
+                query=query,
+                service=self.service,
             )
         except ContractQueryError as exc:
             if str(exc) == "dataset_not_found":
                 dataset_id = parsed.path.split("/")[-1]
-                self._write_json(
-                    HTTPStatus.NOT_FOUND,
-                    dataset_not_found_error(dataset_id).model_dump(),
-                )
+                response_status = HTTPStatus.NOT_FOUND
+                response_payload = dataset_not_found_error(dataset_id).model_dump()
             else:
-                self._write_json(
-                    HTTPStatus.BAD_REQUEST,
-                    invalid_request_error(str(exc)).model_dump(),
-                )
+                response_status = HTTPStatus.BAD_REQUEST
+                response_payload = invalid_request_error(str(exc)).model_dump()
         except ValueError as exc:
-            self._write_json(
-                HTTPStatus.BAD_REQUEST,
-                invalid_request_error(str(exc)).model_dump(),
-            )
+            response_status = HTTPStatus.BAD_REQUEST
+            response_payload = invalid_request_error(str(exc)).model_dump()
+
+        self._write_json(response_status, response_payload)
 
 
 def main() -> None:

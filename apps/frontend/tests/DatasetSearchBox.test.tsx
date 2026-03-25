@@ -12,12 +12,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("DatasetSearchBox", () => {
-  it("renders search input and submit button", () => {
+  it("renders search input with placeholder and no submit button", () => {
     const markup = renderMarkup(<DatasetSearchBox />);
 
-    expect(markup).toContain("Search datasets");
+    expect(markup).toContain('placeholder="Search datasets"');
     expect(markup).toContain('type="text"');
-    expect(markup).toContain(">Search<");
+    expect(markup).not.toContain('type="submit"');
   });
 
   it("pre-populates input value from initial query", () => {

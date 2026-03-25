@@ -34,7 +34,7 @@ describe("DatasetSearchBox interaction", () => {
   it("allows typing even when URL query remains unchanged", () => {
     render(<DatasetSearchBox initialQuery="FEDFUNDS" />);
 
-    const input = screen.getByLabelText("Search datasets");
+    const input = screen.getByPlaceholderText("Search datasets");
     if (!(input instanceof HTMLInputElement)) {
       throw new Error("Expected search input to be rendered");
     }

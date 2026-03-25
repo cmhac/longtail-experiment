@@ -8,6 +8,7 @@ from datetime import date, datetime
 from typing import cast
 
 from sqlalchemy import Engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class PersistedDatasetDiscoveryRepository:
@@ -169,6 +170,114 @@ class PersistedDatasetDiscoveryRepository:
         """Return recent dataset summaries ordered by persisted recency."""
         rows, _ = self.search_datasets(query_text=None, page=1, page_size=1000)
         return rows[:limit]
+
+    def get_search_summary(self) -> dict[str, object]:
+        """Return active dataset and source totals for homepage summary text."""
+        query = text(
+            """
+            SELECT
+                COUNT(DISTINCT ds.series_key)::int AS active_dataset_count,
+                COUNT(DISTINCT sp.source_name)::int AS active_source_count,
+                CURRENT_TIMESTAMP AS generated_at
+            FROM data_series ds
+            JOIN source_profiles sp ON sp.id = ds.source_profile_id
+            """
+        )
+        with self._engine.connect() as connection:
+            row = connection.execute(query).mappings().one()
+
+        return {
+            "active_dataset_count": int(row["active_dataset_count"]),
+            "active_source_count": int(row["active_source_count"]),
+            "generated_at": self._iso_datetime(cast(datetime | None, row["generated_at"])),
+        }
+
+    def search_suggestions(
+        self,
+        *,
+        query_text: str,
+        limit: int,
+    ) -> list[dict[str, object]]:
+        """Return likely dataset matches using trigram ranking with stable ordering."""
+        normalized_query = query_text.strip().lower()
+        if not normalized_query:
+            return []
+
+        query = text(
+            """
+            SELECT
+                ds.series_key AS dataset_id,
+                sp.source_name AS source_name,
+                ds.title AS title,
+                GREATEST(
+                    similarity(LOWER(ds.title), :query),
+                    similarity(LOWER(ds.series_key), :query)
+                ) AS rank_score
+            FROM data_series ds
+            JOIN source_profiles sp ON sp.id = ds.source_profile_id
+            WHERE
+                LOWER(ds.title) % :query
+                OR LOWER(ds.series_key) % :query
+                OR LOWER(ds.title) LIKE :query_like
+                OR LOWER(ds.series_key) LIKE :query_like
+            ORDER BY rank_score DESC, ds.title ASC, ds.series_key ASC
+            LIMIT :limit
+            """
+        )
+
+        try:
+            with self._engine.connect() as connection:
+                rows = (
+                    connection.execute(
+                        query,
+                        {
+                            "query": normalized_query,
+                            "query_like": f"%{normalized_query}%",
+                            "limit": limit,
+                        },
+                    )
+                    .mappings()
+                    .all()
+                )
+        except SQLAlchemyError:
+            # Keep suggestions available even when trigram support is unavailable.
+            rows = []
+            for item in self._apply_search(query_text=normalized_query, source_id=None):
+                rank = 1.0 if normalized_query in str(item.get("title", "")).lower() else 0.5
+                rows.append(
+                    {
+                        "dataset_id": item.get("dataset_id", ""),
+                        "source_name": cast(dict[str, object], item.get("source") or {}).get(
+                            "name", ""
+                        ),
+                        "title": item.get("title", ""),
+                        "rank_score": rank,
+                    }
+                )
+            rows.sort(
+                key=lambda item: (
+                    -float(item.get("rank_score", 0.0)),
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                )
+            )
+            rows = rows[:limit]
+
+        suggestions: list[dict[str, object]] = []
+        for row in rows:
+            source_name = str(row["source_name"])
+            suggestions.append(
+                {
+                    "dataset_id": str(row["dataset_id"]),
+                    "source": {
+                        "id": self._source_id_from_name(source_name),
+                        "name": source_name,
+                    },
+                    "title": str(row["title"]),
+                    "rank_score": float(row["rank_score"]),
+                }
+            )
+        return suggestions
 
     def list_catalog_datasets(
         self,

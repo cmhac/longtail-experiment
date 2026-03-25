@@ -4,7 +4,11 @@ import { DatasetSearchBox } from "../components/discovery/DatasetSearchBox";
 import { DatasetSearchResults } from "../components/discovery/DatasetSearchResults";
 import { ErrorState } from "../components/discovery/ErrorState";
 import { RecentUpdatesFeed } from "../components/discovery/RecentUpdatesFeed";
-import { fetchDatasetSearch, fetchRecentDatasets } from "../lib/api/discovery-client";
+import {
+  fetchDatasetSearch,
+  fetchRecentDatasets,
+  fetchSearchSummary,
+} from "../lib/api/discovery-client";
 import { SiteFooter } from "../shell/site-footer";
 import { SiteHeader } from "../shell/site-header";
 
@@ -18,16 +22,27 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
   const query = typeof rawQuery === "string" ? rawQuery.trim() : "";
 
   try {
-    const [recent, search] = await Promise.all([
+    const [recent, search, summary] = await Promise.all([
       fetchRecentDatasets({ limit: 5 }),
       query.length > 0 ? fetchDatasetSearch({ q: query }) : Promise.resolve(null),
+      fetchSearchSummary().catch(() => null),
     ]);
 
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader />
         <main data-testid="home-content">
-          <DatasetSearchBox initialQuery={query} />
+          <DatasetSearchBox
+            initialQuery={query}
+            summary={
+              summary
+                ? {
+                    activeDatasetCount: summary.active_dataset_count,
+                    activeSourceCount: summary.active_source_count,
+                  }
+                : null
+            }
+          />
           {search ? <DatasetSearchResults items={search.items} query={query} /> : null}
           <RecentUpdatesFeed items={recent.items} />
         </main>
@@ -39,7 +54,7 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader />
         <main data-testid="home-content">
-          <DatasetSearchBox initialQuery={query} />
+          <DatasetSearchBox initialQuery={query} summary={null} />
           <ErrorState />
         </main>
         <SiteFooter />

@@ -103,6 +103,51 @@ class InMemoryDatasetDiscoveryRepository:
         rows = self._apply_search(query_text=None)
         return rows[:limit]
 
+    def get_search_summary(self) -> dict[str, Any]:
+        """Return aggregate dataset and source counts for homepage summary."""
+        source_ids = {
+            str((row.get("source") or {}).get("id", ""))
+            for row in self._datasets
+            if str((row.get("source") or {}).get("id", ""))
+        }
+        return {
+            "active_dataset_count": len(self._datasets),
+            "active_source_count": len(source_ids),
+            "generated_at": "2026-03-24T00:00:00+00:00",
+        }
+
+    def search_suggestions(self, *, query_text: str, limit: int) -> list[dict[str, Any]]:
+        """Return likely-match suggestions ranked by simple in-memory heuristics."""
+        normalized = query_text.strip().lower()
+        if not normalized:
+            return []
+
+        suggestions: list[dict[str, Any]] = []
+        for row in self._datasets:
+            dataset_id = str(row.get("dataset_id", ""))
+            title = str(row.get("title", ""))
+            haystack = f"{dataset_id} {title}".lower()
+            if normalized not in haystack:
+                continue
+            score = 1.0 if normalized in title.lower() else 0.75
+            suggestions.append(
+                {
+                    "dataset_id": dataset_id,
+                    "source": dict(row.get("source") or {}),
+                    "title": title,
+                    "rank_score": score,
+                }
+            )
+
+        suggestions.sort(
+            key=lambda item: (
+                -float(item.get("rank_score", 0.0)),
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            )
+        )
+        return suggestions[:limit]
+
     def list_catalog_datasets(
         self,
         *,

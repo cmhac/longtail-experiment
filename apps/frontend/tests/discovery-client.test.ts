@@ -5,6 +5,8 @@ import {
   fetchDatasetDetail,
   fetchDatasetSearch,
   fetchRecentDatasets,
+  fetchSearchSuggestions,
+  fetchSearchSummary,
 } from "../src/lib/api/discovery-client";
 
 const originalEnv = process.env.DISCOVERY_API_BASE_URL;
@@ -155,5 +157,62 @@ describe("discovery client", () => {
       code: "http_error",
       status: 502,
     });
+  });
+
+  it("fetches search summary payload", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        active_dataset_count: 48,
+        active_source_count: 3,
+        generated_at: "2026-03-24T00:00:00Z",
+      }),
+    );
+
+    const response = await fetchSearchSummary();
+
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toContain("/api/datasets/search/summary");
+    expect(response.active_dataset_count).toBe(48);
+  });
+
+  it("throws DiscoveryApiError when summary endpoint fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse(
+        {
+          error: {
+            code: "http_error",
+            message: "down",
+          },
+        },
+        503,
+      ),
+    );
+
+    await expect(fetchSearchSummary()).rejects.toBeInstanceOf(DiscoveryApiError);
+  });
+
+  it("fetches likely suggestions with query and limit", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        query: "fund",
+        limit: 5,
+        items: [
+          {
+            dataset_id: "FEDFUNDS",
+            source: { id: "fred", name: "FRED" },
+            title: "Federal Funds Effective Rate",
+            rank_score: 0.91,
+          },
+        ],
+      }),
+    );
+
+    const response = await fetchSearchSuggestions({ q: "fund", limit: 5 });
+
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toContain("/api/datasets/search/suggestions");
+    expect(calledUrl).toContain("q=fund");
+    expect(calledUrl).toContain("limit=5");
+    expect(response.items[0]?.dataset_id).toBe("FEDFUNDS");
   });
 });

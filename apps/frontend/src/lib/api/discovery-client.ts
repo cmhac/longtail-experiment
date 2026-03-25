@@ -4,6 +4,8 @@ import type {
   DatasetDetail,
   DatasetRecentUpdatesResponse,
   DatasetSearchResponse,
+  DatasetSearchSuggestionsResponse,
+  SearchScopeSummaryResponse,
 } from "./discovery-types";
 
 export class DiscoveryApiError extends Error {
@@ -81,6 +83,28 @@ export const fetchDatasetSearch = async (params: {
 
   const response = await fetch(createUrl("/api/datasets/search", query));
   return parseResponse<DatasetSearchResponse>(response);
+};
+
+export const fetchSearchSummary = async (): Promise<SearchScopeSummaryResponse> => {
+  const response = await fetch(createUrl("/api/datasets/search/summary"));
+  return parseResponse<SearchScopeSummaryResponse>(response);
+};
+
+export const fetchSearchSuggestions = async (params: {
+  q: string;
+  limit?: number;
+}): Promise<DatasetSearchSuggestionsResponse> => {
+  const query: Record<string, string> = { q: params.q };
+
+  if (params.limit) {
+    query.limit = String(params.limit);
+  }
+
+  const response =
+    typeof window === "undefined"
+      ? await fetch(createUrl("/api/datasets/search/suggestions", query))
+      : await fetch(`/api/datasets/search/suggestions?${new URLSearchParams(query).toString()}`);
+  return parseResponse<DatasetSearchSuggestionsResponse>(response);
 };
 
 export const fetchRecentDatasets = async (params?: {

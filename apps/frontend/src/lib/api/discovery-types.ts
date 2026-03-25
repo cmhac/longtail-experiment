@@ -54,6 +54,25 @@ export interface DatasetSearchResponse {
   sort: string;
 }
 
+export interface SearchScopeSummaryResponse {
+  active_dataset_count: number;
+  active_source_count: number;
+  generated_at?: string;
+}
+
+export interface SuggestionItem {
+  dataset_id: string;
+  source: SourceRef;
+  title: string;
+  rank_score: number;
+}
+
+export interface DatasetSearchSuggestionsResponse {
+  query: string;
+  limit: number;
+  items: SuggestionItem[];
+}
+
 export interface DatasetRecentUpdatesResponse {
   items: DatasetRecentItem[];
   limit: number;

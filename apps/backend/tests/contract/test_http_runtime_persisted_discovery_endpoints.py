@@ -46,6 +46,25 @@ class _PersistedHttpRepoStub:
         del limit
         return [self._dataset]
 
+    def get_search_summary(self):
+        return {
+            "active_dataset_count": 1,
+            "active_source_count": 1,
+            "generated_at": "2026-03-24T00:00:00+00:00",
+        }
+
+    def search_suggestions(self, *, query_text: str, limit: int):
+        if "fund" not in query_text.lower():
+            return []
+        return [
+            {
+                "dataset_id": "INT.US.FEDFUNDS",
+                "source": {"id": "fred", "name": "FRED"},
+                "title": "Effective Federal Funds Rate",
+                "rank_score": 0.91,
+            }
+        ][:limit]
+
     def list_catalog_datasets(
         self, *, query_text: str | None, source_id: str | None, page: int, page_size: int
     ):
@@ -105,6 +124,12 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
     host, port = http_server
 
     search_payload: dict[str, Any] = _read_json(f"http://{host}:{port}/api/datasets/search")
+    summary_payload: dict[str, Any] = _read_json(
+        f"http://{host}:{port}/api/datasets/search/summary"
+    )
+    suggestions_payload: dict[str, Any] = _read_json(
+        f"http://{host}:{port}/api/datasets/search/suggestions?q=fund&limit=5"
+    )
     recent_payload: dict[str, Any] = _read_json(f"http://{host}:{port}/api/datasets/recent")
     catalog_payload: dict[str, Any] = _read_json(f"http://{host}:{port}/api/datasets")
     detail_payload: dict[str, Any] = _read_json(
@@ -112,6 +137,9 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
     )
 
     assert search_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
+    assert summary_payload["active_dataset_count"] == 1
+    assert summary_payload["active_source_count"] == 1
+    assert suggestions_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert recent_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert catalog_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert detail_payload["dataset_id"] == "INT.US.FEDFUNDS"
@@ -126,3 +154,17 @@ def test_http_runtime_unknown_dataset_returns_not_found(http_server: tuple[str, 
     assert exc_info.value.code == HTTPStatus.NOT_FOUND
     payload = json.loads(exc_info.value.read().decode("utf-8"))
     assert payload["error"]["code"] == "dataset_not_found"
+
+
+def test_http_runtime_suggestions_reject_invalid_limit(http_server: tuple[str, int]) -> None:
+    host, port = http_server
+
+    with pytest.raises(HTTPError) as exc_info:
+        urlopen(
+            f"http://{host}:{port}/api/datasets/search/suggestions?q=fund&limit=0",
+            timeout=5,
+        )  # noqa: S310
+
+    assert exc_info.value.code == HTTPStatus.BAD_REQUEST
+    payload = json.loads(exc_info.value.read().decode("utf-8"))
+    assert payload["error"]["code"] == "invalid_request"
