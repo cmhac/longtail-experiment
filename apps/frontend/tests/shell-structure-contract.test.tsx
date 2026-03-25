@@ -41,6 +41,20 @@ describe("shell structure and monochrome contract", () => {
     expect(markup).toContain("<header");
     expect(markup).toContain('data-shell-region="header"');
     expect(markup).toContain('data-testid="shell-header"');
+    expect(markup).toContain('data-testid="navbar-container"');
+    expect(markup).toContain('aria-label="Primary"');
+  });
+
+  it("asserts navbar contains brand, tabs, and utility controls", async () => {
+    const markup = await renderHomePage();
+
+    expect(markup).toContain('data-testid="navbar-brand-link"');
+    expect(markup).toContain("Longtail");
+    expect(markup).toContain('data-testid="navbar-tab-home"');
+    expect(markup).toContain('data-testid="navbar-tab-datasets"');
+    expect(markup).toContain('data-testid="navbar-tab-trends"');
+    expect(markup).toContain('data-testid="navbar-search-control"');
+    expect(markup).toContain('data-testid="navbar-profile-control"');
   });
 
   it("asserts main discovery region presence and text", async () => {
@@ -99,5 +113,16 @@ describe("shell structure and monochrome contract", () => {
     for (const variant of FORBIDDEN_ACCENT_VARIANTS) {
       expect(isMonochromeVariantAllowed(variant)).toBe(false);
     }
+  });
+
+  it("asserts navbar order remains brand then tabs then utility", async () => {
+    const markup = await renderHomePage();
+    const brandIndex = markup.indexOf('data-testid="navbar-brand-link"');
+    const tabsIndex = markup.indexOf('data-testid="navbar-tab-home"');
+    const utilityIndex = markup.indexOf('data-testid="navbar-search-control"');
+
+    expect(brandIndex).toBeGreaterThan(-1);
+    expect(tabsIndex).toBeGreaterThan(brandIndex);
+    expect(utilityIndex).toBeGreaterThan(tabsIndex);
   });
 });

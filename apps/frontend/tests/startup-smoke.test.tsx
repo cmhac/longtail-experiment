@@ -26,7 +26,8 @@ describe("frontend shell startup", () => {
     const markup = await renderHomePage();
 
     expect(markup).toContain('data-testid="site-shell"');
-    expect(markup).toContain("Longtail Experiment");
+    expect(markup).toContain('data-testid="navbar-brand-link"');
+    expect(markup).toContain("Longtail");
   });
 
   it("renders required header, home content, and footer regions", async () => {

@@ -38,6 +38,19 @@ describe("home page", () => {
     expect(markup).toContain("Search datasets");
     expect(markup).toContain('data-testid="recent-updates-feed"');
     expect(markup).toContain("Federal Funds Effective Rate");
+    expect(markup).toContain('data-testid="navbar-brand-link"');
+    expect(markup).toContain('data-testid="navbar-tab-home"');
+    expect(markup).toContain('data-testid="navbar-tab-datasets"');
+    expect(markup).toContain('data-testid="navbar-tab-trends"');
+    expect(markup).toContain('data-testid="navbar-search-control"');
+    expect(markup).toContain('data-testid="navbar-profile-control"');
+    expect(markup).toContain('data-testid="navbar-brand-link"');
+    expect(markup).toContain('data-testid="navbar-tab-home" href="/"');
+    expect(markup).toContain('data-testid="navbar-tab-datasets"');
+    expect(markup).toContain('data-testid="navbar-tab-trends"');
+    expect(markup).toContain('data-testid="navbar-search-control"');
+    expect(markup).toContain('aria-label="Search"');
+    expect(markup).toContain('disabled=""');
   });
 
   it("renders search results when q is present", async () => {

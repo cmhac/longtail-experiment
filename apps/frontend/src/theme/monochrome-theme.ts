@@ -42,6 +42,21 @@ export const SHELL_REGION_CLASS_NAMES = {
   footer: "shell-region shell-monochrome shell-region-footer shell-readable",
 } as const;
 
+export const SHELL_NAVBAR_CLASS_NAMES = {
+  card: "shell-navbar-card",
+  nav: "shell-navbar",
+  brandRegion: "shell-navbar-brand-region",
+  brandLink: "shell-navbar-brand-link",
+  tabRegion: "shell-navbar-tab-region",
+  tabLink: "shell-navbar-tab-link",
+  tabButton: "shell-navbar-tab-button",
+  tabActive: "shell-navbar-tab-active",
+  utilityRegion: "shell-navbar-utility-region",
+  iconButton: "shell-navbar-icon-button",
+  iconDisabled: "shell-navbar-icon-disabled",
+  dropdown: "shell-navbar-dropdown shell-readable",
+} as const;
+
 export const resolveThemeMode = (preference: PreferenceMode): AppearanceMode => {
   if (preference === "dark") {
     return "dark";
