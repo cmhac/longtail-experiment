@@ -6,6 +6,8 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 PID_FILE="${REPO_ROOT}/.tmp/dagit-local.pid"
 LOG_FILE="${REPO_ROOT}/.tmp/dagit-local.log"
 LOCAL_DAGSTER_HOME="${REPO_ROOT}/.tmp/dagster_home"
+LOCAL_DAGSTER_CONFIG_SOURCE="${REPO_ROOT}/apps/pipeline/dagster.yaml"
+LOCAL_DAGSTER_CONFIG_TARGET="${LOCAL_DAGSTER_HOME}/dagster.yaml"
 PIPELINE_WORKDIR="apps/pipeline"
 PIPELINE_PYTHONPATH="${REPO_ROOT}/apps/pipeline"
 HOST="${DAGIT_HOST:-127.0.0.1}"
@@ -60,6 +62,13 @@ if [[ "$PWD" != "$REPO_ROOT" ]]; then
 fi
 
 mkdir -p "${REPO_ROOT}/.tmp" "${LOCAL_DAGSTER_HOME}"
+
+if [[ ! -f "$LOCAL_DAGSTER_CONFIG_SOURCE" ]]; then
+  print_failure "prerequisite_missing" "Missing Dagster instance config: ${LOCAL_DAGSTER_CONFIG_SOURCE}"
+  exit 1
+fi
+
+cp "$LOCAL_DAGSTER_CONFIG_SOURCE" "$LOCAL_DAGSTER_CONFIG_TARGET"
 
 if [[ -f "$STACK_ENV_FILE" ]]; then
   # shellcheck disable=SC1090

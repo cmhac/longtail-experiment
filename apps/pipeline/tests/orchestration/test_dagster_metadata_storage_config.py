@@ -53,3 +53,22 @@ def test_dagster_yaml_declares_postgres_backed_storage() -> None:
     assert "module: dagster_postgres.event_log" in dagster_yaml
     assert "module: dagster_postgres.schedule_storage" in dagster_yaml
     assert "sqlite" not in dagster_yaml.lower()
+
+
+def test_local_dagit_startup_materializes_instance_config_into_dagster_home() -> None:
+    """Local Dagit startup script should copy dagster.yaml into DAGSTER_HOME."""
+    startup_script = Path("tools/quality/local-stack/start-dagit-local.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "LOCAL_DAGSTER_CONFIG_SOURCE" in startup_script
+    assert "apps/pipeline/dagster.yaml" in startup_script
+    assert 'cp "$LOCAL_DAGSTER_CONFIG_SOURCE" "$LOCAL_DAGSTER_CONFIG_TARGET"' in startup_script
+
+
+def test_compose_dagit_startup_materializes_instance_config_into_dagster_home() -> None:
+    """Compose Dagit command should copy dagster.yaml into DAGSTER_HOME."""
+    compose_yaml = Path("docker-compose.yml").read_text(encoding="utf-8")
+
+    assert "cp apps/pipeline/dagster.yaml" in compose_yaml
+    assert '"$${DAGSTER_HOME}/dagster.yaml"' in compose_yaml

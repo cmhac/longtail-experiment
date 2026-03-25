@@ -148,7 +148,7 @@ services:
       [
         "sh",
         "-c",
-        'mkdir -p "$${DAGSTER_HOME}" && uv sync --project apps/pipeline --frozen && uv run --project apps/pipeline dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
+        'mkdir -p "$${DAGSTER_HOME}" && cp apps/pipeline/dagster.yaml "$${DAGSTER_HOME}/dagster.yaml" && uv sync --project apps/pipeline --frozen && uv run --project apps/pipeline dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
       ]
     volumes:
       - ./:/workspace
