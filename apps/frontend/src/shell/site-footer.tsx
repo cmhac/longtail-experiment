@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, Separator } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 import { SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
+import { FOOTER_CONTENT } from "./footer-content";
 
 export const SITE_FOOTER_VARIANT = "bordered";
 
@@ -14,12 +14,14 @@ export const SiteFooter = (): JSX.Element => {
       data-shell-region="footer"
       data-testid="shell-footer"
     >
-      <Card>
-        <Card.Content>
-          <Separator className="shell-divider" />
-          <p className="shell-copy">Baseline shell footer for release readiness.</p>
-        </Card.Content>
-      </Card>
+      <div className="shell-footer-content" data-testid="footer-content-container">
+        <p className="shell-footer-brand" data-testid="footer-brand">
+          {FOOTER_CONTENT.brandText}
+        </p>
+        <p className="shell-footer-mission" data-testid="footer-mission">
+          {FOOTER_CONTENT.missionText}
+        </p>
+      </div>
     </footer>
   );
 };

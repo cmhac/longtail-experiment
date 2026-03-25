@@ -67,6 +67,19 @@ describe("home page", () => {
     expect(markup).toContain('data-testid="navbar-search-control"');
     expect(markup).toContain('aria-label="Search"');
     expect(markup).toContain('disabled=""');
+    expect(markup).toContain('data-testid="shell-footer"');
+    expect(markup).toContain('data-testid="footer-content-container"');
+    expect(markup).toContain('data-testid="footer-brand"');
+    expect(markup).toContain('data-testid="footer-mission"');
+    expect(markup).toContain("Longtail");
+    expect(markup).toContain(
+      "An editorial archive of time series data across sources, topics, and geographies.",
+    );
+    expect(markup).toContain('class="shell-footer-content"');
+    expect(markup).toContain('class="shell-footer-brand"');
+    expect(markup).toContain('class="shell-footer-mission"');
+    expect(markup).toContain('data-testid="footer-content-container"');
+    expect(markup).not.toContain('data-testid="footer-utility-links"');
   });
 
   it("renders search results when q is present", async () => {
@@ -105,6 +118,7 @@ describe("home page", () => {
     expect(searchSpy).toHaveBeenCalledWith({ q: "unemployment" });
     expect(markup).toContain('data-testid="dataset-search-results"');
     expect(markup).toContain("Unemployment Rate");
+    expect(markup).toContain('data-testid="footer-brand"');
   });
 
   it("renders error state when backend requests fail", async () => {
@@ -147,5 +161,7 @@ describe("home page", () => {
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Unable to load data. Please try again.");
+    expect(markup).toContain('data-testid="footer-content-container"');
+    expect(markup).toContain('class="shell-footer-mission"');
   });
 });
