@@ -11,6 +11,7 @@ import {
 } from "../lib/api/discovery-client";
 import { SiteFooter } from "../shell/site-footer";
 import { SiteHeader } from "../shell/site-header";
+import { SHELL_LAYOUT_CLASS_NAMES } from "../theme/monochrome-theme";
 
 interface HomePageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -37,7 +38,7 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader />
-        <main data-testid="home-content">
+        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="home-content">
           <DatasetSearchBox
             initialQuery={query}
             summary={
@@ -59,7 +60,7 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader />
-        <main data-testid="home-content">
+        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="home-content">
           <DatasetSearchBox initialQuery={query} summary={null} />
           <ErrorState />
         </main>

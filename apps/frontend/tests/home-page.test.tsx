@@ -50,6 +50,8 @@ describe("home page", () => {
     expect(markup).toContain("Search datasets");
     expect(markup).toContain('data-testid="dataset-search-hero"');
     expect(markup).toContain("Searching 48 active datasets from 3 sources.");
+    expect(markup).toContain('data-testid="home-content"');
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="recent-updates-feed"');
     expect(markup).toContain("Federal Funds Effective Rate");
     expect(markup).toContain('href="/datasets/FEDFUNDS"');
@@ -68,6 +70,7 @@ describe("home page", () => {
     expect(markup).toContain('aria-label="Search"');
     expect(markup).toContain('disabled=""');
     expect(markup).toContain('data-testid="shell-footer"');
+    expect(markup).toContain("shell-region-full-width");
     expect(markup).toContain('data-testid="footer-content-container"');
     expect(markup).toContain('data-testid="footer-brand"');
     expect(markup).toContain('data-testid="footer-mission"');
@@ -117,6 +120,7 @@ describe("home page", () => {
 
     expect(searchSpy).toHaveBeenCalledWith({ q: "unemployment" });
     expect(markup).toContain('data-testid="dataset-search-results"');
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain("Unemployment Rate");
     expect(markup).toContain('data-testid="footer-brand"');
   });
@@ -141,6 +145,7 @@ describe("home page", () => {
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Recent updates are temporarily unavailable.");
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).not.toContain("Unable to load data. Please try again.");
   });
 
@@ -161,6 +166,7 @@ describe("home page", () => {
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Unable to load data. Please try again.");
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="footer-content-container"');
     expect(markup).toContain('class="shell-footer-mission"');
   });

@@ -6,6 +6,7 @@
   --shell-border: #d4d4d4;
   --shell-foreground: #111111;
   --shell-muted: #404040;
+  --shell-content-max-width: 74rem;
   color-scheme: light dark;
 }
 
@@ -45,6 +46,7 @@ html[data-theme-preference="dark"] {
 
 .shell-page {
   margin: 0 auto;
+  width: 100%;
   max-width: 100%;
   min-height: 100dvh;
   display: grid;
@@ -55,6 +57,17 @@ html[data-theme-preference="dark"] {
 
 .shell-region {
   width: 100%;
+}
+
+.shell-content-constrained {
+  width: min(100%, var(--shell-content-max-width));
+  margin: 0 auto;
+}
+
+.shell-region-full-width {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
 }
 
 .shell-monochrome > [data-slot="base"] {
@@ -76,9 +89,6 @@ html[data-theme-preference="dark"] {
 }
 
 .shell-region-footer {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
   margin-bottom: -1rem;
   padding: 0;
   border-top: 1px solid var(--shell-border);
@@ -130,9 +140,6 @@ html[data-theme-preference="dark"] {
 }
 
 .shell-region-header {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
   margin-top: -1rem;
   padding: 0;
   background: var(--shell-surface);
@@ -688,9 +695,6 @@ div[data-testid="observations-chart"] {
   }
 
   .shell-region-header {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
     margin-top: -0.8rem;
     padding: 0;
   }

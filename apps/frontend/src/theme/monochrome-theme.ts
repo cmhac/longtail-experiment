@@ -36,10 +36,17 @@ export const FORBIDDEN_ACCENT_VARIANTS = [
 
 export const MONOCHROME_ALLOWED_VARIANTS = ["light", "flat", "bordered"] as const;
 
+export const SHELL_LAYOUT_CLASS_NAMES = {
+  constrainedContent: "shell-content-constrained",
+  explicitFullWidth: "shell-region-full-width",
+} as const;
+
 export const SHELL_REGION_CLASS_NAMES = {
-  header: "shell-region shell-monochrome shell-region-header shell-readable",
+  header:
+    "shell-region shell-monochrome shell-region-header shell-region-full-width shell-readable",
   main: "shell-region shell-monochrome shell-region-main shell-readable",
-  footer: "shell-region shell-monochrome shell-region-footer shell-readable",
+  footer:
+    "shell-region shell-monochrome shell-region-footer shell-region-full-width shell-readable",
 } as const;
 
 export const SHELL_NAVBAR_CLASS_NAMES = {

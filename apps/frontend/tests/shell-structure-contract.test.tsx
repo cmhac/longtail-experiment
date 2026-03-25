@@ -100,6 +100,7 @@ describe("shell structure and monochrome contract", () => {
 
     expect(markup).toContain("<main");
     expect(markup).toContain('data-testid="home-content"');
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="dataset-search-hero"');
     expect(markup).toContain('class="search-hero"');
     expect(markup).toContain('data-testid="dataset-search-input-wrap"');
@@ -140,6 +141,7 @@ describe("shell structure and monochrome contract", () => {
     const markup = await renderCatalogPage();
 
     expect(markup).toContain('data-testid="catalog-page"');
+    expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="dataset-list-page-header"');
     expect(markup).toContain('data-testid="dataset-list-controls"');
     expect(markup).toContain('data-testid="catalog-flat-list"');
@@ -159,6 +161,7 @@ describe("shell structure and monochrome contract", () => {
 
     expect(markup).toContain('data-shell-region="header"');
     expect(markup).toContain("shell-monochrome");
+    expect(markup).toContain("shell-region-full-width");
     expect(isMonochromeVariantAllowed(SITE_HEADER_VARIANT)).toBe(true);
   });
 
@@ -174,6 +177,7 @@ describe("shell structure and monochrome contract", () => {
 
     expect(markup).toContain('data-shell-region="footer"');
     expect(markup).toContain("shell-monochrome");
+    expect(markup).toContain("shell-region-full-width");
     expect(markup).toContain("shell-readable");
     expect(markup).toContain('class="shell-footer-content"');
     expect(isMonochromeVariantAllowed(SITE_FOOTER_VARIANT)).toBe(true);

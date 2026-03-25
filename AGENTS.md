@@ -7,6 +7,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-25
 - N/A (frontend listing and interaction state over existing discovery catalog payload) (027-dataset-list-page)
 - TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery UI components, Next.js routing/link primitives, shell theme tokens, existing discovery API client/types (028-unify-dataset-list-item)
 - N/A (presentation-level unification over existing fetched payloads) (028-unify-dataset-list-item)
+- TypeScript 5.x + React 19 in Next.js 15 App Router + Existing shell layout classes, discovery page components, theme tokens, Next.js page composition (029-global-content-width)
+- N/A (presentation/layout behavior only) (029-global-content-width)
 
 - TypeScript 5.x with React 19 in Next.js 15 App Router + HeroUI 3 components, Next.js navigation primitives, existing frontend theme tokens (023-initial-ui-design)
 - N/A (presentation and client interaction state only) (023-initial-ui-design)
@@ -218,10 +220,10 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 029-global-content-width: Added TypeScript 5.x + React 19 in Next.js 15 App Router + Existing shell layout classes, discovery page components, theme tokens, Next.js page composition
 - 028-unify-dataset-list-item: Added TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery UI components, Next.js routing/link primitives, shell theme tokens, existing discovery API client/types
 - 027-dataset-list-page: Added TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery client/types, existing dataset catalog components, shell/nav primitives, HeroUI-aligned theme tokens
 
-- 026-global-footer: Implemented shared shell footer content constants, editorial footer markup/styles, and shell/home/startup coverage assertions for footer identity and readability
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
   in `apps/backend/src/contract`.
