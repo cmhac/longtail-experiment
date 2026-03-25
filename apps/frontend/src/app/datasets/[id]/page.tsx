@@ -2,11 +2,13 @@ import { notFound } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
 import { DatasetDetailHeader } from "../../../components/discovery/DatasetDetailHeader";
+import { DatasetDetailInsights } from "../../../components/discovery/DatasetDetailInsights";
 import { ErrorState } from "../../../components/discovery/ErrorState";
 import { ObservationsChart } from "../../../components/discovery/ObservationsChart";
 import { ObservationsTable } from "../../../components/discovery/ObservationsTable";
 import { fetchDatasetDetail } from "../../../lib/api/discovery-client";
 import { SiteHeader } from "../../../shell/site-header";
+import { SHELL_LAYOUT_CLASS_NAMES } from "../../../theme/monochrome-theme";
 
 interface DatasetDetailPageProps {
   params: Promise<{ id: string }>;
@@ -24,14 +26,38 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
   try {
     const { id } = await params;
     const detail = await fetchDatasetDetail(id);
+    const encodedId = encodeURIComponent(detail.dataset_id);
 
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader activeTab="datasets" />
-        <main data-testid="dataset-detail-page">
-          <DatasetDetailHeader data={detail} />
-          <ObservationsChart observations={detail.observations} />
-          <ObservationsTable observations={detail.observations} />
+        <main
+          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
+          data-testid="dataset-detail-page"
+        >
+          <section className="dataset-detail-overview" data-testid="dataset-detail-overview">
+            <DatasetDetailHeader data={detail} exportHref={`/api/datasets/${encodedId}.csv`} />
+          </section>
+
+          <section className="dataset-detail-analysis" data-testid="dataset-detail-analysis">
+            <DatasetDetailInsights data={detail} />
+
+            <section className="dataset-detail-trend" data-testid="dataset-detail-trend-section">
+              <h2>Historical Trend</h2>
+              <ObservationsChart observations={detail.observations} />
+            </section>
+          </section>
+
+          <section
+            className="dataset-detail-observed"
+            data-testid="dataset-detail-observed-values-section"
+          >
+            <h2>Observed Values</h2>
+            <ObservationsTable
+              observations={detail.observations}
+              unit={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
+            />
+          </section>
         </main>
       </div>
     );
@@ -43,7 +69,10 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader activeTab="datasets" />
-        <main data-testid="dataset-detail-page">
+        <main
+          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
+          data-testid="dataset-detail-page"
+        >
           <ErrorState />
         </main>
       </div>

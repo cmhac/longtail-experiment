@@ -696,7 +696,6 @@ section[data-testid="catalog-source-group"] {
   font-weight: 600;
 }
 
-.discovery-dataset-detail-header,
 .discovery-error-state,
 .discovery-empty-state {
   padding: 0.75rem;
@@ -715,6 +714,235 @@ section[data-testid="catalog-source-group"] {
   color: var(--shell-muted);
 }
 
+.dataset-detail-overview {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dataset-detail-analysis {
+  display: grid;
+  grid-template-columns: 18rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.discovery-dataset-detail-header {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.1rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.dataset-detail-header-content {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dataset-detail-source {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--shell-muted);
+  font-size: 0.72rem;
+}
+
+.discovery-dataset-detail-header h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: clamp(2rem, 3.9vw, 3.45rem);
+  line-height: 0.96;
+}
+
+.dataset-detail-description,
+.dataset-detail-geography {
+  margin: 0;
+  color: var(--shell-muted);
+}
+
+.dataset-detail-meta-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dataset-detail-utility-actions {
+  display: inline-flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+
+.dataset-detail-utility-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--shell-border);
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dataset-detail-utility-actions .dataset-detail-action-export {
+  background: #171717;
+  border-color: #171717;
+  color: #f5f5f5;
+}
+
+html[data-theme-preference="dark"] .dataset-detail-utility-actions .dataset-detail-action-export {
+  background: #f5f5f5;
+  border-color: #f5f5f5;
+  color: #111111;
+}
+
+.dataset-detail-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dataset-detail-insights {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dataset-detail-metric-rail {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.dataset-detail-metric-card,
+.dataset-detail-trend,
+.dataset-detail-observed {
+  border: 1px solid var(--shell-border);
+  background: var(--shell-surface);
+}
+
+.dataset-detail-metric-card {
+  padding: 0.8rem;
+  background: color-mix(in srgb, var(--shell-background) 98%, #000000);
+}
+
+.dataset-detail-metric-label {
+  margin: 0;
+  color: var(--shell-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dataset-detail-metric-value {
+  margin: 0.28rem 0 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.dataset-detail-metric-movement {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+}
+
+.dataset-detail-metric-movement-positive,
+.observations-weekly-change-positive,
+.observations-status-dot-positive {
+  color: #287d3c;
+}
+
+.dataset-detail-metric-movement-negative,
+.observations-weekly-change-negative,
+.observations-status-dot-negative {
+  color: #ab3b3b;
+}
+
+.observations-weekly-change-neutral,
+.observations-status-dot-neutral,
+.observations-weekly-change-unavailable,
+.observations-status-dot-unavailable {
+  color: var(--shell-muted);
+}
+
+.dataset-detail-metadata {
+  /* border: 1px solid var(--shell-border); */
+  padding: 0.8rem;
+  background: transparent;
+}
+
+.dataset-detail-metadata h2,
+.dataset-detail-trend h2,
+.dataset-detail-observed h2 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  font-size: 1.4rem;
+}
+
+.dataset-detail-metadata dl {
+  margin: 0.7rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dataset-detail-metadata dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.dataset-detail-metadata dt {
+  color: var(--shell-muted);
+}
+
+.dataset-detail-metadata dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.dataset-detail-trend,
+.dataset-detail-observed {
+  padding: 1rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.observations-chart-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.observations-chart-range {
+  border: 1px solid var(--shell-border);
+  background: var(--shell-surface);
+  padding: 0.2rem 0.52rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.observations-chart-range[aria-pressed="true"] {
+  background: var(--shell-foreground);
+  border-color: var(--shell-foreground);
+  color: var(--shell-surface);
+}
+
+.observations-chart-footnote {
+  margin: 0.45rem 0 0;
+  color: var(--shell-muted);
+  font-size: 0.8rem;
+}
+
+.discovery-observations-table-wrap {
+  display: grid;
+  gap: 0.8rem;
+}
+
 .discovery-observations-table {
   width: 100%;
   border-collapse: collapse;
@@ -725,8 +953,24 @@ section[data-testid="catalog-source-group"] {
 .discovery-observations-table th,
 .discovery-observations-table td {
   text-align: left;
-  padding: 0.5rem;
+  padding: 0.58rem;
   border-bottom: 1px solid var(--shell-border);
+}
+
+.observations-status-dot {
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.observations-load-archive {
+  margin: 0 auto;
+  border: 1px solid var(--shell-border);
+  background: var(--shell-surface);
+  color: inherit;
+  padding: 0.42rem 0.9rem;
+  font-size: 0.73rem;
+  letter-spacing: 0.08em;
 }
 
 div[data-testid="observations-chart"] {
@@ -855,5 +1099,30 @@ div[data-testid="observations-chart"] {
 
   .recent-updates-body h3 {
     line-height: 1.13;
+  }
+
+  .dataset-detail-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .dataset-detail-analysis {
+    grid-template-columns: 1fr;
+  }
+
+  .dataset-detail-insights {
+    grid-template-columns: 1fr;
+  }
+
+  .dataset-detail-meta-row {
+    align-items: center;
+  }
+
+  .dataset-detail-utility-actions a {
+    flex: 0 0 auto;
+  }
+
+  .dataset-detail-trend,
+  .dataset-detail-observed {
+    padding: 0.8rem;
   }
 }

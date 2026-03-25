@@ -1,34 +1,32 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 import { DatasetDetailHeader } from "../src/components/discovery/DatasetDetailHeader";
+import { buildDatasetDetailFixture } from "./fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "./test-utils";
 
-const baseDataset = {
-  dataset_id: "UNRATE",
-  source: { id: "fred", name: "FRED" },
-  title: "Unemployment Rate",
-  description: "Share of labor force unemployed",
-  geographic_scope: "US",
-  topic_tags: ["labor", "employment"],
-  metadata: {},
-  observations: [],
-  observation_sort: "observed_on_asc",
-};
+const baseDataset = buildDatasetDetailFixture();
 
 describe("DatasetDetailHeader", () => {
   it("renders full metadata", () => {
-    const markup = renderMarkup(<DatasetDetailHeader data={baseDataset} />);
+    const markup = renderMarkup(
+      <DatasetDetailHeader data={baseDataset} exportHref="/api/export.csv" />,
+    );
 
-    expect(markup).toContain("Unemployment Rate");
-    expect(markup).toContain("Share of labor force unemployed");
-    expect(markup).toContain("Geographic scope: US");
-    expect(markup).toContain("labor");
-    expect(markup).toContain("employment");
+    expect(markup).toContain("Data Source: EIA");
+    expect(markup).toContain("Retail gasoline prices for Colorado.");
+    expect(markup).toContain('recent-updates-geography-pill">Colorado<');
+    expect(markup).toContain('href="/api/export.csv"');
+    expect(markup).not.toContain("Share");
+    expect(markup).toContain("energy");
+    expect(markup).toContain("gasoline");
   });
 
   it("handles null description and geographic scope", () => {
     const markup = renderMarkup(
-      <DatasetDetailHeader data={{ ...baseDataset, description: null, geographic_scope: null }} />,
+      <DatasetDetailHeader
+        data={{ ...baseDataset, description: null, geographic_scope: null }}
+        exportHref="/api/export.csv"
+      />,
     );
 
     expect(markup).toContain("No description available");
@@ -36,8 +34,21 @@ describe("DatasetDetailHeader", () => {
   });
 
   it("handles empty topic tags", () => {
-    const markup = renderMarkup(<DatasetDetailHeader data={{ ...baseDataset, topic_tags: [] }} />);
+    const markup = renderMarkup(
+      <DatasetDetailHeader
+        data={{ ...baseDataset, topic_tags: [] }}
+        exportHref="/api/export.csv"
+      />,
+    );
 
     expect(markup).toContain("No topic tags");
+  });
+
+  it("renders utility actions with default href fallbacks", () => {
+    const markup = renderMarkup(<DatasetDetailHeader data={baseDataset} />);
+
+    expect(markup).toContain('href="#"');
+    expect(markup).toContain("Export CSV");
+    expect(markup).not.toContain("Share");
   });
 });

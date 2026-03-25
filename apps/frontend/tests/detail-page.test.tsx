@@ -1,7 +1,8 @@
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import DatasetDetailPage from "../src/app/datasets/[id]/page";
 import * as discoveryClient from "../src/lib/api/discovery-client";
+import { buildDatasetDetailFixture } from "./fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "./test-utils";
 
 const notFoundMock = vi.fn(() => {
@@ -12,38 +13,33 @@ vi.mock("next/navigation", () => ({
   notFound: () => notFoundMock(),
 }));
 
-describe("dataset detail page", () => {
-  it("renders detail metadata and chart sections for valid datasets", async () => {
-    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue({
-      dataset_id: "FEDFUNDS",
-      source: { id: "fred", name: "FRED" },
-      title: "Federal Funds Effective Rate",
-      description: "Target federal funds rate",
-      geographic_scope: "US",
-      topic_tags: ["interest rates"],
-      metadata: { units: "Percent" },
-      observations: [
-        {
-          observed_on: "2026-01-01",
-          value: 4.33,
-          reported_at: "2026-02-03T00:00:00Z",
-          attributes: {},
-        },
-      ],
-      observation_sort: "observed_on_asc",
-    });
+afterEach(() => {
+  notFoundMock.mockClear();
+});
 
-    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "FEDFUNDS" }) });
+describe("dataset detail page", () => {
+  it("renders hero, insights, trend, and observed sections for valid datasets", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue(buildDatasetDetailFixture());
+
+    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "GAS.REG.CO" }) });
     const markup = renderMarkup(element);
 
-    expect(markup).toContain("Federal Funds Effective Rate");
+    expect(markup).toContain("Regular All Formulations Retail Gasoline Prices - Colorado");
     expect(markup).toContain('data-testid="site-shell"');
     expect(markup).toContain('data-testid="shell-header"');
     expect(markup).toContain('data-testid="navbar-tab-datasets" href="/datasets"');
     expect(markup).toContain('aria-current="page" data-testid="navbar-tab-datasets"');
+    expect(markup).toContain('data-testid="dataset-detail-overview"');
+    expect(markup).toContain('data-testid="dataset-detail-insights"');
+    expect(markup).toContain('data-testid="dataset-detail-trend-section"');
+    expect(markup).toContain('data-testid="dataset-detail-observed-values-section"');
+    expect(markup).toContain('data-testid="dataset-detail-utility-actions"');
+    expect(markup).toContain('class="dataset-detail-utility-actions"');
+    expect(markup).toContain('data-testid="observations-chart-controls"');
     expect(markup).toContain('data-testid="observations-chart"');
     expect(markup).toContain('data-testid="observations-table"');
-    expect(discoveryClient.fetchDatasetDetail).toHaveBeenCalledWith("FEDFUNDS");
+    expect(markup).not.toContain('data-testid="observations-load-archive"');
+    expect(discoveryClient.fetchDatasetDetail).toHaveBeenCalledWith("GAS.REG.CO");
   });
 
   it("renders generic error state for non-404 fetch failures", async () => {
@@ -51,7 +47,7 @@ describe("dataset detail page", () => {
       new Error("backend unavailable"),
     );
 
-    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "FEDFUNDS" }) });
+    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "GAS.REG.CO" }) });
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Unable to load data. Please try again.");
@@ -66,5 +62,24 @@ describe("dataset detail page", () => {
       "NOT_FOUND",
     );
     expect(notFoundMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders generic error state when rejection is null", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockRejectedValue(null);
+
+    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "FEDFUNDS" }) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain("Unable to load data. Please try again.");
+  });
+
+  it("renders generic error state when status is not 404", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockRejectedValue({ status: 500 });
+
+    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "FEDFUNDS" }) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain("Unable to load data. Please try again.");
+    expect(notFoundMock).toHaveBeenCalledTimes(0);
   });
 });
