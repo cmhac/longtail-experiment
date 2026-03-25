@@ -51,7 +51,21 @@ describe("discovery types", () => {
 
   it("preserves required arrays for items, groups, tags, and observations", () => {
     const recentPayload: DatasetRecentUpdatesResponse = {
-      items: [],
+      items: [
+        {
+          dataset_id: "ENERGY.US.GASREGW",
+          source: { id: "eia", name: "EIA" },
+          title: "Regular Retail Gasoline Prices",
+          description: "Weekly gasoline price update",
+          geographic_scope: "US",
+          topic_tags: ["energy", "gasoline"],
+          latest_update_at: "2026-03-24T00:00:00Z",
+          action_links: {
+            view_table_href: "/datasets/ENERGY.US.GASREGW",
+            download_csv_href: "/api/datasets/ENERGY.US.GASREGW.csv",
+          },
+        },
+      ],
       limit: 5,
       sort: "latest_update_at_desc",
     };
@@ -67,6 +81,7 @@ describe("discovery types", () => {
     };
 
     expect(Array.isArray(recentPayload.items)).toBe(true);
+    expect(recentPayload.items[0]?.action_links.download_csv_href).toContain(".csv");
     expect(Array.isArray(catalogPayload.items)).toBe(true);
     expect(Array.isArray(catalogPayload.groups)).toBe(true);
   });

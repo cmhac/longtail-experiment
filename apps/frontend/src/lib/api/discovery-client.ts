@@ -117,7 +117,25 @@ export const fetchRecentDatasets = async (params?: {
   }
 
   const response = await fetch(createUrl("/api/datasets/recent", query));
-  return parseResponse<DatasetRecentUpdatesResponse>(response);
+  const payload = await parseResponse<DatasetRecentUpdatesResponse>(response);
+
+  return {
+    ...payload,
+    items: payload.items.map((item) => {
+      const encodedId = encodeURIComponent(item.dataset_id);
+      return {
+        ...item,
+        description: item.description ?? null,
+        geographic_scope: item.geographic_scope ?? null,
+        topic_tags: item.topic_tags ?? [],
+        action_links: {
+          view_table_href: item.action_links?.view_table_href ?? `/datasets/${encodedId}`,
+          download_csv_href:
+            item.action_links?.download_csv_href ?? `/api/datasets/${encodedId}.csv`,
+        },
+      };
+    }),
+  };
 };
 
 export const fetchDatasetCatalog = async (params: {

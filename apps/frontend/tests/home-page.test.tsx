@@ -17,7 +17,14 @@ describe("home page", () => {
           dataset_id: "FEDFUNDS",
           source: { id: "fred", name: "FRED" },
           title: "Federal Funds Effective Rate",
+          description: "Policy rate update",
+          geographic_scope: "US",
+          topic_tags: ["rates", "monetary policy"],
           latest_update_at: "2026-02-01T00:00:00Z",
+          action_links: {
+            view_table_href: "/datasets/FEDFUNDS",
+            download_csv_href: "/api/datasets/FEDFUNDS.csv",
+          },
         },
       ],
       limit: 5,
@@ -45,6 +52,8 @@ describe("home page", () => {
     expect(markup).toContain("Searching 48 active datasets from 3 sources.");
     expect(markup).toContain('data-testid="recent-updates-feed"');
     expect(markup).toContain("Federal Funds Effective Rate");
+    expect(markup).toContain('href="/datasets/FEDFUNDS"');
+    expect(markup).not.toContain("Download CSV");
     expect(markup).toContain('data-testid="navbar-brand-link"');
     expect(markup).toContain('data-testid="navbar-tab-home"');
     expect(markup).toContain('data-testid="navbar-tab-datasets"');
@@ -100,9 +109,41 @@ describe("home page", () => {
 
   it("renders error state when backend requests fail", async () => {
     vi.spyOn(discoveryClient, "fetchRecentDatasets").mockRejectedValue(new Error("down"));
-    vi.spyOn(discoveryClient, "fetchSearchSummary").mockRejectedValue(new Error("down"));
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
+      active_dataset_count: 48,
+      active_source_count: 3,
+      generated_at: "2026-03-24T00:00:00Z",
+    });
+    vi.spyOn(discoveryClient, "fetchDatasetSearch").mockResolvedValue({
+      items: [],
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
+      sort: "latest_update_at_desc",
+    });
 
     const element = await HomePage({ searchParams: Promise.resolve({}) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain("Recent updates are temporarily unavailable.");
+    expect(markup).not.toContain("Unable to load data. Please try again.");
+  });
+
+  it("renders global error state when dataset search request fails", async () => {
+    vi.spyOn(discoveryClient, "fetchRecentDatasets").mockResolvedValue({
+      items: [],
+      limit: 5,
+      sort: "latest_update_at_desc",
+    });
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
+      active_dataset_count: 48,
+      active_source_count: 3,
+      generated_at: "2026-03-24T00:00:00Z",
+    });
+    vi.spyOn(discoveryClient, "fetchDatasetSearch").mockRejectedValue(new Error("search down"));
+
+    const element = await HomePage({ searchParams: Promise.resolve({ q: "rates" }) });
     const markup = renderMarkup(element);
 
     expect(markup).toContain("Unable to load data. Please try again.");

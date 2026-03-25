@@ -169,7 +169,20 @@ class PersistedDatasetDiscoveryRepository:
     def list_recent_datasets(self, *, limit: int) -> list[dict[str, object]]:
         """Return recent dataset summaries ordered by persisted recency."""
         rows, _ = self.search_datasets(query_text=None, page=1, page_size=1000)
-        return rows[:limit]
+        projected: list[dict[str, object]] = []
+        for row in rows[:limit]:
+            projected.append(
+                {
+                    "dataset_id": str(row.get("dataset_id", "")),
+                    "source": dict(cast(dict[str, object], row.get("source") or {})),
+                    "title": str(row.get("title", "")),
+                    "description": row.get("description"),
+                    "geographic_scope": row.get("geographic_scope"),
+                    "topic_tags": list(cast(list[object], row.get("topic_tags") or [])),
+                    "latest_update_at": row.get("latest_update_at"),
+                }
+            )
+        return projected
 
     def get_search_summary(self) -> dict[str, object]:
         """Return active dataset and source totals for homepage summary text."""

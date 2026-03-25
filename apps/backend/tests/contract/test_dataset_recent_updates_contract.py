@@ -40,3 +40,18 @@ def test_recent_updates_orders_by_latest_update_descending() -> None:
     latest_values = [item.get("latest_update_at") or "" for item in response["items"]]
 
     assert latest_values == sorted(latest_values, reverse=True)
+
+
+def test_recent_updates_include_action_links_per_item() -> None:
+    datasets, observations = build_discovery_rows()
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=observations,
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = service.list_recent_updates(limit=5)
+
+    first_item = response["items"][0]
+    assert first_item["action_links"]["view_table_href"].startswith("/datasets/")
+    assert first_item["action_links"]["download_csv_href"].startswith("/api/datasets/")

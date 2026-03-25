@@ -20,10 +20,16 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
   const params = searchParams ? await searchParams : undefined;
   const rawQuery = params?.q;
   const query = typeof rawQuery === "string" ? rawQuery.trim() : "";
+  const recentPromise = fetchRecentDatasets({ limit: 5 })
+    .then((payload) => ({ payload, unavailable: false }))
+    .catch(() => ({
+      payload: { items: [], limit: 5, sort: "latest_update_at_desc" },
+      unavailable: true,
+    }));
 
   try {
     const [recent, search, summary] = await Promise.all([
-      fetchRecentDatasets({ limit: 5 }),
+      recentPromise,
       query.length > 0 ? fetchDatasetSearch({ q: query }) : Promise.resolve(null),
       fetchSearchSummary().catch(() => null),
     ]);
@@ -44,7 +50,7 @@ const HomePage = async ({ searchParams }: HomePageProps): Promise<JSX.Element> =
             }
           />
           {search ? <DatasetSearchResults items={search.items} query={query} /> : null}
-          <RecentUpdatesFeed items={recent.items} />
+          <RecentUpdatesFeed items={recent.payload.items} unavailable={recent.unavailable} />
         </main>
         <SiteFooter />
       </div>

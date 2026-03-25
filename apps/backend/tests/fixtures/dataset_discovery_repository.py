@@ -66,6 +66,9 @@ class InMemoryDatasetDiscoveryRepository:
                 continue
             projected = dict(row)
             projected["latest_update_at"] = latest_update.get(str(row.get("dataset_id", "")))
+            projected.setdefault("description", None)
+            projected.setdefault("geographic_scope", None)
+            projected.setdefault("topic_tags", [])
             rows.append(projected)
         rows.sort(
             key=lambda item: (

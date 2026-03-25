@@ -1,12 +1,14 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-24
+Auto-generated from all feature plans. Last updated: 2026-03-25
 
 ## Active Technologies
 - TypeScript 5.x with React 19 in Next.js 15 App Router + HeroUI 3 components, Next.js navigation primitives, existing frontend theme tokens (023-initial-ui-design)
 - N/A (presentation and client interaction state only) (023-initial-ui-design)
 - Python 3.12 (backend query/runtime), TypeScript 5.x + React 19 + Next.js 15 (frontend) + existing backend discovery service/repository surfaces, PostgreSQL 16 dataset metadata store, frontend discovery client, HeroUI-aligned shell styling (024-home-search-bar)
 - PostgreSQL 16 canonical/discovery tables with trigram-enabled text matching support for likely suggestions (024-home-search-bar)
+- TypeScript 5.x + React 19 + Next.js 15 (frontend), Python 3.12 (backend discovery contract/repository surfaces) + Existing homepage shell components, discovery API client/types, persisted discovery repository/service, HeroUI-aligned theme tokens (025-homepage-editorial-feed)
+- PostgreSQL 16 discovery metadata tables (existing recent-updates source) (025-homepage-editorial-feed)
 
 - Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers (022-dagster-postgres-backend)
 - Two local PostgreSQL database roles: orchestration metadata store and canonical output-data store (022-dagster-postgres-backend)
@@ -209,10 +211,10 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 025-homepage-editorial-feed: Added TypeScript 5.x + React 19 + Next.js 15 (frontend), Python 3.12 (backend discovery contract/repository surfaces) + Existing homepage shell components, discovery API client/types, persisted discovery repository/service, HeroUI-aligned theme tokens
 - 024-home-search-bar: Added Python 3.12 (backend query/runtime), TypeScript 5.x + React 19 + Next.js 15 (frontend) + existing backend discovery service/repository surfaces, PostgreSQL 16 dataset metadata store, frontend discovery client, HeroUI-aligned shell styling
 - 023-initial-ui-design: Added TypeScript 5.x with React 19 in Next.js 15 App Router + HeroUI 3 components, Next.js navigation primitives, existing frontend theme tokens
 
-- 022-dagster-postgres-backend: Added Python 3.12 (pipeline runtime), YAML/shell compose configuration, SQL for database provisioning checks + Dagster orchestration runtime, SQLAlchemy-backed Dagster storage configuration, Docker Compose local stack, PostgreSQL 16 containers
 
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts

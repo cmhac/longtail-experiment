@@ -11,6 +11,9 @@ describe("DatasetCard", () => {
           dataset_id: "UNRATE",
           source: { id: "fred", name: "FRED" },
           title: "Unemployment Rate",
+          description: null,
+          geographic_scope: "US",
+          topic_tags: [],
           latest_update_at: "2026-02-01T00:00:00Z",
         }}
       />,
@@ -29,6 +32,9 @@ describe("DatasetCard", () => {
           dataset_id: "BADDATE",
           source: { id: "fred", name: "FRED" },
           title: "Broken Date Dataset",
+          description: null,
+          geographic_scope: "US",
+          topic_tags: [],
           latest_update_at: "not-a-date",
         }}
       />,
