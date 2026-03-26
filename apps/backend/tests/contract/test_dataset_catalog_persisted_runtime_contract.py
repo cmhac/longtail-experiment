@@ -22,9 +22,12 @@ class _PersistedCatalogRepoStub:
         return []
 
     def list_catalog_datasets(
-        self, *, query_text: str | None, source_id: str | None, page: int, page_size: int
+        self,
+        *,
+        query_text: str | None,
+        options: dict[str, object],
     ):
-        del query_text, source_id, page, page_size
+        del query_text, options
         return [
             {
                 "dataset_id": "INT.US.FEDFUNDS",
@@ -37,6 +40,14 @@ class _PersistedCatalogRepoStub:
                 "metadata": {},
             }
         ], 1
+
+    def list_catalog_aggregations(self, *, query_text: str | None):
+        del query_text
+        return {
+            "total_dataset_count": 1,
+            "sources": [{"source": {"id": "fred", "name": "FRED"}, "dataset_count": 1}],
+            "categories": [{"value": "interest rates", "dataset_count": 1}],
+        }
 
     def get_dataset_detail(self, *, dataset_id: str):
         del dataset_id
@@ -62,12 +73,17 @@ def test_catalog_contract_uses_persisted_metadata_and_grouping() -> None:
 
     payload = service.list_catalog(
         query_text="federal",
-        source_id="fred",
-        page=1,
-        page_size=20,
+        options={
+            "source_id": "fred",
+            "category": None,
+            "sort": None,
+            "page": 1,
+            "page_size": 20,
+        },
         group_by_source=True,
     )
 
     assert payload["total_items"] == 1
+    assert payload["aggregations"]["categories"][0]["value"] == "interest rates"
     assert payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert payload["groups"][0]["source"]["id"] == "fred"

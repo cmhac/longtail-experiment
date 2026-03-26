@@ -15,11 +15,34 @@ class DatasetSourceGroup(BaseModel):
     dataset_ids: list[str] = Field(default_factory=list)
 
 
+class DatasetCatalogSourceAggregation(BaseModel):
+    """Aggregate source option for catalog filtering."""
+
+    source: SourceRef
+    dataset_count: int = Field(ge=0)
+
+
+class DatasetCatalogCategoryAggregation(BaseModel):
+    """Aggregate category option for catalog filtering."""
+
+    value: str = Field(min_length=1)
+    dataset_count: int = Field(ge=0)
+
+
+class DatasetCatalogAggregations(BaseModel):
+    """Aggregate filter metadata for catalog views."""
+
+    total_dataset_count: int = Field(ge=0)
+    sources: list[DatasetCatalogSourceAggregation] = Field(default_factory=list)
+    categories: list[DatasetCatalogCategoryAggregation] = Field(default_factory=list)
+
+
 class DatasetCatalogResponse(BaseModel):
     """Paginated dataset catalog response payload."""
 
     items: list[DatasetSummary]
     groups: list[DatasetSourceGroup] = Field(default_factory=list)
+    aggregations: DatasetCatalogAggregations = Field(default_factory=DatasetCatalogAggregations)
     page: int = Field(ge=1)
     page_size: int = Field(ge=1)
     total_items: int = Field(ge=0)

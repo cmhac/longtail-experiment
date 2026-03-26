@@ -24,16 +24,15 @@ def test_catalog_returns_paging_metadata() -> None:
 
     response = service.list_catalog(
         query_text=None,
-        source_id=None,
-        page=1,
-        page_size=2,
+        options={"source_id": None, "category": None, "sort": None, "page": 1, "page_size": 2},
         group_by_source=False,
     )
 
     assert response["page"] == 1
     assert response["page_size"] == 2
     assert response["total_items"] == len(datasets)
-    assert response["sort"] == "source_name_asc,title_asc,dataset_id_asc"
+    assert response["aggregations"]["total_dataset_count"] == len(datasets)
+    assert response["sort"] == "latest_update_at_desc,title_asc,dataset_id_asc"
 
 
 def test_catalog_items_include_source_attribution() -> None:
@@ -46,11 +45,40 @@ def test_catalog_items_include_source_attribution() -> None:
 
     response = service.list_catalog(
         query_text="us",
-        source_id=None,
-        page=1,
-        page_size=20,
+        options={
+            "source_id": None,
+            "category": None,
+            "sort": None,
+            "page": 1,
+            "page_size": 20,
+        },
         group_by_source=False,
     )
 
     assert response["items"]
     assert all("source" in item for item in response["items"])
+
+
+def test_catalog_applies_server_side_category_filter_and_title_sort() -> None:
+    datasets, observations = build_discovery_rows()
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=observations,
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = service.list_catalog(
+        query_text=None,
+        options={
+            "source_id": None,
+            "category": "prices",
+            "sort": "title_asc",
+            "page": 1,
+            "page_size": 20,
+        },
+        group_by_source=False,
+    )
+
+    assert response["items"]
+    assert all("prices" in item["topic_tags"] for item in response["items"])
+    assert response["sort"] == "title_asc,dataset_id_asc"

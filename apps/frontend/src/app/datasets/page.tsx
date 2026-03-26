@@ -5,9 +5,9 @@ import {
   DatasetListControls,
   type DatasetSortMode,
 } from "../../components/discovery/DatasetListControls";
+import { DiscoveryListPageHeader } from "../../components/discovery/DiscoveryListPageHeader";
 import { ErrorState } from "../../components/discovery/ErrorState";
 import { fetchDatasetCatalog } from "../../lib/api/discovery-client";
-import type { DatasetSummary } from "../../lib/api/discovery-types";
 import { SiteHeader } from "../../shell/site-header";
 import { SHELL_LAYOUT_CLASS_NAMES } from "../../theme/monochrome-theme";
 
@@ -28,73 +28,6 @@ const normalizeParam = (value: string | string[] | undefined, fallback: string):
   return normalized.length > 0 ? normalized : fallback;
 };
 
-const toCategoryValues = (items: DatasetSummary[]): string[] => {
-  const values = new Set<string>();
-
-  for (const item of items) {
-    for (const tag of item.topic_tags ?? []) {
-      const value = tag.trim();
-      if (value.length > 0) {
-        values.add(value);
-      }
-    }
-  }
-
-  return [...values].sort((left, right) => left.localeCompare(right));
-};
-
-const applyFiltersAndSort = (
-  items: DatasetSummary[],
-  sourceFilter: string,
-  categoryFilter: string,
-  sortMode: DatasetSortMode,
-): DatasetSummary[] => {
-  const bySource =
-    sourceFilter === "all"
-      ? items
-      : items.filter((item) => item.source.id.toLowerCase() === sourceFilter.toLowerCase());
-
-  const byCategory =
-    categoryFilter === "all"
-      ? bySource
-      : bySource.filter((item) =>
-          (item.topic_tags ?? []).some((tag) => tag.toLowerCase() === categoryFilter.toLowerCase()),
-        );
-
-  const deduped = [...new Map(byCategory.map((item) => [item.dataset_id, item])).values()];
-
-  return deduped.sort((left, right) => {
-    if (sortMode === "title_asc") {
-      return left.title.localeCompare(right.title);
-    }
-
-    if (sortMode === "title_desc") {
-      return right.title.localeCompare(left.title);
-    }
-
-    const leftTime = Date.parse(left.latest_update_at);
-    const rightTime = Date.parse(right.latest_update_at);
-
-    if (Number.isNaN(leftTime) && Number.isNaN(rightTime)) {
-      return left.title.localeCompare(right.title);
-    }
-
-    if (Number.isNaN(leftTime)) {
-      return 1;
-    }
-
-    if (Number.isNaN(rightTime)) {
-      return -1;
-    }
-
-    if (leftTime === rightTime) {
-      return left.title.localeCompare(right.title);
-    }
-
-    return rightTime - leftTime;
-  });
-};
-
 const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Element> => {
   const params = searchParams ? await searchParams : undefined;
   const sourceFilter = normalizeParam(params?.source, "all");
@@ -104,37 +37,38 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
     sortParam === "title_asc" || sortParam === "title_desc" ? sortParam : "recency";
 
   try {
-    const result = await fetchDatasetCatalog({ pageSize: 100 });
+    const result = await fetchDatasetCatalog({
+      pageSize: 100,
+      sort: sortMode,
+      ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
+      ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
+    });
     const sourceOptions = [
       { label: "All Sources", value: "all" },
-      ...[...new Map(result.items.map((item) => [item.source.id, item.source])).values()]
-        .sort((left, right) => left.name.localeCompare(right.name))
-        .map((source) => ({
-          label: source.name,
-          value: source.id,
-        })),
+      ...result.aggregations.sources.map((item) => ({
+        label: item.source.name,
+        value: item.source.id,
+      })),
     ];
     const categoryOptions = [
       { label: "All Categories", value: "all" },
-      ...toCategoryValues(result.items).map((value) => ({
-        label: value,
-        value,
+      ...result.aggregations.categories.map((item) => ({
+        label: item.value,
+        value: item.value,
       })),
     ];
-    const visibleItems = applyFiltersAndSort(result.items, sourceFilter, categoryFilter, sortMode);
 
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader activeTab="datasets" />
         <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="catalog-page">
-          <header className="dataset-list-page-header" data-testid="dataset-list-page-header">
-            <div>
-              <h1 className="dataset-list-title">Datasets</h1>
-              <p className="dataset-list-total-series" data-testid="dataset-list-total-series">
-                TOTAL SERIES: {formatSeriesCount(result.total_items)}
-              </p>
-            </div>
-          </header>
+          <DiscoveryListPageHeader
+            headerTestId="dataset-list-page-header"
+            title="Datasets"
+            totalNoun="series"
+            totalTestId="dataset-list-total-series"
+            totalValue={formatSeriesCount(result.aggregations.total_dataset_count)}
+          />
 
           <DatasetListControls
             categoryOptions={categoryOptions}
@@ -144,7 +78,7 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
             sourceOptions={sourceOptions}
           />
 
-          <DatasetCatalogList items={visibleItems} />
+          <DatasetCatalogList items={result.items} />
         </main>
       </div>
     );
@@ -153,14 +87,13 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
         <SiteHeader activeTab="datasets" />
         <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="catalog-page">
-          <header className="dataset-list-page-header" data-testid="dataset-list-page-header">
-            <div>
-              <h1 className="dataset-list-title">Datasets</h1>
-              <p className="dataset-list-total-series" data-testid="dataset-list-total-series">
-                TOTAL SERIES: --
-              </p>
-            </div>
-          </header>
+          <DiscoveryListPageHeader
+            headerTestId="dataset-list-page-header"
+            title="Datasets"
+            totalNoun="series"
+            totalTestId="dataset-list-total-series"
+            totalValue="--"
+          />
           <ErrorState />
         </main>
       </div>

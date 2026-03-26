@@ -3,6 +3,11 @@ export interface SourceRef {
   name: string;
 }
 
+export interface SourceSummary extends SourceRef {
+  dataset_count: number;
+  source_type?: string | null;
+}
+
 export interface DatasetSummary {
   dataset_id: string;
   source: SourceRef;
@@ -32,6 +37,22 @@ export interface DatasetSourceGroup {
   source: SourceRef;
   dataset_count: number;
   dataset_ids: string[];
+}
+
+export interface DatasetCatalogSourceAggregation {
+  source: SourceRef;
+  dataset_count: number;
+}
+
+export interface DatasetCatalogCategoryAggregation {
+  value: string;
+  dataset_count: number;
+}
+
+export interface DatasetCatalogAggregations {
+  total_dataset_count: number;
+  sources: DatasetCatalogSourceAggregation[];
+  categories: DatasetCatalogCategoryAggregation[];
 }
 
 export interface ObservationPoint {
@@ -90,10 +111,23 @@ export interface DatasetRecentUpdatesResponse {
 export interface DatasetCatalogResponse {
   items: DatasetSummary[];
   groups: DatasetSourceGroup[] | null;
+  aggregations: DatasetCatalogAggregations;
   page: number;
   page_size: number;
   total_items: number;
   total_pages: number;
+  sort: string;
+}
+
+export interface SourceListResponse {
+  items: SourceSummary[];
+  total_items: number;
+  sort: string;
+}
+
+export interface SourceDetail {
+  source: SourceSummary;
+  datasets: DatasetSummary[];
   sort: string;
 }
 

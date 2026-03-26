@@ -127,6 +127,11 @@ describe("discovery client", () => {
       mockJsonResponse({
         items: [],
         groups: [],
+        aggregations: {
+          total_dataset_count: 0,
+          sources: [],
+          categories: [],
+        },
         page: 1,
         page_size: 20,
         total_items: 0,
@@ -148,6 +153,11 @@ describe("discovery client", () => {
       mockJsonResponse({
         items: [],
         groups: [],
+        aggregations: {
+          total_dataset_count: 0,
+          sources: [],
+          categories: [],
+        },
         page: 1,
         page_size: 20,
         total_items: 0,

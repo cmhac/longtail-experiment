@@ -22,6 +22,7 @@ from src.contract.query.dataset_discovery_contracts import (
     dataset_not_found_error,
     invalid_request_error,
 )
+from src.contract.query.source_discovery_contracts import source_not_found_error
 from src.query.dataset_catalog_query import execute_dataset_catalog
 from src.query.dataset_detail_query import execute_dataset_detail
 from src.query.dataset_discovery_persisted_repository import (
@@ -32,6 +33,8 @@ from src.query.dataset_recent_updates_query import execute_recent_updates
 from src.query.dataset_search_query import execute_dataset_search
 from src.query.dataset_search_suggestions_query import execute_dataset_search_suggestions
 from src.query.dataset_search_summary_query import execute_search_summary
+from src.query.source_detail_query import execute_source_detail
+from src.query.source_list_query import execute_source_list
 
 
 def _env_value(environment: Mapping[str, str], key: str, default: str) -> str:
@@ -145,7 +148,9 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
     ) -> dict[str, object]:
         q = query.get("q", [None])[0]
-        source_id = query.get("source_id", [None])[0]
+        source_id = query.get("source", [None])[0] or query.get("source_id", [None])[0]
+        category = query.get("category", [None])[0]
+        sort = query.get("sort", [None])[0]
         page = query.get("page", [None])[0]
         page_size = query.get("page_size", [None])[0]
         group_by_source = query.get("group_by_source", ["false"])[0].lower() == "true"
@@ -153,6 +158,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             service,
             query_text=q,
             source_id=source_id,
+            category=category,
+            sort=sort,
             page=int(page) if page is not None else None,
             page_size=int(page_size) if page_size is not None else None,
             group_by_source=group_by_source,
@@ -171,6 +178,17 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             from_date=query.get("from_date", [None])[0],
             to_date=query.get("to_date", [None])[0],
         ).model_dump()
+
+    def _handle_source_list(self, service: DatasetDiscoveryService) -> dict[str, object]:
+        return execute_source_list(service).model_dump()
+
+    def _handle_source_detail(
+        self,
+        parsed_path: str,
+        service: DatasetDiscoveryService,
+    ) -> dict[str, object]:
+        source_id = parsed_path.split("/", maxsplit=3)[3]
+        return execute_source_detail(service, source_id=source_id).model_dump()
 
     def _handle_csv(
         self,
@@ -215,6 +233,7 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
     ) -> tuple[HTTPStatus, dict[str, object]]:
         exact_routes: dict[str, Callable[[], dict[str, object]]] = {
             "/api/health": lambda: {"status": "ok"},
+            "/api/sources": lambda: self._handle_source_list(service),
             "/api/datasets/search": lambda: self._handle_search(query, service),
             "/api/datasets/search/summary": lambda: self._handle_summary(service),
             "/api/datasets/search/suggestions": lambda: self._handle_suggestions(query, service),
@@ -224,6 +243,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
 
         if path in exact_routes:
             return HTTPStatus.OK, exact_routes[path]()
+        if path.startswith("/api/sources/"):
+            return HTTPStatus.OK, self._handle_source_detail(path, service)
         if path.startswith("/api/datasets/"):
             return HTTPStatus.OK, self._handle_detail(path, query, service)
         return HTTPStatus.NOT_FOUND, {
@@ -260,6 +281,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                     dataset_id = dataset_id[: -len(".csv")]
                 response_status = HTTPStatus.NOT_FOUND
                 response_payload = dataset_not_found_error(dataset_id).model_dump()
+            elif str(exc) == "source_not_found":
+                source_id = parsed.path.split("/")[-1]
+                response_status = HTTPStatus.NOT_FOUND
+                response_payload = source_not_found_error(source_id).model_dump()
             else:
                 response_status = HTTPStatus.BAD_REQUEST
                 response_payload = invalid_request_error(str(exc)).model_dump()

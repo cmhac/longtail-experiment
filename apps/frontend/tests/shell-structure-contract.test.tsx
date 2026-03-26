@@ -2,6 +2,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import CatalogPage from "../src/app/datasets/page";
 import HomePage from "../src/app/page";
+import SourceListPage from "../src/app/sources/page";
 import * as discoveryClient from "../src/lib/api/discovery-client";
 import { SITE_FOOTER_VARIANT } from "../src/shell/site-footer";
 import { SITE_HEADER_VARIANT } from "../src/shell/site-header";
@@ -61,6 +62,11 @@ const renderCatalogPage = async (): Promise<string> => {
       },
     ],
     groups: null,
+    aggregations: {
+      total_dataset_count: 1,
+      sources: [{ source: { id: "fred", name: "FRED" }, dataset_count: 1 }],
+      categories: [{ value: "rates", dataset_count: 1 }],
+    },
     page: 1,
     page_size: 20,
     total_items: 1,
@@ -69,6 +75,17 @@ const renderCatalogPage = async (): Promise<string> => {
   });
 
   const element = await CatalogPage({ searchParams: Promise.resolve({}) });
+  return renderMarkup(element);
+};
+
+const renderSourceListPage = async (): Promise<string> => {
+  vi.spyOn(discoveryClient, "fetchSourceList").mockResolvedValue({
+    items: [{ id: "fred", name: "FRED", dataset_count: 2, source_type: "external" }],
+    total_items: 1,
+    sort: "source_name_asc,source_id_asc",
+  });
+
+  const element = await SourceListPage();
   return renderMarkup(element);
 };
 
@@ -89,6 +106,7 @@ describe("shell structure and monochrome contract", () => {
     expect(markup).toContain('data-testid="navbar-brand-link"');
     expect(markup).toContain("Longtail");
     expect(markup).toContain('data-testid="navbar-tab-home"');
+    expect(markup).toContain('data-testid="navbar-tab-sources"');
     expect(markup).toContain('data-testid="navbar-tab-datasets"');
     expect(markup).toContain('data-testid="navbar-tab-trends"');
     expect(markup).toContain('data-testid="navbar-search-control"');
@@ -147,6 +165,15 @@ describe("shell structure and monochrome contract", () => {
     expect(markup).toContain('data-testid="catalog-flat-list"');
     expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
+  });
+
+  it("asserts source page regions include heading and source list container", async () => {
+    const markup = await renderSourceListPage();
+
+    expect(markup).toContain('data-testid="source-list-page"');
+    expect(markup).toContain('data-testid="source-list-page-header"');
+    expect(markup).toContain('data-testid="source-catalog-list"');
+    expect(markup).toContain('data-testid="source-list-row"');
   });
 
   it("asserts home recent updates also use shared row markers", async () => {

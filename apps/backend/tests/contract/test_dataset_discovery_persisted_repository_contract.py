@@ -147,9 +147,13 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
 
     catalog_rows, total_items = repository.list_catalog_datasets(
         query_text=None,
-        source_id="federal-reserve",
-        page=1,
-        page_size=10,
+        options={
+            "source_id": "federal-reserve",
+            "category": None,
+            "sort": "recency",
+            "page": 1,
+            "page_size": 10,
+        },
     )
     groups = repository.group_catalog_by_source(catalog_rows)
     detail = repository.get_dataset_detail(dataset_id="INT.US.FEDFUNDS")
@@ -167,6 +171,40 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
     assert detail is not None
     assert detail["dataset_id"] == "INT.US.FEDFUNDS"
     assert missing is None
+
+
+def test_source_list_and_detail_use_persisted_source_projection() -> None:
+    repository = _build_repository()
+
+    sources = repository.list_sources()
+    source_detail = repository.get_source_detail(source_id="federal-reserve")
+    missing_source_detail = repository.get_source_detail(source_id="unknown")
+
+    assert sources == [
+        {
+            "id": "bls",
+            "name": "BLS",
+            "dataset_count": 1,
+            "source_type": "external",
+        },
+        {
+            "id": "federal-reserve",
+            "name": "Federal Reserve",
+            "dataset_count": 1,
+            "source_type": "external",
+        },
+    ]
+    assert source_detail is not None
+    assert source_detail["source"] == {
+        "id": "federal-reserve",
+        "name": "Federal Reserve",
+        "dataset_count": 1,
+        "source_type": "external",
+    }
+    assert [
+        item["dataset_id"] for item in cast(list[dict[str, Any]], source_detail["datasets"])
+    ] == ["INT.US.FEDFUNDS"]
+    assert missing_source_detail is None
 
 
 def test_observations_apply_date_filters_and_shape() -> None:

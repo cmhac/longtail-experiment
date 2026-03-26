@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from collections.abc import Mapping
 from datetime import date, datetime
 from typing import cast
 
@@ -113,6 +114,20 @@ class PersistedDatasetDiscoveryRepository:
             )
         return projected
 
+    def _group_rows_by_source(
+        self, rows: list[dict[str, object]]
+    ) -> dict[tuple[str, str], list[dict[str, object]]]:
+        grouped: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
+        for row in rows:
+            source = row.get("source")
+            source_payload: dict[str, object] = (
+                cast(dict[str, object], source) if isinstance(source, dict) else {}
+            )
+            source_id = str(source_payload.get("id", ""))
+            source_name = str(source_payload.get("name", ""))
+            grouped[(source_name, source_id)].append(row)
+        return grouped
+
     @staticmethod
     def _paginate(
         rows: list[dict[str, object]], *, page: int, page_size: int
@@ -127,8 +142,10 @@ class PersistedDatasetDiscoveryRepository:
         *,
         query_text: str | None,
         source_id: str | None,
+        category: str | None = None,
     ) -> list[dict[str, object]]:
         normalized_query = (query_text or "").strip().lower()
+        normalized_category = (category or "").strip().lower()
         rows = self._load_dataset_rows()
         filtered: list[dict[str, object]] = []
         for row in rows:
@@ -138,6 +155,13 @@ class PersistedDatasetDiscoveryRepository:
                     cast(dict[str, object], source) if isinstance(source, dict) else {}
                 )
                 if str(source_payload.get("id", "")) != source_id:
+                    continue
+            if normalized_category:
+                topic_tags = [
+                    str(tag).strip().lower()
+                    for tag in cast(list[object], row.get("topic_tags") or [])
+                ]
+                if normalized_category not in topic_tags:
                     continue
             if normalized_query and normalized_query not in self._normalize_text(row):
                 continue
@@ -293,20 +317,134 @@ class PersistedDatasetDiscoveryRepository:
         self,
         *,
         query_text: str | None,
-        source_id: str | None,
-        page: int,
-        page_size: int,
+        options: Mapping[str, object],
     ) -> tuple[list[dict[str, object]], int]:
         """Return paginated catalog rows with source and text filtering."""
-        rows = self._apply_search(query_text=query_text, source_id=source_id)
+        source_id = options.get("source_id")
+        category = options.get("category")
+        sort = str(options.get("sort", "recency"))
+        raw_page = options.get("page")
+        raw_page_size = options.get("page_size")
+        page = raw_page if isinstance(raw_page, int) else 1
+        page_size = raw_page_size if isinstance(raw_page_size, int) else 20
+
+        rows = self._apply_search(
+            query_text=query_text,
+            source_id=source_id if isinstance(source_id, str) else None,
+            category=category if isinstance(category, str) else None,
+        )
+        if sort == "title_asc":
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                )
+            )
+        elif sort == "title_desc":
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                ),
+                reverse=True,
+            )
+        else:
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("latest_update_at", "") or ""),
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                ),
+                reverse=True,
+            )
+        return self._paginate(rows, page=page, page_size=page_size)
+
+    def list_catalog_aggregations(self, *, query_text: str | None) -> dict[str, object]:
+        """Return aggregate filter metadata across the current catalog scope."""
+        rows = self._apply_search(query_text=query_text, source_id=None)
+        grouped_sources = self._group_rows_by_source(rows)
+        category_counts: dict[str, int] = defaultdict(int)
+
+        for row in rows:
+            tags = {
+                str(tag).strip()
+                for tag in cast(list[object], row.get("topic_tags") or [])
+                if str(tag).strip()
+            }
+            for tag in tags:
+                category_counts[tag] += 1
+
+        return {
+            "total_dataset_count": len(rows),
+            "sources": [
+                {
+                    "source": {"id": source_id, "name": source_name},
+                    "dataset_count": len(items),
+                }
+                for (source_name, source_id), items in sorted(grouped_sources.items())
+            ],
+            "categories": [
+                {"value": value, "dataset_count": count}
+                for value, count in sorted(category_counts.items())
+            ],
+        }
+
+    def list_sources(self) -> list[dict[str, object]]:
+        """Return discoverable sources with dataset counts."""
+        grouped = self._group_rows_by_source(self._load_dataset_rows())
+
+        sources: list[dict[str, object]] = []
+        for (source_name, source_id), items in sorted(grouped.items()):
+            source_type: str | None = None
+            if items:
+                metadata = items[0].get("metadata")
+                metadata_payload: dict[str, object] = (
+                    cast(dict[str, object], metadata) if isinstance(metadata, dict) else {}
+                )
+                raw_source_type = metadata_payload.get("source_type")
+                if isinstance(raw_source_type, str):
+                    source_type = raw_source_type
+
+            sources.append(
+                {
+                    "id": source_id,
+                    "name": source_name,
+                    "dataset_count": len(items),
+                    "source_type": source_type,
+                }
+            )
+        return sources
+
+    def get_source_detail(self, *, source_id: str) -> dict[str, object] | None:
+        """Return one source plus all of its discoverable datasets."""
+        rows = self._apply_search(query_text=None, source_id=source_id)
+        if not rows:
+            return None
+
         rows.sort(
             key=lambda item: (
-                str((item.get("source") or {}).get("name", "")),
                 str(item.get("title", "")),
                 str(item.get("dataset_id", "")),
             )
         )
-        return self._paginate(rows, page=page, page_size=page_size)
+        source = rows[0].get("source")
+        source_payload: dict[str, object] = (
+            cast(dict[str, object], source) if isinstance(source, dict) else {}
+        )
+        metadata = rows[0].get("metadata")
+        metadata_payload: dict[str, object] = (
+            cast(dict[str, object], metadata) if isinstance(metadata, dict) else {}
+        )
+        raw_source_type = metadata_payload.get("source_type")
+        return {
+            "source": {
+                "id": str(source_payload.get("id", "")),
+                "name": str(source_payload.get("name", "")),
+                "dataset_count": len(rows),
+                "source_type": str(raw_source_type) if isinstance(raw_source_type, str) else None,
+            },
+            "datasets": rows,
+        }
 
     def get_dataset_detail(self, *, dataset_id: str) -> dict[str, object] | None:
         """Return one dataset metadata payload by canonical dataset id."""
@@ -360,15 +498,7 @@ class PersistedDatasetDiscoveryRepository:
 
     def group_catalog_by_source(self, rows: list[dict[str, object]]) -> list[dict[str, object]]:
         """Group catalog rows by source for grouped catalog responses."""
-        grouped: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
-        for row in rows:
-            source = row.get("source")
-            source_payload: dict[str, object] = (
-                cast(dict[str, object], source) if isinstance(source, dict) else {}
-            )
-            source_id = str(source_payload.get("id", ""))
-            source_name = str(source_payload.get("name", ""))
-            grouped[(source_name, source_id)].append(row)
+        grouped = self._group_rows_by_source(rows)
 
         groups: list[dict[str, object]] = []
         for (source_name, source_id), items in sorted(grouped.items()):

@@ -51,16 +51,25 @@ class InMemoryDatasetDiscoveryRepository:
         return merged
 
     def _apply_search(
-        self, *, query_text: str | None, source_id: str | None = None
+        self,
+        *,
+        query_text: str | None,
+        source_id: str | None = None,
+        category: str | None = None,
     ) -> list[dict[str, Any]]:
         """Filter and project dataset rows for search-like queries."""
         normalized = (query_text or "").strip().lower()
+        normalized_category = (category or "").strip().lower()
         rows: list[dict[str, Any]] = []
         latest_update = self._latest_update_by_dataset()
         for row in self._datasets:
             if source_id is not None:
                 source = row.get("source") or {}
                 if str(source.get("id", "")) != source_id:
+                    continue
+            if normalized_category:
+                tags = [str(tag).strip().lower() for tag in (row.get("topic_tags") or [])]
+                if normalized_category not in tags:
                     continue
             if normalized and normalized not in self._normalized_text(row):
                 continue
@@ -155,20 +164,78 @@ class InMemoryDatasetDiscoveryRepository:
         self,
         *,
         query_text: str | None,
-        source_id: str | None,
-        page: int,
-        page_size: int,
+        options: dict[str, Any],
     ) -> tuple[list[dict[str, Any]], int]:
         """Return paged catalog rows sorted by source and title."""
-        rows = self._apply_search(query_text=query_text, source_id=source_id)
-        rows.sort(
-            key=lambda item: (
-                str((item.get("source") or {}).get("name", "")),
-                str(item.get("title", "")),
-                str(item.get("dataset_id", "")),
-            )
+        source_id = options.get("source_id")
+        category = options.get("category")
+        sort = str(options.get("sort", "recency"))
+        page = int(options.get("page", 1))
+        page_size = int(options.get("page_size", 20))
+
+        rows = self._apply_search(
+            query_text=query_text,
+            source_id=source_id if isinstance(source_id, str) else None,
+            category=category if isinstance(category, str) else None,
         )
+        if sort == "title_asc":
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                )
+            )
+        elif sort == "title_desc":
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                ),
+                reverse=True,
+            )
+        else:
+            rows.sort(
+                key=lambda item: (
+                    str(item.get("latest_update_at", "") or ""),
+                    str(item.get("title", "")),
+                    str(item.get("dataset_id", "")),
+                ),
+                reverse=True,
+            )
         return self._paginate(rows, page=page, page_size=page_size)
+
+    def list_catalog_aggregations(self, *, query_text: str | None) -> dict[str, Any]:
+        """Return aggregate filter metadata across the catalog scope."""
+        rows = self._apply_search(query_text=query_text)
+        source_counts: dict[tuple[str, str], int] = {}
+        category_counts: dict[str, int] = {}
+
+        for row in rows:
+            source = row.get("source") or {}
+            source_id = str(source.get("id", "")).strip()
+            source_name = str(source.get("name", "")).strip()
+            if source_id and source_name:
+                key = (source_name, source_id)
+                source_counts[key] = source_counts.get(key, 0) + 1
+
+            tags = {str(tag).strip() for tag in (row.get("topic_tags") or []) if str(tag).strip()}
+            for tag in tags:
+                category_counts[tag] = category_counts.get(tag, 0) + 1
+
+        return {
+            "total_dataset_count": len(rows),
+            "sources": [
+                {
+                    "source": {"id": source_id, "name": source_name},
+                    "dataset_count": count,
+                }
+                for (source_name, source_id), count in sorted(source_counts.items())
+            ],
+            "categories": [
+                {"value": value, "dataset_count": count}
+                for value, count in sorted(category_counts.items())
+            ],
+        }
 
     def get_dataset_detail(self, *, dataset_id: str) -> dict[str, Any] | None:
         """Return one dataset by identifier when available."""
@@ -176,6 +243,53 @@ class InMemoryDatasetDiscoveryRepository:
             if str(row.get("dataset_id", "")) == dataset_id:
                 return dict(row)
         return None
+
+    def list_sources(self) -> list[dict[str, Any]]:
+        """Return unique sources with dataset counts."""
+        grouped: dict[tuple[str, str], dict[str, Any]] = {}
+        for row in self._datasets:
+            source = row.get("source") or {}
+            source_id = str(source.get("id", "")).strip()
+            source_name = str(source.get("name", "")).strip()
+            if not source_id or not source_name:
+                continue
+            key = (source_name, source_id)
+            entry = grouped.setdefault(
+                key,
+                {
+                    "id": source_id,
+                    "name": source_name,
+                    "dataset_count": 0,
+                    "source_type": (row.get("metadata") or {}).get("source_type"),
+                },
+            )
+            entry["dataset_count"] += 1
+
+        return [grouped[key] for key in sorted(grouped)]
+
+    def get_source_detail(self, *, source_id: str) -> dict[str, Any] | None:
+        """Return one source summary plus its datasets."""
+        datasets = self._apply_search(query_text=None, source_id=source_id)
+        if not datasets:
+            return None
+
+        source = dict(datasets[0].get("source") or {})
+        metadata = dict(datasets[0].get("metadata") or {})
+        datasets.sort(
+            key=lambda item: (
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            )
+        )
+        return {
+            "source": {
+                "id": str(source.get("id", "")),
+                "name": str(source.get("name", "")),
+                "dataset_count": len(datasets),
+                "source_type": metadata.get("source_type"),
+            },
+            "datasets": datasets,
+        }
 
     def list_dataset_observations(
         self,

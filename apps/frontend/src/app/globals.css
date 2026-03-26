@@ -304,7 +304,8 @@ html[data-theme-preference="dark"] {
 
 main[data-testid="home-content"],
 main[data-testid="catalog-page"],
-main[data-testid="dataset-detail-page"] {
+main[data-testid="dataset-detail-page"],
+main[data-testid="source-detail-page"] {
   display: grid;
   gap: 1rem;
 }
@@ -314,6 +315,7 @@ main[data-testid="catalog-page"] {
   gap: 1.2rem;
 }
 
+.discovery-list-page-header,
 .dataset-list-page-header {
   display: flex;
   justify-content: space-between;
@@ -323,6 +325,7 @@ main[data-testid="catalog-page"] {
   border-bottom: 1px solid color-mix(in srgb, var(--shell-border) 80%, transparent);
 }
 
+.discovery-list-title,
 .dataset-list-title {
   margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
@@ -330,12 +333,19 @@ main[data-testid="catalog-page"] {
   line-height: 1.05;
 }
 
+.discovery-list-total,
 .dataset-list-total-series {
   margin: 0.35rem 0 0;
   color: var(--shell-muted);
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.discovery-list-page-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .dataset-list-request-cta {
@@ -1124,5 +1134,83 @@ div[data-testid="observations-chart"] {
   .dataset-detail-trend,
   .dataset-detail-observed {
     padding: 0.8rem;
+  }
+
+  .source-list-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+main[data-testid="source-list-page"] {
+  align-content: start;
+  gap: 1.2rem;
+}
+
+.source-catalog-list {
+  display: grid;
+  gap: 0;
+}
+
+.source-detail-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  color: var(--shell-muted);
+}
+
+.source-detail-count,
+.source-list-total {
+  margin: 0;
+  color: var(--shell-muted);
+}
+
+.source-directory-row {
+  color: inherit;
+  text-decoration: none;
+}
+
+.source-directory-row + .source-directory-row {
+  border-top: 1px solid color-mix(in srgb, var(--shell-border) 68%, transparent);
+}
+
+.source-directory-meta-rail {
+  min-width: 9.25rem;
+}
+
+.source-directory-title {
+  margin: 0;
+}
+
+.source-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.5rem 0 0.8rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--shell-border) 80%, transparent);
+}
+
+.source-detail-header-copy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.source-detail-eyebrow {
+  margin: 0;
+}
+
+.source-detail-header h1 {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .source-directory-row {
+    grid-template-columns: 1fr;
+  }
+
+  .source-detail-header {
+    flex-direction: column;
   }
 }

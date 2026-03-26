@@ -15,6 +15,8 @@ class DatasetCatalogQueryParams(TypedDict):
 
     query_text: str | None
     source_id: str | None
+    category: str | None
+    sort: str | None
     page: int | None
     page_size: int | None
     group_by_source: bool
@@ -27,15 +29,21 @@ def execute_dataset_catalog(
     """Execute catalog query and return validated contract response."""
     query_text = query.get("query_text")
     source_id = query.get("source_id")
+    category = query.get("category")
+    sort = query.get("sort")
     page = query.get("page")
     page_size = query.get("page_size")
     group_by_source = query.get("group_by_source", False)
 
     payload = service.list_catalog(
         query_text=query_text,
-        source_id=source_id,
-        page=page,
-        page_size=page_size,
+        options={
+            "source_id": source_id,
+            "category": category,
+            "sort": sort,
+            "page": page,
+            "page_size": page_size,
+        },
         group_by_source=group_by_source,
     )
     if group_by_source:

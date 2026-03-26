@@ -66,10 +66,27 @@ class _PersistedHttpRepoStub:
         ][:limit]
 
     def list_catalog_datasets(
-        self, *, query_text: str | None, source_id: str | None, page: int, page_size: int
+        self,
+        *,
+        query_text: str | None,
+        options: dict[str, object],
     ):
-        del query_text, source_id, page, page_size
+        del query_text
+        source_id = options.get("source_id")
+        category = options.get("category")
+        if source_id not in (None, "fred"):
+            return [], 0
+        if category not in (None, "interest rates"):
+            return [], 0
         return [self._dataset], 1
+
+    def list_catalog_aggregations(self, *, query_text: str | None):
+        del query_text
+        return {
+            "total_dataset_count": 1,
+            "sources": [{"source": {"id": "fred", "name": "FRED"}, "dataset_count": 1}],
+            "categories": [{"value": "interest rates", "dataset_count": 1}],
+        }
 
     def get_dataset_detail(self, *, dataset_id: str):
         if dataset_id != "INT.US.FEDFUNDS":
@@ -136,7 +153,9 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
         f"http://{host}:{port}/api/datasets/search/suggestions?q=fund&limit=5"
     )
     recent_payload: dict[str, Any] = _read_json(f"http://{host}:{port}/api/datasets/recent")
-    catalog_payload: dict[str, Any] = _read_json(f"http://{host}:{port}/api/datasets")
+    catalog_payload: dict[str, Any] = _read_json(
+        f"http://{host}:{port}/api/datasets?source=fred&category=interest%20rates&sort=title_asc"
+    )
     detail_payload: dict[str, Any] = _read_json(
         f"http://{host}:{port}/api/datasets/INT.US.FEDFUNDS"
     )
@@ -157,6 +176,9 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
         == "/api/datasets/INT.US.FEDFUNDS.csv"
     )
     assert catalog_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
+    assert catalog_payload["aggregations"]["total_dataset_count"] == 1
+    assert catalog_payload["aggregations"]["categories"][0]["value"] == "interest rates"
+    assert catalog_payload["sort"] == "title_asc,dataset_id_asc"
     assert detail_payload["dataset_id"] == "INT.US.FEDFUNDS"
     assert detail_payload["metadata"]["unit_type"] == "percent"
     assert "observed_on,value,reported_at,attributes" in csv_payload

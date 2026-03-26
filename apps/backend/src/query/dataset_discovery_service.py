@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 from urllib.parse import quote
@@ -21,6 +22,11 @@ DEFAULT_SUGGESTION_LIMIT = 5
 MIN_SUGGESTION_LIMIT = 1
 MAX_SUGGESTION_LIMIT = 10
 SUPPORTED_UNIT_TYPES = {"usd", "percent", "number"}
+CATALOG_SORT_KEYS = {
+    "recency": "latest_update_at_desc,title_asc,dataset_id_asc",
+    "title_asc": "title_asc,dataset_id_asc",
+    "title_desc": "title_desc,dataset_id_desc",
+}
 
 
 def _normalize_unit_type(value: object) -> str | None:
@@ -82,6 +88,7 @@ class DatasetDiscoveryService:
                 "search_datasets",
                 "list_recent_datasets",
                 "list_catalog_datasets",
+                "list_catalog_aggregations",
                 "get_dataset_detail",
                 "list_dataset_observations",
             )
@@ -255,29 +262,49 @@ class DatasetDiscoveryService:
         self,
         *,
         query_text: str | None,
-        source_id: str | None,
-        page: int | None,
-        page_size: int | None,
+        options: Mapping[str, object] | None,
         group_by_source: bool,
     ) -> dict[str, Any]:
         """Return catalog results with optional source grouping."""
         if not hasattr(self._repository, "list_catalog_datasets"):
             raise ContractQueryError("Repository does not provide list_catalog_datasets")
 
+        catalog_options = options or {}
         normalized_query = normalize_query_text(query_text)
-        normalized_page = normalize_page(page)
-        normalized_page_size = normalize_page_size(page_size)
-        normalized_source = source_id.strip() if source_id is not None else None
+        raw_page = catalog_options.get("page")
+        raw_page_size = catalog_options.get("page_size")
+        raw_source = catalog_options.get("source_id")
+        raw_category = catalog_options.get("category")
+        raw_sort = catalog_options.get("sort")
+
+        normalized_page = normalize_page(raw_page if isinstance(raw_page, int) else None)
+        normalized_page_size = normalize_page_size(
+            raw_page_size if isinstance(raw_page_size, int) else None
+        )
+        normalized_source = raw_source.strip() if isinstance(raw_source, str) else None
+        normalized_category = raw_category.strip() if isinstance(raw_category, str) else None
+        normalized_sort = (
+            raw_sort.strip() if isinstance(raw_sort, str) and raw_sort.strip() else "recency"
+        )
+        if normalized_sort not in CATALOG_SORT_KEYS:
+            normalized_sort = "recency"
 
         items, total_items = self._repository.list_catalog_datasets(
             query_text=normalized_query,
-            source_id=normalized_source,
-            page=normalized_page,
-            page_size=normalized_page_size,
+            options={
+                "source_id": normalized_source,
+                "category": normalized_category,
+                "sort": normalized_sort,
+                "page": normalized_page,
+                "page_size": normalized_page_size,
+            },
         )
         if not isinstance(items, list) or not isinstance(total_items, int):
             raise ContractQueryError("Repository returned invalid catalog payload")
         total_pages = ((total_items - 1) // normalized_page_size + 1) if total_items else 0
+        aggregations = self._repository.list_catalog_aggregations(query_text=normalized_query)
+        if not isinstance(aggregations, dict):
+            raise ContractQueryError("Repository returned invalid catalog aggregations payload")
 
         groups: list[dict[str, Any]] = []
         if group_by_source and hasattr(self._repository, "group_catalog_by_source"):
@@ -288,11 +315,92 @@ class DatasetDiscoveryService:
         return {
             "items": deepcopy(items),
             "groups": deepcopy(groups),
+            "aggregations": deepcopy(aggregations),
             "page": normalized_page,
             "page_size": normalized_page_size,
             "total_items": total_items,
             "total_pages": total_pages,
-            "sort": "source_name_asc,title_asc,dataset_id_asc",
+            "sort": CATALOG_SORT_KEYS[normalized_sort],
+        }
+
+    def list_sources(self) -> dict[str, Any]:
+        """Return discoverable sources with dataset counts."""
+        if not hasattr(self._repository, "list_sources"):
+            raise ContractQueryError("Repository does not provide list_sources")
+
+        items = self._repository.list_sources()
+        if not isinstance(items, list):
+            raise ContractQueryError("Repository returned invalid source list payload")
+
+        projected: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ContractQueryError("Repository returned invalid source list item")
+
+            source_id = str(item.get("id", "")).strip()
+            source_name = str(item.get("name", "")).strip()
+            dataset_count = item.get("dataset_count")
+            if source_id == "" or source_name == "":
+                raise ContractQueryError("Repository returned source without id or name")
+            if not isinstance(dataset_count, int) or dataset_count < 0:
+                raise ContractQueryError("Repository returned invalid source dataset_count")
+
+            projected.append(
+                {
+                    "id": source_id,
+                    "name": source_name,
+                    "dataset_count": dataset_count,
+                    "source_type": (
+                        str(item.get("source_type"))
+                        if isinstance(item.get("source_type"), str)
+                        else None
+                    ),
+                }
+            )
+
+        return {
+            "items": projected,
+            "total_items": len(projected),
+            "sort": "source_name_asc,source_id_asc",
+        }
+
+    def get_source_detail(self, *, source_id: str) -> dict[str, Any]:
+        """Return one source plus its attributed datasets."""
+        if not hasattr(self._repository, "get_source_detail"):
+            raise ContractQueryError("Repository does not provide get_source_detail")
+
+        normalized_source_id = source_id.strip()
+        if not normalized_source_id:
+            raise ContractQueryError("source_id must be provided")
+
+        payload = self._repository.get_source_detail(source_id=normalized_source_id)
+        if payload is None:
+            raise ContractQueryError("source_not_found")
+        if not isinstance(payload, dict):
+            raise ContractQueryError("Repository returned invalid source detail payload")
+
+        source = payload.get("source")
+        datasets = payload.get("datasets")
+        if not isinstance(source, dict) or not isinstance(datasets, list):
+            raise ContractQueryError("Repository returned invalid source detail payload")
+
+        dataset_count = source.get("dataset_count")
+        if not isinstance(dataset_count, int) or dataset_count < 0:
+            raise ContractQueryError("Repository returned invalid source dataset_count")
+
+        return {
+            "source": {
+                "id": str(source.get("id", "")).strip(),
+                "name": str(source.get("name", "")).strip(),
+                "dataset_count": dataset_count,
+                "source_type": (
+                    str(source.get("source_type"))
+                    if isinstance(source.get("source_type"), str)
+                    else None
+                ),
+            },
+            "datasets": deepcopy(datasets),
+            "sort": "title_asc,dataset_id_asc",
         }
 
     def get_dataset_detail(

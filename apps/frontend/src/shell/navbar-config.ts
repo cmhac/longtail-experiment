@@ -1,4 +1,4 @@
-export type NavbarTabKey = "home" | "datasets" | "trends";
+export type NavbarTabKey = "home" | "sources" | "datasets" | "trends";
 
 export interface NavbarTabConfig {
   key: NavbarTabKey;
@@ -21,6 +21,12 @@ const BASE_NAVBAR_TABS: readonly Omit<NavbarTabConfig, "isActive">[] = [
     key: "home",
     label: "Home",
     href: "/",
+    isEnabled: true,
+  },
+  {
+    key: "sources",
+    label: "Sources",
+    href: "/sources",
     isEnabled: true,
   },
   {

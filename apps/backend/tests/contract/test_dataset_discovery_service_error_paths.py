@@ -36,6 +36,9 @@ class _InvalidPayloadRepository:
     def list_catalog_datasets(self, **_: object) -> tuple[str, str]:
         return "bad", "bad"
 
+    def list_catalog_aggregations(self, **_: object) -> dict[str, object]:
+        return {"total_dataset_count": 0, "sources": [], "categories": []}
+
     def get_dataset_detail(self, **_: object) -> str:
         return "bad"
 
@@ -60,9 +63,7 @@ def test_service_raises_when_repository_returns_invalid_payload_shape() -> None:
     with pytest.raises(ContractQueryError):
         service.list_catalog(
             query_text=None,
-            source_id=None,
-            page=1,
-            page_size=20,
+            options={"source_id": None, "category": None, "sort": None, "page": 1, "page_size": 20},
             group_by_source=False,
         )
 

@@ -44,9 +44,22 @@ const mockCatalogResponse = (): void => {
   vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
     items: [...CATALOG_ITEMS],
     groups: null,
+    aggregations: {
+      total_dataset_count: 14282,
+      sources: [
+        { source: { id: "bls", name: "BLS" }, dataset_count: 1 },
+        { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+      ],
+      categories: [
+        { value: "economy", dataset_count: 1 },
+        { value: "energy", dataset_count: 1 },
+        { value: "gasoline", dataset_count: 1 },
+        { value: "inflation", dataset_count: 1 },
+      ],
+    },
     page: 1,
     page_size: 20,
-    total_items: 14282,
+    total_items: 3,
     total_pages: 715,
     sort: "latest_update_at_desc",
   });
@@ -61,7 +74,7 @@ describe("datasets page", () => {
 
     expect(markup).toContain("Datasets");
     expect(markup).toContain('data-testid="dataset-list-total-series"');
-    expect(markup).toContain("TOTAL SERIES: 14,282");
+    expect(markup).toContain("14,282 total series");
     expect(markup).toContain('data-testid="dataset-source-filter"');
     expect(markup).toContain('data-testid="dataset-category-filter"');
     expect(markup).toContain('data-testid="dataset-sort-control"');
@@ -70,20 +83,60 @@ describe("datasets page", () => {
   });
 
   it("preserves catalog-total summary when source/category filters are applied", async () => {
-    mockCatalogResponse();
+    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [CATALOG_ITEMS[0] as DatasetSummary],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [
+          { source: { id: "bls", name: "BLS" }, dataset_count: 1 },
+          { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+        ],
+        categories: [
+          { value: "economy", dataset_count: 1 },
+          { value: "energy", dataset_count: 1 },
+          { value: "gasoline", dataset_count: 1 },
+          { value: "inflation", dataset_count: 1 },
+        ],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 1,
+      total_pages: 1,
+      sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+    });
 
     const element = await CatalogPage({
       searchParams: Promise.resolve({ source: "eia", category: "energy" }),
     });
     const markup = renderMarkup(element);
 
-    expect(markup).toContain("TOTAL SERIES: 14,282");
+    expect(markup).toContain("14,282 total series");
     expect(markup).toContain("Regular All Formulations Retail Gasoline Prices - Colorado");
     expect(markup).not.toContain("Consumer Price Index (CPI-U)");
   });
 
-  it("sorts by title when title_asc sort mode is selected", async () => {
-    mockCatalogResponse();
+  it("renders server-provided title ascending order when title_asc sort mode is selected", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [CATALOG_ITEMS[1] as DatasetSummary, CATALOG_ITEMS[0] as DatasetSummary],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [
+          { source: { id: "bls", name: "BLS" }, dataset_count: 1 },
+          { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+        ],
+        categories: [
+          { value: "economy", dataset_count: 1 },
+          { value: "energy", dataset_count: 1 },
+        ],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 2,
+      total_pages: 1,
+      sort: "title_asc,dataset_id_asc",
+    });
 
     const element = await CatalogPage({
       searchParams: Promise.resolve({ sort: "title_asc" }),
@@ -98,8 +151,27 @@ describe("datasets page", () => {
     expect(cpiIndex).toBeLessThan(gasIndex);
   });
 
-  it("sorts by title descending when title_desc sort mode is selected", async () => {
-    mockCatalogResponse();
+  it("renders server-provided title descending order when title_desc sort mode is selected", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [CATALOG_ITEMS[0] as DatasetSummary, CATALOG_ITEMS[1] as DatasetSummary],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [
+          { source: { id: "bls", name: "BLS" }, dataset_count: 1 },
+          { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+        ],
+        categories: [
+          { value: "economy", dataset_count: 1 },
+          { value: "energy", dataset_count: 1 },
+        ],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 2,
+      total_pages: 1,
+      sort: "title_desc,dataset_id_desc",
+    });
 
     const element = await CatalogPage({
       searchParams: Promise.resolve({ sort: "title_desc" }),
@@ -115,99 +187,60 @@ describe("datasets page", () => {
   });
 
   it("falls back to recency sort when an unknown sort value is provided", async () => {
-    mockCatalogResponse();
+    const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [...CATALOG_ITEMS],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [
+          { source: { id: "bls", name: "BLS" }, dataset_count: 1 },
+          { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+        ],
+        categories: [
+          { value: "economy", dataset_count: 1 },
+          { value: "energy", dataset_count: 1 },
+        ],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 2,
+      total_pages: 1,
+      sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+    });
 
-    const element = await CatalogPage({
+    await CatalogPage({
       searchParams: Promise.resolve({ sort: "unsupported-sort" }),
     });
-    const markup = renderMarkup(element);
 
-    const gasIndex = markup.indexOf("Regular All Formulations Retail Gasoline Prices - Colorado");
-    const cpiIndex = markup.indexOf("Consumer Price Index (CPI-U)");
-
-    expect(gasIndex).toBeLessThan(cpiIndex);
-  });
-
-  it("handles invalid timestamps by prioritizing datasets with valid dates", async () => {
-    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
-      items: [
-        {
-          dataset_id: "INVALID_DATE",
-          source: { id: "fred", name: "FRED" },
-          title: "Invalid Date Dataset",
-          description: null,
-          geographic_scope: "US",
-          topic_tags: ["rates"],
-          latest_update_at: "not-a-date",
-        },
-        {
-          dataset_id: "VALID_DATE",
-          source: { id: "fred", name: "FRED" },
-          title: "Valid Date Dataset",
-          description: null,
-          geographic_scope: "US",
-          topic_tags: ["rates"],
-          latest_update_at: "2026-03-22T00:00:00Z",
-        },
-      ],
-      groups: null,
-      page: 1,
-      page_size: 20,
-      total_items: 2,
-      total_pages: 1,
-      sort: "latest_update_at_desc",
+    expect(catalogSpy).toHaveBeenCalledWith({
+      pageSize: 100,
+      source: undefined,
+      category: undefined,
+      sort: "recency",
     });
-
-    const element = await CatalogPage({ searchParams: Promise.resolve({}) });
-    const markup = renderMarkup(element);
-
-    const validIndex = markup.indexOf("Valid Date Dataset");
-    const invalidIndex = markup.indexOf("Invalid Date Dataset");
-
-    expect(validIndex).toBeLessThan(invalidIndex);
-  });
-
-  it("uses title tie-breaker when recency timestamps are equal", async () => {
-    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
-      items: [
-        {
-          dataset_id: "ZETA",
-          source: { id: "fred", name: "FRED" },
-          title: "Zeta Dataset",
-          description: null,
-          geographic_scope: "US",
-          topic_tags: ["rates"],
-          latest_update_at: "2026-03-20T00:00:00Z",
-        },
-        {
-          dataset_id: "ALPHA",
-          source: { id: "fred", name: "FRED" },
-          title: "Alpha Dataset",
-          description: null,
-          geographic_scope: "US",
-          topic_tags: ["rates"],
-          latest_update_at: "2026-03-20T00:00:00Z",
-        },
-      ],
-      groups: null,
-      page: 1,
-      page_size: 20,
-      total_items: 2,
-      total_pages: 1,
-      sort: "latest_update_at_desc",
-    });
-
-    const element = await CatalogPage({ searchParams: Promise.resolve({}) });
-    const markup = renderMarkup(element);
-
-    const alphaIndex = markup.indexOf("Alpha Dataset");
-    const zetaIndex = markup.indexOf("Zeta Dataset");
-
-    expect(alphaIndex).toBeLessThan(zetaIndex);
   });
 
   it("renders explicit empty-results state for no-match filters", async () => {
-    mockCatalogResponse();
+    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [
+          { source: { id: "bls", name: "BLS" }, dataset_count: 1 },
+          { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+        ],
+        categories: [
+          { value: "energy", dataset_count: 1 },
+          { value: "inflation", dataset_count: 1 },
+        ],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
+      sort: "latest_update_at_desc",
+    });
 
     const element = await CatalogPage({
       searchParams: Promise.resolve({ source: "census", category: "housing" }),
@@ -246,5 +279,43 @@ describe("datasets page", () => {
 
     expect(markup).toContain("Unable to load data. Please try again.");
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
+  });
+
+  it("requests server-side filtered and sorted catalog data", async () => {
+    const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [
+        {
+          dataset_id: "EIA.GAS.CO",
+          source: { id: "eia", name: "EIA" },
+          title: "Regular All Formulations Retail Gasoline Prices - Colorado",
+          description: "Weekly EIA retail regular gasoline prices for Colorado.",
+          geographic_scope: "Colorado",
+          topic_tags: ["energy", "gasoline"],
+          latest_update_at: "2026-03-24T00:00:00Z",
+        },
+      ],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [{ source: { id: "eia", name: "EIA" }, dataset_count: 1 }],
+        categories: [{ value: "energy", dataset_count: 1 }],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 1,
+      total_pages: 1,
+      sort: "title_asc,dataset_id_asc",
+    });
+
+    await CatalogPage({
+      searchParams: Promise.resolve({ source: "eia", category: "energy", sort: "title_asc" }),
+    });
+
+    expect(catalogSpy).toHaveBeenCalledWith({
+      pageSize: 100,
+      source: "eia",
+      category: "energy",
+      sort: "title_asc",
+    });
   });
 });

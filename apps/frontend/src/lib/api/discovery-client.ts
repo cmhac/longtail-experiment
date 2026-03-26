@@ -6,6 +6,8 @@ import type {
   DatasetSearchResponse,
   DatasetSearchSuggestionsResponse,
   SearchScopeSummaryResponse,
+  SourceDetail,
+  SourceListResponse,
 } from "./discovery-types";
 
 export class DiscoveryApiError extends Error {
@@ -184,4 +186,14 @@ export const fetchDatasetCatalog = async (params: {
 export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDetail> => {
   const response = await fetch(createUrl(`/api/datasets/${encodeURIComponent(datasetId)}`));
   return parseResponse<DatasetDetail>(response);
+};
+
+export const fetchSourceList = async (): Promise<SourceListResponse> => {
+  const response = await fetch(createUrl("/api/sources"));
+  return parseResponse<SourceListResponse>(response);
+};
+
+export const fetchSourceDetail = async (sourceId: string): Promise<SourceDetail> => {
+  const response = await fetch(createUrl(`/api/sources/${encodeURIComponent(sourceId)}`));
+  return parseResponse<SourceDetail>(response);
 };

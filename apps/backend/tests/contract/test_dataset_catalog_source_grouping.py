@@ -24,9 +24,13 @@ def test_catalog_source_filter_and_search_are_composable() -> None:
 
     response = service.list_catalog(
         query_text="consumer",
-        source_id="fred",
-        page=1,
-        page_size=20,
+        options={
+            "source_id": "fred",
+            "category": None,
+            "sort": None,
+            "page": 1,
+            "page_size": 20,
+        },
         group_by_source=False,
     )
 
@@ -43,9 +47,7 @@ def test_catalog_grouping_returns_source_buckets() -> None:
 
     response = service.list_catalog(
         query_text=None,
-        source_id=None,
-        page=1,
-        page_size=20,
+        options={"source_id": None, "category": None, "sort": None, "page": 1, "page_size": 20},
         group_by_source=True,
     )
 

@@ -24,6 +24,11 @@ describe("catalog page", () => {
         },
       ],
       groups: null,
+      aggregations: {
+        total_dataset_count: 1,
+        sources: [{ source: { id: "fred", name: "FRED" }, dataset_count: 1 }],
+        categories: [],
+      },
       page: 1,
       page_size: 20,
       total_items: 1,
@@ -34,7 +39,12 @@ describe("catalog page", () => {
     const element = await CatalogPage({ searchParams: Promise.resolve({}) });
     const markup = renderMarkup(element);
 
-    expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
+    expect(catalogSpy).toHaveBeenCalledWith({
+      pageSize: 100,
+      source: undefined,
+      category: undefined,
+      sort: "recency",
+    });
     expect(markup).toContain('data-testid="catalog-page"');
     expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="dataset-list-controls"');
@@ -47,15 +57,6 @@ describe("catalog page", () => {
     const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
       items: [
         {
-          dataset_id: "UNRATE",
-          source: { id: "fred", name: "FRED" },
-          title: "Unemployment Rate",
-          description: null,
-          geographic_scope: "US",
-          topic_tags: ["labor"],
-          latest_update_at: "2026-02-01T00:00:00Z",
-        },
-        {
           dataset_id: "DCOILWTICO",
           source: { id: "eia", name: "EIA" },
           title: "Crude Oil Prices",
@@ -66,9 +67,20 @@ describe("catalog page", () => {
         },
       ],
       groups: null,
+      aggregations: {
+        total_dataset_count: 2,
+        sources: [
+          { source: { id: "eia", name: "EIA" }, dataset_count: 1 },
+          { source: { id: "fred", name: "FRED" }, dataset_count: 1 },
+        ],
+        categories: [
+          { value: "energy", dataset_count: 1 },
+          { value: "labor", dataset_count: 1 },
+        ],
+      },
       page: 1,
       page_size: 20,
-      total_items: 2,
+      total_items: 1,
       total_pages: 1,
       sort: "latest_update_at_desc",
     });
@@ -78,8 +90,14 @@ describe("catalog page", () => {
     });
     const markup = renderMarkup(element);
 
-    expect(catalogSpy).toHaveBeenCalledWith({ pageSize: 100 });
+    expect(catalogSpy).toHaveBeenCalledWith({
+      pageSize: 100,
+      source: "eia",
+      category: "energy",
+      sort: "recency",
+    });
     expect(markup).toContain("shell-content-constrained");
+    expect(markup).toContain("2 total series");
     expect(markup).toContain("Crude Oil Prices");
     expect(markup).not.toContain("Unemployment Rate");
   });

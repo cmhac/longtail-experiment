@@ -24,16 +24,12 @@ def test_catalog_ordering_is_stable_for_repeated_requests() -> None:
 
     first = service.list_catalog(
         query_text=None,
-        source_id=None,
-        page=1,
-        page_size=20,
+        options={"source_id": None, "category": None, "sort": None, "page": 1, "page_size": 20},
         group_by_source=False,
     )
     second = service.list_catalog(
         query_text=None,
-        source_id=None,
-        page=1,
-        page_size=20,
+        options={"source_id": None, "category": None, "sort": None, "page": 1, "page_size": 20},
         group_by_source=False,
     )
 

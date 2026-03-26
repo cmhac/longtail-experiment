@@ -6,6 +6,8 @@ import type {
   DatasetDetail,
   DatasetRecentUpdatesResponse,
   DatasetSearchResponse,
+  SourceDetail,
+  SourceListResponse,
 } from "../src/lib/api/discovery-types";
 
 describe("discovery types", () => {
@@ -73,6 +75,11 @@ describe("discovery types", () => {
     const catalogPayload: DatasetCatalogResponse = {
       items: [],
       groups: [],
+      aggregations: {
+        total_dataset_count: 0,
+        sources: [],
+        categories: [],
+      },
       page: 1,
       page_size: 20,
       total_items: 0,
@@ -84,6 +91,7 @@ describe("discovery types", () => {
     expect(recentPayload.items[0]?.action_links.download_csv_href).toContain(".csv");
     expect(Array.isArray(catalogPayload.items)).toBe(true);
     expect(Array.isArray(catalogPayload.groups)).toBe(true);
+    expect(Array.isArray(catalogPayload.aggregations.categories)).toBe(true);
   });
 
   it("supports valid catalog view modes", () => {
@@ -92,5 +100,21 @@ describe("discovery types", () => {
 
     expect(flatMode).toBe("flat");
     expect(groupedMode).toBe("grouped");
+  });
+
+  it("supports source discovery payloads", () => {
+    const sourceList: SourceListResponse = {
+      items: [{ id: "fred", name: "FRED", dataset_count: 2, source_type: "external" }],
+      total_items: 1,
+      sort: "source_name_asc,source_id_asc",
+    };
+    const sourceDetail: SourceDetail = {
+      source: { id: "fred", name: "FRED", dataset_count: 2, source_type: "external" },
+      datasets: [],
+      sort: "title_asc,dataset_id_asc",
+    };
+
+    expect(sourceList.items[0]?.dataset_count).toBe(2);
+    expect(sourceDetail.source.id).toBe("fred");
   });
 });

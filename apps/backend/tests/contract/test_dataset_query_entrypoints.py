@@ -37,6 +37,8 @@ def test_entrypoints_return_validated_models() -> None:
         service,
         query_text=None,
         source_id=None,
+        category=None,
+        sort=None,
         page=1,
         page_size=20,
         group_by_source=True,
@@ -51,6 +53,7 @@ def test_entrypoints_return_validated_models() -> None:
     assert search.total_items >= 1
     assert recent.limit == 5
     assert catalog.items
+    assert catalog.aggregations.total_dataset_count >= 1
     assert catalog.groups
     assert detail.dataset_id == "UNRATE"
 
