@@ -23,7 +23,7 @@ bash tools/quality/local-stack/check-db-revision.sh
 Migration-head runtime enforcement reference:
 
 ```bash
-DISCOVERY_EXPECTED_DB_REVISION=0008_dataset_discovery_indexes
+DISCOVERY_EXPECTED_DB_REVISION=0009_drop_source_profile_frequency
 ```
 
 Expected:
@@ -150,7 +150,7 @@ DISCOVERY_API_BASE_URL=http://127.0.0.1:8080 DISCOVERY_PARITY_REQUIRE_DELTA=0 \
 
 Observed outcome:
 
-- Migration head check passed: `Revision OK: 0008_dataset_discovery_indexes`.
+- Migration head check passed: `Revision OK: 0009_drop_source_profile_frequency`.
 - Parity script passed and auto-selected a persisted dataset id from `/api/datasets/recent`.
 
 ### Manual endpoint verification against Postgres
@@ -177,4 +177,4 @@ Issues found and fixed during manual verification:
 
 - Fixed ambiguous NULL date-parameter SQL in persisted observation query (detail endpoint crash).
 - Fixed duplicate topic tag aggregation in persisted repository by using `ARRAY_AGG(DISTINCT ...)`.
-- Fixed local revision-check script default head from `0007_dataset_metadata_topic_tags` to `0008_dataset_discovery_indexes`.
+- Fixed local revision-check script default head from `0007_dataset_metadata_topic_tags` to `0009_drop_source_profile_frequency`.

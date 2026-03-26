@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class SourceProfile(Base):
-    """Describes a source feed and its frequency characteristics."""
+    """Describes a source feed for canonical dataset ownership."""
 
     __tablename__ = "source_profiles"
 
@@ -26,7 +26,6 @@ class SourceProfile(Base):
     )
     source_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     source_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    frequency_granularity: Mapped[str] = mapped_column(String(32), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )

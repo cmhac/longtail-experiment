@@ -33,7 +33,6 @@ class EiaSeriesConfig(Protocol):
     dataset_description: str
     dataset_geographic_scope: str
     topic_tags: list[str]
-    frequency: str
 
 
 class EiaClient(Protocol):
@@ -270,7 +269,6 @@ def _build_series_configs() -> tuple[dict[str, Any], ...]:
                     ),
                     "dataset_geographic_scope": geography["scope"],
                     "topic_tags": [*product["topic_tags"], geography["level_tag"]],
-                    "frequency": "weekly",
                 }
             )
     return tuple(configs)
@@ -307,7 +305,6 @@ def _map_records(
                 "dataset_description": series_config["dataset_description"],
                 "dataset_geographic_scope": series_config["dataset_geographic_scope"],
                 "topic_tags": series_config["topic_tags"],
-                "frequency": series_config["frequency"],
                 "date": str(period),
                 "reported_at": str(reported_at),
                 "value": value_str,

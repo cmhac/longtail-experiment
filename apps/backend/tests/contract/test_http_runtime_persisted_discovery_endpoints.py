@@ -35,7 +35,7 @@ class _PersistedHttpRepoStub:
             "geographic_scope": "US",
             "topic_tags": ["interest rates"],
             "latest_update_at": "2026-03-06T00:00:00+00:00",
-            "metadata": {"frequency_granularity": "daily"},
+            "metadata": {},
         }
 
     def search_datasets(self, *, query_text: str | None, page: int, page_size: int):

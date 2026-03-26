@@ -10,7 +10,7 @@ def test_revision_check_uses_expected_baseline_default() -> None:
         encoding="utf-8"
     )
     assert (
-        'EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0008_dataset_discovery_indexes}"'
+        'EXPECTED_REVISION="${EXPECTED_DB_REVISION:-0009_drop_source_profile_frequency}"'
         in script
     )
 

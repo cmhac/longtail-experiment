@@ -48,7 +48,7 @@ def test_pre_migration_runtime_startup_is_blocked_by_schema_guard() -> None:
     with pytest.raises(RuntimeError, match="schema revision mismatch"):
         _require_schema_readiness(
             engine=_FakeEngine("0007_dataset_metadata_topic_tags"),
-            expected_revision="0008_dataset_discovery_indexes",
+            expected_revision="0009_drop_source_profile_frequency",
         )
 
 

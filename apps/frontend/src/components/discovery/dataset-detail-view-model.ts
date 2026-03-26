@@ -83,14 +83,56 @@ const getUnit = (detail: DatasetDetail): string | null => {
   return typeof value === "string" ? value : null;
 };
 
+const getDerivedFrequencyLabel = (observations: ObservationPoint[]): string => {
+  const observedOnDates = [...new Set(observations.map((item) => item.observed_on))]
+    .map((value) => Date.parse(`${value}T00:00:00Z`))
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => a - b)
+    .slice(-5);
+
+  if (observedOnDates.length < 2) {
+    return "--";
+  }
+
+  const deltasInDays: number[] = [];
+  for (let index = 1; index < observedOnDates.length; index += 1) {
+    const previous = observedOnDates[index - 1];
+    const current = observedOnDates[index];
+    if (previous === undefined || current === undefined) {
+      continue;
+    }
+    deltasInDays.push(Math.round((current - previous) / 86_400_000));
+  }
+
+  if (deltasInDays.length === 0) {
+    return "--";
+  }
+
+  const averageDelta = deltasInDays.reduce((sum, value) => sum + value, 0) / deltasInDays.length;
+
+  if (averageDelta <= 2) {
+    return "Daily";
+  }
+  if (averageDelta <= 10) {
+    return "Weekly";
+  }
+  if (averageDelta <= 45) {
+    return "Monthly";
+  }
+  if (averageDelta <= 100) {
+    return "Quarterly";
+  }
+  return "Yearly";
+};
+
 export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
   const observations = detail.observations;
 
   if (observations.length === 0) {
     return [
       { label: "Latest Observation", value: "No data available" },
-      { label: "52 Week High", value: "--" },
-      { label: "52 Week Low", value: "--" },
+      { label: "1-Year High", value: "--" },
+      { label: "1-Year Low", value: "--" },
     ];
   }
 
@@ -99,8 +141,8 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
   if (!latest) {
     return [
       { label: "Latest Observation", value: "No data available" },
-      { label: "52 Week High", value: "--" },
-      { label: "52 Week Low", value: "--" },
+      { label: "1-Year High", value: "--" },
+      { label: "1-Year Low", value: "--" },
     ];
   }
   const previous = observations.length > 1 ? observations[observations.length - 2] : null;
@@ -125,8 +167,8 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
 
   return [
     latestMetric,
-    { label: "52 Week High", value: formatValue(high, unit) },
-    { label: "52 Week Low", value: formatValue(low, unit) },
+    { label: "1-Year High", value: formatValue(high, unit) },
+    { label: "1-Year Low", value: formatValue(low, unit) },
   ];
 };
 
@@ -167,7 +209,7 @@ export const filterObservationRange = (
 
 export const getMetadataRows = (detail: DatasetDetail): Array<{ key: string; value: string }> => {
   const candidates: Array<{ key: string; value: string | null }> = [
-    { key: "Frequency", value: detail.metadata.frequency_granularity ?? null },
+    { key: "Frequency", value: getDerivedFrequencyLabel(detail.observations) },
     { key: "Source Type", value: detail.metadata.source_type ?? null },
   ];
 

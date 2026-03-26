@@ -37,8 +37,8 @@ describe("dataset-detail-view-model", () => {
     expect(latest.label).toBe("Latest Observation");
     expect(latest.value).toContain("$3.150");
     expect(latest.movementSummary).toContain("+");
-    expect(high.label).toBe("52 Week High");
-    expect(low.label).toBe("52 Week Low");
+    expect(high.label).toBe("1-Year High");
+    expect(low.label).toBe("1-Year Low");
   });
 
   it("builds observation rows in recency order with movement state", () => {
@@ -92,10 +92,10 @@ describe("dataset-detail-view-model", () => {
     const rows = getMetadataRows({
       ...buildDatasetDetailFixture(),
       metadata: {
-        frequency_granularity: null,
         source_type: null,
         unit: null,
       },
+      observations: [],
     });
 
     expect(rows.some((row) => row.key === "Frequency")).toBe(true);
@@ -110,5 +110,12 @@ describe("dataset-detail-view-model", () => {
     expect(rows.some((row) => row.key === "Frequency")).toBe(true);
     expect(rows.some((row) => row.key === "Source Type")).toBe(true);
     expect(rows.some((row) => row.key === "Unit")).toBe(false);
+  });
+
+  it("derives weekly frequency from recent observation spacing", () => {
+    const rows = getMetadataRows(buildDatasetDetailFixture());
+    const frequency = rows.find((row) => row.key === "Frequency");
+
+    expect(frequency?.value).toBe("Weekly");
   });
 });

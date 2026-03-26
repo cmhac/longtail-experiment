@@ -22,7 +22,6 @@ class _Observation:
     def __init__(self) -> None:
         self.series_key = "INT.US.FEDFUNDS"
         self.metric_name = "Effective Federal Funds Rate"
-        self.frequency_granularity = "daily"
         self.source_type = "external"
         self.observed_on = date(2026, 1, 3)
         self.reported_at = "2026-01-04T00:00:00Z"

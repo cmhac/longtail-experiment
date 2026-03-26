@@ -21,7 +21,6 @@ EXPECTED_ROWS = 2
 
 class _Observation(Protocol):
     series_key: object
-    frequency_granularity: object
 
 
 class _ObservationRepo:
@@ -31,7 +30,6 @@ class _ObservationRepo:
     def upsert_observation(self, observation: _Observation) -> None:
         row: dict[str, object] = {
             "series_key": str(observation.series_key),
-            "frequency_granularity": str(observation.frequency_granularity),
         }
         self._rows.append(row)
 
@@ -53,8 +51,8 @@ class _DualModeObservationRepo:
         self.value_calls += 1
 
 
-def test_mixed_frequency_payloads_are_ingested_to_canonical_store() -> None:
-    """Daily and monthly payloads should persist as canonical rows."""
+def test_payloads_without_frequency_are_ingested_to_canonical_store() -> None:
+    """Canonical rows should persist without requiring frequency labels."""
     repo = _ObservationRepo()
     service = CanonicalIngestService(repository=repo)
 
@@ -64,7 +62,6 @@ def test_mixed_frequency_payloads_are_ingested_to_canonical_store() -> None:
             "source_type": "external",
             "series_key": "CPI.US.ALL",
             "metric_name": "Consumer Price Index",
-            "frequency": "monthly",
             "date": "2026-01-01",
             "reported_at": "2026-02-01T00:00:00Z",
             "value": "302.5",
@@ -76,7 +73,6 @@ def test_mixed_frequency_payloads_are_ingested_to_canonical_store() -> None:
             "source_type": "external",
             "series_key": "TEMP.US.NYC",
             "metric_name": "Average Temperature",
-            "frequency": "daily",
             "date": "2026-01-02",
             "reported_at": "2026-01-02T12:00:00Z",
             "value": "4.3",
@@ -85,7 +81,7 @@ def test_mixed_frequency_payloads_are_ingested_to_canonical_store() -> None:
 
     rows = repo.list_observations()
     assert len(rows) == EXPECTED_ROWS
-    assert {row["frequency_granularity"] for row in rows} == {"monthly", "daily"}
+    assert {row["series_key"] for row in rows} == {"CPI.US.ALL", "TEMP.US.NYC"}
 
 
 def test_pipeline_entrypoint_and_observability_helpers_are_wired() -> None:
@@ -106,7 +102,6 @@ def test_invalid_payload_raises_contract_validation_error() -> None:
                 "source_type": "external",
                 "series_key": "MISSING.SOURCE.NAME",
                 "metric_name": "Invalid Sample",
-                "frequency": "daily",
                 "date": "2026-01-02",
                 "reported_at": "2026-01-02T12:00:00Z",
                 "value": "4.3",
@@ -125,7 +120,6 @@ def test_canonical_ingest_prefers_upsert_observation_when_available() -> None:
             "source_type": "external",
             "series_key": "INT.US.FEDFUNDS",
             "metric_name": "Effective Federal Funds Rate",
-            "frequency": "daily",
             "date": "2026-01-02",
             "reported_at": "2026-01-02T12:00:00Z",
             "value": "4.3",

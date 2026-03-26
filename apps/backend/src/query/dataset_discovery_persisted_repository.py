@@ -55,7 +55,6 @@ class PersistedDatasetDiscoveryRepository:
                 ds.series_key AS dataset_id,
                 sp.source_name AS source_name,
                 sp.source_type AS source_type,
-                sp.frequency_granularity AS frequency_granularity,
                 ds.metric_name AS metric_name,
                 ds.title AS title,
                 ds.description AS description,
@@ -76,7 +75,6 @@ class PersistedDatasetDiscoveryRepository:
                 ds.series_key,
                 sp.source_name,
                 sp.source_type,
-                sp.frequency_granularity,
                 ds.metric_name,
                 ds.title,
                 ds.description,
@@ -110,7 +108,6 @@ class PersistedDatasetDiscoveryRepository:
                     "metadata": {
                         "metric_name": str(row["metric_name"]),
                         "source_type": str(row["source_type"]),
-                        "frequency_granularity": str(row["frequency_granularity"]),
                     },
                 }
             )

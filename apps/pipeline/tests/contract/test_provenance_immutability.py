@@ -62,7 +62,6 @@ def test_pipeline_helpers_and_canonical_schema_are_usable() -> None:
         source_type="external",
         series_key="CPI.US.ALL",
         metric_name="Consumer Price Index",
-        frequency_granularity="monthly",
         observed_on=date(2026, 3, 1),
         reported_at=datetime(2026, 3, 2, tzinfo=UTC),
         value=Decimal("303.1000"),
