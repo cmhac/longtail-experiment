@@ -213,7 +213,6 @@ def test_eia_source_supports_passthrough_records() -> None:
                     "series_key": "ENERGY.US.TEST",
                     "metric_name": "Test",
                     "dataset_title": "Test",
-                    "frequency": "weekly",
                     "date": "2026-01-01",
                     "reported_at": "2026-01-02T00:00:00Z",
                     "value": "1.0",

@@ -35,7 +35,6 @@ class FredSeriesConfig(Protocol):
     dataset_description: str
     dataset_geographic_scope: str
     topic_tags: list[str]
-    frequency: str
 
 
 FRED_SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
@@ -47,7 +46,6 @@ FRED_SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
         "dataset_description": "Federal funds effective interest rate published by FRED.",
         "dataset_geographic_scope": "United States",
         "topic_tags": ["interest rates", "monetary policy", "federal reserve"],
-        "frequency": "daily",
     },
     {
         "series_item_key": "fred_gasregw",
@@ -57,7 +55,6 @@ FRED_SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
         "dataset_description": "Average retail regular gasoline price from FRED.",
         "dataset_geographic_scope": "United States",
         "topic_tags": ["energy", "gasoline", "consumer prices"],
-        "frequency": "weekly",
     },
 )
 
@@ -135,7 +132,6 @@ def _map_fred_records(
                     for tag in series_config["topic_tags"]
                     if isinstance(tag, str) and tag.strip()
                 ],
-                "frequency": series_config["frequency"],
                 "date": str(row.get("date", "")),
                 "reported_at": str(row.get("realtime_end") or row.get("realtime_start") or now_iso),
                 "value": str(row.get("value", "")),

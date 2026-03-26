@@ -20,7 +20,6 @@ class ObservationPayload(Protocol):
     source_type: str
     series_key: str
     metric_name: str
-    frequency_granularity: str
     observed_on: date
     reported_at: datetime
     value: Decimal
@@ -81,19 +80,16 @@ class PostgresObservationRepository:
                         id,
                         source_name,
                         source_type,
-                        frequency_granularity,
                         created_at
                     ) VALUES (
                         :id,
                         :source_name,
                         :source_type,
-                        :frequency_granularity,
                         :created_at
                     )
                     ON CONFLICT (source_name) DO UPDATE
                     SET
                         source_type = EXCLUDED.source_type,
-                        frequency_granularity = EXCLUDED.frequency_granularity,
                         created_at = EXCLUDED.created_at
                     RETURNING id
                     """
@@ -102,7 +98,6 @@ class PostgresObservationRepository:
                     "id": uuid4(),
                     "source_name": observation.source_name,
                     "source_type": observation.source_type,
-                    "frequency_granularity": observation.frequency_granularity,
                     "created_at": now,
                 },
             ).scalar_one()

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-EXPECTED_HEAD = "0008_dataset_discovery_indexes"
+EXPECTED_HEAD = "0009_drop_source_profile_frequency"
 
 
 def test_agents_migration_head_matches_runtime_expectation() -> None:

@@ -4,7 +4,6 @@
     "source_type": "external",
     "series_key": "CPI.US.ALL",
     "metric_name": "Consumer Price Index",
-    "frequency": "monthly",
     "date": "2026-01-01",
     "reported_at": "2026-02-01T00:00:00Z",
     "value": "302.5"
@@ -14,7 +13,6 @@
     "source_type": "external",
     "series_key": "TEMP.US.NYC",
     "metric_name": "Average Temperature",
-    "frequency": "daily",
     "date": "2026-01-02",
     "reported_at": "2026-01-02T12:00:00Z",
     "value": "4.3"

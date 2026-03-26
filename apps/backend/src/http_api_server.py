@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from io import StringIO
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
@@ -72,7 +74,7 @@ def _require_schema_readiness(*, engine: Any, expected_revision: str) -> None:
 def _make_service() -> DatasetDiscoveryService:
     expected_revision = os.environ.get(
         "DISCOVERY_EXPECTED_DB_REVISION",
-        "0008_dataset_discovery_indexes",
+        "0009_drop_source_profile_frequency",
     )
     database_url = _resolve_database_url(environment=os.environ)
     engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
@@ -93,6 +95,15 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def _write_csv(self, *, status: int, body: str, dataset_id: str) -> None:
+        encoded = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/csv; charset=utf-8")
+        self.send_header("Content-Disposition", f'attachment; filename="{dataset_id}.csv"')
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        self.wfile.write(encoded)
 
     def _handle_search(
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
@@ -161,6 +172,40 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             to_date=query.get("to_date", [None])[0],
         ).model_dump()
 
+    def _handle_csv(
+        self,
+        parsed_path: str,
+        query: dict[str, list[str]],
+        service: DatasetDiscoveryService,
+    ) -> tuple[str, str]:
+        dataset_id = parsed_path.split("/", maxsplit=3)[3][: -len(".csv")]
+        detail_payload = execute_dataset_detail(
+            service,
+            dataset_id=dataset_id,
+            from_date=query.get("from_date", [None])[0],
+            to_date=query.get("to_date", [None])[0],
+        ).model_dump()
+
+        observations = detail_payload.get("observations", [])
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["observed_on", "value", "reported_at", "attributes"])
+
+        if isinstance(observations, list):
+            for observation in observations:
+                if not isinstance(observation, dict):
+                    continue
+                writer.writerow(
+                    [
+                        str(observation.get("observed_on", "")),
+                        observation.get("value", ""),
+                        str(observation.get("reported_at", "")),
+                        json.dumps(observation.get("attributes", {}), separators=(",", ":")),
+                    ]
+                )
+
+        return dataset_id, output.getvalue()
+
     def _dispatch_get(
         self,
         *,
@@ -198,6 +243,11 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             return
 
         try:
+            if parsed.path.startswith("/api/datasets/") and parsed.path.endswith(".csv"):
+                dataset_id, csv_body = self._handle_csv(parsed.path, query, self.service)
+                self._write_csv(status=HTTPStatus.OK, body=csv_body, dataset_id=dataset_id)
+                return
+
             response_status, response_payload = self._dispatch_get(
                 path=parsed.path,
                 query=query,
@@ -206,6 +256,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         except ContractQueryError as exc:
             if str(exc) == "dataset_not_found":
                 dataset_id = parsed.path.split("/")[-1]
+                if dataset_id.endswith(".csv"):
+                    dataset_id = dataset_id[: -len(".csv")]
                 response_status = HTTPStatus.NOT_FOUND
                 response_payload = dataset_not_found_error(dataset_id).model_dump()
             else:

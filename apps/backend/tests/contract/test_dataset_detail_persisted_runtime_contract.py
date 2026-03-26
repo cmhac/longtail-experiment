@@ -37,7 +37,7 @@ class _PersistedDetailRepoStub:
             "description": "Policy rate",
             "geographic_scope": "US",
             "topic_tags": ["interest rates"],
-            "metadata": {"frequency_granularity": "daily"},
+            "metadata": {},
         }
 
     def list_dataset_observations(self, *, dataset_id: str, from_date, to_date):

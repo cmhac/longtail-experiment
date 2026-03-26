@@ -89,7 +89,6 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "dataset_id": "INT.US.FEDFUNDS",
             "source_name": "Federal Reserve",
             "source_type": "external",
-            "frequency_granularity": "daily",
             "metric_name": "effective_rate",
             "title": "Effective Federal Funds Rate",
             "description": "Policy rate",
@@ -101,7 +100,6 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "dataset_id": "LABOR.US.UNRATE",
             "source_name": "BLS",
             "source_type": "external",
-            "frequency_granularity": "monthly",
             "metric_name": "unemployment_rate",
             "title": "Unemployment Rate",
             "description": None,
@@ -140,7 +138,7 @@ def test_search_and_recent_are_persisted_and_sorted() -> None:
     assert rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert rows[0]["source"] == {"id": "federal-reserve", "name": "Federal Reserve"}
     metadata = cast(dict[str, Any], rows[0]["metadata"])
-    assert metadata["frequency_granularity"] == "daily"
+    assert metadata["source_type"] == "external"
     assert recent[0]["dataset_id"] == "INT.US.FEDFUNDS"
 
 

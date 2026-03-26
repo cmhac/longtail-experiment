@@ -9,7 +9,6 @@ export const buildDatasetDetailFixture = (): DatasetDetail => {
     geographic_scope: "Colorado",
     topic_tags: ["energy", "gasoline"],
     metadata: {
-      frequency_granularity: "weekly",
       unit: "$/Gal",
       source_type: "Federal",
     },

@@ -70,11 +70,11 @@ def test_resolve_database_url_uses_local_db_defaults_when_no_override() -> None:
 
 
 def test_require_schema_readiness_accepts_expected_revision() -> None:
-    engine = _FakeEngine("0008_dataset_discovery_indexes")
+    engine = _FakeEngine("0009_drop_source_profile_frequency")
 
     _require_schema_readiness(
         engine=engine,
-        expected_revision="0008_dataset_discovery_indexes",
+        expected_revision="0009_drop_source_profile_frequency",
     )
 
 
@@ -84,7 +84,7 @@ def test_require_schema_readiness_rejects_missing_revision() -> None:
     with pytest.raises(RuntimeError, match="schema version is missing"):
         _require_schema_readiness(
             engine=engine,
-            expected_revision="0008_dataset_discovery_indexes",
+            expected_revision="0009_drop_source_profile_frequency",
         )
 
 
@@ -94,5 +94,5 @@ def test_require_schema_readiness_rejects_revision_mismatch() -> None:
     with pytest.raises(RuntimeError, match="schema revision mismatch"):
         _require_schema_readiness(
             engine=engine,
-            expected_revision="0008_dataset_discovery_indexes",
+            expected_revision="0009_drop_source_profile_frequency",
         )

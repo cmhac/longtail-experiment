@@ -88,7 +88,7 @@ def test_schema_readiness_wraps_sqlalchemy_errors() -> None:
 
     with pytest.raises(RuntimeError, match="schema is not ready"):
         _require_schema_readiness(
-            engine=_BoomEngine(), expected_revision="0008_dataset_discovery_indexes"
+            engine=_BoomEngine(), expected_revision="0009_drop_source_profile_frequency"
         )
 
 
@@ -119,7 +119,7 @@ def test_make_service_builds_persisted_runtime_service(monkeypatch: pytest.Monke
         captured["expected_revision"] = expected_revision
 
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://u:p@h:1234/n")
-    monkeypatch.setenv("DISCOVERY_EXPECTED_DB_REVISION", "0008_dataset_discovery_indexes")
+    monkeypatch.setenv("DISCOVERY_EXPECTED_DB_REVISION", "0009_drop_source_profile_frequency")
     monkeypatch.setattr("src.http_api_server.create_engine", _fake_create_engine)
     monkeypatch.setattr(
         "src.http_api_server._require_schema_readiness", _fake_require_schema_readiness
@@ -130,7 +130,7 @@ def test_make_service_builds_persisted_runtime_service(monkeypatch: pytest.Monke
     service = _make_service()
 
     assert captured["database_url"] == "postgresql+psycopg://u:p@h:1234/n"
-    assert captured["expected_revision"] == "0008_dataset_discovery_indexes"
+    assert captured["expected_revision"] == "0009_drop_source_profile_frequency"
     assert captured["repo_engine"] is captured["schema_engine"]
     assert service is not None
 
@@ -163,6 +163,10 @@ def test_http_handler_health_not_found_and_error_branches(
     with pytest.raises(HTTPError) as detail_exc:
         urlopen(f"http://{host}:{port}/api/datasets/UNKNOWN", timeout=5)  # noqa: S310
     assert detail_exc.value.code == 404
+
+    with pytest.raises(HTTPError) as csv_exc:
+        urlopen(f"http://{host}:{port}/api/datasets/UNKNOWN.csv", timeout=5)  # noqa: S310
+    assert csv_exc.value.code == 404
 
 
 def test_http_handler_returns_500_when_service_not_initialized() -> None:

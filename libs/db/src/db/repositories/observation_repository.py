@@ -26,7 +26,6 @@ class InMemoryObservationRepository:
         self._rows[(observation.series_key, observation.observed_on)] = {
             "series_key": observation.series_key,
             "metric_name": observation.metric_name,
-            "frequency_granularity": observation.frequency_granularity,
             "source_type": observation.source_type,
             "observed_on": observation.observed_on,
             "reported_at": observation.reported_at,

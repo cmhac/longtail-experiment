@@ -4,19 +4,6 @@ from __future__ import annotations
 
 from src.contract.schemas.canonical_observation import CanonicalObservation
 
-_FREQUENCY_MAP = {
-    "d": "daily",
-    "daily": "daily",
-    "w": "weekly",
-    "weekly": "weekly",
-    "m": "monthly",
-    "monthly": "monthly",
-    "q": "quarterly",
-    "quarterly": "quarterly",
-    "y": "yearly",
-    "yearly": "yearly",
-}
-
 
 def _coerce_topic_tags(raw: object) -> list[str]:
     """Coerce mixed tag payloads into trimmed string tag lists."""
@@ -34,9 +21,6 @@ def _coerce_topic_tags(raw: object) -> list[str]:
 
 def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation:
     """Map variant source payload keys into the canonical observation schema."""
-    frequency_raw = str(payload.get("frequency") or payload.get("frequency_granularity") or "")
-    normalized_frequency = frequency_raw.strip().lower()
-    canonical_frequency = _FREQUENCY_MAP.get(normalized_frequency, normalized_frequency)
     source_type = str(payload["source_type"]).strip().lower()
     topic_tags = _coerce_topic_tags(payload.get("topic_tags") or payload.get("tags"))
 
@@ -46,7 +30,6 @@ def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation
             "source_type": source_type,
             "series_key": str(payload["series_key"]),
             "metric_name": str(payload["metric_name"]),
-            "frequency_granularity": canonical_frequency,
             "dataset_title": payload.get("dataset_title") or payload.get("title"),
             "dataset_description": payload.get("dataset_description") or payload.get("description"),
             "dataset_geographic_scope": payload.get("dataset_geographic_scope")
