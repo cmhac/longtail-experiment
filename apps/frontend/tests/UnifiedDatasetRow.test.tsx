@@ -28,6 +28,13 @@ describe("UnifiedDatasetRow", () => {
     expect(markup).toContain("US");
     expect(markup).toContain("energy");
     expect(markup).toContain("retail fuel prices");
+    expect(markup).toContain('data-testid="unified-dataset-row-title"');
+    expect(markup).toContain('href="/geographies/us"');
+    expect(markup).toContain('href="/topics/energy"');
+    expect(markup).toContain('href="/topics/retail-fuel-prices"');
+    expect(markup).not.toContain(
+      'class="recent-updates-row unified-dataset-row" data-testid="unified-dataset-row" href="/datasets/DATASET_1"',
+    );
   });
 
   it("renders title-link mode without row-level link", () => {
@@ -47,6 +54,7 @@ describe("UnifiedDatasetRow", () => {
     expect(markup).toContain("Unemployment Rate");
     expect(markup).toContain('href="/datasets/UNRATE"');
     expect(markup).toContain('data-testid="unified-dataset-row-title"');
+    expect(markup).toContain('href="/topics/labor"');
     expect(markup).not.toContain(
       'class="recent-updates-row unified-dataset-row" data-testid="unified-dataset-row" href="/datasets/UNRATE"',
     );

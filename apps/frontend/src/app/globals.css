@@ -699,6 +699,7 @@ section[data-testid="catalog-source-group"] {
   font-size: 0.72rem;
   line-height: 1.1;
   letter-spacing: 0.02em;
+  text-decoration: none;
 }
 
 .recent-updates-geography-pill {
@@ -722,6 +723,18 @@ section[data-testid="catalog-source-group"] {
   border-radius: 999px;
   font-size: 0.8rem;
   color: var(--shell-muted);
+  text-decoration: none;
+}
+
+.topic-detail-header,
+.geography-detail-header {
+  padding-bottom: 0.5rem;
+}
+
+.topic-detail-header-copy,
+.geography-detail-header-copy {
+  display: grid;
+  gap: 0.35rem;
 }
 
 .dataset-detail-overview {

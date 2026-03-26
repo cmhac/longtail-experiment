@@ -403,6 +403,74 @@ class DatasetDiscoveryService:
             "sort": "title_asc,dataset_id_asc",
         }
 
+    def get_topic_detail(self, *, topic_id: str) -> dict[str, Any]:
+        """Return one topic plus its attributed datasets."""
+        if not hasattr(self._repository, "get_topic_detail"):
+            raise ContractQueryError("Repository does not provide get_topic_detail")
+
+        normalized_topic_id = topic_id.strip()
+        if not normalized_topic_id:
+            raise ContractQueryError("topic_id must be provided")
+
+        payload = self._repository.get_topic_detail(topic_id=normalized_topic_id)
+        if payload is None:
+            raise ContractQueryError("topic_not_found")
+        if not isinstance(payload, dict):
+            raise ContractQueryError("Repository returned invalid topic detail payload")
+
+        topic = payload.get("topic")
+        datasets = payload.get("datasets")
+        if not isinstance(topic, dict) or not isinstance(datasets, list):
+            raise ContractQueryError("Repository returned invalid topic detail payload")
+
+        dataset_count = topic.get("dataset_count")
+        if not isinstance(dataset_count, int) or dataset_count < 0:
+            raise ContractQueryError("Repository returned invalid topic dataset_count")
+
+        return {
+            "topic": {
+                "id": str(topic.get("id", "")).strip(),
+                "label": str(topic.get("label", "")).strip(),
+                "dataset_count": dataset_count,
+            },
+            "datasets": deepcopy(datasets),
+            "sort": "title_asc,dataset_id_asc",
+        }
+
+    def get_geography_detail(self, *, geography_id: str) -> dict[str, Any]:
+        """Return one geography plus its attributed datasets."""
+        if not hasattr(self._repository, "get_geography_detail"):
+            raise ContractQueryError("Repository does not provide get_geography_detail")
+
+        normalized_geography_id = geography_id.strip()
+        if not normalized_geography_id:
+            raise ContractQueryError("geography_id must be provided")
+
+        payload = self._repository.get_geography_detail(geography_id=normalized_geography_id)
+        if payload is None:
+            raise ContractQueryError("geography_not_found")
+        if not isinstance(payload, dict):
+            raise ContractQueryError("Repository returned invalid geography detail payload")
+
+        geography = payload.get("geography")
+        datasets = payload.get("datasets")
+        if not isinstance(geography, dict) or not isinstance(datasets, list):
+            raise ContractQueryError("Repository returned invalid geography detail payload")
+
+        dataset_count = geography.get("dataset_count")
+        if not isinstance(dataset_count, int) or dataset_count < 0:
+            raise ContractQueryError("Repository returned invalid geography dataset_count")
+
+        return {
+            "geography": {
+                "id": str(geography.get("id", "")).strip(),
+                "label": str(geography.get("label", "")).strip(),
+                "dataset_count": dataset_count,
+            },
+            "datasets": deepcopy(datasets),
+            "sort": "title_asc,dataset_id_asc",
+        }
+
     def get_dataset_detail(
         self,
         *,

@@ -14,11 +14,11 @@ describe("DatasetDetailHeader", () => {
 
     expect(markup).toContain("Data Source: EIA");
     expect(markup).toContain("Retail gasoline prices for Colorado.");
-    expect(markup).toContain('recent-updates-geography-pill">Colorado<');
+    expect(markup).toContain('href="/geographies/colorado"');
     expect(markup).toContain('href="/api/export.csv"');
     expect(markup).not.toContain("Share");
-    expect(markup).toContain("energy");
-    expect(markup).toContain("gasoline");
+    expect(markup).toContain('href="/topics/energy"');
+    expect(markup).toContain('href="/topics/gasoline"');
   });
 
   it("handles null description and geographic scope", () => {

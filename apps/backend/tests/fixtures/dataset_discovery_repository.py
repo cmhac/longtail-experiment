@@ -291,6 +291,82 @@ class InMemoryDatasetDiscoveryRepository:
             "datasets": datasets,
         }
 
+    @staticmethod
+    def _metadata_slug(value: str) -> str:
+        normalized = "".join(
+            character if character.isalnum() else "-" for character in value.strip().lower()
+        )
+        while "--" in normalized:
+            normalized = normalized.replace("--", "-")
+        return normalized.strip("-") or "unknown"
+
+    def get_topic_detail(self, *, topic_id: str) -> dict[str, Any] | None:
+        """Return one topic summary plus its datasets."""
+        datasets = [
+            item
+            for item in self._apply_search(query_text=None)
+            if any(
+                self._metadata_slug(str(tag)) == topic_id for tag in (item.get("topic_tags") or [])
+            )
+        ]
+        if not datasets:
+            return None
+
+        labels = sorted(
+            {
+                str(tag)
+                for item in datasets
+                for tag in (item.get("topic_tags") or [])
+                if self._metadata_slug(str(tag)) == topic_id
+            }
+        )
+        datasets.sort(
+            key=lambda item: (
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            )
+        )
+        return {
+            "topic": {
+                "id": topic_id,
+                "label": labels[0],
+                "dataset_count": len(datasets),
+            },
+            "datasets": datasets,
+        }
+
+    def get_geography_detail(self, *, geography_id: str) -> dict[str, Any] | None:
+        """Return one geography summary plus its datasets."""
+        datasets = [
+            item
+            for item in self._apply_search(query_text=None)
+            if self._metadata_slug(str(item.get("geographic_scope") or "")) == geography_id
+        ]
+        if not datasets:
+            return None
+
+        labels = sorted(
+            {
+                str(item.get("geographic_scope"))
+                for item in datasets
+                if str(item.get("geographic_scope") or "").strip()
+            }
+        )
+        datasets.sort(
+            key=lambda item: (
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            )
+        )
+        return {
+            "geography": {
+                "id": geography_id,
+                "label": labels[0],
+                "dataset_count": len(datasets),
+            },
+            "datasets": datasets,
+        }
+
     def list_dataset_observations(
         self,
         *,

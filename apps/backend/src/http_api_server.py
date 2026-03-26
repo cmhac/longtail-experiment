@@ -22,6 +22,10 @@ from src.contract.query.dataset_discovery_contracts import (
     dataset_not_found_error,
     invalid_request_error,
 )
+from src.contract.query.metadata_discovery_contracts import (
+    geography_not_found_error,
+    topic_not_found_error,
+)
 from src.contract.query.source_discovery_contracts import source_not_found_error
 from src.query.dataset_catalog_query import execute_dataset_catalog
 from src.query.dataset_detail_query import execute_dataset_detail
@@ -33,8 +37,10 @@ from src.query.dataset_recent_updates_query import execute_recent_updates
 from src.query.dataset_search_query import execute_dataset_search
 from src.query.dataset_search_suggestions_query import execute_dataset_search_suggestions
 from src.query.dataset_search_summary_query import execute_search_summary
+from src.query.geography_detail_query import execute_geography_detail
 from src.query.source_detail_query import execute_source_detail
 from src.query.source_list_query import execute_source_list
+from src.query.topic_detail_query import execute_topic_detail
 
 
 def _env_value(environment: Mapping[str, str], key: str, default: str) -> str:
@@ -190,6 +196,22 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         source_id = parsed_path.split("/", maxsplit=3)[3]
         return execute_source_detail(service, source_id=source_id).model_dump()
 
+    def _handle_topic_detail(
+        self,
+        parsed_path: str,
+        service: DatasetDiscoveryService,
+    ) -> dict[str, object]:
+        topic_id = parsed_path.split("/", maxsplit=3)[3]
+        return execute_topic_detail(service, topic_id=topic_id).model_dump()
+
+    def _handle_geography_detail(
+        self,
+        parsed_path: str,
+        service: DatasetDiscoveryService,
+    ) -> dict[str, object]:
+        geography_id = parsed_path.split("/", maxsplit=3)[3]
+        return execute_geography_detail(service, geography_id=geography_id).model_dump()
+
     def _handle_csv(
         self,
         parsed_path: str,
@@ -245,6 +267,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             return HTTPStatus.OK, exact_routes[path]()
         if path.startswith("/api/sources/"):
             return HTTPStatus.OK, self._handle_source_detail(path, service)
+        if path.startswith("/api/topics/"):
+            return HTTPStatus.OK, self._handle_topic_detail(path, service)
+        if path.startswith("/api/geographies/"):
+            return HTTPStatus.OK, self._handle_geography_detail(path, service)
         if path.startswith("/api/datasets/"):
             return HTTPStatus.OK, self._handle_detail(path, query, service)
         return HTTPStatus.NOT_FOUND, {
@@ -281,6 +307,14 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                     dataset_id = dataset_id[: -len(".csv")]
                 response_status = HTTPStatus.NOT_FOUND
                 response_payload = dataset_not_found_error(dataset_id).model_dump()
+            elif str(exc) == "topic_not_found":
+                topic_id = parsed.path.split("/")[-1]
+                response_status = HTTPStatus.NOT_FOUND
+                response_payload = topic_not_found_error(topic_id).model_dump()
+            elif str(exc) == "geography_not_found":
+                geography_id = parsed.path.split("/")[-1]
+                response_status = HTTPStatus.NOT_FOUND
+                response_payload = geography_not_found_error(geography_id).model_dump()
             elif str(exc) == "source_not_found":
                 source_id = parsed.path.split("/")[-1]
                 response_status = HTTPStatus.NOT_FOUND

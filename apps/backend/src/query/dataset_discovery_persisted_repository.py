@@ -25,6 +25,11 @@ class PersistedDatasetDiscoveryRepository:
         return normalized or "unknown"
 
     @staticmethod
+    def _metadata_slug(value: str) -> str:
+        normalized = re.sub(r"[^a-z0-9]+", "-", value.strip().lower()).strip("-")
+        return normalized or "unknown"
+
+    @staticmethod
     def _iso_datetime(value: datetime | None) -> str | None:
         if value is None:
             return None
@@ -127,6 +132,55 @@ class PersistedDatasetDiscoveryRepository:
             source_name = str(source_payload.get("name", ""))
             grouped[(source_name, source_id)].append(row)
         return grouped
+
+    def _match_topic_rows(self, *, topic_id: str) -> tuple[str, list[dict[str, object]]] | None:
+        normalized_topic_id = topic_id.strip().lower()
+        if normalized_topic_id == "":
+            return None
+
+        matches: list[tuple[str, dict[str, object]]] = []
+        for row in self._load_dataset_rows():
+            tags = [
+                str(tag).strip()
+                for tag in cast(list[object], row.get("topic_tags") or [])
+                if str(tag).strip()
+            ]
+            matching_labels = [
+                tag for tag in tags if self._metadata_slug(tag) == normalized_topic_id
+            ]
+            if not matching_labels:
+                continue
+            matches.append((sorted(matching_labels)[0], row))
+
+        if not matches:
+            return None
+
+        topic_label = sorted({label for label, _ in matches})[0]
+        rows = [dict(row) for label, row in matches if label == topic_label]
+        return topic_label, rows
+
+    def _match_geography_rows(
+        self, *, geography_id: str
+    ) -> tuple[str, list[dict[str, object]]] | None:
+        normalized_geography_id = geography_id.strip().lower()
+        if normalized_geography_id == "":
+            return None
+
+        matches: list[tuple[str, dict[str, object]]] = []
+        for row in self._load_dataset_rows():
+            geography_label = str(row.get("geographic_scope") or "").strip()
+            if geography_label == "":
+                continue
+            if self._metadata_slug(geography_label) != normalized_geography_id:
+                continue
+            matches.append((geography_label, row))
+
+        if not matches:
+            return None
+
+        geography_label = sorted({label for label, _ in matches})[0]
+        rows = [dict(row) for label, row in matches if label == geography_label]
+        return geography_label, rows
 
     @staticmethod
     def _paginate(
@@ -442,6 +496,50 @@ class PersistedDatasetDiscoveryRepository:
                 "name": str(source_payload.get("name", "")),
                 "dataset_count": len(rows),
                 "source_type": str(raw_source_type) if isinstance(raw_source_type, str) else None,
+            },
+            "datasets": rows,
+        }
+
+    def get_topic_detail(self, *, topic_id: str) -> dict[str, object] | None:
+        """Return one topic plus all of its discoverable datasets."""
+        match = self._match_topic_rows(topic_id=topic_id)
+        if match is None:
+            return None
+
+        topic_label, rows = match
+        rows.sort(
+            key=lambda item: (
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            )
+        )
+        return {
+            "topic": {
+                "id": self._metadata_slug(topic_label),
+                "label": topic_label,
+                "dataset_count": len(rows),
+            },
+            "datasets": rows,
+        }
+
+    def get_geography_detail(self, *, geography_id: str) -> dict[str, object] | None:
+        """Return one geography plus all of its discoverable datasets."""
+        match = self._match_geography_rows(geography_id=geography_id)
+        if match is None:
+            return None
+
+        geography_label, rows = match
+        rows.sort(
+            key=lambda item: (
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            )
+        )
+        return {
+            "geography": {
+                "id": self._metadata_slug(geography_label),
+                "label": geography_label,
+                "dataset_count": len(rows),
             },
             "datasets": rows,
         }

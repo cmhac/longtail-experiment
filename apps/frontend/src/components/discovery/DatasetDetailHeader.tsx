@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
@@ -6,6 +7,16 @@ interface DatasetDetailHeaderProps {
   data: DatasetDetail;
   exportHref?: string;
 }
+
+const toMetadataSlug = (value: string): string => {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "unknown"
+  );
+};
 
 export const DatasetDetailHeader = ({
   data,
@@ -24,15 +35,22 @@ export const DatasetDetailHeader = ({
       <div className="dataset-detail-meta-row" data-testid="dataset-detail-meta-row">
         <div aria-label="Topic tags" className="dataset-detail-topic-tags">
           {data.geographic_scope ? (
-            <span className="discovery-topic-tag recent-updates-geography-pill">
+            <Link
+              className="discovery-topic-tag recent-updates-geography-pill"
+              href={`/geographies/${encodeURIComponent(toMetadataSlug(data.geographic_scope))}`}
+            >
               {data.geographic_scope}
-            </span>
+            </Link>
           ) : null}
           {data.topic_tags.length > 0 ? (
             data.topic_tags.map((tag) => (
-              <span key={tag} className="discovery-topic-tag">
+              <Link
+                href={`/topics/${encodeURIComponent(toMetadataSlug(tag))}`}
+                key={tag}
+                className="discovery-topic-tag"
+              >
                 {tag}
-              </span>
+              </Link>
             ))
           ) : (
             <span>No topic tags</span>

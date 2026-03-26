@@ -207,6 +207,37 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
     assert missing_source_detail is None
 
 
+def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
+    repository = _build_repository()
+
+    topic_detail = repository.get_topic_detail(topic_id="interest-rates")
+    missing_topic_detail = repository.get_topic_detail(topic_id="unknown-topic")
+    geography_detail = repository.get_geography_detail(geography_id="us")
+    missing_geography_detail = repository.get_geography_detail(geography_id="unknown-geo")
+
+    assert topic_detail is not None
+    assert topic_detail["topic"] == {
+        "id": "interest-rates",
+        "label": "interest rates",
+        "dataset_count": 1,
+    }
+    assert [
+        item["dataset_id"] for item in cast(list[dict[str, Any]], topic_detail["datasets"])
+    ] == ["INT.US.FEDFUNDS"]
+    assert missing_topic_detail is None
+
+    assert geography_detail is not None
+    assert geography_detail["geography"] == {
+        "id": "us",
+        "label": "US",
+        "dataset_count": 1,
+    }
+    assert [
+        item["dataset_id"] for item in cast(list[dict[str, Any]], geography_detail["datasets"])
+    ] == ["INT.US.FEDFUNDS"]
+    assert missing_geography_detail is None
+
+
 def test_observations_apply_date_filters_and_shape() -> None:
     repository = _build_repository()
 

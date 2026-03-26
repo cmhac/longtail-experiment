@@ -5,9 +5,11 @@ import type {
   DatasetRecentUpdatesResponse,
   DatasetSearchResponse,
   DatasetSearchSuggestionsResponse,
+  GeographyDetail,
   SearchScopeSummaryResponse,
   SourceDetail,
   SourceListResponse,
+  TopicDetail,
 } from "./discovery-types";
 
 export class DiscoveryApiError extends Error {
@@ -196,4 +198,14 @@ export const fetchSourceList = async (): Promise<SourceListResponse> => {
 export const fetchSourceDetail = async (sourceId: string): Promise<SourceDetail> => {
   const response = await fetch(createUrl(`/api/sources/${encodeURIComponent(sourceId)}`));
   return parseResponse<SourceDetail>(response);
+};
+
+export const fetchTopicDetail = async (topicId: string): Promise<TopicDetail> => {
+  const response = await fetch(createUrl(`/api/topics/${encodeURIComponent(topicId)}`));
+  return parseResponse<TopicDetail>(response);
+};
+
+export const fetchGeographyDetail = async (geographyId: string): Promise<GeographyDetail> => {
+  const response = await fetch(createUrl(`/api/geographies/${encodeURIComponent(geographyId)}`));
+  return parseResponse<GeographyDetail>(response);
 };

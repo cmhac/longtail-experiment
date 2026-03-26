@@ -6,8 +6,10 @@ import type {
   DatasetDetail,
   DatasetRecentUpdatesResponse,
   DatasetSearchResponse,
+  GeographyDetail,
   SourceDetail,
   SourceListResponse,
+  TopicDetail,
 } from "../src/lib/api/discovery-types";
 
 describe("discovery types", () => {
@@ -116,5 +118,21 @@ describe("discovery types", () => {
 
     expect(sourceList.items[0]?.dataset_count).toBe(2);
     expect(sourceDetail.source.id).toBe("fred");
+  });
+
+  it("supports metadata discovery payloads", () => {
+    const topicDetail: TopicDetail = {
+      topic: { id: "inflation", label: "inflation", dataset_count: 1 },
+      datasets: [],
+      sort: "title_asc,dataset_id_asc",
+    };
+    const geographyDetail: GeographyDetail = {
+      geography: { id: "us", label: "US", dataset_count: 2 },
+      datasets: [],
+      sort: "title_asc,dataset_id_asc",
+    };
+
+    expect(topicDetail.topic.id).toBe("inflation");
+    expect(geographyDetail.geography.label).toBe("US");
   });
 });

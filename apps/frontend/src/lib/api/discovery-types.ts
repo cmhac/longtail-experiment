@@ -131,6 +131,30 @@ export interface SourceDetail {
   sort: string;
 }
 
+export interface TopicSummary {
+  id: string;
+  label: string;
+  dataset_count: number;
+}
+
+export interface TopicDetail {
+  topic: TopicSummary;
+  datasets: DatasetSummary[];
+  sort: string;
+}
+
+export interface GeographySummary {
+  id: string;
+  label: string;
+  dataset_count: number;
+}
+
+export interface GeographyDetail {
+  geography: GeographySummary;
+  datasets: DatasetSummary[];
+  sort: string;
+}
+
 export interface ApiErrorEnvelope {
   error: {
     code: string;
