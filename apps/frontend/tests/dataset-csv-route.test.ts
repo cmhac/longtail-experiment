@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "../src/app/api/datasets/[datasetId].csv/route";
+import { GET } from "../src/app/api/datasets/[datasetId]/route";
 
 const originalDiscoveryApiBaseUrl = process.env.DISCOVERY_API_BASE_URL;
 
@@ -31,7 +31,7 @@ describe("dataset csv route", () => {
     );
 
     const response = await GET(request, {
-      params: Promise.resolve({ datasetId: "FEDFUNDS" }),
+      params: Promise.resolve({ datasetId: "FEDFUNDS.csv" }),
     });
 
     expect(fetchSpy).toHaveBeenCalledWith(
@@ -63,25 +63,39 @@ describe("dataset csv route", () => {
     const request = new NextRequest("http://localhost/api/datasets/FEDFUNDS.csv");
 
     const response = await GET(request, {
-      params: Promise.resolve({ datasetId: ["FEDFUNDS"] }),
+      params: Promise.resolve({ datasetId: ["FEDFUNDS.csv"] }),
     });
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-disposition")).toBe('attachment; filename="FEDFUNDS.csv"');
   });
 
-  it("returns a 502 envelope when route params do not include datasetId", async () => {
+  it("returns not_found when route params do not include datasetId", async () => {
     const request = new NextRequest("http://localhost/api/datasets/FEDFUNDS.csv");
 
     const response = await GET(request, {
       params: Promise.resolve({}),
     });
 
-    expect(response.status).toBe(502);
+    expect(response.status).toBe(404);
     await expect(response.json()).resolves.toMatchObject({
       error: {
-        code: "http_error",
-        message: "Unable to fetch dataset CSV",
+        code: "not_found",
+      },
+    });
+  });
+
+  it("returns not_found when route param does not include .csv suffix", async () => {
+    const request = new NextRequest("http://localhost/api/datasets/FEDFUNDS");
+
+    const response = await GET(request, {
+      params: Promise.resolve({ datasetId: "FEDFUNDS" }),
+    });
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: "not_found",
       },
     });
   });
@@ -92,7 +106,7 @@ describe("dataset csv route", () => {
     const request = new NextRequest("http://localhost/api/datasets/FEDFUNDS.csv");
 
     const response = await GET(request, {
-      params: Promise.resolve({ datasetId: "FEDFUNDS" }),
+      params: Promise.resolve({ datasetId: "FEDFUNDS.csv" }),
     });
 
     expect(response.status).toBe(502);
@@ -110,7 +124,7 @@ describe("dataset csv route", () => {
     const request = new NextRequest("http://localhost/api/datasets/FEDFUNDS.csv");
 
     const response = await GET(request, {
-      params: Promise.resolve({ datasetId: "FEDFUNDS" }),
+      params: Promise.resolve({ datasetId: "FEDFUNDS.csv" }),
     });
 
     expect(response.status).toBe(502);

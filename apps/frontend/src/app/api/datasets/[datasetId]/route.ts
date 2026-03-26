@@ -21,12 +21,23 @@ export const GET = async (
   try {
     const params = await context.params;
     const datasetIdValue = params.datasetId;
-    const datasetId = Array.isArray(datasetIdValue) ? datasetIdValue[0] : datasetIdValue;
+    const datasetIdWithExtension = Array.isArray(datasetIdValue)
+      ? datasetIdValue[0]
+      : datasetIdValue;
 
-    if (!datasetId) {
-      throw new Error("Missing datasetId route parameter");
+    if (!datasetIdWithExtension || !datasetIdWithExtension.endsWith(".csv")) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "not_found",
+            message: "Endpoint not found",
+          },
+        },
+        { status: 404 },
+      );
     }
 
+    const datasetId = datasetIdWithExtension.slice(0, -".csv".length);
     const backendBaseUrl = getDiscoveryApiBaseUrl();
     const query = request.nextUrl.searchParams.toString();
     const target = `${backendBaseUrl}/api/datasets/${encodeURIComponent(datasetId)}.csv${
