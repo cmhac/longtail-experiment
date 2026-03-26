@@ -1,14 +1,22 @@
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
-import { buildInsightMetrics, getMetadataRows } from "./dataset-detail-view-model";
+import {
+  type TrendRangeKey,
+  buildInsightMetrics,
+  getMetadataRows,
+} from "./dataset-detail-view-model";
 
 interface DatasetDetailInsightsProps {
   data: DatasetDetail;
+  selectedRange?: TrendRangeKey;
 }
 
-export const DatasetDetailInsights = ({ data }: DatasetDetailInsightsProps): JSX.Element => {
-  const metrics = buildInsightMetrics(data);
+export const DatasetDetailInsights = ({
+  data,
+  selectedRange = "1Y",
+}: DatasetDetailInsightsProps): JSX.Element => {
+  const metrics = buildInsightMetrics(data, selectedRange);
   const metadataRows = getMetadataRows(data);
 
   return (

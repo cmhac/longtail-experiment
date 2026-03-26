@@ -9,6 +9,8 @@ import { type TrendRangeKey, filterObservationRange } from "./dataset-detail-vie
 
 interface ObservationsChartProps {
   observations: ObservationPoint[];
+  selectedRange?: TrendRangeKey;
+  onRangeChange?: (range: TrendRangeKey) => void;
 }
 
 const toChartData = (observations: ObservationPoint[]): ChartDataPoint[] => {
@@ -18,27 +20,40 @@ const toChartData = (observations: ObservationPoint[]): ChartDataPoint[] => {
   }));
 };
 
-export const ObservationsChart = ({ observations }: ObservationsChartProps): JSX.Element => {
-  const [selectedRange, setSelectedRange] = React.useState<TrendRangeKey>("1Y");
+export const ObservationsChart = ({
+  observations,
+  selectedRange,
+  onRangeChange,
+}: ObservationsChartProps): JSX.Element => {
+  const [internalRange, setInternalRange] = React.useState<TrendRangeKey>("1Y");
+  const activeRange = selectedRange ?? internalRange;
 
   if (observations.length === 0) {
     return <EmptyState message="No observation data available" />;
   }
 
-  const filtered = filterObservationRange(observations, selectedRange);
+  const filtered = filterObservationRange(observations, activeRange);
   const chartData = toChartData(filtered);
   const rangeOptions: TrendRangeKey[] = ["1M", "6M", "1Y", "ALL"];
+
+  const handleRangeChange = (range: TrendRangeKey): void => {
+    if (onRangeChange) {
+      onRangeChange(range);
+      return;
+    }
+    setInternalRange(range);
+  };
 
   return (
     <div aria-label="Time series chart" data-testid="observations-chart">
       <div className="observations-chart-controls" data-testid="observations-chart-controls">
         {rangeOptions.map((range) => (
           <button
-            aria-pressed={selectedRange === range}
+            aria-pressed={activeRange === range}
             className="observations-chart-range"
             key={range}
             onClick={() => {
-              setSelectedRange(range);
+              handleRangeChange(range);
             }}
             type="button"
           >

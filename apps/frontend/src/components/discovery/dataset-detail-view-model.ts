@@ -19,6 +19,13 @@ export interface ObservationRowViewModel {
   movementState: MovementState;
 }
 
+const RANGE_LABEL_PREFIX: Record<TrendRangeKey, string> = {
+  "1M": "1-Month",
+  "6M": "6-Month",
+  "1Y": "1-Year",
+  ALL: "All-Time",
+};
+
 const SUPPORTED_UNIT_TYPES: UnitType[] = ["usd", "percent", "number"];
 
 const RANGES_TO_COUNTS: Record<Exclude<TrendRangeKey, "ALL">, number> = {
@@ -171,14 +178,18 @@ const getDerivedFrequencyLabel = (observations: ObservationPoint[]): string => {
   return "Yearly";
 };
 
-export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
+export const buildInsightMetrics = (
+  detail: DatasetDetail,
+  selectedRange: TrendRangeKey = "1Y",
+): InsightMetric[] => {
   const observations = detail.observations;
+  const windowLabelPrefix = RANGE_LABEL_PREFIX[selectedRange];
 
   if (observations.length === 0) {
     return [
       { label: "Latest Observation", value: "No data available" },
-      { label: "1-Year High", value: "--" },
-      { label: "1-Year Low", value: "--" },
+      { label: `${windowLabelPrefix} High`, value: "--" },
+      { label: `${windowLabelPrefix} Low`, value: "--" },
     ];
   }
 
@@ -188,8 +199,8 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
   if (!latest) {
     return [
       { label: "Latest Observation", value: "No data available" },
-      { label: "1-Year High", value: "--" },
-      { label: "1-Year Low", value: "--" },
+      { label: `${windowLabelPrefix} High`, value: "--" },
+      { label: `${windowLabelPrefix} Low`, value: "--" },
     ];
   }
   const previous = observations.length > 1 ? observations[observations.length - 2] : null;
@@ -200,7 +211,7 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
       : `${formatSigned(latestMovement, 3)} vs previous observation`;
   const movementState = latestMovement === null ? undefined : toMovementState(latestMovement);
 
-  const lookbackWindow = observations.slice(-52);
+  const lookbackWindow = filterObservationRange(observations, selectedRange);
   const values = lookbackWindow.map((item) => item.value);
   const high = Math.max(...values);
   const low = Math.min(...values);
@@ -214,8 +225,8 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
 
   return [
     latestMetric,
-    { label: "1-Year High", value: formatValue(high, unitType, unit) },
-    { label: "1-Year Low", value: formatValue(low, unitType, unit) },
+    { label: `${windowLabelPrefix} High`, value: formatValue(high, unitType, unit) },
+    { label: `${windowLabelPrefix} Low`, value: formatValue(low, unitType, unit) },
   ];
 };
 

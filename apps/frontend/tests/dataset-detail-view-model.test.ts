@@ -44,6 +44,45 @@ describe("dataset-detail-view-model", () => {
     expect(low.label).toBe("1-Year Low");
   });
 
+  it("uses selected chart range to set high/low labels and values", () => {
+    const fixture = buildDatasetDetailFixture();
+    const manyObservations = Array.from({ length: 60 }, (_, index) => {
+      const day = String(index + 1).padStart(2, "0");
+      return {
+        observed_on: `2024-03-${day}`,
+        value: index + 1,
+        reported_at: `2024-03-${day}T00:00:00Z`,
+        attributes: {},
+      };
+    });
+
+    const monthlyMetrics = buildInsightMetrics(
+      {
+        ...fixture,
+        metadata: { ...fixture.metadata, unit: null, unit_type: "number" },
+        observations: manyObservations,
+      },
+      "1M",
+    );
+    const allMetrics = buildInsightMetrics(
+      {
+        ...fixture,
+        metadata: { ...fixture.metadata, unit: null, unit_type: "number" },
+        observations: manyObservations,
+      },
+      "ALL",
+    );
+
+    expect(monthlyMetrics[1]?.label).toBe("1-Month High");
+    expect(monthlyMetrics[2]?.label).toBe("1-Month Low");
+    expect(monthlyMetrics[1]?.value).toBe("60.000");
+    expect(monthlyMetrics[2]?.value).toBe("57.000");
+
+    expect(allMetrics[1]?.label).toBe("All-Time High");
+    expect(allMetrics[2]?.label).toBe("All-Time Low");
+    expect(allMetrics[2]?.value).toBe("1.000");
+  });
+
   it("builds observation rows in recency order with movement state", () => {
     const rows = buildObservationRows(buildDatasetDetailFixture().observations, "usd", "$/Gal");
     const newest = rows[0];
