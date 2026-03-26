@@ -30,6 +30,7 @@ TWO = 2
 class _Observation(Protocol):
     series_key: object
     observed_on: object
+    unit_type: object
 
 
 class _CaptureRepository:
@@ -278,6 +279,7 @@ def test_eia_source_maps_series_and_uses_incremental_start_dates() -> None:
     assert call_map[(second["provider_product_code"], second["provider_duoarea"])][
         "start_date"
     ] == date(2026, 1, 3)
+    assert {str(row.unit_type) for row in capture_repo.rows} == {"usd"}
 
 
 def test_eia_source_reports_partial_failure_for_series_errors() -> None:

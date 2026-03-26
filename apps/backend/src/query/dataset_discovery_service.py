@@ -20,6 +20,55 @@ from .dataset_discovery_validators import (
 DEFAULT_SUGGESTION_LIMIT = 5
 MIN_SUGGESTION_LIMIT = 1
 MAX_SUGGESTION_LIMIT = 10
+SUPPORTED_UNIT_TYPES = {"usd", "percent", "number"}
+
+
+def _normalize_unit_type(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    if normalized in SUPPORTED_UNIT_TYPES:
+        return normalized
+    return None
+
+
+def _infer_unit_type_from_unit_label(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip().lower()
+    if normalized == "":
+        return None
+    if "%" in normalized or "percent" in normalized:
+        return "percent"
+    if "$" in normalized or "dollar" in normalized:
+        return "usd"
+    return "number"
+
+
+def _resolve_dataset_unit_type(
+    metadata: dict[str, Any],
+    observations: list[dict[str, Any]],
+) -> str | None:
+    metadata_unit_type = _normalize_unit_type(metadata.get("unit_type"))
+    if metadata_unit_type is not None:
+        return metadata_unit_type
+
+    for observation in reversed(observations):
+        if not isinstance(observation, dict):
+            continue
+        attributes = observation.get("attributes")
+        if not isinstance(attributes, dict):
+            continue
+        resolved = _normalize_unit_type(attributes.get("unit_type"))
+        if resolved is not None:
+            return resolved
+
+    for key in ("unit", "units"):
+        resolved = _infer_unit_type_from_unit_label(metadata.get(key))
+        if resolved is not None:
+            return resolved
+
+    return None
 
 
 class DatasetDiscoveryService:
@@ -280,8 +329,19 @@ class DatasetDiscoveryService:
         )
         if not isinstance(observations, list):
             raise ContractQueryError("Repository returned invalid observations payload")
+
+        metadata_payload = deepcopy(metadata)
+        metadata_fields = metadata_payload.get("metadata")
+        if not isinstance(metadata_fields, dict):
+            metadata_fields = {}
+
+        unit_type = _resolve_dataset_unit_type(metadata_fields, observations)
+        if unit_type is not None:
+            metadata_fields["unit_type"] = unit_type
+        metadata_payload["metadata"] = metadata_fields
+
         return {
-            **deepcopy(metadata),
+            **metadata_payload,
             "observations": deepcopy(observations),
             "observation_sort": "observed_on_asc,reported_at_asc",
         }

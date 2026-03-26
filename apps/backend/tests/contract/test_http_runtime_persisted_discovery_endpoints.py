@@ -85,7 +85,7 @@ class _PersistedHttpRepoStub:
                 "observed_on": "2026-01-01",
                 "value": 4.33,
                 "reported_at": "2026-03-06T00:00:00+00:00",
-                "attributes": {},
+                "attributes": {"unit_type": "percent"},
             }
         ]
 
@@ -158,8 +158,9 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
     )
     assert catalog_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert detail_payload["dataset_id"] == "INT.US.FEDFUNDS"
+    assert detail_payload["metadata"]["unit_type"] == "percent"
     assert "observed_on,value,reported_at,attributes" in csv_payload
-    assert "2026-01-01,4.33,2026-03-06T00:00:00+00:00,{}" in csv_payload
+    assert '2026-01-01,4.33,2026-03-06T00:00:00+00:00,"{""unit_type"":""percent""}"' in csv_payload
 
 
 def test_http_runtime_unknown_dataset_returns_not_found(http_server: tuple[str, int]) -> None:

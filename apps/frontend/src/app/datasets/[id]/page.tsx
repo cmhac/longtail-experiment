@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
+import { DatasetDetailAnalysis } from "../../../components/discovery/DatasetDetailAnalysis";
 import { DatasetDetailHeader } from "../../../components/discovery/DatasetDetailHeader";
-import { DatasetDetailInsights } from "../../../components/discovery/DatasetDetailInsights";
 import { ErrorState } from "../../../components/discovery/ErrorState";
-import { ObservationsChart } from "../../../components/discovery/ObservationsChart";
 import { ObservationsTable } from "../../../components/discovery/ObservationsTable";
 import { fetchDatasetDetail } from "../../../lib/api/discovery-client";
 import { SiteHeader } from "../../../shell/site-header";
@@ -40,12 +39,7 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
           </section>
 
           <section className="dataset-detail-analysis" data-testid="dataset-detail-analysis">
-            <DatasetDetailInsights data={detail} />
-
-            <section className="dataset-detail-trend" data-testid="dataset-detail-trend-section">
-              <h2>Historical Trend</h2>
-              <ObservationsChart observations={detail.observations} />
-            </section>
+            <DatasetDetailAnalysis data={detail} />
           </section>
 
           <section
@@ -55,7 +49,8 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
             <h2>Observed Values</h2>
             <ObservationsTable
               observations={detail.observations}
-              unit={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
+              unitType={(detail.metadata.unit_type ?? null) as string | null}
+              unitLabel={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
             />
           </section>
         </main>
