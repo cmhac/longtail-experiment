@@ -31,4 +31,5 @@ def test_detail_returns_metadata_and_observations() -> None:
     assert response["dataset_id"] == "UNRATE"
     assert response["title"] == "Unemployment Rate"
     assert response["observations"]
+    assert response["metadata"]["unit_type"] == "percent"
     assert response["observation_sort"] == "observed_on_asc,reported_at_asc"

@@ -8,13 +8,15 @@ import { buildObservationRows } from "./dataset-detail-view-model";
 
 interface ObservationsTableProps {
   observations: ObservationPoint[];
-  unit?: string | null;
+  unitType?: string | null;
+  unitLabel?: string | null;
   defaultVisibleRows?: number;
 }
 
 export const ObservationsTable = ({
   observations,
-  unit,
+  unitType,
+  unitLabel,
   defaultVisibleRows = 6,
 }: ObservationsTableProps): JSX.Element => {
   const [showAll, setShowAll] = React.useState(false);
@@ -23,7 +25,7 @@ export const ObservationsTable = ({
     return <EmptyState message="No observation data available" />;
   }
 
-  const rows = buildObservationRows(observations, unit);
+  const rows = buildObservationRows(observations, unitType, unitLabel);
   const visibleRows = showAll ? rows : rows.slice(0, defaultVisibleRows);
   const hasMoreRows = rows.length > defaultVisibleRows;
 

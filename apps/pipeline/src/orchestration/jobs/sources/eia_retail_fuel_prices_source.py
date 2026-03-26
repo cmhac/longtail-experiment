@@ -294,6 +294,15 @@ def _map_records(
         if not value_str:
             continue
 
+        raw_unit = str(row.get("units") or "Dollars per Gallon")
+        normalized_unit = raw_unit.strip().lower()
+        if "%" in normalized_unit or "percent" in normalized_unit:
+            unit_type = "percent"
+        elif "$" in normalized_unit or "dollar" in normalized_unit:
+            unit_type = "usd"
+        else:
+            unit_type = "number"
+
         reported_at = row.get("updated") or row.get("last-updated") or now_iso
         mapped.append(
             {
@@ -308,7 +317,8 @@ def _map_records(
                 "date": str(period),
                 "reported_at": str(reported_at),
                 "value": value_str,
-                "unit": str(row.get("units") or "Dollars per Gallon"),
+                "unit": raw_unit,
+                "unit_type": unit_type,
                 "attributes": {
                     "provider_series_id": series_config["provider_series_id"],
                     "provider_duoarea": str(

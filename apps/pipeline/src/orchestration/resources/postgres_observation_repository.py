@@ -23,6 +23,7 @@ class ObservationPayload(Protocol):
     observed_on: date
     reported_at: datetime
     value: Decimal
+    unit_type: str | None
     attributes: dict[str, str]
 
 
@@ -63,7 +64,10 @@ class PostgresObservationRepository:
     def upsert_observation(self, observation: ObservationPayload) -> None:
         """Insert or update a canonical observation and its parent data-series row."""
         now = datetime.now(tz=UTC)
-        attributes_json = json.dumps(observation.attributes)
+        persisted_attributes = dict(observation.attributes)
+        if observation.unit_type is not None and observation.unit_type.strip() != "":
+            persisted_attributes.setdefault("unit_type", observation.unit_type)
+        attributes_json = json.dumps(persisted_attributes)
         dataset_title = _normalize_optional_text(getattr(observation, "dataset_title", None))
         dataset_description = _normalize_optional_text(
             getattr(observation, "dataset_description", None)

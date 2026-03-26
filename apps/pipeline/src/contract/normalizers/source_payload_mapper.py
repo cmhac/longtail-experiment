@@ -19,10 +19,48 @@ def _coerce_topic_tags(raw: object) -> list[str]:
     return coerced
 
 
+def _normalize_unit_type(raw: object) -> str | None:
+    if not isinstance(raw, str):
+        return None
+    normalized = raw.strip().lower()
+    if normalized in {"usd", "percent", "number"}:
+        return normalized
+    return None
+
+
+def _infer_unit_type_from_unit_label(raw: object) -> str | None:
+    if not isinstance(raw, str):
+        return None
+    normalized = raw.strip().lower()
+    if normalized == "":
+        return None
+    if "%" in normalized or "percent" in normalized:
+        return "percent"
+    if "$" in normalized or "dollar" in normalized:
+        return "usd"
+    return "number"
+
+
+def _coerce_attributes(raw: object) -> dict[str, str]:
+    if not isinstance(raw, dict):
+        return {}
+    coerced: dict[str, str] = {}
+    for key, value in raw.items():
+        coerced[str(key)] = str(value)
+    return coerced
+
+
 def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation:
     """Map variant source payload keys into the canonical observation schema."""
     source_type = str(payload["source_type"]).strip().lower()
     topic_tags = _coerce_topic_tags(payload.get("topic_tags") or payload.get("tags"))
+    unit_value = payload.get("unit")
+    unit_type = _normalize_unit_type(payload.get("unit_type")) or _infer_unit_type_from_unit_label(
+        unit_value
+    )
+    attributes = _coerce_attributes(payload.get("attributes") or {})
+    if unit_type is not None:
+        attributes["unit_type"] = unit_type
 
     return CanonicalObservation.model_validate(
         {
@@ -38,7 +76,8 @@ def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation
             "observed_on": payload.get("date") or payload.get("observed_on"),
             "reported_at": payload["reported_at"],
             "value": payload["value"],
-            "unit": payload.get("unit"),
-            "attributes": payload.get("attributes") or {},
+            "unit": unit_value,
+            "unit_type": unit_type,
+            "attributes": attributes,
         }
     )

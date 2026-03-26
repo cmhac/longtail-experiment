@@ -48,7 +48,7 @@ class _PersistedDetailRepoStub:
                 "observed_on": "2026-01-01",
                 "value": 4.33,
                 "reported_at": "2026-03-06T00:00:00+00:00",
-                "attributes": {},
+                "attributes": {"unit_type": "percent"},
             },
             {
                 "observed_on": "2026-02-01",
@@ -73,4 +73,5 @@ def test_detail_contract_uses_persisted_observations_and_sort_metadata() -> None
         "2026-01-01",
         "2026-02-01",
     ]
+    assert payload["metadata"]["unit_type"] == "percent"
     assert payload["observation_sort"] == "observed_on_asc,reported_at_asc"

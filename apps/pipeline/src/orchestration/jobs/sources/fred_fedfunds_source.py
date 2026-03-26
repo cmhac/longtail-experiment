@@ -34,6 +34,7 @@ class FredSeriesConfig(Protocol):
     metric_name: str
     dataset_description: str
     dataset_geographic_scope: str
+    unit_type: str
     topic_tags: list[str]
 
 
@@ -45,6 +46,7 @@ FRED_SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
         "metric_name": "Effective Federal Funds Rate",
         "dataset_description": "Federal funds effective interest rate published by FRED.",
         "dataset_geographic_scope": "United States",
+        "unit_type": "percent",
         "topic_tags": ["interest rates", "monetary policy", "federal reserve"],
     },
     {
@@ -54,6 +56,7 @@ FRED_SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
         "metric_name": "US Regular Gas Price",
         "dataset_description": "Average retail regular gasoline price from FRED.",
         "dataset_geographic_scope": "United States",
+        "unit_type": "usd",
         "topic_tags": ["energy", "gasoline", "consumer prices"],
     },
 )
@@ -135,6 +138,7 @@ def _map_fred_records(
                 "date": str(row.get("date", "")),
                 "reported_at": str(row.get("realtime_end") or row.get("realtime_start") or now_iso),
                 "value": str(row.get("value", "")),
+                "unit_type": series_config["unit_type"],
                 "attributes": {
                     "provider_series_id": series_config["provider_series_id"],
                 },

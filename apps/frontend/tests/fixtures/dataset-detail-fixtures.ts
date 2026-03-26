@@ -10,6 +10,7 @@ export const buildDatasetDetailFixture = (): DatasetDetail => {
     topic_tags: ["energy", "gasoline"],
     metadata: {
       unit: "$/Gal",
+      unit_type: "usd",
       source_type: "Federal",
     },
     observations: [

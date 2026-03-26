@@ -70,3 +70,68 @@ def test_payload_mapper_maps_dataset_metadata_aliases() -> None:
     assert observation.dataset_description == "Federal funds effective interest rate."
     assert observation.dataset_geographic_scope == "United States"
     assert observation.topic_tags == ["interest rates", "monetary policy"]
+
+
+def test_payload_mapper_normalizes_explicit_unit_type_and_attributes() -> None:
+    """Mapper should normalize explicit unit_type and persist it in attributes."""
+    observation = normalize_source_payload(
+        {
+            "source_name": "FRED",
+            "source_type": "EXTERNAL",
+            "series_key": "INT.US.FEDFUNDS",
+            "metric_name": "Effective Federal Funds Rate",
+            "date": "2026-01-01",
+            "reported_at": datetime(2026, 2, 2, tzinfo=UTC),
+            "value": Decimal("4.1"),
+            "unit_type": "PERCENT",
+            "attributes": {"revision": 0},
+        }
+    )
+
+    assert observation.unit_type == "percent"
+    assert observation.attributes["unit_type"] == "percent"
+    assert observation.attributes["revision"] == "0"
+
+
+def test_payload_mapper_infers_unit_type_from_unit_label() -> None:
+    """Mapper should infer percent/usd/number unit_type from unit labels."""
+    percent_observation = normalize_source_payload(
+        {
+            "source_name": "FRED",
+            "source_type": "EXTERNAL",
+            "series_key": "INT.US.FEDFUNDS",
+            "metric_name": "Effective Federal Funds Rate",
+            "date": "2026-01-01",
+            "reported_at": datetime(2026, 2, 2, tzinfo=UTC),
+            "value": Decimal("4.1"),
+            "unit": "Percent",
+        }
+    )
+    usd_observation = normalize_source_payload(
+        {
+            "source_name": "EIA",
+            "source_type": "EXTERNAL",
+            "series_key": "ENERGY.US.GASREGW",
+            "metric_name": "US Regular Gas Price",
+            "date": "2026-01-01",
+            "reported_at": datetime(2026, 2, 2, tzinfo=UTC),
+            "value": Decimal("3.21"),
+            "unit": "Dollars per Gallon",
+        }
+    )
+    number_observation = normalize_source_payload(
+        {
+            "source_name": "BLS",
+            "source_type": "EXTERNAL",
+            "series_key": "CPI.US.ALL",
+            "metric_name": "Consumer Price Index",
+            "date": "2026-01-01",
+            "reported_at": datetime(2026, 2, 2, tzinfo=UTC),
+            "value": Decimal("302.5"),
+            "unit": "Index",
+        }
+    )
+
+    assert percent_observation.unit_type == "percent"
+    assert usd_observation.unit_type == "usd"
+    assert number_observation.unit_type == "number"

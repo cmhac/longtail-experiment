@@ -29,6 +29,7 @@ TWO = 2
 class _Observation(Protocol):
     series_key: object
     observed_on: object
+    unit_type: object
 
 
 class _CaptureRepository:
@@ -160,6 +161,10 @@ def test_fred_source_maps_grouped_series_and_tracks_partial_success() -> None:
     assert fedfunds_outcome["quarantined_count"] == 1
     assert gas_outcome["status"] == "success"
     assert gas_outcome["accepted_count"] == 1
+
+    unit_type_by_series = {str(row.series_key): str(row.unit_type) for row in capture_repo.rows}
+    assert unit_type_by_series[FRED_FEDFUNDS_CANONICAL_SERIES] == "percent"
+    assert unit_type_by_series[FRED_GASREGW_CANONICAL_SERIES] == "usd"
 
 
 def test_fred_source_uses_incremental_start_date_from_latest_checkpoint() -> None:

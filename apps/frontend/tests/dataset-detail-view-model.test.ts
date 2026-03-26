@@ -14,10 +14,13 @@ describe("dataset-detail-view-model", () => {
     expect(formatObservedOn("2024-01-15")).toBe("Jan 15, 2024");
   });
 
-  it("formats values with and without slash-prefixed units", () => {
+  it("formats values for usd, percent, and plain number unit types", () => {
     expect(formatValue(3.2)).toBe("$3.200");
-    expect(formatValue(3.2, "$/Gal")).toBe("$3.200 $/Gal");
-    expect(formatValue(3.2, "/Gal")).toBe("$3.200/Gal");
+    expect(formatValue(3.2, "usd", "$/Gal")).toBe("$3.200 $/Gal");
+    expect(formatValue(3.2, "usd", "/Gal")).toBe("$3.200/Gal");
+    expect(formatValue(4.33, "percent")).toBe("4.330%");
+    expect(formatValue(7.125, "number")).toBe("7.125");
+    expect(formatValue(5.1, null, "Percent")).toBe("5.100%");
   });
 
   it("builds insight metrics from observation history", () => {
@@ -42,7 +45,7 @@ describe("dataset-detail-view-model", () => {
   });
 
   it("builds observation rows in recency order with movement state", () => {
-    const rows = buildObservationRows(buildDatasetDetailFixture().observations, "$/Gal");
+    const rows = buildObservationRows(buildDatasetDetailFixture().observations, "usd", "$/Gal");
     const newest = rows[0];
     const middle = rows[1];
     const oldest = rows[2];
@@ -117,5 +120,21 @@ describe("dataset-detail-view-model", () => {
     const frequency = rows.find((row) => row.key === "Frequency");
 
     expect(frequency?.value).toBe("Weekly");
+  });
+
+  it("formats insight metrics as percentages when metadata unit_type is percent", () => {
+    const fixture = buildDatasetDetailFixture();
+    const metrics = buildInsightMetrics({
+      ...fixture,
+      metadata: {
+        ...fixture.metadata,
+        unit: null,
+        unit_type: "percent",
+      },
+    });
+
+    expect(metrics[0]?.value).toContain("%");
+    expect(metrics[1]?.value).toContain("%");
+    expect(metrics[2]?.value).toContain("%");
   });
 });

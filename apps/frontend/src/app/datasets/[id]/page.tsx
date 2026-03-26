@@ -55,7 +55,8 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
             <h2>Observed Values</h2>
             <ObservationsTable
               observations={detail.observations}
-              unit={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
+              unitType={(detail.metadata.unit_type ?? null) as string | null}
+              unitLabel={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
             />
           </section>
         </main>

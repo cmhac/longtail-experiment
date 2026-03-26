@@ -3,6 +3,7 @@ import type { DatasetDetail, ObservationPoint } from "../../lib/api/discovery-ty
 export type TrendRangeKey = "1M" | "6M" | "1Y" | "ALL";
 
 export type MovementState = "positive" | "negative" | "neutral" | "unavailable";
+type UnitType = "usd" | "percent" | "number";
 
 export interface InsightMetric {
   label: string;
@@ -17,6 +18,8 @@ export interface ObservationRowViewModel {
   weeklyChangeDisplay: string;
   movementState: MovementState;
 }
+
+const SUPPORTED_UNIT_TYPES: UnitType[] = ["usd", "percent", "number"];
 
 const RANGES_TO_COUNTS: Record<Exclude<TrendRangeKey, "ALL">, number> = {
   "1M": 4,
@@ -52,14 +55,52 @@ export const formatObservedOn = (value: string): string => {
   });
 };
 
-export const formatValue = (value: number, unit?: string | null): string => {
-  const formatted = `$${formatNumber(value, 3)}`;
+const normalizeUnitType = (value: unknown): UnitType | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (SUPPORTED_UNIT_TYPES.includes(normalized as UnitType)) {
+    return normalized as UnitType;
+  }
+  return null;
+};
 
-  if (!unit) {
-    return formatted;
+const inferUnitTypeFromLabel = (value: string | null): UnitType | null => {
+  if (!value) {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "") {
+    return null;
+  }
+  if (normalized.includes("%") || normalized.includes("percent")) {
+    return "percent";
+  }
+  if (normalized.includes("$") || normalized.includes("dollar")) {
+    return "usd";
+  }
+  return "number";
+};
+
+export const formatValue = (
+  value: number,
+  unitType?: string | null,
+  unitLabel?: string | null,
+): string => {
+  const resolvedUnitType = normalizeUnitType(unitType) ?? inferUnitTypeFromLabel(unitLabel ?? null);
+  if (resolvedUnitType === "percent") {
+    return `${formatNumber(value, 3)}%`;
+  }
+  if (resolvedUnitType === "number") {
+    return formatNumber(value, 3);
   }
 
-  return `${formatted}${unit.startsWith("/") ? "" : " "}${unit}`;
+  const formatted = `$${formatNumber(value, 3)}`;
+  if (!unitLabel) {
+    return formatted;
+  }
+  return `${formatted}${unitLabel.startsWith("/") ? "" : " "}${unitLabel}`;
 };
 
 const toMovementState = (value: number | null): MovementState => {
@@ -81,6 +122,11 @@ const toMovementState = (value: number | null): MovementState => {
 const getUnit = (detail: DatasetDetail): string | null => {
   const value = detail.metadata.unit ?? detail.metadata.units;
   return typeof value === "string" ? value : null;
+};
+
+const getUnitType = (detail: DatasetDetail): UnitType | null => {
+  const value = detail.metadata.unit_type;
+  return normalizeUnitType(typeof value === "string" ? value : null);
 };
 
 const getDerivedFrequencyLabel = (observations: ObservationPoint[]): string => {
@@ -137,6 +183,7 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
   }
 
   const unit = getUnit(detail);
+  const unitType = getUnitType(detail);
   const latest = observations[observations.length - 1];
   if (!latest) {
     return [
@@ -160,21 +207,22 @@ export const buildInsightMetrics = (detail: DatasetDetail): InsightMetric[] => {
 
   const latestMetric: InsightMetric = {
     label: "Latest Observation",
-    value: formatValue(latest.value, unit),
+    value: formatValue(latest.value, unitType, unit),
     ...(latestMovementSummary ? { movementSummary: latestMovementSummary } : {}),
     ...(movementState && movementState !== "unavailable" ? { movementState } : {}),
   };
 
   return [
     latestMetric,
-    { label: "1-Year High", value: formatValue(high, unit) },
-    { label: "1-Year Low", value: formatValue(low, unit) },
+    { label: "1-Year High", value: formatValue(high, unitType, unit) },
+    { label: "1-Year Low", value: formatValue(low, unitType, unit) },
   ];
 };
 
 export const buildObservationRows = (
   observations: ObservationPoint[],
-  unit?: string | null,
+  unitType?: string | null,
+  unitLabel?: string | null,
 ): ObservationRowViewModel[] => {
   const reversed = [...observations].reverse();
 
@@ -184,7 +232,7 @@ export const buildObservationRows = (
 
     return {
       observedOn: formatObservedOn(observation.observed_on),
-      valueDisplay: formatValue(observation.value, unit),
+      valueDisplay: formatValue(observation.value, unitType, unitLabel),
       weeklyChangeDisplay: weeklyChange === null ? "--" : formatSigned(weeklyChange, 3),
       movementState: toMovementState(weeklyChange),
     };

@@ -11,7 +11,12 @@ describe("ObservationsTable", () => {
   it("renders table rows for observations", () => {
     const fixture = buildDatasetDetailFixture();
     const markup = renderMarkup(
-      <ObservationsTable observations={fixture.observations} unit="$/Gal" defaultVisibleRows={2} />,
+      <ObservationsTable
+        observations={fixture.observations}
+        unitType="usd"
+        unitLabel="$/Gal"
+        defaultVisibleRows={2}
+      />,
     );
 
     expect(markup).toContain("<table");
@@ -61,7 +66,12 @@ describe("ObservationsTable", () => {
     ];
 
     render(
-      <ObservationsTable observations={extendedObservations} unit="$/Gal" defaultVisibleRows={3} />,
+      <ObservationsTable
+        observations={extendedObservations}
+        unitType="usd"
+        unitLabel="$/Gal"
+        defaultVisibleRows={3}
+      />,
     );
 
     expect(screen.getAllByRole("row")).toHaveLength(4);
