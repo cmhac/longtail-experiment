@@ -315,6 +315,10 @@ main[data-testid="catalog-page"] {
   gap: 1.2rem;
 }
 
+main[data-testid="source-detail-page"] {
+  align-content: start;
+}
+
 .discovery-list-page-header,
 .dataset-list-page-header {
   display: flex;
