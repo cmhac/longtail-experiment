@@ -118,6 +118,11 @@ def _read_json(url: str) -> dict[str, Any]:
         return json.loads(response.read().decode("utf-8"))
 
 
+def _read_text(url: str) -> str:
+    with urlopen(url, timeout=5) as response:  # noqa: S310
+        return response.read().decode("utf-8")
+
+
 def test_http_runtime_persisted_endpoints_return_expected_payloads(
     http_server: tuple[str, int],
 ) -> None:
@@ -135,6 +140,7 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
     detail_payload: dict[str, Any] = _read_json(
         f"http://{host}:{port}/api/datasets/INT.US.FEDFUNDS"
     )
+    csv_payload = _read_text(f"http://{host}:{port}/api/datasets/INT.US.FEDFUNDS.csv")
 
     assert search_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert summary_payload["active_dataset_count"] == 1
@@ -152,6 +158,8 @@ def test_http_runtime_persisted_endpoints_return_expected_payloads(
     )
     assert catalog_payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert detail_payload["dataset_id"] == "INT.US.FEDFUNDS"
+    assert "observed_on,value,reported_at,attributes" in csv_payload
+    assert "2026-01-01,4.33,2026-03-06T00:00:00+00:00,{}" in csv_payload
 
 
 def test_http_runtime_unknown_dataset_returns_not_found(http_server: tuple[str, int]) -> None:
@@ -159,6 +167,17 @@ def test_http_runtime_unknown_dataset_returns_not_found(http_server: tuple[str, 
 
     with pytest.raises(HTTPError) as exc_info:
         urlopen(f"http://{host}:{port}/api/datasets/UNKNOWN", timeout=5)  # noqa: S310
+
+    assert exc_info.value.code == HTTPStatus.NOT_FOUND
+    payload = json.loads(exc_info.value.read().decode("utf-8"))
+    assert payload["error"]["code"] == "dataset_not_found"
+
+
+def test_http_runtime_unknown_dataset_csv_returns_not_found(http_server: tuple[str, int]) -> None:
+    host, port = http_server
+
+    with pytest.raises(HTTPError) as exc_info:
+        urlopen(f"http://{host}:{port}/api/datasets/UNKNOWN.csv", timeout=5)  # noqa: S310
 
     assert exc_info.value.code == HTTPStatus.NOT_FOUND
     payload = json.loads(exc_info.value.read().decode("utf-8"))

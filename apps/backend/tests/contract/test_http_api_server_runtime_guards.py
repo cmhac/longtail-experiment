@@ -164,6 +164,10 @@ def test_http_handler_health_not_found_and_error_branches(
         urlopen(f"http://{host}:{port}/api/datasets/UNKNOWN", timeout=5)  # noqa: S310
     assert detail_exc.value.code == 404
 
+    with pytest.raises(HTTPError) as csv_exc:
+        urlopen(f"http://{host}:{port}/api/datasets/UNKNOWN.csv", timeout=5)  # noqa: S310
+    assert csv_exc.value.code == 404
+
 
 def test_http_handler_returns_500_when_service_not_initialized() -> None:
     original_service = DatasetApiHandler.service
