@@ -4,39 +4,30 @@
 
 1. Run docker compose up -d
 2. Run docker compose ps
-3. Optional: verify DB bootstrap only with bash tools/quality/local-stack/test-local-db-bootstrap.sh
+3. Optional: inspect service logs with docker compose logs <service>
 
 ## Dagit Local Workflow (Feature 009)
 
-Dagit is available as a Docker Compose service in this stack. Use these helpers from repository root to run and verify the local orchestration UI.
+Dagit is available as a Docker Compose service in this stack. Use `docker compose` directly from repository root to run and verify the local orchestration UI.
 
 0. Start stack services (includes Dagit):
    - `docker compose up -d`
 
 1. Start Dagit:
-   - `bash tools/quality/local-stack/start-dagit-local.sh`
+   - `docker compose up -d dagit`
 2. Verify endpoint and workspace load:
-   - `bash tools/quality/local-stack/test-dagit-endpoint.sh`
+   - `docker compose ps dagit`
+   - `docker compose logs dagit`
 3. Stop Dagit:
-   - `bash tools/quality/local-stack/stop-dagit-local.sh`
-
-If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
-
-- `prerequisite_missing`: missing local prerequisites or wrong command context.
-- `metadata_config_missing`: required Dagster metadata DB settings are absent.
-- `endpoint_unavailable`: process started but endpoint is unreachable.
-- `workspace_load_failed`: UI endpoint responds but workspace definitions are not loaded.
-- `partial_environment`: startup failed due to incomplete local runtime context.
+   - `docker compose stop dagit`
 
 ### Dagit Failure Matrix
 
 | Failure Category          | Observable Symptom                                      | Likely Root Cause                                                         | Recovery Steps                                                                                         | Verification Step                                                                           |
 | ------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `prerequisite_missing`    | Helper exits immediately before endpoint probe          | Missing `uv`, wrong working directory, or incomplete dependency setup     | Install prerequisites, switch to repository root, rerun startup helper                                 | `bash tools/quality/local-stack/start-dagit-local.sh` returns `DAGIT_START_STATUS=ready`    |
-| `metadata_config_missing` | Helper exits before Dagit launch and lists missing vars | `DAGSTER_METADATA_DB_*` values are unset or blank                         | Populate metadata DB vars in `docker/compose/stack.env` + `docker/compose/local.secrets.env` and rerun | `bash tools/quality/local-stack/start-dagit-local.sh` returns `DAGIT_START_STATUS=ready`    |
-| `endpoint_unavailable`    | Startup reports running but endpoint check fails        | Port conflict, webserver startup failure, or process crash                | Stop conflicting process, inspect `.tmp/dagit-local.log`, restart helper                               | `bash tools/quality/local-stack/test-dagit-endpoint.sh` returns `DAGIT_HEALTH_STATUS=ready` |
-| `workspace_load_failed`   | Endpoint reachable but workspace verification fails     | Definitions module load error or empty workspace location entries         | Validate `src.orchestration.definitions` imports and runtime wiring, restart Dagit                     | `DAGIT_VERIFY_WORKSPACE=1 bash tools/quality/local-stack/test-dagit-endpoint.sh` passes     |
-| `partial_environment`     | Startup helper emits fallback degraded category         | Mixed env state, stale pid/log state, or partial local stack availability | Run stop helper, clear stale state, ensure compose stack healthy, restart                              | Stop/start cycle and endpoint probe both succeed                                            |
+| `metadata_config_missing` | `dagit` never becomes healthy and logs show env validation failure | `DAGSTER_METADATA_DB_*` values are unset or blank                         | Populate metadata DB vars in `docker/compose/stack.env` + `docker/compose/local.secrets.env` and rerun | `docker compose ps dagit` reports healthy                                                   |
+| `endpoint_unavailable`    | `dagit` container runs but healthcheck stays unhealthy  | Webserver startup failure or process crash                                | Inspect `docker compose logs dagit`, fix the startup error, restart service                            | `docker compose ps dagit` reports healthy                                                   |
+| `workspace_load_failed`   | HTTP server starts but healthcheck never turns healthy  | Definitions module load error or empty workspace location entries         | Validate `src.orchestration.definitions` imports and runtime wiring, restart Dagit                     | `docker compose ps dagit` reports healthy                                                   |
 
 ## Healthy State
 
@@ -80,18 +71,19 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 - If db is unhealthy, inspect: docker compose logs db
 - If dagster_db is unhealthy, inspect: docker compose logs dagster_db
 - If any service fails health checks, stop stack with docker compose down and fix configuration before retry.
-- If migrations fail with role/auth errors on port 5432, verify local defaults from `docker/compose/stack.env` and ensure commands target `LOCAL_DB_PORT=55432`.
-- If migration or revision scripts fail while DB is stopped, rerun the same command; scripts now auto-start `db` and then wait for healthy status.
+- If migrations fail with role/auth errors on port 5432, verify local defaults from `docker/compose/stack.env`; the `backend` service should target `db:5432` internally and publish API traffic on `8080`.
+- For migration state, inspect `alembic_version` through `docker compose exec db ...` instead of using retired helper scripts.
 
 ## Contract Verification After Startup
 
 1. Run pipeline contract tests: `uv run --project apps/pipeline pytest apps/pipeline/tests/contract`
 2. Run backend contract tests: `uv run --project apps/backend pytest apps/backend/tests/contract`
-3. Apply shared DB migrations: `bash tools/quality/local-stack/run-db-migrations.sh`
-4. Verify revision baseline: `bash tools/quality/local-stack/check-db-revision.sh`
-5. Run end-to-end readiness helper: `bash tools/quality/local-stack/test-db-readiness.sh`
+3. Apply shared DB migrations by starting backend: `docker compose up -d backend`
+4. Verify revision baseline:
+   `docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"`
+5. Verify service readiness: `docker compose ps`
 6. Verify discovery runtime is persisted-data-backed (not fixture-backed):
-   `DISCOVERY_API_BASE_URL=http://127.0.0.1:8000 bash tools/quality/local-stack/test-discovery-persisted-parity.sh`
+   `DISCOVERY_API_BASE_URL=http://127.0.0.1:8080 bash tools/quality/local-stack/test-discovery-persisted-parity.sh`
 7. Verify quality gates for affected changes:
    - `pnpm run affected:lint`
    - `pnpm run affected:test`
@@ -99,7 +91,7 @@ If startup or verification fails, inspect the `DAGIT_FAILURE_CATEGORY` output:
 
 ## Development-only Warning
 
-- Local DB migration scripts are for local development environments only.
+- Local DB compose workflows are for local development environments only.
 - Do not run these commands against non-development databases.
 
 ## Contract-Specific Troubleshooting
@@ -180,8 +172,8 @@ Expected operator signals:
    `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_run_visibility_audit.py -k "historical_artifacts"`
 
 5. Apply cutover migration and verify:
-   `bash tools/quality/local-stack/run-db-migrations.sh`
-   `bash tools/quality/local-stack/check-db-revision.sh`
+   `docker compose up -d backend`
+   `docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"`
 
 6. Full orchestration test suite:
    `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration --no-cov`

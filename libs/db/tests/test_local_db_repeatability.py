@@ -1,29 +1,17 @@
-"""US3 repeatability checks for local DB migration scripts."""
+"""US3 repeatability checks for compose-based local DB workflows."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 
-def test_migration_scripts_avoid_destructive_reset_steps() -> None:
-    run_script = Path("tools/quality/local-stack/run-db-migrations.sh").read_text(
-        encoding="utf-8"
-    )
-    check_script = Path("tools/quality/local-stack/check-db-revision.sh").read_text(
-        encoding="utf-8"
-    )
-    assert "down -v" not in run_script
-    assert "down -v" not in check_script
+def test_compose_migration_guidance_avoids_destructive_reset_steps() -> None:
+    agents_md = Path("AGENTS.md").read_text(encoding="utf-8")
+    assert "docker compose down -v" not in agents_md
 
 
-def test_migration_scripts_wait_for_db_health() -> None:
-    run_script = Path("tools/quality/local-stack/run-db-migrations.sh").read_text(
-        encoding="utf-8"
-    )
-    check_script = Path("tools/quality/local-stack/check-db-revision.sh").read_text(
-        encoding="utf-8"
-    )
-    assert "for _ in $(seq 1 30); do" in run_script
-    assert '"Health":"healthy"' in run_script
-    assert "for _ in $(seq 1 30); do" in check_script
-    assert '"Health":"healthy"' in check_script
+def test_compose_declares_db_healthchecks() -> None:
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
+    assert '"Health":"healthy"' not in compose
+    assert "healthcheck:" in compose
+    assert "pg_isready" in compose

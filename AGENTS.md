@@ -40,8 +40,9 @@ Auto-generated from all feature plans. Last updated: 2026-03-25
 - Data stores: PostgreSQL 16 canonical dataset store (`source_profiles`, `data_series`,
   `observations`, topic-tag relation tables) and ingestion runtime tables
   (`ingestion_runs`, `source_run_outcomes`, cadence/eligibility persistence)
-- Local runtime: unified Docker Compose stack plus Dagit local tooling under
-  `tools/quality/local-stack`
+- Local runtime: unified Docker Compose stack is the canonical local-dev
+  orchestration surface; use `docker compose` directly for startup, shutdown,
+  logs, readiness, migrations, and Dagit access
 - Shared DB library: `libs/db` with migration authority under `libs/db/alembic`
 - Cross-repo duplication tooling: PMD CPD 7.22.0 scripts
 
@@ -168,24 +169,28 @@ Frontend discovery runtime environment:
 Local stack and duplication:
 
 - bash tools/quality/cpd/run-cpd.sh
-- bash tools/quality/local-stack/test-local-db-bootstrap.sh
-- bash tools/quality/local-stack/run-db-migrations.sh
-- bash tools/quality/local-stack/check-db-revision.sh
-- bash tools/quality/local-stack/start-dagit-local.sh
-- bash tools/quality/local-stack/test-dagit-endpoint.sh
-- bash tools/quality/local-stack/stop-dagit-local.sh
-- VERIFY_DAGIT_ENDPOINT=1 bash tools/quality/local-stack/test-compose-stack.sh
 - uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_ingest_job_runtime.py::test_ingest_job_persists_deferred_counts_when_sources_are_carried_forward
-- bash tools/quality/local-stack/test-db-readiness.sh
 - uv run --project apps/backend pytest apps/backend/tests/contract/test_ingest_audit_query_contract.py apps/backend/tests/contract/test_revision_lineage_traceability.py
-- bash tools/quality/local-stack/test-compose-stack.sh
 - uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_dagster_metadata_storage_config.py apps/pipeline/tests/orchestration/test_dagit_runtime_fail_fast.py apps/pipeline/tests/orchestration/test_dagster_metadata_concurrency.py
 - bash tools/quality/local-stack/test-discovery-persisted-parity.sh
 - docker compose up -d
 - docker compose ps
+- docker compose logs <service>
+- docker compose up -d db dagster_db
+- docker compose up -d backend
+- docker compose up -d dagit
+- docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 - docker compose down
 
 Current migration head expected by local revision checks: `0009_drop_source_profile_frequency`.
+
+Docker Compose policy:
+
+- `docker compose` is the only canonical local-dev control surface for stack lifecycle and service verification.
+- Do not add or use wrapper scripts under `tools/quality/local-stack` for startup, shutdown, readiness polling, migration application, or Dagit management when the same behavior can be expressed with `docker compose`.
+- For migration application, start `backend`; its container command owns `alembic upgrade head` before the API server starts.
+- For Dagit verification, use `docker compose ps dagit` and `docker compose logs dagit`; the compose healthcheck now verifies both HTTP reachability and workspace load.
+- Before manual testing, restart from a clean compose state with `docker compose down` followed by `docker compose up -d`.
 
 ## Code Style
 

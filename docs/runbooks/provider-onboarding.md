@@ -218,8 +218,9 @@ Dagit verification:
 
 ```bash
 # Start local Dagit and verify workspace loads
-bash tools/quality/local-stack/start-dagit-local.sh
-bash tools/quality/local-stack/test-dagit-endpoint.sh
+docker compose up -d dagit
+docker compose ps dagit
+docker compose logs dagit
 
 # Confirm new asset keys are present in the loaded workspace
 PYTHONPATH=apps/pipeline uv run --project apps/pipeline python -c \
@@ -228,7 +229,7 @@ PYTHONPATH=apps/pipeline uv run --project apps/pipeline python -c \
 
 Expected results:
 
-- Dagit endpoint returns `DAGIT_HEALTH_STATUS=ready`
+- `docker compose ps dagit` reports the service healthy
 - New provider assets appear in the catalog under the intended prefix (e.g. `acme/cpi`)
 - Schedule appears in the Dagit Automation view as `acme_cpi_schedule`
 
@@ -242,8 +243,8 @@ Only needed when the new source requires new runtime persistence fields or table
 2. Add a new Alembic migration in `libs/db/alembic/versions/`
 3. Run local migration and revision checks:
    ```bash
-   bash tools/quality/local-stack/run-db-migrations.sh
-   bash tools/quality/local-stack/check-db-revision.sh
+   docker compose up -d backend
+   docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
    ```
 4. Add migration and model regression tests under `libs/db/tests/`
 

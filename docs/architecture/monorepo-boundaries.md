@@ -27,8 +27,9 @@ Define ownership and separation boundaries for baseline monorepo projects.
 - `apps/backend/src/contract/query/**` owns read-side projections, audit retrieval, and hierarchy-aware filter expansion.
 - `libs/db/src/db/models/**` and `libs/db/src/db/repositories/**` own shared persistence entities and repository interfaces/adapters consumed by both apps.
 - `libs/db/alembic/**` is the sole migration authority for shared contract persistence.
-- `tools/quality/local-stack/test-local-db-bootstrap.sh`, `tools/quality/local-stack/run-db-migrations.sh`, and `tools/quality/local-stack/check-db-revision.sh` are canonical local DB bootstrap/migration verification entry points.
-- `tools/quality/local-stack/test-db-readiness.sh` is the canonical end-to-end local readiness verification command.
+- `docker-compose.yml` is the canonical local DB/bootstrap/readiness orchestration entry point.
+- The `backend` compose service owns shared DB migration application on startup via Alembic before serving traffic.
+- The `dagit` compose service healthcheck is the canonical Dagit readiness signal and must cover workspace load, not only bare HTTP reachability.
 
 ## Conflict Queryability Boundary
 

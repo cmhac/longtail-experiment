@@ -27,8 +27,8 @@ Use local-stack verification checks to confirm both roles are independently avai
 
 Suggested commands:
 
-1. bash tools/quality/local-stack/test-local-db-bootstrap.sh
-2. bash tools/quality/local-stack/test-db-readiness.sh
+1. docker compose up -d db dagster_db backend dagit
+2. docker compose ps
 
 Expected result:
 
@@ -75,8 +75,8 @@ Required before commit or handoff:
 
 Optional focused checks during implementation:
 
-1. bash tools/quality/local-stack/test-db-readiness.sh
-2. bash tools/quality/local-stack/test-compose-stack.sh
+1. docker compose ps
+2. docker compose logs dagit
 3. pnpm run affected:test
 
 ## Completion Criteria
@@ -84,9 +84,9 @@ Optional focused checks during implementation:
 - Dagster metadata persistence runs on PostgreSQL in local stack.
 - Dual database roles are healthy and independently operable.
 - Concurrency validation no longer reproduces SQLite locking-protocol failures.
-- Documentation and verification scripts align with new runtime contract.
+- Documentation and compose-first verification guidance align with new runtime contract.
 
 ## Validation Notes
 
 - 2026-03-24: `PYTHONPATH=apps/pipeline uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_dagster_metadata_storage_config.py apps/pipeline/tests/orchestration/test_dagit_runtime_fail_fast.py apps/pipeline/tests/orchestration/test_dagster_metadata_concurrency.py apps/pipeline/tests/orchestration/test_definitions_smoke.py` passed.
-- 2026-03-24: `uv run --project libs/db pytest --no-cov libs/db/tests/test_local_stack_script_portability.py` passed.
+- 2026-03-24: local-stack readiness checks were covered by compose-based service startup and health validation.

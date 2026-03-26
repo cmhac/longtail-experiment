@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from pathlib import Path
 from uuid import uuid4
@@ -236,28 +235,12 @@ def test_ingest_job_second_run_adds_no_duplicate_fred_observations() -> None:
     assert len(after_second) == len(after_first)
 
 
-def test_dagit_start_helper_reports_ready_for_existing_live_pid() -> None:
-    """Startup helper should report ready when a live pid file already exists."""
-    repo_root = Path(__file__).resolve().parents[4]
-    tmp_dir = repo_root / ".tmp"
-    pid_file = tmp_dir / "dagit-local.pid"
+def test_compose_based_manual_testing_guidance_requires_clean_restart() -> None:
+    """AGENTS guidance should require clean compose restarts before manual testing."""
+    agents_md = Path("AGENTS.md").read_text(encoding="utf-8")
 
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    pid_file.write_text(f"{os.getpid()}\n", encoding="utf-8")
-
-    try:
-        completed = subprocess.run(
-            ["bash", "tools/quality/local-stack/start-dagit-local.sh"],
-            cwd=repo_root,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        assert completed.returncode == 0
-        assert "DAGIT_START_STATUS=ready" in completed.stdout
-    finally:
-        pid_file.unlink(missing_ok=True)
+    assert "docker compose down" in agents_md
+    assert "docker compose up -d" in agents_md
 
 
 def test_definitions_detail_navigation_readiness_for_ingest_job() -> None:

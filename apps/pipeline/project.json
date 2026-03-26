@@ -92,7 +92,8 @@
       "options": {
         "commands": [
           "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_source_asset_discovery.py apps/pipeline/tests/orchestration/test_source_asset_contract_validation.py apps/pipeline/tests/orchestration/test_definitions_smoke.py",
-          "bash tools/quality/local-stack/test-dagit-endpoint.sh"
+          "docker compose up -d dagit",
+          "docker compose ps dagit"
         ],
         "parallel": false
       }

@@ -15,7 +15,7 @@ Validate discovery and detail backend read behavior for search, recent updates, 
 
 ```bash
 docker compose up -d
-bash tools/quality/local-stack/test-db-readiness.sh
+docker compose ps
 ```
 
 Expected:
@@ -26,8 +26,8 @@ Expected:
 ## 2) Apply database migrations
 
 ```bash
-bash tools/quality/local-stack/run-db-migrations.sh
-bash tools/quality/local-stack/check-db-revision.sh
+docker compose up -d backend
+docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 ```
 
 Expected:

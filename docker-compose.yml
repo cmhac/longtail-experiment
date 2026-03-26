@@ -165,7 +165,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:3000'', timeout=2)" || exit 1',
+          "python -c \"import json, urllib.request; payload=json.dumps({'query':'query LocalWorkspaceCheck { workspaceOrError { __typename ... on Workspace { locationEntries { id } } } }'}).encode(); req=urllib.request.Request('http://localhost:3000/graphql', data=payload, headers={'Content-Type':'application/json'}); data=json.load(urllib.request.urlopen(req, timeout=3)); workspace=data.get('data', {}).get('workspaceOrError', {}); entries=workspace.get('locationEntries', []); raise SystemExit(0 if workspace.get('__typename') == 'Workspace' and len(entries) >= 1 else 1)\" || exit 1",
         ]
       interval: 15s
       timeout: 5s

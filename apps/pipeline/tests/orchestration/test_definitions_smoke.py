@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import os
-import subprocess
 import sys
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 from dagster import Definitions
@@ -140,74 +136,13 @@ def test_definitions_recovery_plan_keeps_legacy_paths_disabled() -> None:
     assert plan["failed_sources"] == [first_source_key]
 
 
-def test_dagit_endpoint_probe_reports_ready_when_endpoint_is_reachable() -> None:
-    """Endpoint probe helper should pass when target endpoint is reachable."""
+def test_compose_dagit_healthcheck_queries_workspace_graphql() -> None:
+    """Compose health should validate workspace GraphQL, not only the root page."""
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
 
-    class _Handler(BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b"ok")
-
-        def log_message(self, format: str, *args: object) -> None:  # noqa: A002
-            return
-
-    server = HTTPServer(("127.0.0.1", 0), _Handler)
-    port = server.server_port
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-
-    repo_root = Path(__file__).resolve().parents[4]
-    try:
-        completed = subprocess.run(
-            ["bash", "tools/quality/local-stack/test-dagit-endpoint.sh"],
-            cwd=repo_root,
-            check=False,
-            capture_output=True,
-            text=True,
-            env={
-                **os.environ,
-                "DAGIT_ENDPOINT": f"http://127.0.0.1:{port}",
-                "DAGIT_VERIFY_WORKSPACE": "0",
-                "DAGSTER_METADATA_DB_HOST": "127.0.0.1",
-                "DAGSTER_METADATA_DB_PORT": "55433",
-                "DAGSTER_METADATA_DB_NAME": "dagster_local",
-                "DAGSTER_METADATA_DB_USER": "dagster",
-                "DAGSTER_METADATA_DB_PASSWORD": "test",
-            },
-        )
-    finally:
-        server.shutdown()
-        server.server_close()
-
-    assert completed.returncode == 0
-    assert "DAGIT_HEALTH_STATUS=ready" in completed.stdout
-
-
-def test_dagit_endpoint_probe_reports_unavailable_for_unreachable_endpoint() -> None:
-    """Endpoint probe should emit endpoint_unavailable when target is not reachable."""
-    repo_root = Path(__file__).resolve().parents[4]
-    completed = subprocess.run(
-        ["bash", "tools/quality/local-stack/test-dagit-endpoint.sh"],
-        cwd=repo_root,
-        check=False,
-        capture_output=True,
-        text=True,
-        env={
-            **os.environ,
-            "DAGIT_ENDPOINT": "http://127.0.0.1:9",
-            "DAGIT_ENDPOINT_RETRIES": "1",
-            "DAGIT_ENDPOINT_DELAY_SECONDS": "0",
-            "DAGSTER_METADATA_DB_HOST": "127.0.0.1",
-            "DAGSTER_METADATA_DB_PORT": "55433",
-            "DAGSTER_METADATA_DB_NAME": "dagster_local",
-            "DAGSTER_METADATA_DB_USER": "dagster",
-            "DAGSTER_METADATA_DB_PASSWORD": "test",
-        },
-    )
-
-    assert completed.returncode == 1
-    assert "DAGIT_FAILURE_CATEGORY=endpoint_unavailable" in completed.stdout
+    assert "http://localhost:3000/graphql" in compose
+    assert "workspaceOrError" in compose
+    assert "locationEntries" in compose
 
 
 def test_no_shared_all_source_schedule_in_definitions() -> None:
@@ -239,24 +174,8 @@ def test_compose_declares_dual_database_health_dependencies_for_dagit() -> None:
     assert 'DAGSTER_METADATA_ENFORCE: "1"' in compose
 
 
-def test_dagit_endpoint_probe_reports_metadata_config_missing_when_unset() -> None:
-    """Endpoint probe should fail before HTTP checks when metadata env vars are absent."""
-    repo_root = Path(__file__).resolve().parents[4]
-    completed = subprocess.run(
-        ["bash", "tools/quality/local-stack/test-dagit-endpoint.sh"],
-        cwd=repo_root,
-        check=False,
-        capture_output=True,
-        text=True,
-        env={
-            **os.environ,
-            "DAGSTER_METADATA_DB_HOST": "",
-            "DAGSTER_METADATA_DB_PORT": "",
-            "DAGSTER_METADATA_DB_NAME": "",
-            "DAGSTER_METADATA_DB_USER": "",
-            "DAGSTER_METADATA_DB_PASSWORD": "",
-        },
-    )
+def test_compose_dagit_healthcheck_requires_loaded_workspace_entries() -> None:
+    """Dagit healthcheck should require at least one workspace location entry."""
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
 
-    assert completed.returncode == 1
-    assert "DAGIT_FAILURE_CATEGORY=metadata_config_missing" in completed.stdout
+    assert "len(entries) >= 1" in compose

@@ -12,22 +12,11 @@ def test_alembic_ini_config_exists_with_script_location() -> None:
     assert "script_location = libs/db/alembic" in content
 
 
-def test_migration_scripts_have_strict_mode_headers() -> None:
-    scripts = [
-        Path("tools/quality/local-stack/run-db-migrations.sh"),
-        Path("tools/quality/local-stack/check-db-revision.sh"),
-    ]
-    for script in scripts:
-        text = script.read_text(encoding="utf-8")
-        assert text.startswith("#!/usr/bin/env bash\nset -euo pipefail\n")
-
-
-def test_migration_command_contracts_present() -> None:
-    run_script = Path("tools/quality/local-stack/run-db-migrations.sh").read_text(
+def test_migration_command_contracts_present_in_compose_and_docs() -> None:
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
+    quickstart = Path("specs/004-local-dev-db/quickstart.md").read_text(
         encoding="utf-8"
     )
-    check_script = Path("tools/quality/local-stack/check-db-revision.sh").read_text(
-        encoding="utf-8"
-    )
-    assert 'alembic -c "$ALEMBIC_INI" upgrade head' in run_script
-    assert 'alembic -c "$ALEMBIC_INI" current' in check_script
+
+    assert "alembic -c libs/db/alembic.ini upgrade head" in compose
+    assert "docker compose exec db psql" in quickstart

@@ -1,22 +1,17 @@
-"""Contract checks for repeatable migration wrapper behavior."""
+"""Contract checks for repeatable compose migration behavior."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 
-def test_runner_uses_non_destructive_upgrade_head() -> None:
-    run_script = Path("tools/quality/local-stack/run-db-migrations.sh").read_text(
-        encoding="utf-8"
-    )
-    assert "upgrade head" in run_script
-    assert "downgrade" not in run_script
+def test_backend_compose_runner_uses_non_destructive_upgrade_head() -> None:
+    compose = Path("docker-compose.yml").read_text(encoding="utf-8")
+    assert "upgrade head" in compose
+    assert "downgrade" not in compose
 
 
-def test_revision_check_is_deterministic() -> None:
-    check_script = Path("tools/quality/local-stack/check-db-revision.sh").read_text(
-        encoding="utf-8"
-    )
-    assert "EXPECTED_DB_REVISION" in check_script
-    assert "Revision mismatch" in check_script
-    assert "Revision OK" in check_script
+def test_revision_check_guidance_is_deterministic() -> None:
+    agents_md = Path("AGENTS.md").read_text(encoding="utf-8")
+    assert "0009_drop_source_profile_frequency" in agents_md
+    assert "SELECT version_num FROM alembic_version;" in agents_md

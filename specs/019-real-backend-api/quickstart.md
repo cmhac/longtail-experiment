@@ -15,9 +15,9 @@ Validate that discovery API runtime behavior is fully persisted-data-backed, fix
 
 ```bash
 docker compose up -d
-bash tools/quality/local-stack/test-db-readiness.sh
-bash tools/quality/local-stack/run-db-migrations.sh
-bash tools/quality/local-stack/check-db-revision.sh
+docker compose ps
+docker compose up -d backend
+docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 ```
 
 Migration-head runtime enforcement reference:
@@ -143,7 +143,7 @@ Observed outcome:
 
 ```bash
 docker compose up -d
-bash tools/quality/local-stack/check-db-revision.sh
+docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 DISCOVERY_API_BASE_URL=http://127.0.0.1:8080 DISCOVERY_PARITY_REQUIRE_DELTA=0 \
 	bash tools/quality/local-stack/test-discovery-persisted-parity.sh
 ```

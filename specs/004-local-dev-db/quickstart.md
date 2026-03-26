@@ -35,30 +35,30 @@ Expected outcome:
 ## 3. Apply Shared DB Migrations
 
 ```bash
-# Canonical migration apply command for this feature
-bash tools/quality/local-stack/run-db-migrations.sh
+# Canonical migration apply path for this feature
+docker compose up -d backend
 ```
 
 Expected outcome:
 
-- Migration chain applies successfully from current local baseline.
-- On first error, command exits immediately with actionable recovery output.
+- Migration chain applies successfully from current local baseline before the backend API serves traffic.
+- On first error, the backend container exits and the failure is visible through `docker compose logs backend`.
 
 ## 4. Verify Migration Baseline
 
 ```bash
-bash tools/quality/local-stack/check-db-revision.sh
+docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 ```
 
 Expected outcome:
 
 - Current revision matches expected latest shared-db revision.
-- Command output includes `Revision OK: <revision>` when baseline matches.
+- Command output includes the latest `version_num` row when baseline matches.
 
 ## 5. Run Local Readiness Verification
 
 ```bash
-bash tools/quality/local-stack/test-compose-stack.sh
+docker compose ps
 pnpm run affected:lint
 pnpm run affected:format
 pnpm run affected:typecheck
@@ -69,7 +69,7 @@ pnpm run affected:duplication
 
 Expected outcome:
 
-- Stack verification passes.
+- Compose health verification passes.
 - Affected quality gates pass with no suppressions.
 
 ## 6. Explicit Reset Flow (Only When Requested)
@@ -88,8 +88,8 @@ Expected outcome:
 
 ## Development-only Warning
 
-- Local DB bootstrap and migration scripts are development-only commands.
-- Do not execute these scripts against staging or production databases.
+- Local DB compose workflows are development-only commands.
+- Do not execute these commands against staging or production databases.
 
 ## 7. Shutdown
 

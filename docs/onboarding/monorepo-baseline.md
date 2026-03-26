@@ -14,7 +14,7 @@
 2. uv sync --project apps/backend --frozen
 3. uv sync --project apps/pipeline --frozen
 4. Start local stack: docker compose up -d
-5. Verify local DB bootstrap: bash tools/quality/local-stack/test-local-db-bootstrap.sh
+5. Verify service health: docker compose ps
 6. Run backend, pipeline, and frontend quality checks
 7. Install PMD and run duplication check
 
@@ -63,20 +63,17 @@
 
 ## Local DB Migration Commands (Development-only)
 
-- Bootstrap DB service: bash tools/quality/local-stack/test-local-db-bootstrap.sh
-- Apply migrations: bash tools/quality/local-stack/run-db-migrations.sh
-- Verify current revision: bash tools/quality/local-stack/check-db-revision.sh
-- Full readiness verification: bash tools/quality/local-stack/test-db-readiness.sh
+- Start DB services: docker compose up -d db dagster_db
+- Apply migrations by starting backend: docker compose up -d backend
+- Verify current revision: docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
+- Verify service readiness: docker compose ps
 
 ## Local Dagit Commands (Feature 009)
 
 - Start Dagit compose service: docker compose up -d dagit
 - View Dagit logs: docker compose logs dagit
+- Check Dagit health/workspace status: docker compose ps dagit
 - Stop Dagit compose service: docker compose stop dagit
-- Start local Dagit UI: bash tools/quality/local-stack/start-dagit-local.sh
-- Verify Dagit endpoint/workspace: bash tools/quality/local-stack/test-dagit-endpoint.sh
-- Stop local Dagit UI: bash tools/quality/local-stack/stop-dagit-local.sh
-- Run compose stack with Dagit endpoint verification: VERIFY_DAGIT_ENDPOINT=1 bash tools/quality/local-stack/test-compose-stack.sh
 
 ## Affected-only Checks
 
