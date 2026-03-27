@@ -368,17 +368,39 @@ main[data-testid="source-detail-page"] {
 }
 
 .dataset-list-controls {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.6rem;
   padding: 0.9rem;
+}
+
+.dataset-list-controls-surface {
   border: 1px solid color-mix(in srgb, var(--shell-border) 78%, transparent);
-  background: color-mix(in srgb, var(--shell-surface) 94%, transparent);
+  background: color-mix(in srgb, var(--shell-background) 98%, #000000);
+}
+
+.dataset-list-controls-left-group,
+.dataset-list-controls-right-group {
+  display: flex;
+  align-items: end;
+  gap: 0.8rem;
+}
+
+.dataset-list-controls-left-group {
+  flex: 1 1 auto;
+}
+
+.dataset-list-controls-right-group {
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .dataset-list-control-group {
   display: grid;
   gap: 0.3rem;
+  min-width: 0;
+  width: min(100%, 12.5rem);
 }
 
 .dataset-list-control-label {
@@ -388,12 +410,28 @@ main[data-testid="source-detail-page"] {
   text-transform: uppercase;
 }
 
-.dataset-list-control-group select {
-  min-height: 2rem;
+.dataset-list-control-combobox {
+  width: 100%;
+}
+
+.dataset-list-control-combobox [data-slot="combo-box-input-group"] {
   border: 1px solid var(--shell-border);
-  border-radius: 0;
-  padding: 0.28rem 0.45rem;
+  border-radius: 0.8rem;
   background: var(--shell-surface);
+  overflow: hidden;
+}
+
+.dataset-list-control-combobox [data-slot="combo-box-trigger"] {
+  color: var(--shell-muted);
+  min-width: 2.15rem;
+  padding-inline: 0.45rem;
+}
+
+.dataset-list-control-combobox [data-slot="input"] {
+  min-height: 2rem;
+  padding: 0.28rem 0.45rem;
+  background: transparent;
+  border: 0;
   color: var(--shell-foreground);
 }
 
@@ -1115,7 +1153,21 @@ div[data-testid="observations-chart"] {
   }
 
   .dataset-list-controls {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.9rem;
+  }
+
+  .dataset-list-controls-left-group,
+  .dataset-list-controls-right-group {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .dataset-list-control-group {
+    width: min(100%, 100%);
   }
 
   .recent-updates-meta-rail {

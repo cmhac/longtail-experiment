@@ -55,3 +55,25 @@
 1. Confirm plan artifacts (`research.md`, `data-model.md`, `contracts/`, `quickstart.md`) reflect final scope.
 2. Confirm spec scope remains aligned with implemented behavior for all three tasks.
 3. Confirm workflow and command references stay consistent with repository conventions.
+
+## Execution Evidence
+
+### Focused Automated Verification
+
+1. Command:
+   - `pnpm --dir apps/frontend exec vitest run tests/DatasetListControls.test.tsx tests/datasets-page.test.tsx`
+2. Result:
+   - Passed (`24` tests across `2` files).
+
+### Repository-Wide Gate Verification
+
+1. Command:
+   - `pre-commit run --all-files`
+2. Result:
+   - Passed (lint, format, typecheck, test, coverage, duplication, and suppression checks).
+
+### Implemented UI Outcomes
+
+1. Filter controls now render as HeroUI combo-box style selectors.
+2. Filter control container now uses the unified shared surface style.
+3. Control row now renders as two left-grouped filters with a right-separated sort control and capped widths.

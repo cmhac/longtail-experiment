@@ -23,10 +23,10 @@
 
 **Purpose**: Align implementation scaffolding for filter-control visual and interaction updates.
 
-- [ ] T001 Confirm and document baseline control/test hooks in specs/035-filter-ui-improvements/quickstart.md
-- [ ] T002 [P] Add implementation sequencing notes for control-surface/control-type/layout rollout in specs/035-filter-ui-improvements/plan.md
-- [ ] T003 [P] Add story-level regression checklist comments in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T004 Add story-level manual verification checklist entries in specs/035-filter-ui-improvements/contracts/dataset-list-filter-controls-ui-contract.md
+- [X] T001 Confirm and document baseline control/test hooks in specs/035-filter-ui-improvements/quickstart.md
+- [X] T002 [P] Add implementation sequencing notes for control-surface/control-type/layout rollout in specs/035-filter-ui-improvements/plan.md
+- [X] T003 [P] Add story-level regression checklist comments in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T004 Add story-level manual verification checklist entries in specs/035-filter-ui-improvements/contracts/dataset-list-filter-controls-ui-contract.md
 
 ---
 
@@ -36,11 +36,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Define shared filter-control group wrapper structure and stable data-testid hooks in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T006 [P] Define shared layout classes for left-group/right-group spacing and capped widths in apps/frontend/src/app/globals.css
-- [ ] T007 [P] Add foundational control-row rendering assertions for group wrappers and test IDs in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T008 Add foundational datasets-page smoke assertions for control row presence in apps/frontend/tests/datasets-page.test.tsx
-- [ ] T009 Verify foundational coverage contribution for filter-control baseline in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T005 Define shared filter-control group wrapper structure and stable data-testid hooks in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T006 [P] Define shared layout classes for left-group/right-group spacing and capped widths in apps/frontend/src/app/globals.css
+- [X] T007 [P] Add foundational control-row rendering assertions for group wrappers and test IDs in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T008 Add foundational datasets-page smoke assertions for control row presence in apps/frontend/tests/datasets-page.test.tsx
+- [X] T009 Verify foundational coverage contribution for filter-control baseline in apps/frontend/tests/DatasetListControls.test.tsx
 
 **Checkpoint**: Shared control-row structure and regression harness are complete.
 
@@ -54,15 +54,15 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T010 [P] [US1] Add control-container surface class and readability assertions in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T011 [P] [US1] Add datasets-page markup assertions for unified filter-container surface styling in apps/frontend/tests/datasets-page.test.tsx
+- [X] T010 [P] [US1] Add control-container surface class and readability assertions in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T011 [P] [US1] Add datasets-page markup assertions for unified filter-container surface styling in apps/frontend/tests/datasets-page.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Apply unified filter-container surface styling classes in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T013 [US1] Implement shared surface background/border token rules for filter container in apps/frontend/src/app/globals.css
-- [ ] T014 [US1] Preserve filter-container readability across appearance contexts in apps/frontend/src/app/globals.css
-- [ ] T015 [US1] Verify US1 coverage contribution remains >= 90% using apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T012 [US1] Apply unified filter-container surface styling classes in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T013 [US1] Implement shared surface background/border token rules for filter container in apps/frontend/src/app/globals.css
+- [X] T014 [US1] Preserve filter-container readability across appearance contexts in apps/frontend/src/app/globals.css
+- [X] T015 [US1] Verify US1 coverage contribution remains >= 90% using apps/frontend/tests/DatasetListControls.test.tsx
 
 **Checkpoint**: Filter controls are visually unified with shared surface styling.
 
@@ -76,17 +76,17 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T016 [P] [US2] Add combo-box interaction tests for source/category/sort selection updates in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T017 [P] [US2] Add keyboard-operability tests for selector open/navigate/select paths in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T018 [P] [US2] Add datasets-page behavior-regression assertions for preserved filter/sort semantics in apps/frontend/tests/datasets-page.test.tsx
+- [X] T016 [P] [US2] Add combo-box interaction tests for source/category/sort selection updates in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T017 [P] [US2] Add keyboard-operability tests for selector open/navigate/select paths in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T018 [P] [US2] Add datasets-page behavior-regression assertions for preserved filter/sort semantics in apps/frontend/tests/datasets-page.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Replace source and category dropdown controls with combo-box style controls in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T020 [US2] Replace sort dropdown control with combo-box style control in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T021 [US2] Preserve query-param update behavior for source/category/sort and page reset after combo-box migration in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T022 [US2] Add combo-box-specific control styling rules for label, trigger, and option readability in apps/frontend/src/app/globals.css
-- [ ] T023 [US2] Verify US2 coverage contribution remains >= 90% using apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T019 [US2] Replace source and category dropdown controls with combo-box style controls in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T020 [US2] Replace sort dropdown control with combo-box style control in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T021 [US2] Preserve query-param update behavior for source/category/sort and page reset after combo-box migration in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T022 [US2] Add combo-box-specific control styling rules for label, trigger, and option readability in apps/frontend/src/app/globals.css
+- [X] T023 [US2] Verify US2 coverage contribution remains >= 90% using apps/frontend/tests/DatasetListControls.test.tsx
 
 **Checkpoint**: Combo-box controls are active and preserve existing filter/sort behavior semantics.
 
@@ -100,16 +100,16 @@
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T024 [P] [US3] Add control-row layout assertions for left/right grouping and spacing classes in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T025 [P] [US3] Add datasets-page markup assertions for capped-width controls and group separation in apps/frontend/tests/datasets-page.test.tsx
-- [ ] T026 [P] [US3] Add responsive reflow assertions for control-group readability in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T024 [P] [US3] Add control-row layout assertions for left/right grouping and spacing classes in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T025 [P] [US3] Add datasets-page markup assertions for capped-width controls and group separation in apps/frontend/tests/datasets-page.test.tsx
+- [X] T026 [P] [US3] Add responsive reflow assertions for control-group readability in apps/frontend/tests/DatasetListControls.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Implement control-row group wrappers and ordering for two filters left / sort right in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T028 [US3] Implement inter-group spacing and capped-width rules for control row in apps/frontend/src/app/globals.css
-- [ ] T029 [US3] Implement responsive reflow rules preserving grouping intent on narrow widths in apps/frontend/src/app/globals.css
-- [ ] T030 [US3] Verify US3 coverage contribution remains >= 90% using apps/frontend/tests/datasets-page.test.tsx
+- [X] T027 [US3] Implement control-row group wrappers and ordering for two filters left / sort right in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T028 [US3] Implement inter-group spacing and capped-width rules for control row in apps/frontend/src/app/globals.css
+- [X] T029 [US3] Implement responsive reflow rules preserving grouping intent on narrow widths in apps/frontend/src/app/globals.css
+- [X] T030 [US3] Verify US3 coverage contribution remains >= 90% using apps/frontend/tests/datasets-page.test.tsx
 
 **Checkpoint**: Control-row spacing, grouping, and capped-width layout behavior match the target pattern.
 
@@ -119,13 +119,13 @@
 
 **Purpose**: Final validation, documentation synchronization, and mandatory quality gates.
 
-- [ ] T031 [P] Update implementation status and sequencing notes in specs/035-filter-ui-improvements/plan.md
-- [ ] T032 [P] Update story verification and runtime checks in specs/035-filter-ui-improvements/quickstart.md
-- [ ] T033 [P] Update UI contract notes for final control behavior in specs/035-filter-ui-improvements/contracts/dataset-list-filter-controls-ui-contract.md
-- [ ] T034 Run focused frontend test suite for changed discovery control behavior in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T035 Run full monorepo test stop gate and capture result in specs/035-filter-ui-improvements/quickstart.md
-- [ ] T036 Run full monorepo coverage stop gate and capture result in specs/035-filter-ui-improvements/quickstart.md
-- [ ] T037 Run all-files quality gate and capture result in specs/035-filter-ui-improvements/quickstart.md
+- [X] T031 [P] Update implementation status and sequencing notes in specs/035-filter-ui-improvements/plan.md
+- [X] T032 [P] Update story verification and runtime checks in specs/035-filter-ui-improvements/quickstart.md
+- [X] T033 [P] Update UI contract notes for final control behavior in specs/035-filter-ui-improvements/contracts/dataset-list-filter-controls-ui-contract.md
+- [X] T034 Run focused frontend test suite for changed discovery control behavior in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T035 Run full monorepo test stop gate and capture result in specs/035-filter-ui-improvements/quickstart.md
+- [X] T036 Run full monorepo coverage stop gate and capture result in specs/035-filter-ui-improvements/quickstart.md
+- [X] T037 Run all-files quality gate and capture result in specs/035-filter-ui-improvements/quickstart.md
 
 ---
 

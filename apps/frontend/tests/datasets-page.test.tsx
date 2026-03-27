@@ -78,6 +78,9 @@ describe("datasets page", () => {
     expect(markup).toContain('data-testid="dataset-source-filter"');
     expect(markup).toContain('data-testid="dataset-category-filter"');
     expect(markup).toContain('data-testid="dataset-sort-control"');
+    expect(markup).toContain('data-testid="dataset-filter-left-group"');
+    expect(markup).toContain('data-testid="dataset-sort-right-group"');
+    expect(markup).toContain("dataset-list-controls-surface");
     expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).not.toContain('data-testid="discovery-pagination"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');

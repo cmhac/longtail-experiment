@@ -136,6 +136,15 @@ apps/
 - Configuration integrity: PASS - No new credential usage or service configuration introduced.
 - Documentation fidelity: PASS - Planning artifacts, contracts, and quickstart updated for changed UI behavior.
 
+## Implementation Status Notes
+
+- Completed control-surface baseline update in dataset list controls and global styles.
+- Completed selector modernization from native dropdown controls to HeroUI combo-box style controls.
+- Completed control-row grouping and capped-width layout update (left filters / right sort) with responsive fallback.
+- Added and updated frontend regression coverage in `apps/frontend/tests/DatasetListControls.test.tsx` and `apps/frontend/tests/datasets-page.test.tsx`.
+- Focused verification command completed successfully:
+  - `pnpm exec vitest run tests/DatasetListControls.test.tsx tests/datasets-page.test.tsx`
+
 ## Complexity Tracking
 
 No constitution violations requiring justification.

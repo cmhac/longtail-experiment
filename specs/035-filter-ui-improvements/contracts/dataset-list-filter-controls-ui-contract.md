@@ -41,3 +41,10 @@ This contract governs the dataset-list filter control row presentation and inter
 - Filtering and sorting outcomes remain functionally equivalent to pre-change behavior.
 - Empty-result and loading-visible states remain explicit and readable.
 - No control-level change introduces result mismatches relative to selected filter/sort values.
+
+## Rollout Status
+
+- Surface contract: implemented
+- Selector contract (combo-box controls): implemented
+- Layout contract (left filter group / right sort group / capped widths): implemented
+- Accessibility and operability checks: covered by focused selector interaction tests and keyboard-flow assertions
