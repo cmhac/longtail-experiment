@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-26
 - PostgreSQL 16 discovery metadata tables and observations (034-api-pagination-rollout)
 - TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery UI components, HeroUI component primitives, shell theme tokens and global CSS (035-filter-ui-improvements)
 - N/A (presentation and client interaction behavior only) (035-filter-ui-improvements)
+- TypeScript 5.x + React 19 in Next.js 15 App Router + `@heroui/react`, HeroUI v3 styling system, Tailwind CSS v4/PostCSS integration, existing Next.js routing primitives, existing discovery client/types, existing Recharts detail visualizations (036-heroui-ui-migration)
+- N/A for new persistence; existing PostgreSQL-backed discovery APIs remain the data source (036-heroui-ui-migration)
 
 - TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery client/types, existing dataset catalog components, shell/nav primitives, HeroUI-aligned theme tokens (027-dataset-list-page)
 - N/A (frontend listing and interaction state over existing discovery catalog payload) (027-dataset-list-page)
@@ -238,9 +240,9 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 036-heroui-ui-migration: Added TypeScript 5.x + React 19 in Next.js 15 App Router + `@heroui/react`, HeroUI v3 styling system, Tailwind CSS v4/PostCSS integration, existing Next.js routing primitives, existing discovery client/types, existing Recharts detail visualizations
 - 035-filter-ui-improvements: Added TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery UI components, HeroUI component primitives, shell theme tokens and global CSS
 - 034-api-pagination-rollout: Added Python 3.12 (backend), TypeScript 5.x + React 19 (frontend) + SQLAlchemy query repository and service orchestration in backend; Next.js App Router discovery client/pages/components in frontend
-- 033-tag-geography-pages: Added TypeScript 5.x + React 19 (Next.js 15 App Router), Python 3.12 backend query layer, existing pipeline contracts/persistence semantics + Existing discovery API client/types, Next.js routing primitives, existing dataset list/detail components, backend dataset discovery service/repository surfaces
 
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
