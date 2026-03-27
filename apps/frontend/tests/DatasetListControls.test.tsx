@@ -109,4 +109,57 @@ describe("DatasetListControls", () => {
 
     expect(routerReplaceMock).toHaveBeenCalledWith("/datasets?sort=title_desc");
   });
+
+  it("resets page query param when changing source filter", () => {
+    navigationState.setSearchParams("source=eia&page=4");
+
+    render(
+      <DatasetListControls
+        categoryOptions={[
+          { label: "All Categories", value: "all" },
+          { label: "energy", value: "energy" },
+        ]}
+        selectedCategory="all"
+        selectedSort="recency"
+        selectedSource="eia"
+        sourceOptions={[
+          { label: "All Sources", value: "all" },
+          { label: "EIA", value: "eia" },
+          { label: "FRED", value: "fred" },
+        ]}
+      />,
+    );
+
+    fireEvent.change(screen.getByTestId("dataset-source-filter"), {
+      target: { value: "fred" },
+    });
+
+    expect(routerReplaceMock).toHaveBeenCalledWith("/datasets?source=fred");
+  });
+
+  it("resets page query param when changing sort", () => {
+    navigationState.setSearchParams("source=eia&page=3");
+
+    render(
+      <DatasetListControls
+        categoryOptions={[
+          { label: "All Categories", value: "all" },
+          { label: "energy", value: "energy" },
+        ]}
+        selectedCategory="all"
+        selectedSort="recency"
+        selectedSource="eia"
+        sourceOptions={[
+          { label: "All Sources", value: "all" },
+          { label: "EIA", value: "eia" },
+        ]}
+      />,
+    );
+
+    fireEvent.change(screen.getByTestId("dataset-sort-control"), {
+      target: { value: "title_asc" },
+    });
+
+    expect(routerReplaceMock).toHaveBeenCalledWith("/datasets?source=eia&sort=title_asc");
+  });
 });

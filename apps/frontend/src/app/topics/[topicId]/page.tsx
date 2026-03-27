@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
 
-import { DatasetCatalogList } from "../../../components/discovery/DatasetCatalogList";
 import { EmptyState } from "../../../components/discovery/EmptyState";
 import { ErrorState } from "../../../components/discovery/ErrorState";
+import { InfiniteCatalogList } from "../../../components/discovery/InfiniteCatalogList";
 import { TopicDetailHeader } from "../../../components/discovery/TopicDetailHeader";
 import { fetchTopicDetail } from "../../../lib/api/discovery-client";
 import { SiteHeader } from "../../../shell/site-header";
@@ -25,7 +25,7 @@ const isNotFoundError = (error: unknown): boolean => {
 const TopicDetailPage = async ({ params }: TopicDetailPageProps): Promise<JSX.Element> => {
   try {
     const { topicId } = await params;
-    const detail = await fetchTopicDetail(topicId);
+    const firstPage = await fetchTopicDetail(topicId, { page: 1 });
 
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
@@ -34,11 +34,14 @@ const TopicDetailPage = async ({ params }: TopicDetailPageProps): Promise<JSX.El
           className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
           data-testid="topic-detail-page"
         >
-          <TopicDetailHeader topic={detail.topic} />
-          {detail.datasets.length > 0 ? (
-            <DatasetCatalogList
+          <TopicDetailHeader topic={firstPage.topic} />
+          {firstPage.items.length > 0 ? (
+            <InfiniteCatalogList
               emptyMessage="No datasets are currently available for this topic."
-              items={detail.datasets}
+              initialItems={firstPage.items}
+              initialPage={firstPage.page}
+              initialTotalPages={firstPage.total_pages}
+              requestPath={`/api/discovery/topics/${encodeURIComponent(topicId)}`}
             />
           ) : (
             <EmptyState message="No datasets are currently available for this topic." />

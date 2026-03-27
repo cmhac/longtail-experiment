@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.query.dataset_discovery_service import DatasetDiscoveryService
 
+DEFAULT_PAGE_SIZE = 20
+
 
 class _PersistedCatalogRepoStub:
     def search_datasets(self, *, query_text: str | None, page: int, page_size: int):
@@ -78,7 +80,7 @@ def test_catalog_contract_uses_persisted_metadata_and_grouping() -> None:
             "category": None,
             "sort": None,
             "page": 1,
-            "page_size": 20,
+            "page_size": DEFAULT_PAGE_SIZE,
         },
         group_by_source=True,
     )
@@ -87,3 +89,7 @@ def test_catalog_contract_uses_persisted_metadata_and_grouping() -> None:
     assert payload["aggregations"]["categories"][0]["value"] == "interest rates"
     assert payload["items"][0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert payload["groups"][0]["source"]["id"] == "fred"
+    assert payload["page"] == 1
+    assert payload["page_size"] == DEFAULT_PAGE_SIZE
+    assert payload["total_pages"] == 1
+    assert payload["sort"] == "latest_update_at_desc,title_asc,dataset_id_asc"

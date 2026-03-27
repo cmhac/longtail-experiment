@@ -2,9 +2,9 @@ import React from "react";
 import type { JSX } from "react";
 
 import { DatasetSearchBox } from "../../components/discovery/DatasetSearchBox";
-import { DatasetSearchResults } from "../../components/discovery/DatasetSearchResults";
 import { EmptyState } from "../../components/discovery/EmptyState";
 import { ErrorState } from "../../components/discovery/ErrorState";
+import { InfiniteSearchResults } from "../../components/discovery/InfiniteSearchResults";
 import { fetchDatasetSearch, fetchSearchSummary } from "../../lib/api/discovery-client";
 import { SiteFooter } from "../../shell/site-footer";
 import { SiteHeader } from "../../shell/site-header";
@@ -22,9 +22,9 @@ const SearchPage = async ({ searchParams }: SearchPageProps): Promise<JSX.Elemen
   const summary = await fetchSearchSummary().catch(() => null);
 
   let searchError = false;
-  const search =
+  const firstPage =
     query.length > 0
-      ? await fetchDatasetSearch({ q: query }).catch(() => {
+      ? await fetchDatasetSearch({ q: query, page: 1 }).catch(() => {
           searchError = true;
           return null;
         })
@@ -53,8 +53,13 @@ const SearchPage = async ({ searchParams }: SearchPageProps): Promise<JSX.Elemen
           <EmptyState message="Enter a query to search datasets." />
         ) : searchError ? (
           <ErrorState message="Search is temporarily unavailable. Please try again." />
-        ) : search ? (
-          <DatasetSearchResults items={search.items} query={query} />
+        ) : firstPage ? (
+          <InfiniteSearchResults
+            initialItems={firstPage.items}
+            initialPage={firstPage.page}
+            initialTotalPages={firstPage.total_pages}
+            query={query}
+          />
         ) : (
           <EmptyState message="No datasets matched your search." />
         )}

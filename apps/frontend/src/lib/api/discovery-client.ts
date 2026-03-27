@@ -12,6 +12,9 @@ import type {
   TopicDetail,
 } from "./discovery-types";
 
+// Discovery pagination rollout checklist: list endpoints should serialize
+// page/page_size consistently through this shared helper.
+
 export class DiscoveryApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -66,6 +69,19 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
   return (await response.json()) as T;
 };
 
+const appendPaginationQueryParams = (
+  query: Record<string, string>,
+  params: { page?: number; pageSize?: number },
+): void => {
+  if (params.page !== undefined) {
+    query.page = String(params.page);
+  }
+
+  if (params.pageSize !== undefined) {
+    query.page_size = String(params.pageSize);
+  }
+};
+
 export const fetchDatasetSearch = async (params: {
   q?: string;
   page?: number;
@@ -76,14 +92,7 @@ export const fetchDatasetSearch = async (params: {
   if (params.q) {
     query.q = params.q;
   }
-
-  if (params.page) {
-    query.page = String(params.page);
-  }
-
-  if (params.pageSize) {
-    query.page_size = String(params.pageSize);
-  }
+  appendPaginationQueryParams(query, params);
 
   const response = await fetch(createUrl("/api/datasets/search", query));
   return parseResponse<DatasetSearchResponse>(response);
@@ -172,14 +181,7 @@ export const fetchDatasetCatalog = async (params: {
   if (params.sort) {
     query.sort = params.sort;
   }
-
-  if (params.page) {
-    query.page = String(params.page);
-  }
-
-  if (params.pageSize) {
-    query.page_size = String(params.pageSize);
-  }
+  appendPaginationQueryParams(query, params);
 
   const response = await fetch(createUrl("/api/datasets", query));
   return parseResponse<DatasetCatalogResponse>(response);
@@ -195,17 +197,34 @@ export const fetchSourceList = async (): Promise<SourceListResponse> => {
   return parseResponse<SourceListResponse>(response);
 };
 
-export const fetchSourceDetail = async (sourceId: string): Promise<SourceDetail> => {
-  const response = await fetch(createUrl(`/api/sources/${encodeURIComponent(sourceId)}`));
+export const fetchSourceDetail = async (
+  sourceId: string,
+  params?: { page?: number; pageSize?: number },
+): Promise<SourceDetail> => {
+  const query: Record<string, string> = {};
+  appendPaginationQueryParams(query, params ?? {});
+  const response = await fetch(createUrl(`/api/sources/${encodeURIComponent(sourceId)}`, query));
   return parseResponse<SourceDetail>(response);
 };
 
-export const fetchTopicDetail = async (topicId: string): Promise<TopicDetail> => {
-  const response = await fetch(createUrl(`/api/topics/${encodeURIComponent(topicId)}`));
+export const fetchTopicDetail = async (
+  topicId: string,
+  params?: { page?: number; pageSize?: number },
+): Promise<TopicDetail> => {
+  const query: Record<string, string> = {};
+  appendPaginationQueryParams(query, params ?? {});
+  const response = await fetch(createUrl(`/api/topics/${encodeURIComponent(topicId)}`, query));
   return parseResponse<TopicDetail>(response);
 };
 
-export const fetchGeographyDetail = async (geographyId: string): Promise<GeographyDetail> => {
-  const response = await fetch(createUrl(`/api/geographies/${encodeURIComponent(geographyId)}`));
+export const fetchGeographyDetail = async (
+  geographyId: string,
+  params?: { page?: number; pageSize?: number },
+): Promise<GeographyDetail> => {
+  const query: Record<string, string> = {};
+  appendPaginationQueryParams(query, params ?? {});
+  const response = await fetch(
+    createUrl(`/api/geographies/${encodeURIComponent(geographyId)}`, query),
+  );
   return parseResponse<GeographyDetail>(response);
 };

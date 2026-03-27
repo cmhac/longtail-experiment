@@ -15,10 +15,15 @@ from src.contract.errors import ContractQueryError
 from src.query.dataset_discovery_validators import (
     normalize_page,
     normalize_page_size,
+    normalize_page_size_with_bounds,
     normalize_recent_limit,
     parse_optional_date,
     validate_date_range,
 )
+
+DEFAULT_PAGE_SIZE = 25
+VALID_PAGE_SIZE = 40
+MAX_PAGE_SIZE = 80
 
 
 def test_dataset_discovery_validators_enforce_page_bounds() -> None:
@@ -43,3 +48,29 @@ def test_dataset_discovery_validators_reject_inverted_date_ranges() -> None:
 
     with pytest.raises(ContractQueryError):
         validate_date_range(from_date, to_date)
+
+
+def test_dataset_discovery_validators_support_route_level_page_size_bounds() -> None:
+    assert (
+        normalize_page_size_with_bounds(
+            None,
+            default_page_size=DEFAULT_PAGE_SIZE,
+            max_page_size=MAX_PAGE_SIZE,
+        )
+        == DEFAULT_PAGE_SIZE
+    )
+    assert (
+        normalize_page_size_with_bounds(
+            VALID_PAGE_SIZE,
+            default_page_size=DEFAULT_PAGE_SIZE,
+            max_page_size=MAX_PAGE_SIZE,
+        )
+        == VALID_PAGE_SIZE
+    )
+
+    with pytest.raises(ContractQueryError):
+        normalize_page_size_with_bounds(
+            MAX_PAGE_SIZE + 1,
+            default_page_size=DEFAULT_PAGE_SIZE,
+            max_page_size=MAX_PAGE_SIZE,
+        )

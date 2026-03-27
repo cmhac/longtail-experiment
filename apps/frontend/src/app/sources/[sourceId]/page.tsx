@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
 
-import { DatasetCatalogList } from "../../../components/discovery/DatasetCatalogList";
 import { EmptyState } from "../../../components/discovery/EmptyState";
 import { ErrorState } from "../../../components/discovery/ErrorState";
+import { InfiniteCatalogList } from "../../../components/discovery/InfiniteCatalogList";
 import { SourceDetailHeader } from "../../../components/discovery/SourceDetailHeader";
 import { fetchSourceDetail } from "../../../lib/api/discovery-client";
 import { SiteHeader } from "../../../shell/site-header";
@@ -25,7 +25,7 @@ const isNotFoundError = (error: unknown): boolean => {
 const SourceDetailPage = async ({ params }: SourceDetailPageProps): Promise<JSX.Element> => {
   try {
     const { sourceId } = await params;
-    const detail = await fetchSourceDetail(sourceId);
+    const firstPage = await fetchSourceDetail(sourceId, { page: 1 });
 
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
@@ -34,11 +34,14 @@ const SourceDetailPage = async ({ params }: SourceDetailPageProps): Promise<JSX.
           className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
           data-testid="source-detail-page"
         >
-          <SourceDetailHeader source={detail.source} />
-          {detail.datasets.length > 0 ? (
-            <DatasetCatalogList
+          <SourceDetailHeader source={firstPage.source} />
+          {firstPage.items.length > 0 ? (
+            <InfiniteCatalogList
               emptyMessage="No datasets are currently available for this source."
-              items={detail.datasets}
+              initialItems={firstPage.items}
+              initialPage={firstPage.page}
+              initialTotalPages={firstPage.total_pages}
+              requestPath={`/api/discovery/sources/${encodeURIComponent(sourceId)}`}
             />
           ) : (
             <EmptyState message="No datasets are currently available for this source." />

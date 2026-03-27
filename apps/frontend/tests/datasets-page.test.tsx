@@ -60,7 +60,7 @@ const mockCatalogResponse = (): void => {
     page: 1,
     page_size: 20,
     total_items: 3,
-    total_pages: 715,
+    total_pages: 1,
     sort: "latest_update_at_desc",
   });
 };
@@ -79,6 +79,7 @@ describe("datasets page", () => {
     expect(markup).toContain('data-testid="dataset-category-filter"');
     expect(markup).toContain('data-testid="dataset-sort-control"');
     expect(markup).toContain('data-testid="unified-dataset-row"');
+    expect(markup).not.toContain('data-testid="discovery-pagination"');
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
   });
 
@@ -213,7 +214,7 @@ describe("datasets page", () => {
     });
 
     expect(catalogSpy).toHaveBeenCalledWith({
-      pageSize: 100,
+      page: 1,
       source: undefined,
       category: undefined,
       sort: "recency",
@@ -281,6 +282,39 @@ describe("datasets page", () => {
     expect(markup).not.toContain('data-testid="request-new-dataset-cta"');
   });
 
+  it("keeps empty state behavior stable with explicit page query", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [{ source: { id: "eia", name: "EIA" }, dataset_count: 1 }],
+        categories: [{ value: "energy", dataset_count: 1 }],
+      },
+      page: 4,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
+      sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+    });
+
+    const element = await CatalogPage({ searchParams: Promise.resolve({ page: "4" }) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain('data-testid="discovery-empty-state"');
+    expect(markup).toContain("No datasets match the selected filters.");
+  });
+
+  it("keeps error state behavior stable with explicit page query", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockRejectedValue(new Error("unavailable"));
+
+    const element = await CatalogPage({ searchParams: Promise.resolve({ page: "5" }) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain('data-testid="discovery-error-state"');
+    expect(markup).toContain("Unable to load data. Please try again.");
+  });
+
   it("requests server-side filtered and sorted catalog data", async () => {
     const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
       items: [
@@ -312,10 +346,64 @@ describe("datasets page", () => {
     });
 
     expect(catalogSpy).toHaveBeenCalledWith({
-      pageSize: 100,
+      page: 1,
       source: "eia",
       category: "energy",
       sort: "title_asc",
+    });
+  });
+
+  it("starts from page one even when a page query is present", async () => {
+    const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [CATALOG_ITEMS[0] as DatasetSummary],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [{ source: { id: "eia", name: "EIA" }, dataset_count: 1 }],
+        categories: [{ value: "energy", dataset_count: 1 }],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 1,
+      total_pages: 1,
+      sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+    });
+
+    const element = await CatalogPage({ searchParams: Promise.resolve({ page: "3" }) });
+    const markup = renderMarkup(element);
+
+    expect(catalogSpy).toHaveBeenCalledWith({
+      page: 1,
+      source: undefined,
+      category: undefined,
+      sort: "recency",
+    });
+    expect(markup).not.toContain('data-testid="discovery-pagination"');
+  });
+
+  it("falls back to page one when the page query is invalid", async () => {
+    const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [CATALOG_ITEMS[0] as DatasetSummary],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [{ source: { id: "eia", name: "EIA" }, dataset_count: 1 }],
+        categories: [{ value: "energy", dataset_count: 1 }],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 1,
+      total_pages: 1,
+      sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+    });
+
+    await CatalogPage({ searchParams: Promise.resolve({ page: "invalid" }) });
+
+    expect(catalogSpy).toHaveBeenCalledWith({
+      page: 1,
+      source: undefined,
+      category: undefined,
+      sort: "recency",
     });
   });
 });

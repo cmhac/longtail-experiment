@@ -19,7 +19,11 @@ class TopicDetailResponse(BaseModel):
     """Detail payload for one topic and its datasets."""
 
     topic: TopicSummary
-    datasets: list[DatasetSummary]
+    items: list[DatasetSummary]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1)
+    total_items: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
     sort: str = Field(min_length=1)
 
 
@@ -35,5 +39,9 @@ class GeographyDetailResponse(BaseModel):
     """Detail payload for one geography and its datasets."""
 
     geography: GeographySummary
-    datasets: list[DatasetSummary]
+    items: list[DatasetSummary]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1)
+    total_items: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
     sort: str = Field(min_length=1)

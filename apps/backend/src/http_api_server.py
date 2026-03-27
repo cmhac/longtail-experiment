@@ -80,6 +80,13 @@ def _require_schema_readiness(*, engine: Any, expected_revision: str) -> None:
         )
 
 
+def _optional_int_query_param(query: dict[str, list[str]], key: str) -> int | None:
+    value = query.get(key, [None])[0]
+    if value is None:
+        return None
+    return int(value)
+
+
 def _make_service() -> DatasetDiscoveryService:
     expected_revision = os.environ.get(
         "DISCOVERY_EXPECTED_DB_REVISION",
@@ -118,13 +125,13 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
     ) -> dict[str, object]:
         q = query.get("q", [None])[0]
-        page = query.get("page", [None])[0]
-        page_size = query.get("page_size", [None])[0]
+        page = _optional_int_query_param(query, "page")
+        page_size = _optional_int_query_param(query, "page_size")
         return execute_dataset_search(
             service,
             query_text=q,
-            page=int(page) if page is not None else None,
-            page_size=int(page_size) if page_size is not None else None,
+            page=page,
+            page_size=page_size,
         ).model_dump()
 
     def _handle_summary(self, service: DatasetDiscoveryService) -> dict[str, object]:
@@ -134,20 +141,20 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
     ) -> dict[str, object]:
         q = query.get("q", [None])[0]
-        limit = query.get("limit", [None])[0]
+        limit = _optional_int_query_param(query, "limit")
         return execute_dataset_search_suggestions(
             service,
             query_text=q,
-            limit=int(limit) if limit is not None else None,
+            limit=limit,
         ).model_dump()
 
     def _handle_recent(
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
     ) -> dict[str, object]:
-        limit = query.get("limit", [None])[0]
+        limit = _optional_int_query_param(query, "limit")
         return execute_recent_updates(
             service,
-            limit=int(limit) if limit is not None else None,
+            limit=limit,
         ).model_dump()
 
     def _handle_catalog(
@@ -157,8 +164,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         source_id = query.get("source", [None])[0] or query.get("source_id", [None])[0]
         category = query.get("category", [None])[0]
         sort = query.get("sort", [None])[0]
-        page = query.get("page", [None])[0]
-        page_size = query.get("page_size", [None])[0]
+        page = _optional_int_query_param(query, "page")
+        page_size = _optional_int_query_param(query, "page_size")
         group_by_source = query.get("group_by_source", ["false"])[0].lower() == "true"
         return execute_dataset_catalog(
             service,
@@ -166,8 +173,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             source_id=source_id,
             category=category,
             sort=sort,
-            page=int(page) if page is not None else None,
-            page_size=int(page_size) if page_size is not None else None,
+            page=page,
+            page_size=page_size,
             group_by_source=group_by_source,
         ).model_dump()
 
@@ -191,26 +198,50 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
     def _handle_source_detail(
         self,
         parsed_path: str,
+        query: dict[str, list[str]],
         service: DatasetDiscoveryService,
     ) -> dict[str, object]:
         source_id = parsed_path.split("/", maxsplit=3)[3]
-        return execute_source_detail(service, source_id=source_id).model_dump()
+        page = _optional_int_query_param(query, "page")
+        page_size = _optional_int_query_param(query, "page_size")
+        return execute_source_detail(
+            service,
+            source_id=source_id,
+            page=page,
+            page_size=page_size,
+        ).model_dump()
 
     def _handle_topic_detail(
         self,
         parsed_path: str,
+        query: dict[str, list[str]],
         service: DatasetDiscoveryService,
     ) -> dict[str, object]:
         topic_id = parsed_path.split("/", maxsplit=3)[3]
-        return execute_topic_detail(service, topic_id=topic_id).model_dump()
+        page = _optional_int_query_param(query, "page")
+        page_size = _optional_int_query_param(query, "page_size")
+        return execute_topic_detail(
+            service,
+            topic_id=topic_id,
+            page=page,
+            page_size=page_size,
+        ).model_dump()
 
     def _handle_geography_detail(
         self,
         parsed_path: str,
+        query: dict[str, list[str]],
         service: DatasetDiscoveryService,
     ) -> dict[str, object]:
         geography_id = parsed_path.split("/", maxsplit=3)[3]
-        return execute_geography_detail(service, geography_id=geography_id).model_dump()
+        page = _optional_int_query_param(query, "page")
+        page_size = _optional_int_query_param(query, "page_size")
+        return execute_geography_detail(
+            service,
+            geography_id=geography_id,
+            page=page,
+            page_size=page_size,
+        ).model_dump()
 
     def _handle_csv(
         self,
@@ -266,11 +297,11 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         if path in exact_routes:
             return HTTPStatus.OK, exact_routes[path]()
         if path.startswith("/api/sources/"):
-            return HTTPStatus.OK, self._handle_source_detail(path, service)
+            return HTTPStatus.OK, self._handle_source_detail(path, query, service)
         if path.startswith("/api/topics/"):
-            return HTTPStatus.OK, self._handle_topic_detail(path, service)
+            return HTTPStatus.OK, self._handle_topic_detail(path, query, service)
         if path.startswith("/api/geographies/"):
-            return HTTPStatus.OK, self._handle_geography_detail(path, service)
+            return HTTPStatus.OK, self._handle_geography_detail(path, query, service)
         if path.startswith("/api/datasets/"):
             return HTTPStatus.OK, self._handle_detail(path, query, service)
         return HTTPStatus.NOT_FOUND, {

@@ -25,27 +25,39 @@ describe("metadata discovery client", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({
         topic: { id: "interest-rates", label: "Interest Rates", dataset_count: 1 },
-        datasets: [],
+        items: [],
+        page: 1,
+        page_size: 20,
+        total_items: 0,
+        total_pages: 0,
         sort: "title_asc,dataset_id_asc",
       }),
     );
 
-    await fetchTopicDetail("Interest Rates");
+    await fetchTopicDetail("Interest Rates", { page: 3, pageSize: 12 });
 
     expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("/api/topics/Interest%20Rates");
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("page=3");
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("page_size=12");
   });
 
   it("encodes geography identifiers on geography detail requests", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({
         geography: { id: "united-states", label: "United States", dataset_count: 2 },
-        datasets: [],
+        items: [],
+        page: 1,
+        page_size: 20,
+        total_items: 0,
+        total_pages: 0,
         sort: "title_asc,dataset_id_asc",
       }),
     );
 
-    await fetchGeographyDetail("United States");
+    await fetchGeographyDetail("United States", { page: 4, pageSize: 10 });
 
     expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("/api/geographies/United%20States");
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("page=4");
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("page_size=10");
   });
 });

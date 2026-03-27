@@ -177,8 +177,8 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
     repository = _build_repository()
 
     sources = repository.list_sources()
-    source_detail = repository.get_source_detail(source_id="federal-reserve")
-    missing_source_detail = repository.get_source_detail(source_id="unknown")
+    source_detail = repository.get_source_detail(source_id="federal-reserve", page=1, page_size=1)
+    missing_source_detail = repository.get_source_detail(source_id="unknown", page=1, page_size=1)
 
     assert sources == [
         {
@@ -201,19 +201,24 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
         "dataset_count": 1,
         "source_type": "external",
     }
-    assert [
-        item["dataset_id"] for item in cast(list[dict[str, Any]], source_detail["datasets"])
-    ] == ["INT.US.FEDFUNDS"]
+    assert [item["dataset_id"] for item in cast(list[dict[str, Any]], source_detail["items"])] == [
+        "INT.US.FEDFUNDS"
+    ]
+    assert source_detail["total_items"] == 1
     assert missing_source_detail is None
 
 
 def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
     repository = _build_repository()
 
-    topic_detail = repository.get_topic_detail(topic_id="interest-rates")
-    missing_topic_detail = repository.get_topic_detail(topic_id="unknown-topic")
-    geography_detail = repository.get_geography_detail(geography_id="us")
-    missing_geography_detail = repository.get_geography_detail(geography_id="unknown-geo")
+    topic_detail = repository.get_topic_detail(topic_id="interest-rates", page=1, page_size=1)
+    missing_topic_detail = repository.get_topic_detail(
+        topic_id="unknown-topic", page=1, page_size=1
+    )
+    geography_detail = repository.get_geography_detail(geography_id="us", page=1, page_size=1)
+    missing_geography_detail = repository.get_geography_detail(
+        geography_id="unknown-geo", page=1, page_size=1
+    )
 
     assert topic_detail is not None
     assert topic_detail["topic"] == {
@@ -221,9 +226,10 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
         "label": "interest rates",
         "dataset_count": 1,
     }
-    assert [
-        item["dataset_id"] for item in cast(list[dict[str, Any]], topic_detail["datasets"])
-    ] == ["INT.US.FEDFUNDS"]
+    assert [item["dataset_id"] for item in cast(list[dict[str, Any]], topic_detail["items"])] == [
+        "INT.US.FEDFUNDS"
+    ]
+    assert topic_detail["total_items"] == 1
     assert missing_topic_detail is None
 
     assert geography_detail is not None
@@ -233,9 +239,30 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
         "dataset_count": 1,
     }
     assert [
-        item["dataset_id"] for item in cast(list[dict[str, Any]], geography_detail["datasets"])
+        item["dataset_id"] for item in cast(list[dict[str, Any]], geography_detail["items"])
     ] == ["INT.US.FEDFUNDS"]
+    assert geography_detail["total_items"] == 1
     assert missing_geography_detail is None
+
+
+def test_source_topic_and_geography_detail_pagination_is_stable() -> None:
+    repository = _build_repository()
+
+    source_detail = repository.get_source_detail(source_id="federal-reserve", page=2, page_size=1)
+    topic_detail = repository.get_topic_detail(topic_id="interest-rates", page=2, page_size=1)
+    geography_detail = repository.get_geography_detail(geography_id="us", page=2, page_size=1)
+
+    assert source_detail is not None
+    assert source_detail["items"] == []
+    assert source_detail["total_items"] == 1
+
+    assert topic_detail is not None
+    assert topic_detail["items"] == []
+    assert topic_detail["total_items"] == 1
+
+    assert geography_detail is not None
+    assert geography_detail["items"] == []
+    assert geography_detail["total_items"] == 1
 
 
 def test_observations_apply_date_filters_and_shape() -> None:

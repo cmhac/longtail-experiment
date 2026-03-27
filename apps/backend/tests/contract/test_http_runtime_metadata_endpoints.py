@@ -89,23 +89,33 @@ class _MetadataHttpRepoStub:
     def list_sources(self):
         return []
 
-    def get_source_detail(self, *, source_id: str):
+    def get_source_detail(self, *, source_id: str, page: int, page_size: int):
         del source_id
+        del page
+        del page_size
 
-    def get_topic_detail(self, *, topic_id: str):
+    def get_topic_detail(self, *, topic_id: str, page: int, page_size: int):
         if topic_id != "inflation":
             return None
+        datasets = [dict(self._datasets[1])]
+        start = (page - 1) * page_size
+        end = start + page_size
         return {
             "topic": {"id": "inflation", "label": "inflation", "dataset_count": 1},
-            "datasets": [dict(self._datasets[1])],
+            "items": datasets[start:end],
+            "total_items": len(datasets),
         }
 
-    def get_geography_detail(self, *, geography_id: str):
+    def get_geography_detail(self, *, geography_id: str, page: int, page_size: int):
         if geography_id != "us":
             return None
+        datasets = list(self._datasets)
+        start = (page - 1) * page_size
+        end = start + page_size
         return {
             "geography": {"id": "us", "label": "US", "dataset_count": 2},
-            "datasets": list(self._datasets),
+            "items": datasets[start:end],
+            "total_items": len(datasets),
         }
 
 
@@ -144,24 +154,32 @@ def test_http_runtime_metadata_endpoints_return_expected_payloads(
     """Return topic and geography detail payloads from runtime HTTP routes."""
     host, port = http_server
 
-    topic_detail = _read_json(f"http://{host}:{port}/api/topics/inflation")
-    geography_detail = _read_json(f"http://{host}:{port}/api/geographies/us")
+    topic_detail = _read_json(f"http://{host}:{port}/api/topics/inflation?page=1&page_size=1")
+    geography_detail = _read_json(f"http://{host}:{port}/api/geographies/us?page=1&page_size=1")
     topic = topic_detail["topic"]
-    topic_datasets = topic_detail["datasets"]
+    topic_items = topic_detail["items"]
     geography = geography_detail["geography"]
-    geography_datasets = geography_detail["datasets"]
+    geography_items = geography_detail["items"]
 
     assert isinstance(topic, dict)
-    assert isinstance(topic_datasets, list)
+    assert isinstance(topic_items, list)
     assert isinstance(geography, dict)
-    assert isinstance(geography_datasets, list)
+    assert isinstance(geography_items, list)
     topic_record = cast(dict[str, object], topic)
     geography_record = cast(dict[str, object], geography)
 
     assert topic_record["id"] == "inflation"
-    assert len(topic_datasets) == EXPECTED_TOPIC_DATASET_COUNT
+    assert len(topic_items) == EXPECTED_TOPIC_DATASET_COUNT
+    assert topic_detail["page"] == 1
+    assert topic_detail["page_size"] == 1
+    assert topic_detail["total_items"] == 1
+    assert topic_detail["total_pages"] == 1
     assert geography_record["id"] == "us"
-    assert len(geography_datasets) == EXPECTED_GEOGRAPHY_DATASET_COUNT
+    assert len(geography_items) == 1
+    assert geography_detail["page"] == 1
+    assert geography_detail["page_size"] == 1
+    assert geography_detail["total_items"] == EXPECTED_GEOGRAPHY_DATASET_COUNT
+    assert geography_detail["total_pages"] == EXPECTED_GEOGRAPHY_DATASET_COUNT
 
 
 def test_http_runtime_unknown_topic_returns_not_found(http_server: tuple[str, int]) -> None:

@@ -13,7 +13,11 @@ export const buildTopicDetailFixture = (): TopicDetail => {
       label: "inflation",
       dataset_count: 1,
     },
-    datasets: [firstDataset],
+    items: [firstDataset],
+    page: 1,
+    page_size: 20,
+    total_items: 1,
+    total_pages: 1,
     sort: "title_asc,dataset_id_asc",
   };
 };
@@ -24,6 +28,10 @@ export const buildGeographyDetailFixture = (): GeographyDetail => ({
     label: "US",
     dataset_count: 2,
   },
-  datasets: buildSourceDatasetsFixture(),
+  items: buildSourceDatasetsFixture(),
+  page: 1,
+  page_size: 20,
+  total_items: 2,
+  total_pages: 1,
   sort: "title_asc,dataset_id_asc",
 });

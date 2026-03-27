@@ -21,11 +21,16 @@ afterEach(() => {
 
 describe("topic detail page", () => {
   it("renders topic context and only matching datasets", async () => {
-    vi.spyOn(discoveryClient, "fetchTopicDetail").mockResolvedValue(buildTopicDetailFixture());
+    const detailSpy = vi
+      .spyOn(discoveryClient, "fetchTopicDetail")
+      .mockResolvedValue(buildTopicDetailFixture());
 
-    const element = await TopicDetailPage({ params: Promise.resolve({ topicId: "inflation" }) });
+    const element = await TopicDetailPage({
+      params: Promise.resolve({ topicId: "inflation" }),
+    });
     const markup = renderMarkup(element);
 
+    expect(detailSpy).toHaveBeenCalledWith("inflation", { page: 1 });
     expect(markup).toContain("inflation");
     expect(markup).toContain("1 total datasets");
     expect(markup).toContain('data-testid="topic-detail-page"');
@@ -36,7 +41,11 @@ describe("topic detail page", () => {
   it("renders explicit no-datasets state for valid topics with no datasets", async () => {
     vi.spyOn(discoveryClient, "fetchTopicDetail").mockResolvedValue({
       topic: { id: "inflation", label: "inflation", dataset_count: 0 },
-      datasets: [],
+      items: [],
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
       sort: "title_asc,dataset_id_asc",
     });
 
@@ -62,6 +71,28 @@ describe("topic detail page", () => {
       TopicDetailPage({ params: Promise.resolve({ topicId: "unknown-topic" }) }),
     ).rejects.toThrow("NOT_FOUND");
     expect(notFoundMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("always starts topic detail from page one", async () => {
+    const detailSpy = vi
+      .spyOn(discoveryClient, "fetchTopicDetail")
+      .mockResolvedValue(buildTopicDetailFixture());
+
+    await TopicDetailPage({ params: Promise.resolve({ topicId: "inflation" }) });
+
+    expect(detailSpy).toHaveBeenCalledWith("inflation", { page: 1 });
+  });
+
+  it("boots topic detail from first page only", async () => {
+    const detailSpy = vi
+      .spyOn(discoveryClient, "fetchTopicDetail")
+      .mockResolvedValue(buildTopicDetailFixture());
+
+    const element = await TopicDetailPage({ params: Promise.resolve({ topicId: "inflation" }) });
+    const markup = renderMarkup(element);
+
+    expect(detailSpy).toHaveBeenCalledTimes(1);
+    expect(markup).not.toContain('data-testid="infinite-scroll-sentinel"');
   });
 
   it("renders the topic not-found route inside the shared shell", () => {

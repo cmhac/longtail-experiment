@@ -51,6 +51,10 @@ export const buildSourceDetailFixture = (): SourceDetail => ({
     dataset_count: 2,
     source_type: "external",
   },
-  datasets: buildSourceDatasetsFixture(),
+  items: buildSourceDatasetsFixture(),
+  page: 1,
+  page_size: 20,
+  total_items: 2,
+  total_pages: 1,
   sort: "title_asc,dataset_id_asc",
 });

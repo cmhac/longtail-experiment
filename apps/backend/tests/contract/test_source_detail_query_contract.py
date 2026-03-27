@@ -21,12 +21,16 @@ def test_source_detail_returns_source_context_and_only_matching_datasets() -> No
     """Return one source plus only datasets attributed to that source."""
     service = DatasetDiscoveryService(build_source_discovery_repository())
 
-    payload = execute_source_detail(service, source_id="fred").model_dump()
+    payload = execute_source_detail(service, source_id="fred", page=1, page_size=1).model_dump()
 
     assert payload["source"]["id"] == "fred"
     assert payload["source"]["dataset_count"] == EXPECTED_DATASET_COUNT
-    assert [item["dataset_id"] for item in payload["datasets"]] == ["CPIAUCSL", "UNRATE"]
-    assert all(item["source"]["id"] == "fred" for item in payload["datasets"])
+    assert [item["dataset_id"] for item in payload["items"]] == ["CPIAUCSL"]
+    assert all(item["source"]["id"] == "fred" for item in payload["items"])
+    assert payload["page"] == 1
+    assert payload["page_size"] == 1
+    assert payload["total_items"] == EXPECTED_DATASET_COUNT
+    assert payload["total_pages"] == EXPECTED_DATASET_COUNT
 
 
 def test_source_detail_raises_not_found_for_unknown_source() -> None:
@@ -34,4 +38,14 @@ def test_source_detail_raises_not_found_for_unknown_source() -> None:
     service = DatasetDiscoveryService(build_source_discovery_repository())
 
     with pytest.raises(ContractQueryError, match="source_not_found"):
-        execute_source_detail(service, source_id="unknown")
+        execute_source_detail(service, source_id="unknown", page=1, page_size=20)
+
+
+def test_source_detail_reconciles_out_of_range_page_to_last_page() -> None:
+    """Reconcile out-of-range source page requests to the last valid page."""
+    service = DatasetDiscoveryService(build_source_discovery_repository())
+
+    payload = execute_source_detail(service, source_id="fred", page=99, page_size=1).model_dump()
+
+    assert payload["page"] == payload["total_pages"]
+    assert payload["items"]

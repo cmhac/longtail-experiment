@@ -100,9 +100,12 @@ class _SourceHttpRepoStub:
             }
         ]
 
-    def get_source_detail(self, *, source_id: str):
+    def get_source_detail(self, *, source_id: str, page: int, page_size: int):
         if source_id != "fred":
             return None
+        start = (page - 1) * page_size
+        end = start + page_size
+        items = list(self._datasets)[start:end]
         return {
             "source": {
                 "id": "fred",
@@ -110,7 +113,8 @@ class _SourceHttpRepoStub:
                 "dataset_count": 2,
                 "source_type": "external",
             },
-            "datasets": list(self._datasets),
+            "items": items,
+            "total_items": len(self._datasets),
         }
 
 
@@ -150,10 +154,10 @@ def test_http_runtime_source_endpoints_return_expected_payloads(
     host, port = http_server
 
     source_list = _read_json(f"http://{host}:{port}/api/sources")
-    source_detail = _read_json(f"http://{host}:{port}/api/sources/fred")
+    source_detail = _read_json(f"http://{host}:{port}/api/sources/fred?page=1&page_size=1")
     source_list_items = source_list["items"]
     source_detail_payload = source_detail["source"]
-    source_detail_datasets = source_detail["datasets"]
+    source_detail_items = source_detail["items"]
 
     assert source_list["total_items"] == 1
     assert isinstance(source_list_items, list)
@@ -162,8 +166,12 @@ def test_http_runtime_source_endpoints_return_expected_payloads(
     assert isinstance(source_detail_payload, dict)
     typed_source_detail_payload = cast(dict[str, object], source_detail_payload)
     assert typed_source_detail_payload["id"] == "fred"
-    assert isinstance(source_detail_datasets, list)
-    assert len(source_detail_datasets) == EXPECTED_DATASET_COUNT
+    assert isinstance(source_detail_items, list)
+    assert len(source_detail_items) == 1
+    assert source_detail["page"] == 1
+    assert source_detail["page_size"] == 1
+    assert source_detail["total_items"] == EXPECTED_DATASET_COUNT
+    assert source_detail["total_pages"] == EXPECTED_DATASET_COUNT
 
 
 def test_http_runtime_unknown_source_returns_not_found(http_server: tuple[str, int]) -> None:

@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
 
-import { DatasetCatalogList } from "../../../components/discovery/DatasetCatalogList";
 import { EmptyState } from "../../../components/discovery/EmptyState";
 import { ErrorState } from "../../../components/discovery/ErrorState";
 import { GeographyDetailHeader } from "../../../components/discovery/GeographyDetailHeader";
+import { InfiniteCatalogList } from "../../../components/discovery/InfiniteCatalogList";
 import { fetchGeographyDetail } from "../../../lib/api/discovery-client";
 import { SiteHeader } from "../../../shell/site-header";
 import { SHELL_LAYOUT_CLASS_NAMES } from "../../../theme/monochrome-theme";
@@ -25,7 +25,7 @@ const isNotFoundError = (error: unknown): boolean => {
 const GeographyDetailPage = async ({ params }: GeographyDetailPageProps): Promise<JSX.Element> => {
   try {
     const { geographyId } = await params;
-    const detail = await fetchGeographyDetail(geographyId);
+    const firstPage = await fetchGeographyDetail(geographyId, { page: 1 });
 
     return (
       <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
@@ -34,11 +34,14 @@ const GeographyDetailPage = async ({ params }: GeographyDetailPageProps): Promis
           className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
           data-testid="geography-detail-page"
         >
-          <GeographyDetailHeader geography={detail.geography} />
-          {detail.datasets.length > 0 ? (
-            <DatasetCatalogList
+          <GeographyDetailHeader geography={firstPage.geography} />
+          {firstPage.items.length > 0 ? (
+            <InfiniteCatalogList
               emptyMessage="No datasets are currently available for this geography."
-              items={detail.datasets}
+              initialItems={firstPage.items}
+              initialPage={firstPage.page}
+              initialTotalPages={firstPage.total_pages}
+              requestPath={`/api/discovery/geographies/${encodeURIComponent(geographyId)}`}
             />
           ) : (
             <EmptyState message="No datasets are currently available for this geography." />

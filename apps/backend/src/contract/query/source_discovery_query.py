@@ -28,7 +28,11 @@ class SourceDetailResponse(BaseModel):
     """Detail payload for one source and its datasets."""
 
     source: SourceSummary
-    datasets: list[DatasetSummary]
+    items: list[DatasetSummary]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1)
+    total_items: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
     sort: str = Field(min_length=1)
 
 

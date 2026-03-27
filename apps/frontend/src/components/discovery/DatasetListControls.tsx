@@ -48,6 +48,9 @@ export const DatasetListControls = ({
       nextParams.set(key, value);
     }
 
+    // Filter and sort updates should always reconcile to page one.
+    nextParams.delete("page");
+
     router.replace(createNextUrl(pathname, nextParams));
   };
 

@@ -28,6 +28,9 @@ CATALOG_SORT_KEYS = {
     "title_desc": "title_desc,dataset_id_desc",
 }
 
+# Discovery pagination rollout checklist: keep metadata fields and semantics
+# consistent across all list routes as pagination support expands.
+
 
 def _normalize_unit_type(value: object) -> str | None:
     if not isinstance(value, str):
@@ -77,6 +80,28 @@ def _resolve_dataset_unit_type(
     return None
 
 
+def _build_paginated_payload(
+    *,
+    items: list[dict[str, Any]],
+    page: int,
+    page_size: int,
+    total_items: int,
+    extra: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a consistent pagination envelope for discovery list responses."""
+    total_pages = ((total_items - 1) // page_size + 1) if total_items else 0
+    payload: dict[str, Any] = {
+        "items": deepcopy(items),
+        "page": page,
+        "page_size": page_size,
+        "total_items": total_items,
+        "total_pages": total_pages,
+    }
+    if extra:
+        payload.update(deepcopy(dict(extra)))
+    return payload
+
+
 class DatasetDiscoveryService:
     """Coordinates search, recent, catalog, and detail query behavior."""
 
@@ -124,15 +149,24 @@ class DatasetDiscoveryService:
         if not isinstance(items, list) or not isinstance(total_items, int):
             raise ContractQueryError("Repository returned invalid search payload")
         total_pages = ((total_items - 1) // normalized_page_size + 1) if total_items else 0
-
-        return {
-            "items": deepcopy(items),
-            "page": normalized_page,
-            "page_size": normalized_page_size,
-            "total_items": total_items,
-            "total_pages": total_pages,
-            "sort": "latest_update_at_desc,title_asc,dataset_id_asc",
-        }
+        if total_pages > 0 and normalized_page > total_pages:
+            normalized_page = total_pages
+            items, total_items = self._repository.search_datasets(
+                query_text=normalized_query,
+                page=normalized_page,
+                page_size=normalized_page_size,
+            )
+            if not isinstance(items, list) or not isinstance(total_items, int):
+                raise ContractQueryError("Repository returned invalid search payload")
+        return _build_paginated_payload(
+            items=items,
+            page=normalized_page,
+            page_size=normalized_page_size,
+            total_items=total_items,
+            extra={
+                "sort": "latest_update_at_desc,title_asc,dataset_id_asc",
+            },
+        )
 
     def get_search_summary(self) -> dict[str, Any]:
         """Return aggregate summary counts for homepage search scope text."""
@@ -302,6 +336,20 @@ class DatasetDiscoveryService:
         if not isinstance(items, list) or not isinstance(total_items, int):
             raise ContractQueryError("Repository returned invalid catalog payload")
         total_pages = ((total_items - 1) // normalized_page_size + 1) if total_items else 0
+        if total_pages > 0 and normalized_page > total_pages:
+            normalized_page = total_pages
+            items, total_items = self._repository.list_catalog_datasets(
+                query_text=normalized_query,
+                options={
+                    "source_id": normalized_source,
+                    "category": normalized_category,
+                    "sort": normalized_sort,
+                    "page": normalized_page,
+                    "page_size": normalized_page_size,
+                },
+            )
+            if not isinstance(items, list) or not isinstance(total_items, int):
+                raise ContractQueryError("Repository returned invalid catalog payload")
         aggregations = self._repository.list_catalog_aggregations(query_text=normalized_query)
         if not isinstance(aggregations, dict):
             raise ContractQueryError("Repository returned invalid catalog aggregations payload")
@@ -312,16 +360,17 @@ class DatasetDiscoveryService:
             if not isinstance(groups, list):
                 raise ContractQueryError("Repository returned invalid source grouping payload")
 
-        return {
-            "items": deepcopy(items),
-            "groups": deepcopy(groups),
-            "aggregations": deepcopy(aggregations),
-            "page": normalized_page,
-            "page_size": normalized_page_size,
-            "total_items": total_items,
-            "total_pages": total_pages,
-            "sort": CATALOG_SORT_KEYS[normalized_sort],
-        }
+        return _build_paginated_payload(
+            items=items,
+            page=normalized_page,
+            page_size=normalized_page_size,
+            total_items=total_items,
+            extra={
+                "sort": CATALOG_SORT_KEYS[normalized_sort],
+                "groups": groups,
+                "aggregations": aggregations,
+            },
+        )
 
     def list_sources(self) -> dict[str, Any]:
         """Return discoverable sources with dataset counts."""
@@ -364,7 +413,13 @@ class DatasetDiscoveryService:
             "sort": "source_name_asc,source_id_asc",
         }
 
-    def get_source_detail(self, *, source_id: str) -> dict[str, Any]:
+    def get_source_detail(
+        self,
+        *,
+        source_id: str,
+        page: int | None,
+        page_size: int | None,
+    ) -> dict[str, Any]:
         """Return one source plus its attributed datasets."""
         if not hasattr(self._repository, "get_source_detail"):
             raise ContractQueryError("Repository does not provide get_source_detail")
@@ -373,37 +428,75 @@ class DatasetDiscoveryService:
         if not normalized_source_id:
             raise ContractQueryError("source_id must be provided")
 
-        payload = self._repository.get_source_detail(source_id=normalized_source_id)
+        normalized_page = normalize_page(page)
+        normalized_page_size = normalize_page_size(page_size)
+        payload = self._repository.get_source_detail(
+            source_id=normalized_source_id,
+            page=normalized_page,
+            page_size=normalized_page_size,
+        )
         if payload is None:
             raise ContractQueryError("source_not_found")
         if not isinstance(payload, dict):
             raise ContractQueryError("Repository returned invalid source detail payload")
 
         source = payload.get("source")
-        datasets = payload.get("datasets")
-        if not isinstance(source, dict) or not isinstance(datasets, list):
+        items = payload.get("items")
+        total_items = payload.get("total_items")
+        if not isinstance(source, dict) or not isinstance(items, list):
             raise ContractQueryError("Repository returned invalid source detail payload")
+        if not isinstance(total_items, int) or total_items < 0:
+            raise ContractQueryError("Repository returned invalid source total_items")
+
+        total_pages = ((total_items - 1) // normalized_page_size + 1) if total_items else 0
+        if total_pages > 0 and normalized_page > total_pages:
+            normalized_page = total_pages
+            payload = self._repository.get_source_detail(
+                source_id=normalized_source_id,
+                page=normalized_page,
+                page_size=normalized_page_size,
+            )
+            if payload is None or not isinstance(payload, dict):
+                raise ContractQueryError("Repository returned invalid source detail payload")
+            source = payload.get("source")
+            items = payload.get("items")
+            total_items = payload.get("total_items")
+            if not isinstance(source, dict) or not isinstance(items, list):
+                raise ContractQueryError("Repository returned invalid source detail payload")
+            if not isinstance(total_items, int) or total_items < 0:
+                raise ContractQueryError("Repository returned invalid source total_items")
 
         dataset_count = source.get("dataset_count")
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid source dataset_count")
 
-        return {
-            "source": {
-                "id": str(source.get("id", "")).strip(),
-                "name": str(source.get("name", "")).strip(),
-                "dataset_count": dataset_count,
-                "source_type": (
-                    str(source.get("source_type"))
-                    if isinstance(source.get("source_type"), str)
-                    else None
-                ),
+        return _build_paginated_payload(
+            items=items,
+            page=normalized_page,
+            page_size=normalized_page_size,
+            total_items=total_items,
+            extra={
+                "sort": "title_asc,dataset_id_asc",
+                "source": {
+                    "id": str(source.get("id", "")).strip(),
+                    "name": str(source.get("name", "")).strip(),
+                    "dataset_count": dataset_count,
+                    "source_type": (
+                        str(source.get("source_type"))
+                        if isinstance(source.get("source_type"), str)
+                        else None
+                    ),
+                },
             },
-            "datasets": deepcopy(datasets),
-            "sort": "title_asc,dataset_id_asc",
-        }
+        )
 
-    def get_topic_detail(self, *, topic_id: str) -> dict[str, Any]:
+    def get_topic_detail(
+        self,
+        *,
+        topic_id: str,
+        page: int | None,
+        page_size: int | None,
+    ) -> dict[str, Any]:
         """Return one topic plus its attributed datasets."""
         if not hasattr(self._repository, "get_topic_detail"):
             raise ContractQueryError("Repository does not provide get_topic_detail")
@@ -412,32 +505,70 @@ class DatasetDiscoveryService:
         if not normalized_topic_id:
             raise ContractQueryError("topic_id must be provided")
 
-        payload = self._repository.get_topic_detail(topic_id=normalized_topic_id)
+        normalized_page = normalize_page(page)
+        normalized_page_size = normalize_page_size(page_size)
+        payload = self._repository.get_topic_detail(
+            topic_id=normalized_topic_id,
+            page=normalized_page,
+            page_size=normalized_page_size,
+        )
         if payload is None:
             raise ContractQueryError("topic_not_found")
         if not isinstance(payload, dict):
             raise ContractQueryError("Repository returned invalid topic detail payload")
 
         topic = payload.get("topic")
-        datasets = payload.get("datasets")
-        if not isinstance(topic, dict) or not isinstance(datasets, list):
+        items = payload.get("items")
+        total_items = payload.get("total_items")
+        if not isinstance(topic, dict) or not isinstance(items, list):
             raise ContractQueryError("Repository returned invalid topic detail payload")
+        if not isinstance(total_items, int) or total_items < 0:
+            raise ContractQueryError("Repository returned invalid topic total_items")
+
+        total_pages = ((total_items - 1) // normalized_page_size + 1) if total_items else 0
+        if total_pages > 0 and normalized_page > total_pages:
+            normalized_page = total_pages
+            payload = self._repository.get_topic_detail(
+                topic_id=normalized_topic_id,
+                page=normalized_page,
+                page_size=normalized_page_size,
+            )
+            if payload is None or not isinstance(payload, dict):
+                raise ContractQueryError("Repository returned invalid topic detail payload")
+            topic = payload.get("topic")
+            items = payload.get("items")
+            total_items = payload.get("total_items")
+            if not isinstance(topic, dict) or not isinstance(items, list):
+                raise ContractQueryError("Repository returned invalid topic detail payload")
+            if not isinstance(total_items, int) or total_items < 0:
+                raise ContractQueryError("Repository returned invalid topic total_items")
 
         dataset_count = topic.get("dataset_count")
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid topic dataset_count")
 
-        return {
-            "topic": {
-                "id": str(topic.get("id", "")).strip(),
-                "label": str(topic.get("label", "")).strip(),
-                "dataset_count": dataset_count,
+        return _build_paginated_payload(
+            items=items,
+            page=normalized_page,
+            page_size=normalized_page_size,
+            total_items=total_items,
+            extra={
+                "sort": "title_asc,dataset_id_asc",
+                "topic": {
+                    "id": str(topic.get("id", "")).strip(),
+                    "label": str(topic.get("label", "")).strip(),
+                    "dataset_count": dataset_count,
+                },
             },
-            "datasets": deepcopy(datasets),
-            "sort": "title_asc,dataset_id_asc",
-        }
+        )
 
-    def get_geography_detail(self, *, geography_id: str) -> dict[str, Any]:
+    def get_geography_detail(
+        self,
+        *,
+        geography_id: str,
+        page: int | None,
+        page_size: int | None,
+    ) -> dict[str, Any]:
         """Return one geography plus its attributed datasets."""
         if not hasattr(self._repository, "get_geography_detail"):
             raise ContractQueryError("Repository does not provide get_geography_detail")
@@ -446,30 +577,62 @@ class DatasetDiscoveryService:
         if not normalized_geography_id:
             raise ContractQueryError("geography_id must be provided")
 
-        payload = self._repository.get_geography_detail(geography_id=normalized_geography_id)
+        normalized_page = normalize_page(page)
+        normalized_page_size = normalize_page_size(page_size)
+        payload = self._repository.get_geography_detail(
+            geography_id=normalized_geography_id,
+            page=normalized_page,
+            page_size=normalized_page_size,
+        )
         if payload is None:
             raise ContractQueryError("geography_not_found")
         if not isinstance(payload, dict):
             raise ContractQueryError("Repository returned invalid geography detail payload")
 
         geography = payload.get("geography")
-        datasets = payload.get("datasets")
-        if not isinstance(geography, dict) or not isinstance(datasets, list):
+        items = payload.get("items")
+        total_items = payload.get("total_items")
+        if not isinstance(geography, dict) or not isinstance(items, list):
             raise ContractQueryError("Repository returned invalid geography detail payload")
+        if not isinstance(total_items, int) or total_items < 0:
+            raise ContractQueryError("Repository returned invalid geography total_items")
+
+        total_pages = ((total_items - 1) // normalized_page_size + 1) if total_items else 0
+        if total_pages > 0 and normalized_page > total_pages:
+            normalized_page = total_pages
+            payload = self._repository.get_geography_detail(
+                geography_id=normalized_geography_id,
+                page=normalized_page,
+                page_size=normalized_page_size,
+            )
+            if payload is None or not isinstance(payload, dict):
+                raise ContractQueryError("Repository returned invalid geography detail payload")
+            geography = payload.get("geography")
+            items = payload.get("items")
+            total_items = payload.get("total_items")
+            if not isinstance(geography, dict) or not isinstance(items, list):
+                raise ContractQueryError("Repository returned invalid geography detail payload")
+            if not isinstance(total_items, int) or total_items < 0:
+                raise ContractQueryError("Repository returned invalid geography total_items")
 
         dataset_count = geography.get("dataset_count")
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid geography dataset_count")
 
-        return {
-            "geography": {
-                "id": str(geography.get("id", "")).strip(),
-                "label": str(geography.get("label", "")).strip(),
-                "dataset_count": dataset_count,
+        return _build_paginated_payload(
+            items=items,
+            page=normalized_page,
+            page_size=normalized_page_size,
+            total_items=total_items,
+            extra={
+                "sort": "title_asc,dataset_id_asc",
+                "geography": {
+                    "id": str(geography.get("id", "")).strip(),
+                    "label": str(geography.get("label", "")).strip(),
+                    "dataset_count": dataset_count,
+                },
             },
-            "datasets": deepcopy(datasets),
-            "sort": "title_asc,dataset_id_asc",
-        }
+        )
 
     def get_dataset_detail(
         self,

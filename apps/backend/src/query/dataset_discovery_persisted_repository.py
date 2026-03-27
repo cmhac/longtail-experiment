@@ -469,7 +469,13 @@ class PersistedDatasetDiscoveryRepository:
             )
         return sources
 
-    def get_source_detail(self, *, source_id: str) -> dict[str, object] | None:
+    def get_source_detail(
+        self,
+        *,
+        source_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, object] | None:
         """Return one source plus all of its discoverable datasets."""
         rows = self._apply_search(query_text=None, source_id=source_id)
         if not rows:
@@ -490,17 +496,25 @@ class PersistedDatasetDiscoveryRepository:
             cast(dict[str, object], metadata) if isinstance(metadata, dict) else {}
         )
         raw_source_type = metadata_payload.get("source_type")
+        paged_rows, total_items = self._paginate(rows, page=page, page_size=page_size)
         return {
             "source": {
                 "id": str(source_payload.get("id", "")),
                 "name": str(source_payload.get("name", "")),
-                "dataset_count": len(rows),
+                "dataset_count": total_items,
                 "source_type": str(raw_source_type) if isinstance(raw_source_type, str) else None,
             },
-            "datasets": rows,
+            "items": paged_rows,
+            "total_items": total_items,
         }
 
-    def get_topic_detail(self, *, topic_id: str) -> dict[str, object] | None:
+    def get_topic_detail(
+        self,
+        *,
+        topic_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, object] | None:
         """Return one topic plus all of its discoverable datasets."""
         match = self._match_topic_rows(topic_id=topic_id)
         if match is None:
@@ -513,16 +527,24 @@ class PersistedDatasetDiscoveryRepository:
                 str(item.get("dataset_id", "")),
             )
         )
+        paged_rows, total_items = self._paginate(rows, page=page, page_size=page_size)
         return {
             "topic": {
                 "id": self._metadata_slug(topic_label),
                 "label": topic_label,
-                "dataset_count": len(rows),
+                "dataset_count": total_items,
             },
-            "datasets": rows,
+            "items": paged_rows,
+            "total_items": total_items,
         }
 
-    def get_geography_detail(self, *, geography_id: str) -> dict[str, object] | None:
+    def get_geography_detail(
+        self,
+        *,
+        geography_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, object] | None:
         """Return one geography plus all of its discoverable datasets."""
         match = self._match_geography_rows(geography_id=geography_id)
         if match is None:
@@ -535,13 +557,15 @@ class PersistedDatasetDiscoveryRepository:
                 str(item.get("dataset_id", "")),
             )
         )
+        paged_rows, total_items = self._paginate(rows, page=page, page_size=page_size)
         return {
             "geography": {
                 "id": self._metadata_slug(geography_label),
                 "label": geography_label,
-                "dataset_count": len(rows),
+                "dataset_count": total_items,
             },
-            "datasets": rows,
+            "items": paged_rows,
+            "total_items": total_items,
         }
 
     def get_dataset_detail(self, *, dataset_id: str) -> dict[str, object] | None:

@@ -19,6 +19,18 @@ export interface DatasetSummary {
   latest_update_at: string;
 }
 
+export interface PaginatedCollectionMeta {
+  page: number;
+  page_size: number;
+  total_items: number;
+  total_pages: number;
+}
+
+export interface PaginatedDatasetCollection extends PaginatedCollectionMeta {
+  items: DatasetSummary[];
+  sort: string;
+}
+
 export interface DatasetRecentItem {
   dataset_id: string;
   source: SourceRef;
@@ -127,7 +139,11 @@ export interface SourceListResponse {
 
 export interface SourceDetail {
   source: SourceSummary;
-  datasets: DatasetSummary[];
+  items: DatasetSummary[];
+  page: number;
+  page_size: number;
+  total_items: number;
+  total_pages: number;
   sort: string;
 }
 
@@ -139,7 +155,11 @@ export interface TopicSummary {
 
 export interface TopicDetail {
   topic: TopicSummary;
-  datasets: DatasetSummary[];
+  items: DatasetSummary[];
+  page: number;
+  page_size: number;
+  total_items: number;
+  total_pages: number;
   sort: string;
 }
 
@@ -151,7 +171,11 @@ export interface GeographySummary {
 
 export interface GeographyDetail {
   geography: GeographySummary;
-  datasets: DatasetSummary[];
+  items: DatasetSummary[];
+  page: number;
+  page_size: number;
+  total_items: number;
+  total_pages: number;
   sort: string;
 }
 

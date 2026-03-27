@@ -52,6 +52,25 @@ describe("discovery client", () => {
     expect(response.page).toBe(1);
   });
 
+  it("serializes explicit pagination values even when zero", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        items: [],
+        page: 1,
+        page_size: 20,
+        total_items: 0,
+        total_pages: 0,
+        sort: "latest_update_at_desc",
+      }),
+    );
+
+    await fetchDatasetCatalog({ page: 0, pageSize: 0 });
+
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toContain("page=0");
+    expect(calledUrl).toContain("page_size=0");
+  });
+
   it("sends recent limit query parameter", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({

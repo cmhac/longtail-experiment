@@ -21,11 +21,16 @@ afterEach(() => {
 
 describe("source detail page", () => {
   it("renders source context and only matching datasets", async () => {
-    vi.spyOn(discoveryClient, "fetchSourceDetail").mockResolvedValue(buildSourceDetailFixture());
+    const detailSpy = vi
+      .spyOn(discoveryClient, "fetchSourceDetail")
+      .mockResolvedValue(buildSourceDetailFixture());
 
-    const element = await SourceDetailPage({ params: Promise.resolve({ sourceId: "fred" }) });
+    const element = await SourceDetailPage({
+      params: Promise.resolve({ sourceId: "fred" }),
+    });
     const markup = renderMarkup(element);
 
+    expect(detailSpy).toHaveBeenCalledWith("fred", { page: 1 });
     expect(markup).toContain("FRED");
     expect(markup).toContain("2 total datasets");
     expect(markup).toContain('data-testid="source-detail-page"');
@@ -38,7 +43,11 @@ describe("source detail page", () => {
   it("renders explicit no-datasets state for valid sources with no datasets", async () => {
     vi.spyOn(discoveryClient, "fetchSourceDetail").mockResolvedValue({
       source: { id: "fred", name: "FRED", dataset_count: 0 },
-      datasets: [],
+      items: [],
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
       sort: "title_asc,dataset_id_asc",
     });
 
@@ -64,6 +73,28 @@ describe("source detail page", () => {
       SourceDetailPage({ params: Promise.resolve({ sourceId: "unknown" }) }),
     ).rejects.toThrow("NOT_FOUND");
     expect(notFoundMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("always starts source detail from page one", async () => {
+    const detailSpy = vi
+      .spyOn(discoveryClient, "fetchSourceDetail")
+      .mockResolvedValue(buildSourceDetailFixture());
+
+    await SourceDetailPage({ params: Promise.resolve({ sourceId: "fred" }) });
+
+    expect(detailSpy).toHaveBeenCalledWith("fred", { page: 1 });
+  });
+
+  it("boots source detail from first page only", async () => {
+    const detailSpy = vi
+      .spyOn(discoveryClient, "fetchSourceDetail")
+      .mockResolvedValue(buildSourceDetailFixture());
+
+    const element = await SourceDetailPage({ params: Promise.resolve({ sourceId: "fred" }) });
+    const markup = renderMarkup(element);
+
+    expect(detailSpy).toHaveBeenCalledTimes(1);
+    expect(markup).not.toContain('data-testid="infinite-scroll-sentinel"');
   });
 
   it("renders the source not-found route inside the shared shell", () => {

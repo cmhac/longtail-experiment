@@ -112,7 +112,11 @@ describe("discovery types", () => {
     };
     const sourceDetail: SourceDetail = {
       source: { id: "fred", name: "FRED", dataset_count: 2, source_type: "external" },
-      datasets: [],
+      items: [],
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
       sort: "title_asc,dataset_id_asc",
     };
 
@@ -123,12 +127,20 @@ describe("discovery types", () => {
   it("supports metadata discovery payloads", () => {
     const topicDetail: TopicDetail = {
       topic: { id: "inflation", label: "inflation", dataset_count: 1 },
-      datasets: [],
+      items: [],
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
       sort: "title_asc,dataset_id_asc",
     };
     const geographyDetail: GeographyDetail = {
       geography: { id: "us", label: "US", dataset_count: 2 },
-      datasets: [],
+      items: [],
+      page: 1,
+      page_size: 20,
+      total_items: 0,
+      total_pages: 0,
       sort: "title_asc,dataset_id_asc",
     };
 

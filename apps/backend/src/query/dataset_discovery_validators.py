@@ -22,9 +22,26 @@ def normalize_page(page: int | None) -> int:
 
 def normalize_page_size(page_size: int | None) -> int:
     """Normalize page size input and enforce configured bounds."""
-    resolved = _DEFAULT_PAGE_SIZE if page_size is None else int(page_size)
+    resolved = normalize_page_size_with_bounds(
+        page_size,
+        default_page_size=_DEFAULT_PAGE_SIZE,
+        max_page_size=_MAX_PAGE_SIZE,
+    )
     if resolved < 1 or resolved > _MAX_PAGE_SIZE:
         raise ContractQueryError("page_size must be between 1 and 100")
+    return resolved
+
+
+def normalize_page_size_with_bounds(
+    page_size: int | None,
+    *,
+    default_page_size: int,
+    max_page_size: int,
+) -> int:
+    """Resolve page size using route defaults and max bounds."""
+    resolved = default_page_size if page_size is None else int(page_size)
+    if resolved < 1 or resolved > max_page_size:
+        raise ContractQueryError(f"page_size must be between 1 and {max_page_size}")
     return resolved
 
 

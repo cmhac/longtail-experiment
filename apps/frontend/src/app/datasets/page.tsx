@@ -1,12 +1,12 @@
 import React from "react";
 import type { JSX } from "react";
-import { DatasetCatalogList } from "../../components/discovery/DatasetCatalogList";
 import {
   DatasetListControls,
   type DatasetSortMode,
 } from "../../components/discovery/DatasetListControls";
 import { DiscoveryListPageHeader } from "../../components/discovery/DiscoveryListPageHeader";
 import { ErrorState } from "../../components/discovery/ErrorState";
+import { InfiniteCatalogList } from "../../components/discovery/InfiniteCatalogList";
 import { fetchDatasetCatalog } from "../../lib/api/discovery-client";
 import { SiteHeader } from "../../shell/site-header";
 import { SHELL_LAYOUT_CLASS_NAMES } from "../../theme/monochrome-theme";
@@ -37,22 +37,23 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
     sortParam === "title_asc" || sortParam === "title_desc" ? sortParam : "recency";
 
   try {
-    const result = await fetchDatasetCatalog({
-      pageSize: 100,
+    const firstPage = await fetchDatasetCatalog({
+      page: 1,
       sort: sortMode,
       ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
       ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
     });
+
     const sourceOptions = [
       { label: "All Sources", value: "all" },
-      ...result.aggregations.sources.map((item) => ({
+      ...firstPage.aggregations.sources.map((item) => ({
         label: item.source.name,
         value: item.source.id,
       })),
     ];
     const categoryOptions = [
       { label: "All Categories", value: "all" },
-      ...result.aggregations.categories.map((item) => ({
+      ...firstPage.aggregations.categories.map((item) => ({
         label: item.value,
         value: item.value,
       })),
@@ -67,7 +68,7 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
             title="Datasets"
             totalNoun="series"
             totalTestId="dataset-list-total-series"
-            totalValue={formatSeriesCount(result.aggregations.total_dataset_count)}
+            totalValue={formatSeriesCount(firstPage.aggregations.total_dataset_count)}
           />
 
           <DatasetListControls
@@ -78,7 +79,18 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
             sourceOptions={sourceOptions}
           />
 
-          <DatasetCatalogList items={result.items} />
+          <InfiniteCatalogList
+            emptyMessage="No datasets match the selected filters. Reset filters to see the full catalog."
+            initialItems={firstPage.items}
+            initialPage={firstPage.page}
+            initialTotalPages={firstPage.total_pages}
+            requestPath="/api/discovery/datasets"
+            requestQuery={{
+              ...(sortMode ? { sort: sortMode } : {}),
+              ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
+              ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
+            }}
+          />
         </main>
       </div>
     );

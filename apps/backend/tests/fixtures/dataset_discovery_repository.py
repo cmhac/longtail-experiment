@@ -267,7 +267,13 @@ class InMemoryDatasetDiscoveryRepository:
 
         return [grouped[key] for key in sorted(grouped)]
 
-    def get_source_detail(self, *, source_id: str) -> dict[str, Any] | None:
+    def get_source_detail(
+        self,
+        *,
+        source_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, Any] | None:
         """Return one source summary plus its datasets."""
         datasets = self._apply_search(query_text=None, source_id=source_id)
         if not datasets:
@@ -281,14 +287,16 @@ class InMemoryDatasetDiscoveryRepository:
                 str(item.get("dataset_id", "")),
             )
         )
+        paged_items, total_items = self._paginate(datasets, page=page, page_size=page_size)
         return {
             "source": {
                 "id": str(source.get("id", "")),
                 "name": str(source.get("name", "")),
-                "dataset_count": len(datasets),
+                "dataset_count": total_items,
                 "source_type": metadata.get("source_type"),
             },
-            "datasets": datasets,
+            "items": paged_items,
+            "total_items": total_items,
         }
 
     @staticmethod
@@ -300,7 +308,13 @@ class InMemoryDatasetDiscoveryRepository:
             normalized = normalized.replace("--", "-")
         return normalized.strip("-") or "unknown"
 
-    def get_topic_detail(self, *, topic_id: str) -> dict[str, Any] | None:
+    def get_topic_detail(
+        self,
+        *,
+        topic_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, Any] | None:
         """Return one topic summary plus its datasets."""
         datasets = [
             item
@@ -326,16 +340,24 @@ class InMemoryDatasetDiscoveryRepository:
                 str(item.get("dataset_id", "")),
             )
         )
+        paged_items, total_items = self._paginate(datasets, page=page, page_size=page_size)
         return {
             "topic": {
                 "id": topic_id,
                 "label": labels[0],
-                "dataset_count": len(datasets),
+                "dataset_count": total_items,
             },
-            "datasets": datasets,
+            "items": paged_items,
+            "total_items": total_items,
         }
 
-    def get_geography_detail(self, *, geography_id: str) -> dict[str, Any] | None:
+    def get_geography_detail(
+        self,
+        *,
+        geography_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, Any] | None:
         """Return one geography summary plus its datasets."""
         datasets = [
             item
@@ -358,13 +380,15 @@ class InMemoryDatasetDiscoveryRepository:
                 str(item.get("dataset_id", "")),
             )
         )
+        paged_items, total_items = self._paginate(datasets, page=page, page_size=page_size)
         return {
             "geography": {
                 "id": geography_id,
                 "label": labels[0],
-                "dataset_count": len(datasets),
+                "dataset_count": total_items,
             },
-            "datasets": datasets,
+            "items": paged_items,
+            "total_items": total_items,
         }
 
     def list_dataset_observations(

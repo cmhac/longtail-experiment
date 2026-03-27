@@ -40,13 +40,19 @@ describe("source discovery client", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({
         source: { id: "fred-economic-data", name: "FRED Economic Data", dataset_count: 1 },
-        datasets: [],
+        items: [],
+        page: 1,
+        page_size: 20,
+        total_items: 0,
+        total_pages: 0,
         sort: "title_asc,dataset_id_asc",
       }),
     );
 
-    await fetchSourceDetail("FRED Economic Data");
+    await fetchSourceDetail("FRED Economic Data", { page: 2, pageSize: 15 });
 
     expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("/api/sources/FRED%20Economic%20Data");
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("page=2");
+    expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("page_size=15");
   });
 });
