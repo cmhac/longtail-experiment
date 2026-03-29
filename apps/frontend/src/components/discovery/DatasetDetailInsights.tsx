@@ -47,7 +47,7 @@ export const DatasetDetailInsights = ({
       </section>
 
       <Card
-        className="border border-(--shell-border) bg-transparent p-[0.8rem] shadow-sm"
+        className="bg-transparent p-[0.8rem] shadow-none"
         data-testid="dataset-detail-metadata"
         variant="default"
       >
