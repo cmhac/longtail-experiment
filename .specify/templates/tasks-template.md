@@ -78,6 +78,8 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T012 Integrate/update unified Docker Compose services for full local stack
       runability; declare `docker/compose/local.secrets.env` as `env_file` source for
       any service that requires secrets
+- [ ] T013 [P] For frontend work, identify repeated UI patterns and extract/extend shared
+      components in `apps/frontend/src/components` using HeroUI + Tailwind conventions
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -93,19 +95,21 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T013 [P] [US1] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T014 [P] [US1] Integration test for [user journey] in tests/integration/test\_[name].py
-- [ ] T015 [P] [US1] Unit tests for core logic in tests/unit/test\_[name].py
+- [ ] T014 [P] [US1] Contract test for [endpoint] in tests/contract/test\_[name].py
+- [ ] T015 [P] [US1] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T016 [P] [US1] Unit tests for core logic in tests/unit/test\_[name].py
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T017 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T018 [US1] Implement [Service] in src/services/[service].py (depends on T016, T017)
-- [ ] T019 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T020 [US1] Add validation and error handling
-- [ ] T021 [US1] Add logging for user story 1 operations
-- [ ] T022 [US1] Verify US1 coverage contribution maintains >= 90% threshold
+- [ ] T017 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T018 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T019 [US1] Implement [Service] in src/services/[service].py (depends on T017, T018)
+- [ ] T020 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T021 [US1] Add validation and error handling
+- [ ] T022 [US1] Add logging for user story 1 operations
+- [ ] T023 [US1] For frontend work, extend or create shared HeroUI/Tailwind components in
+      apps/frontend/src/components before duplicating route-level markup
+- [ ] T024 [US1] Verify US1 coverage contribution maintains >= 90% threshold
 - [ ] T0XX [US1] Update/create relevant documentation for US1 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
@@ -120,17 +124,19 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T023 [P] [US2] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T024 [P] [US2] Integration test for [user journey] in tests/integration/test\_[name].py
-- [ ] T025 [P] [US2] Unit tests for core logic in tests/unit/test\_[name].py
+- [ ] T025 [P] [US2] Contract test for [endpoint] in tests/contract/test\_[name].py
+- [ ] T026 [P] [US2] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T027 [P] [US2] Unit tests for core logic in tests/unit/test\_[name].py
 
 ### Implementation for User Story 2
 
-- [ ] T026 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US2] Implement [Service] in src/services/[service].py
-- [ ] T028 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T029 [US2] Integrate with User Story 1 components (if needed)
-- [ ] T030 [US2] Verify US2 coverage contribution maintains >= 90% threshold
+- [ ] T028 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T029 [US2] Implement [Service] in src/services/[service].py
+- [ ] T030 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T031 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T032 [US2] For frontend work, reuse or extend shared HeroUI/Tailwind components in
+      apps/frontend/src/components instead of introducing parallel patterns
+- [ ] T033 [US2] Verify US2 coverage contribution maintains >= 90% threshold
 - [ ] T0XX [US2] Update/create relevant documentation for US2 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
@@ -145,16 +151,18 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T031 [P] [US3] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T032 [P] [US3] Integration test for [user journey] in tests/integration/test\_[name].py
-- [ ] T033 [P] [US3] Unit tests for core logic in tests/unit/test\_[name].py
+- [ ] T034 [P] [US3] Contract test for [endpoint] in tests/contract/test\_[name].py
+- [ ] T035 [P] [US3] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T036 [P] [US3] Unit tests for core logic in tests/unit/test\_[name].py
 
 ### Implementation for User Story 3
 
-- [ ] T034 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T035 [US3] Implement [Service] in src/services/[service].py
-- [ ] T036 [US3] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T037 [US3] Verify US3 coverage contribution maintains >= 90% threshold
+- [ ] T037 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T038 [US3] Implement [Service] in src/services/[service].py
+- [ ] T039 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T040 [US3] For frontend work, consolidate repeated UI into shared
+      HeroUI/Tailwind components under apps/frontend/src/components
+- [ ] T041 [US3] Verify US3 coverage contribution maintains >= 90% threshold
 - [ ] T0XX [US3] Update/create relevant documentation for US3 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: All user stories should now be independently functional

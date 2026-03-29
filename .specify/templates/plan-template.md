@@ -48,6 +48,9 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - Configuration integrity: Do all new services/pipeline components fail hard on missing
   env vars/credentials (no soft outcomes), and is `docker/compose/local.secrets.env`
   declared as an `env_file` source for any service that requires secrets?
+- Frontend UI consistency: For frontend changes, does the plan use HeroUI components,
+  Tailwind utilities, and shared abstractions in `apps/frontend/src/components` for
+  repeated patterns instead of new ad hoc CSS or duplicated markup?
 - Documentation fidelity: Does the plan identify all documentation that MUST be added or
   updated for the proposed code and behavior changes?
 

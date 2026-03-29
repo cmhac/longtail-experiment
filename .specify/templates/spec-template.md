@@ -142,3 +142,8 @@ _Example of marking unclear requirements:_
   failure) when those variables are absent — no soft outcome recording, no silent
   swallowing. `docker/compose/local.secrets.env` is declared as an `env_file` source
   for any Docker Compose service that requires secrets. (Yes/No/N/A)
+- **CA-007 Frontend UI System**: For frontend changes, the feature uses HeroUI
+  components, Tailwind utilities, and shared abstractions in
+  `apps/frontend/src/components` for repeated patterns; it does not introduce duplicate
+  one-off component patterns or new local CSS without a documented exception.
+  (Yes/No/N/A)

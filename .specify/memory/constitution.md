@@ -1,18 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: 1.3.0 -> 1.4.0
+- Version change: 1.4.0 -> 1.5.0
 - Modified principles:
   - None renamed
 - Added sections:
-  - VII. Configuration Integrity and Credential Safety (new principle)
+  - VIII. Frontend UI System Consistency (new principle)
 - Removed sections:
   - None
 - Templates requiring updates:
   - .specify/templates/plan-template.md: ✅ updated
   - .specify/templates/spec-template.md: ✅ updated
   - .specify/templates/tasks-template.md: ✅ updated
-  - AGENTS.md: ⚠ pending — review for local secrets file convention reference
-  - .specify/templates/commands/*.md: ⚠ pending (directory not present)
+  - AGENTS.md: ✅ updated
+  - .specify/templates/commands/*.md: ✅ no command templates present; no update required
 - Follow-up TODOs:
   - None
 -->
@@ -108,6 +108,27 @@ missing configuration invisible until runtime inspection of internal records, an
 trust in operational monitoring. Fail-fast surfaces the real problem immediately and
 unambiguously.
 
+### VIII. Frontend UI System Consistency
+
+Frontend UI work in `apps/frontend` MUST use HeroUI as the default component system and
+Tailwind utility classes as the default styling mechanism. New bespoke CSS is prohibited
+unless the change is limited to shared global tokens, framework-level integration, or a
+documented gap that cannot be expressed cleanly through HeroUI and Tailwind.
+
+When a frontend pattern, wrapper, or composed UI fragment will be used more than once,
+it MUST be extracted into a shared component under `apps/frontend/src/components`
+instead of duplicated inline in route files or feature-local modules. These shared
+components SHOULD expose composable exports when the pattern benefits from flexible
+assembly, as with grouped page-header subcomponents exported from one module.
+
+New frontend work MUST prefer extending these shared abstractions before creating new
+one-off markup or styling conventions. Parallel component implementations that solve the
+same UI problem with different Tailwind class sets or non-HeroUI primitives are
+non-compliant unless an owner-approved exception is documented.
+Rationale: The UI migration standardized the frontend around HeroUI, Tailwind, and
+shared abstractions so repeated patterns stay visually consistent, reviewable, and easy
+to evolve without reintroducing fragmented styling systems.
+
 ## Architecture and Delivery Constraints
 
 - Repository structure MUST support Nx orchestration across backend, frontend, shared
@@ -115,6 +136,8 @@ unambiguously.
 - Backend services MUST use Python with explicit typing and static type checking enabled.
 - Frontend applications/libraries MUST use Node.js tooling with static type checking
   enabled where applicable.
+- Frontend components MUST prefer HeroUI primitives/composites and Tailwind utilities;
+  repeated UI patterns MUST be abstracted in `apps/frontend/src/components`.
 - Public interfaces between backend, analytics jobs, and frontend clients MUST be defined
   as versioned contracts.
 - Breaking interface or schema changes MUST include migration notes and compatibility
@@ -140,6 +163,8 @@ unambiguously.
   agent-stop approval, even when those checks pass.
 - Work items MUST include test updates and, when relevant, Docker Compose integration
   updates.
+- Frontend work items MUST identify whether repeated UI patterns require extraction or
+  extension of shared components in `apps/frontend/src/components`.
 - Work items MUST include documentation impact assessment and required updates before
   merge; documentation omissions for impacted areas are non-compliant, including stale
   or missing updates to AGENTS.md when repository behavior or workflows change.
@@ -163,8 +188,9 @@ unambiguously.
   constitution alignment, including full-suite test stop-rule compliance,
   commit-time coverage stop-rule compliance, quality gates, local-stack runability,
   configuration integrity (no silent credential failures, secrets file declared),
+  frontend UI system consistency (HeroUI-first, Tailwind-first, reusable abstractions),
   and required documentation updates.
 - This constitution is expected to evolve with the product; refinements that tighten
   standards across backend, frontend, data pipelines, and operations are encouraged.
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-23
+**Version**: 1.5.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-29
