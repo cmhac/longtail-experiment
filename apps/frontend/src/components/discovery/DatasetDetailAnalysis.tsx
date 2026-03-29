@@ -13,14 +13,14 @@ interface DatasetDetailAnalysisProps {
 }
 
 export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX.Element => {
-  const [selectedRange, setSelectedRange] = React.useState<TrendRangeKey>("1Y");
+  const [selectedRange, setSelectedRange] = React.useState<TrendRangeKey>("ALL");
 
   return (
     <>
       <DatasetDetailInsights data={data} selectedRange={selectedRange} />
 
       <Card
-        className="grid gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
+        className="grid h-full min-h-[24rem] min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
         data-testid="dataset-detail-trend-section"
         variant="default"
       >
@@ -31,6 +31,8 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
           observations={data.observations}
           onRangeChange={setSelectedRange}
           selectedRange={selectedRange}
+          unitLabel={data.metadata.unit ?? data.metadata.units}
+          unitType={data.metadata.unit_type}
         />
       </Card>
     </>

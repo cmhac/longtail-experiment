@@ -1,6 +1,6 @@
 import type { DatasetDetail, ObservationPoint } from "../../lib/api/discovery-types";
 
-export type TrendRangeKey = "1M" | "6M" | "1Y" | "ALL";
+export type TrendRangeKey = "1M" | "6M" | "1Y" | "5Y" | "ALL";
 
 export type MovementState = "positive" | "negative" | "neutral" | "unavailable";
 type UnitType = "usd" | "percent" | "number";
@@ -23,16 +23,22 @@ const RANGE_LABEL_PREFIX: Record<TrendRangeKey, string> = {
   "1M": "1-Month",
   "6M": "6-Month",
   "1Y": "1-Year",
+  "5Y": "5-Year",
   ALL: "All-Time",
 };
 
 const SUPPORTED_UNIT_TYPES: UnitType[] = ["usd", "percent", "number"];
 
-const RANGES_TO_COUNTS: Record<Exclude<TrendRangeKey, "ALL">, number> = {
-  "1M": 4,
-  "6M": 26,
-  "1Y": 52,
+const TREND_RANGE_ORDER: TrendRangeKey[] = ["ALL", "5Y", "1Y", "6M", "1M"];
+
+const RANGE_TO_DAYS: Record<Exclude<TrendRangeKey, "ALL">, number> = {
+  "1M": 30,
+  "6M": 183,
+  "1Y": 365,
+  "5Y": 365 * 5,
 };
+
+const DAY_IN_MILLISECONDS = 86_400_000;
 
 const formatNumber = (value: number, maximumFractionDigits: number): string => {
   return new Intl.NumberFormat("en-US", {
@@ -180,7 +186,7 @@ const getDerivedFrequencyLabel = (observations: ObservationPoint[]): string => {
 
 export const buildInsightMetrics = (
   detail: DatasetDetail,
-  selectedRange: TrendRangeKey = "1Y",
+  selectedRange: TrendRangeKey = "ALL",
 ): InsightMetric[] => {
   const observations = detail.observations;
   const windowLabelPrefix = RANGE_LABEL_PREFIX[selectedRange];
@@ -258,12 +264,49 @@ export const filterObservationRange = (
     return observations;
   }
 
-  const count = RANGES_TO_COUNTS[range];
-  if (observations.length <= count) {
+  const latestObservation = observations[observations.length - 1];
+  if (!latestObservation) {
     return observations;
   }
 
-  return observations.slice(-count);
+  const latestTimestamp = Date.parse(`${latestObservation.observed_on}T00:00:00Z`);
+  if (!Number.isFinite(latestTimestamp)) {
+    return observations;
+  }
+
+  const cutoffTimestamp = latestTimestamp - RANGE_TO_DAYS[range] * DAY_IN_MILLISECONDS;
+  return observations.filter((observation) => {
+    const observedTimestamp = Date.parse(`${observation.observed_on}T00:00:00Z`);
+    return Number.isFinite(observedTimestamp) && observedTimestamp >= cutoffTimestamp;
+  });
+};
+
+export const getAvailableTrendRanges = (observations: ObservationPoint[]): TrendRangeKey[] => {
+  if (observations.length === 0) {
+    return [];
+  }
+
+  const firstObservation = observations[0];
+  const lastObservation = observations[observations.length - 1];
+  if (!firstObservation || !lastObservation) {
+    return ["ALL"];
+  }
+
+  const firstTimestamp = Date.parse(`${firstObservation.observed_on}T00:00:00Z`);
+  const lastTimestamp = Date.parse(`${lastObservation.observed_on}T00:00:00Z`);
+  if (!Number.isFinite(firstTimestamp) || !Number.isFinite(lastTimestamp)) {
+    return ["ALL"];
+  }
+
+  const historySpanInDays = (lastTimestamp - firstTimestamp) / DAY_IN_MILLISECONDS;
+
+  return TREND_RANGE_ORDER.filter((range) => {
+    if (range === "ALL") {
+      return true;
+    }
+
+    return historySpanInDays >= RANGE_TO_DAYS[range];
+  });
 };
 
 export const getMetadataRows = (detail: DatasetDetail): Array<{ key: string; value: string }> => {

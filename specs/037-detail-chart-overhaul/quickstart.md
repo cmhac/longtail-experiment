@@ -50,9 +50,20 @@
 
 ## Validation Record
 
-- To be completed during implementation:
-  - Focused frontend tests run and pass.
-  - Static checks run and pass.
-  - Manual browser validation completed after clean local restart.
-  - `pnpm exec nx run-many -t test --all` run and passed.
-  - `pnpm exec nx run-many -t coverage --all` run and passed.
+- Focused frontend tests passed:
+  - `pnpm --dir apps/frontend test -- tests/ObservationsChart.test.tsx tests/detail-page.test.tsx tests/dataset-detail-view-model.test.ts`
+- Frontend static checks passed:
+  - `pnpm --dir apps/frontend typecheck`
+  - `pnpm --dir apps/frontend exec biome check .`
+- Mandatory monorepo stop gates passed:
+  - `pnpm exec nx run-many -t test --all`
+  - `pnpm exec nx run-many -t coverage --all`
+- Repository-wide quality gate passed:
+  - `pre-commit run --all-files`
+- Manual validation completed after clean local restart:
+  - Restarted the local stack with `docker compose down` and `docker compose up -d`.
+  - Verified the live detail page at `/datasets/ENERGY.US.RETAIL_GASOLINE.SCO`.
+  - Confirmed the chart defaults to `ALL`, shows `5Y`, `1Y`, `6M`, and `1M` in longest-to-shortest order, and the filter buttons expose pointer cursors.
+  - Confirmed switching to `5Y` and `1M` updates both the charted date window and the insight-rail labels/values.
+  - Confirmed the chart no longer shows the observation-count footnote and renders without point dots.
+  - Confirmed the observed-values table and archive button still render correctly on the live page.

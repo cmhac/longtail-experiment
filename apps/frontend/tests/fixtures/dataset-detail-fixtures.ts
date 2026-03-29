@@ -1,7 +1,40 @@
-import type { DatasetDetail } from "../../src/lib/api/discovery-types";
+import type { DatasetDetail, ObservationPoint } from "../../src/lib/api/discovery-types";
 
-export const buildDatasetDetailFixture = (): DatasetDetail => {
-  return {
+interface ObservationHistoryOptions {
+  count: number;
+  dayStep?: number;
+  initialValue?: number;
+  start: string;
+  valueStep?: number;
+}
+
+export const buildObservationHistory = ({
+  count,
+  dayStep = 7,
+  initialValue = 1,
+  start,
+  valueStep = 1,
+}: ObservationHistoryOptions): ObservationPoint[] => {
+  const startDate = new Date(`${start}T00:00:00Z`);
+
+  return Array.from({ length: count }, (_, index) => {
+    const observedAt = new Date(startDate);
+    observedAt.setUTCDate(startDate.getUTCDate() + index * dayStep);
+    const observedOn = observedAt.toISOString().slice(0, 10);
+
+    return {
+      observed_on: observedOn,
+      value: initialValue + index * valueStep,
+      reported_at: `${observedOn}T00:00:00Z`,
+      attributes: {},
+    };
+  });
+};
+
+export const buildDatasetDetailFixture = (
+  overrides: Partial<DatasetDetail> = {},
+): DatasetDetail => {
+  const base: DatasetDetail = {
     dataset_id: "GAS.REG.CO",
     source: { id: "eia", name: "EIA" },
     title: "Regular All Formulations Retail Gasoline Prices - Colorado",
@@ -35,4 +68,42 @@ export const buildDatasetDetailFixture = (): DatasetDetail => {
     ],
     observation_sort: "observed_on_asc,reported_at_asc",
   };
+
+  return {
+    ...base,
+    ...overrides,
+    metadata: {
+      ...base.metadata,
+      ...(overrides.metadata ?? {}),
+    },
+    observations: overrides.observations ?? base.observations,
+    source: overrides.source ?? base.source,
+    topic_tags: overrides.topic_tags ?? base.topic_tags,
+  };
+};
+
+export const buildLongHistoryDatasetDetailFixture = (): DatasetDetail => {
+  return buildDatasetDetailFixture({
+    observations: buildObservationHistory({
+      count: 340,
+      initialValue: 2.5,
+      start: "2018-01-01",
+      valueStep: 0.02,
+    }),
+  });
+};
+
+export const buildLimitedHistoryDatasetDetailFixture = (): DatasetDetail => {
+  return buildDatasetDetailFixture({
+    observations: buildObservationHistory({
+      count: 8,
+      initialValue: 3,
+      start: "2024-01-01",
+      valueStep: 0.05,
+    }),
+  });
+};
+
+export const buildNoObservationsDatasetDetailFixture = (): DatasetDetail => {
+  return buildDatasetDetailFixture({ observations: [] });
 };

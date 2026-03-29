@@ -2,7 +2,11 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import DatasetDetailPage from "../src/app/datasets/[id]/page";
 import * as discoveryClient from "../src/lib/api/discovery-client";
-import { buildDatasetDetailFixture } from "./fixtures/dataset-detail-fixtures";
+import {
+  buildDatasetDetailFixture,
+  buildLongHistoryDatasetDetailFixture,
+  buildNoObservationsDatasetDetailFixture,
+} from "./fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "./test-utils";
 
 const notFoundMock = vi.fn(() => {
@@ -19,7 +23,9 @@ afterEach(() => {
 
 describe("dataset detail page", () => {
   it("renders hero, insights, trend, and observed sections for valid datasets", async () => {
-    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue(buildDatasetDetailFixture());
+    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue(
+      buildLongHistoryDatasetDetailFixture(),
+    );
 
     const element = await DatasetDetailPage({ params: Promise.resolve({ id: "GAS.REG.CO" }) });
     const markup = renderMarkup(element);
@@ -34,14 +40,29 @@ describe("dataset detail page", () => {
     expect(markup).toContain('data-testid="dataset-detail-insights"');
     expect(markup).toContain('data-testid="dataset-detail-trend-section"');
     expect(markup).toContain('data-testid="dataset-detail-observed-values-section"');
+    expect(markup).toContain('data-testid="dataset-detail-analysis"');
+    expect(markup).toContain("md:items-stretch");
     expect(markup).toContain('data-testid="dataset-detail-utility-actions"');
     expect(markup).toContain('class="dataset-detail-utility-actions"');
     expect(markup).toContain('href="/api/datasets/GAS.REG.CO.csv"');
     expect(markup).toContain('data-testid="observations-chart-controls"');
     expect(markup).toContain('data-testid="observations-chart"');
+    expect(markup).not.toContain('data-testid="observations-chart-footnote"');
     expect(markup).toContain('data-testid="observations-table"');
-    expect(markup).not.toContain('data-testid="observations-load-archive"');
+    expect(markup).toContain('data-testid="observations-load-archive"');
     expect(discoveryClient.fetchDatasetDetail).toHaveBeenCalledWith("GAS.REG.CO");
+  });
+
+  it("preserves explicit empty-state chart behavior for datasets without observations", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue(
+      buildNoObservationsDatasetDetailFixture(),
+    );
+
+    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "EMPTY" }) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain("No observation data available");
+    expect(markup).not.toContain('data-testid="observations-chart-controls"');
   });
 
   it("renders generic error state for non-404 fetch failures", async () => {

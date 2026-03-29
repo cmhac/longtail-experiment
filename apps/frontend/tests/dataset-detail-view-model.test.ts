@@ -5,9 +5,14 @@ import {
   filterObservationRange,
   formatObservedOn,
   formatValue,
+  getAvailableTrendRanges,
   getMetadataRows,
 } from "../src/components/discovery/dataset-detail-view-model";
-import { buildDatasetDetailFixture } from "./fixtures/dataset-detail-fixtures";
+import {
+  buildDatasetDetailFixture,
+  buildLongHistoryDatasetDetailFixture,
+  buildObservationHistory,
+} from "./fixtures/dataset-detail-fixtures";
 
 describe("dataset-detail-view-model", () => {
   it("formats observed dates for display", () => {
@@ -40,20 +45,15 @@ describe("dataset-detail-view-model", () => {
     expect(latest.label).toBe("Latest Observation");
     expect(latest.value).toContain("$3.150");
     expect(latest.movementSummary).toContain("+");
-    expect(high.label).toBe("1-Year High");
-    expect(low.label).toBe("1-Year Low");
+    expect(high.label).toBe("All-Time High");
+    expect(low.label).toBe("All-Time Low");
   });
 
   it("uses selected chart range to set high/low labels and values", () => {
     const fixture = buildDatasetDetailFixture();
-    const manyObservations = Array.from({ length: 60 }, (_, index) => {
-      const day = String(index + 1).padStart(2, "0");
-      return {
-        observed_on: `2024-03-${day}`,
-        value: index + 1,
-        reported_at: `2024-03-${day}T00:00:00Z`,
-        attributes: {},
-      };
+    const manyObservations = buildObservationHistory({
+      count: 60,
+      start: "2023-01-01",
     });
 
     const monthlyMetrics = buildInsightMetrics(
@@ -76,7 +76,7 @@ describe("dataset-detail-view-model", () => {
     expect(monthlyMetrics[1]?.label).toBe("1-Month High");
     expect(monthlyMetrics[2]?.label).toBe("1-Month Low");
     expect(monthlyMetrics[1]?.value).toBe("60.000");
-    expect(monthlyMetrics[2]?.value).toBe("57.000");
+    expect(monthlyMetrics[2]?.value).toBe("56.000");
 
     expect(allMetrics[1]?.label).toBe("All-Time High");
     expect(allMetrics[2]?.label).toBe("All-Time Low");
@@ -105,10 +105,27 @@ describe("dataset-detail-view-model", () => {
   });
 
   it("filters observation ranges by control key", () => {
+    const observations = buildLongHistoryDatasetDetailFixture().observations;
+
+    expect(filterObservationRange(observations, "1M").length).toBeLessThan(observations.length);
+    expect(filterObservationRange(observations, "5Y").length).toBeLessThan(observations.length);
+    expect(filterObservationRange(observations, "ALL")).toHaveLength(observations.length);
+  });
+
+  it("returns available trend ranges ordered from longest to shortest", () => {
+    expect(getAvailableTrendRanges(buildLongHistoryDatasetDetailFixture().observations)).toEqual([
+      "ALL",
+      "5Y",
+      "1Y",
+      "6M",
+      "1M",
+    ]);
+  });
+
+  it("hides unsupported trend ranges for limited histories", () => {
     const observations = buildDatasetDetailFixture().observations;
 
-    expect(filterObservationRange(observations, "1M")).toHaveLength(3);
-    expect(filterObservationRange(observations, "ALL")).toHaveLength(3);
+    expect(getAvailableTrendRanges(observations)).toEqual(["ALL"]);
   });
 
   it("returns empty-data insight metrics when observations are missing", () => {

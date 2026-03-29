@@ -27,8 +27,8 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 **Purpose**: Confirm the feature documentation and test surfaces that implementation will use
 
-- [ ] T001 Review feature contracts and validation flow in `specs/037-detail-chart-overhaul/plan.md`, `specs/037-detail-chart-overhaul/contracts/dataset-detail-chart-contract.md`, and `specs/037-detail-chart-overhaul/quickstart.md`
-- [ ] T002 [P] Confirm existing chart/detail test fixtures support short- and long-history scenarios in `apps/frontend/tests/fixtures/dataset-detail-fixtures.ts`
+- [X] T001 Review feature contracts and validation flow in `specs/037-detail-chart-overhaul/plan.md`, `specs/037-detail-chart-overhaul/contracts/dataset-detail-chart-contract.md`, and `specs/037-detail-chart-overhaul/quickstart.md`
+- [X] T002 [P] Confirm existing chart/detail test fixtures support short- and long-history scenarios in `apps/frontend/tests/fixtures/dataset-detail-fixtures.ts`
 
 ---
 
@@ -38,10 +38,10 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 [P] Expand shared dataset detail fixtures for no-data, limited-history, and multi-year histories in `apps/frontend/tests/fixtures/dataset-detail-fixtures.ts`
-- [ ] T004 [P] Add foundational range-logic tests for supported windows and filtered observation subsets in `apps/frontend/tests/dataset-detail-view-model.test.ts`
-- [ ] T005 Add shared chart range derivation helpers for all-history default, 5Y support, longest-to-shortest ordering, and hidden unsupported ranges in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
-- [ ] T006 [P] Extend chart-related types as needed for derived range metadata in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
+- [X] T003 [P] Expand shared dataset detail fixtures for no-data, limited-history, and multi-year histories in `apps/frontend/tests/fixtures/dataset-detail-fixtures.ts`
+- [X] T004 [P] Add foundational range-logic tests for supported windows and filtered observation subsets in `apps/frontend/tests/dataset-detail-view-model.test.ts`
+- [X] T005 Add shared chart range derivation helpers for all-history default, 5Y support, longest-to-shortest ordering, and hidden unsupported ranges in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
+- [X] T006 [P] Extend chart-related types as needed for derived range metadata in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
 
 **Checkpoint**: Shared chart range logic and fixtures are ready for story implementation
 
@@ -57,14 +57,14 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T007 [P] [US1] Add chart render contract tests for border removal, no footnote, line-only rendering, and axis-spacing markers in `apps/frontend/tests/ObservationsChart.test.tsx`
-- [ ] T008 [P] [US1] Add page-level layout assertions for the trend section and analysis-panel alignment hooks in `apps/frontend/tests/detail-page.test.tsx`
+- [X] T007 [P] [US1] Add chart render contract tests for border removal, no footnote, line-only rendering, and axis-spacing markers in `apps/frontend/tests/ObservationsChart.test.tsx`
+- [X] T008 [P] [US1] Add page-level layout assertions for the trend section and analysis-panel alignment hooks in `apps/frontend/tests/detail-page.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Update trend panel layout to let the chart fill the available analysis-column space in `apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`
-- [ ] T010 [US1] Refine chart rendering to remove border, remove footnote, hide line dots, and loosen x-axis label spacing in `apps/frontend/src/components/discovery/ObservationsChart.tsx`
-- [ ] T011 [US1] Verify US1 coverage contribution remains >= 90% for `apps/frontend/tests/ObservationsChart.test.tsx` and `apps/frontend/tests/detail-page.test.tsx`
+- [X] T009 [US1] Update trend panel layout to let the chart fill the available analysis-column space in `apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`
+- [X] T010 [US1] Refine chart rendering to remove border, remove footnote, hide line dots, and loosen x-axis label spacing in `apps/frontend/src/components/discovery/ObservationsChart.tsx`
+- [X] T011 [US1] Verify US1 coverage contribution remains >= 90% for `apps/frontend/tests/ObservationsChart.test.tsx` and `apps/frontend/tests/detail-page.test.tsx`
 
 **Checkpoint**: User Story 1 should now be fully functional and independently testable
 
@@ -78,15 +78,15 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T012 [P] [US2] Add view-model tests for all-history default, 5Y support, and ordered visible ranges in `apps/frontend/tests/dataset-detail-view-model.test.ts`
-- [ ] T013 [P] [US2] Add chart interaction tests for ordered visible controls, default selected state, and pointer-cursor affordance in `apps/frontend/tests/ObservationsChart.test.tsx`
+- [X] T012 [P] [US2] Add view-model tests for all-history default, 5Y support, and ordered visible ranges in `apps/frontend/tests/dataset-detail-view-model.test.ts`
+- [X] T013 [P] [US2] Add chart interaction tests for ordered visible controls, default selected state, and pointer-cursor affordance in `apps/frontend/tests/ObservationsChart.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Extend range-selection helpers for 5Y, ordered visibility, and all-history default state in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
-- [ ] T015 [US2] Update chart controls to render longest-to-shortest, include 5Y, default to all-history, and present pointer cursor styling in `apps/frontend/src/components/discovery/ObservationsChart.tsx`
-- [ ] T016 [US2] Update insight-range synchronization to use the new all-history default in `apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`
-- [ ] T017 [US2] Verify US2 coverage contribution remains >= 90% for `apps/frontend/tests/dataset-detail-view-model.test.ts` and `apps/frontend/tests/ObservationsChart.test.tsx`
+- [X] T014 [US2] Extend range-selection helpers for 5Y, ordered visibility, and all-history default state in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
+- [X] T015 [US2] Update chart controls to render longest-to-shortest, include 5Y, default to all-history, and present pointer cursor styling in `apps/frontend/src/components/discovery/ObservationsChart.tsx`
+- [X] T016 [US2] Update insight-range synchronization to use the new all-history default in `apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`
+- [X] T017 [US2] Verify US2 coverage contribution remains >= 90% for `apps/frontend/tests/dataset-detail-view-model.test.ts` and `apps/frontend/tests/ObservationsChart.test.tsx`
 
 **Checkpoint**: User Stories 1 and 2 should now both work independently
 
@@ -100,15 +100,15 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T018 [P] [US3] Add no-data and limited-history range-visibility tests in `apps/frontend/tests/dataset-detail-view-model.test.ts`
-- [ ] T019 [P] [US3] Add chart fallback tests for hidden control groups and explicit empty-state behavior in `apps/frontend/tests/ObservationsChart.test.tsx`
-- [ ] T020 [P] [US3] Add page-level regression coverage for limited-history and no-data trend behavior in `apps/frontend/tests/detail-page.test.tsx`
+- [X] T018 [P] [US3] Add no-data and limited-history range-visibility tests in `apps/frontend/tests/dataset-detail-view-model.test.ts`
+- [X] T019 [P] [US3] Add chart fallback tests for hidden control groups and explicit empty-state behavior in `apps/frontend/tests/ObservationsChart.test.tsx`
+- [X] T020 [P] [US3] Add page-level regression coverage for limited-history and no-data trend behavior in `apps/frontend/tests/detail-page.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Finalize supported-range filtering so unsupported windows and empty control groups are omitted in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
-- [ ] T022 [US3] Update chart fallback rendering so limited-history and no-data states never show dead-end controls in `apps/frontend/src/components/discovery/ObservationsChart.tsx`
-- [ ] T023 [US3] Verify US3 coverage contribution remains >= 90% for `apps/frontend/tests/dataset-detail-view-model.test.ts`, `apps/frontend/tests/ObservationsChart.test.tsx`, and `apps/frontend/tests/detail-page.test.tsx`
+- [X] T021 [US3] Finalize supported-range filtering so unsupported windows and empty control groups are omitted in `apps/frontend/src/components/discovery/dataset-detail-view-model.ts`
+- [X] T022 [US3] Update chart fallback rendering so limited-history and no-data states never show dead-end controls in `apps/frontend/src/components/discovery/ObservationsChart.tsx`
+- [X] T023 [US3] Verify US3 coverage contribution remains >= 90% for `apps/frontend/tests/dataset-detail-view-model.test.ts`, `apps/frontend/tests/ObservationsChart.test.tsx`, and `apps/frontend/tests/detail-page.test.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -118,12 +118,12 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 **Purpose**: Final validation, cleanup, and completion gates across all stories
 
-- [ ] T024 [P] Update implementation validation notes and completed command record in `specs/037-detail-chart-overhaul/quickstart.md`
-- [ ] T025 Run focused frontend verification commands from `specs/037-detail-chart-overhaul/quickstart.md` for `apps/frontend/tests/ObservationsChart.test.tsx`, `apps/frontend/tests/detail-page.test.tsx`, and `apps/frontend/tests/dataset-detail-view-model.test.ts`
-- [ ] T026 Run manual browser validation after `docker compose down` and `docker compose up -d`, then record the results in `specs/037-detail-chart-overhaul/quickstart.md`
-- [ ] T027 Run `pnpm --dir apps/frontend typecheck` and `pnpm --dir apps/frontend exec biome check .`
-- [ ] T028 Run `pnpm exec nx run-many -t test --all` and verify pass before commit and before agent handoff/end of work
-- [ ] T029 Run `pnpm exec nx run-many -t coverage --all` and verify >= 90% coverage thresholds are satisfied before commit
+- [X] T024 [P] Update implementation validation notes and completed command record in `specs/037-detail-chart-overhaul/quickstart.md`
+- [X] T025 Run focused frontend verification commands from `specs/037-detail-chart-overhaul/quickstart.md` for `apps/frontend/tests/ObservationsChart.test.tsx`, `apps/frontend/tests/detail-page.test.tsx`, and `apps/frontend/tests/dataset-detail-view-model.test.ts`
+- [X] T026 Run manual browser validation after `docker compose down` and `docker compose up -d`, then record the results in `specs/037-detail-chart-overhaul/quickstart.md`
+- [X] T027 Run `pnpm --dir apps/frontend typecheck` and `pnpm --dir apps/frontend exec biome check .`
+- [X] T028 Run `pnpm exec nx run-many -t test --all` and verify pass before commit and before agent handoff/end of work
+- [X] T029 Run `pnpm exec nx run-many -t coverage --all` and verify >= 90% coverage thresholds are satisfied before commit
 
 ---
 

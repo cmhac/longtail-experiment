@@ -37,7 +37,7 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
         </section>
 
         <section
-          className="grid items-start gap-4 md:grid-cols-[18rem_minmax(0,1fr)]"
+          className="grid gap-4 md:grid-cols-[18rem_minmax(0,1fr)] md:items-stretch"
           data-testid="dataset-detail-analysis"
         >
           <DatasetDetailAnalysis data={detail} />
