@@ -37,10 +37,10 @@ export const UnifiedDatasetRow = ({
       variant="transparent"
     >
       <div className="recent-updates-meta-rail grid min-w-0 content-start gap-[0.32rem] max-[720px]:flex max-[720px]:items-center max-[720px]:gap-[0.6rem]">
-        <span className="recent-updates-source text-[0.73rem] font-bold tracking-[0.08em]">
+        <span className="recent-updates-source font-bold text-[0.73rem] tracking-[0.08em]">
           {sourceLabel}
         </span>
-        <span className="recent-updates-date text-[0.82rem] text-(--shell-muted)">
+        <span className="recent-updates-date text-(--shell-muted) text-[0.82rem]">
           {updatedLabel}
         </span>
       </div>
@@ -54,7 +54,7 @@ export const UnifiedDatasetRow = ({
           </Link>
         </h3>
         {summaryText ? (
-          <p className="m-0 max-w-[70ch] leading-[1.4] text-(--shell-muted)">{summaryText}</p>
+          <p className="m-0 max-w-[70ch] text-(--shell-muted) leading-[1.4]">{summaryText}</p>
         ) : null}
         <TagPillGroup
           emphasizedPills={emphasizedPills}

@@ -162,11 +162,11 @@ export const UnifiedSearchSurface = ({
                   variant="default"
                 >
                   <div
-                    className="flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] bg-[var(--surface)] px-5 py-[1.05rem] text-[0.72rem] font-bold tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
+                    className="flex items-center justify-between gap-3 border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] border-b bg-[var(--surface)] px-5 py-[1.05rem] font-bold text-[0.72rem] tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
                     data-testid="dataset-search-suggestions-header"
                   >
                     <span>SEARCH RESULTS ({suggestions.length})</span>
-                    <small className="text-[0.82rem] font-semibold tracking-normal text-(--shell-muted)">
+                    <small className="font-semibold text-(--shell-muted) text-[0.82rem] tracking-normal">
                       Press ↵ to view all
                     </small>
                   </div>
@@ -191,17 +191,17 @@ export const UnifiedSearchSurface = ({
                             }}
                             type="button"
                           >
-                            <span className="text-[0.72rem] font-bold tracking-[0.15em] text-(--shell-muted)">
+                            <span className="font-bold text-(--shell-muted) text-[0.72rem] tracking-[0.15em]">
                               DATASET • {item.source.name.toUpperCase()}
                             </span>
-                            <span className="font-serif text-[clamp(1.08rem,1.6vw,1.5rem)] font-bold leading-[1.1] text-[var(--shell-foreground)] max-[720px]:text-[1.12rem]">
+                            <span className="font-bold font-serif text-[clamp(1.08rem,1.6vw,1.5rem)] text-[var(--shell-foreground)] leading-[1.1] max-[720px]:text-[1.12rem]">
                               {item.title}
                             </span>
                             <span className="flex items-center gap-[1.2rem] max-[720px]:flex-wrap max-[720px]:gap-3">
-                              <small className="text-[0.95rem] text-(--shell-muted)">
+                              <small className="text-(--shell-muted) text-[0.95rem]">
                                 {item.source.name}
                               </small>
-                              <small className="text-[0.95rem] text-(--shell-muted)">
+                              <small className="text-(--shell-muted) text-[0.95rem]">
                                 {item.dataset_id}
                               </small>
                             </span>
@@ -248,11 +248,11 @@ export const UnifiedSearchSurface = ({
                   variant="default"
                 >
                   <div
-                    className="flex items-center justify-between gap-3 border-b border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] bg-[var(--surface)] px-5 py-[1.05rem] text-[0.72rem] font-bold tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
+                    className="flex items-center justify-between gap-3 border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] border-b bg-[var(--surface)] px-5 py-[1.05rem] font-bold text-[0.72rem] tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
                     data-testid="dataset-search-suggestions-header"
                   >
                     <span>SEARCH RESULTS ({suggestions.length})</span>
-                    <small className="text-[0.82rem] font-semibold tracking-normal text-(--shell-muted)">
+                    <small className="font-semibold text-(--shell-muted) text-[0.82rem] tracking-normal">
                       Press ↵ to view all
                     </small>
                   </div>
@@ -277,17 +277,17 @@ export const UnifiedSearchSurface = ({
                             }}
                             type="button"
                           >
-                            <span className="text-[0.72rem] font-bold tracking-[0.15em] text-(--shell-muted)">
+                            <span className="font-bold text-(--shell-muted) text-[0.72rem] tracking-[0.15em]">
                               DATASET • {item.source.name.toUpperCase()}
                             </span>
-                            <span className="font-serif text-[clamp(1.08rem,1.6vw,1.5rem)] font-bold leading-[1.1] text-[var(--shell-foreground)] max-[720px]:text-[1.12rem]">
+                            <span className="font-bold font-serif text-[clamp(1.08rem,1.6vw,1.5rem)] text-[var(--shell-foreground)] leading-[1.1] max-[720px]:text-[1.12rem]">
                               {item.title}
                             </span>
                             <span className="flex items-center gap-[1.2rem] max-[720px]:flex-wrap max-[720px]:gap-3">
-                              <small className="text-[0.95rem] text-(--shell-muted)">
+                              <small className="text-(--shell-muted) text-[0.95rem]">
                                 {item.source.name}
                               </small>
-                              <small className="text-[0.95rem] text-(--shell-muted)">
+                              <small className="text-(--shell-muted) text-[0.95rem]">
                                 {item.dataset_id}
                               </small>
                             </span>
@@ -301,7 +301,7 @@ export const UnifiedSearchSurface = ({
             </div>
           </form>
           <p
-            className="relative z-[1] m-0 max-w-[56ch] text-center text-[0.9rem] text-(--shell-muted)"
+            className="relative z-[1] m-0 max-w-[56ch] text-center text-(--shell-muted) text-[0.9rem]"
             data-testid="dataset-search-summary"
           >
             {summaryText}

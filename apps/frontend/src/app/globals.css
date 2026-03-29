@@ -137,7 +137,7 @@ a {
 }
 
 .shell-navbar-surface {
-  @apply border-border/70 bg-surface/90 shadow-sm backdrop-blur-sm;
+  @apply bg-surface/90 shadow-sm backdrop-blur-sm;
 }
 
 .shell-navbar {

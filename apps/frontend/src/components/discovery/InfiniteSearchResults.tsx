@@ -103,7 +103,7 @@ export const InfiniteSearchResults = ({
       ) : null}
       {loadError ? (
         <Card
-          className="rounded-lg border border-border/70 bg-surface/95 p-4 text-sm shadow-sm"
+          className="rounded-lg border bg-surface/95 p-4 text-sm shadow-sm"
           data-testid="infinite-search-error"
         >
           Unable to load more search results right now.

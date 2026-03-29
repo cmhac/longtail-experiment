@@ -75,7 +75,7 @@ export const ObservationsChart = ({
         <Line dataKey="value" stroke="#111111" type="monotone" />
       </LineChart>
       <p
-        className="mb-0 mt-[0.45rem] text-[0.8rem] text-(--shell-muted)"
+        className="mt-[0.45rem] mb-0 text-(--shell-muted) text-[0.8rem]"
         data-testid="observations-chart-footnote"
       >
         Showing {chartData.length} observations

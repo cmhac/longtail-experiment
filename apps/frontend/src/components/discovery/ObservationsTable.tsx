@@ -44,19 +44,19 @@ export const ObservationsTable = ({
         <thead>
           <tr>
             <th
-              className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left"
+              className="border-(--shell-border) border-b px-[0.58rem] py-[0.58rem] text-left"
               scope="col"
             >
               Date of Observation
             </th>
             <th
-              className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left"
+              className="border-(--shell-border) border-b px-[0.58rem] py-[0.58rem] text-left"
               scope="col"
             >
               Value
             </th>
             <th
-              className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left"
+              className="border-(--shell-border) border-b px-[0.58rem] py-[0.58rem] text-left"
               scope="col"
             >
               Weekly Change
@@ -66,14 +66,14 @@ export const ObservationsTable = ({
         <tbody>
           {visibleRows.map((row) => (
             <tr key={row.observedOn}>
-              <td className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left">
+              <td className="border-(--shell-border) border-b px-[0.58rem] py-[0.58rem] text-left">
                 {row.observedOn}
               </td>
-              <td className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left">
+              <td className="border-(--shell-border) border-b px-[0.58rem] py-[0.58rem] text-left">
                 {row.valueDisplay}
               </td>
               <td
-                className={`observations-weekly-change observations-weekly-change-${row.movementState} border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left`}
+                className={`observations-weekly-change observations-weekly-change-${row.movementState} border-(--shell-border) border-b px-[0.58rem] py-[0.58rem] text-left`}
               >
                 {row.weeklyChangeDisplay}
               </td>

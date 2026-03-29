@@ -34,10 +34,10 @@ export const SourceListRow = ({ source }: SourceListRowProps): JSX.Element => {
         href={`/sources/${encodeURIComponent(source.id)}`}
       >
         <div className="recent-updates-meta-rail source-directory-meta-rail grid min-w-0 content-start gap-[0.32rem] max-[720px]:flex max-[720px]:items-center max-[720px]:gap-[0.6rem]">
-          <span className="recent-updates-source text-[0.73rem] font-bold tracking-[0.08em]">
+          <span className="recent-updates-source font-bold text-[0.73rem] tracking-[0.08em]">
             {source.source_type ? source.source_type.toUpperCase() : "SOURCE"}
           </span>
-          <span className="recent-updates-date text-[0.82rem] text-(--shell-muted)">
+          <span className="recent-updates-date text-(--shell-muted) text-[0.82rem]">
             {formatDatasetCount(source.dataset_count)}
           </span>
         </div>
@@ -48,7 +48,7 @@ export const SourceListRow = ({ source }: SourceListRowProps): JSX.Element => {
           >
             {source.name}
           </h3>
-          <p className="m-0 max-w-[70ch] leading-[1.4] text-(--shell-muted)">
+          <p className="m-0 max-w-[70ch] text-(--shell-muted) leading-[1.4]">
             {buildSummaryText(source)}
           </p>
         </div>

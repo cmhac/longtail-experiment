@@ -11,7 +11,7 @@ export const ErrorState = ({
 }: ErrorStateProps): JSX.Element => {
   return (
     <Card
-      className="rounded-lg border border-(--shell-border) border-border/70 bg-(--shell-surface) bg-surface/95 p-6 text-center shadow-sm"
+      className="rounded-lg border border-(--shell-border) bg-surface/95 p-6 text-center shadow-sm"
       data-testid="discovery-error-state"
       role="alert"
       variant="default"

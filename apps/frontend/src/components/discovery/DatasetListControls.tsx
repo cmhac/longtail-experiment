@@ -74,10 +74,10 @@ export const DatasetListControls = ({
   }: ComboBoxControlProps): JSX.Element => {
     return (
       <label
-        className="dataset-list-control-group grid min-w-0 w-full gap-[0.3rem] md:w-[min(100%,12.5rem)]"
+        className="dataset-list-control-group grid w-full min-w-0 gap-[0.3rem] md:w-[min(100%,12.5rem)]"
         htmlFor={id}
       >
-        <span className="dataset-list-control-label text-[0.68rem] tracking-[0.11em] text-(--shell-muted) uppercase">
+        <span className="dataset-list-control-label text-(--shell-muted) text-[0.68rem] uppercase tracking-[0.11em]">
           {label}
         </span>
         <ComboBox

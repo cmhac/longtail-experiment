@@ -34,7 +34,7 @@ export const PageHeaderWrapper = ({
   return (
     <header
       className={[
-        "page-header-wrapper mb-[0.35rem] grid gap-3 border-b border-[color-mix(in_srgb,var(--shell-border)_80%,transparent)] bg-transparent px-0 pb-[0.8rem] pt-2",
+        "page-header-wrapper mb-[0.35rem] grid gap-3 border-[color-mix(in_srgb,var(--shell-border)_80%,transparent)] border-b bg-transparent px-0 pt-2 pb-[0.8rem]",
         className,
       ]
         .filter(Boolean)
@@ -54,7 +54,7 @@ export const PageHeaderKicker = ({
   return (
     <p
       className={[
-        "page-header-kicker m-0 text-[0.8rem] uppercase tracking-[0.08em] text-(--shell-muted)",
+        "page-header-kicker m-0 text-(--shell-muted) text-[0.8rem] uppercase tracking-[0.08em]",
         className,
       ]
         .filter(Boolean)

@@ -29,7 +29,7 @@ export const DatasetDetailInsights = ({
             key={metric.label}
             variant="default"
           >
-            <p className="m-0 text-[0.7rem] uppercase tracking-widest text-(--shell-muted)">
+            <p className="m-0 text-(--shell-muted) text-[0.7rem] uppercase tracking-widest">
               {metric.label}
             </p>
             <p className="mt-[0.28rem] font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-[1.65rem] leading-none">

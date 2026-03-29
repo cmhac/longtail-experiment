@@ -208,6 +208,16 @@ Docker Compose policy:
   apps/pipeline/pyproject.toml; no inline suppression bypasses are allowed.
 - TypeScript: strict compiler settings in apps/frontend/tsconfig.json; Biome check is the
   lint/format authority.
+- Frontend UI: HeroUI is the default component system in `apps/frontend`; Tailwind is
+  the default styling mechanism. New local or feature-specific CSS is not permitted
+  unless the need is a shared global token, framework integration point, or a documented
+  gap that HeroUI + Tailwind cannot cover cleanly.
+- Frontend reuse: when a component pattern will be used more than once, extract or
+  extend a shared component in `apps/frontend/src/components` instead of duplicating
+  markup/class lists in routes or feature-local files.
+- Frontend composition: related reusable UI primitives may be exported as grouped,
+  composable components from a single module, following the pattern used in
+  `apps/frontend/src/components/discovery/PageHeader.tsx`.
 - Quality gates: lint, format, typecheck, test, coverage, and duplication must pass via
   affected targets and pre-commit hooks.
 - Mandatory stop rule: before any commit and before AI agent handoff/stop, the full
