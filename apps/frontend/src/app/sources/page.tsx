@@ -5,49 +5,44 @@ import { DiscoveryListPageHeader } from "../../components/discovery/DiscoveryLis
 import { ErrorState } from "../../components/discovery/ErrorState";
 import { SourceCatalogList } from "../../components/discovery/SourceCatalogList";
 import { fetchSourceList } from "../../lib/api/discovery-client";
-import { SiteHeader } from "../../shell/site-header";
-import { SHELL_LAYOUT_CLASS_NAMES } from "../../theme/monochrome-theme";
+import { SitePageFrame } from "../../shell/site-page-frame";
 
 const SourceListPage = async (): Promise<JSX.Element> => {
   try {
     const payload = await fetchSourceList();
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="sources" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="source-list-page"
-        >
-          <DiscoveryListPageHeader
-            headerTestId="source-list-page-header"
-            title="Sources"
-            totalNoun="sources"
-            totalTestId="source-list-total"
-            totalValue={Intl.NumberFormat("en-US").format(payload.total_items)}
-          />
-          <SourceCatalogList items={payload.items} />
-        </main>
-      </div>
+      <SitePageFrame
+        activeTab="sources"
+        mainClassName="grid content-start gap-[1.2rem]"
+        mainTestId="source-list-page"
+      >
+        <DiscoveryListPageHeader
+          headerTestId="source-list-page-header"
+          title="Sources"
+          totalNoun="sources"
+          totalTestId="source-list-total"
+          totalValue={Intl.NumberFormat("en-US").format(payload.total_items)}
+        />
+        <SourceCatalogList items={payload.items} />
+      </SitePageFrame>
     );
   } catch {
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="sources" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="source-list-page"
-        >
-          <DiscoveryListPageHeader
-            headerTestId="source-list-page-header"
-            title="Sources"
-            totalNoun="sources"
-            totalTestId="source-list-total"
-            totalValue="--"
-          />
-          <ErrorState />
-        </main>
-      </div>
+      <SitePageFrame
+        activeTab="sources"
+        mainClassName="grid content-start gap-[1.2rem]"
+        mainTestId="source-list-page"
+      >
+        <DiscoveryListPageHeader
+          headerTestId="source-list-page-header"
+          title="Sources"
+          totalNoun="sources"
+          totalTestId="source-list-total"
+          totalValue="--"
+        />
+        <ErrorState />
+      </SitePageFrame>
     );
   }
 };

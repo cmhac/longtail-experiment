@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 import type { ObservationPoint } from "../../lib/api/discovery-types";
@@ -30,22 +31,49 @@ export const ObservationsTable = ({
   const hasMoreRows = rows.length > defaultVisibleRows;
 
   return (
-    <div className="discovery-observations-table-wrap" data-testid="observations-table-wrap">
-      <table className="discovery-observations-table" data-testid="observations-table">
+    <Card
+      className="grid gap-3 border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm"
+      data-testid="observations-table-wrap"
+      variant="default"
+    >
+      <h2 className="pl-1.5">Observed Values</h2>
+      <table
+        className="w-full border-collapse border border-(--shell-border) bg-transparent"
+        data-testid="observations-table"
+      >
         <thead>
           <tr>
-            <th scope="col">Date of Observation</th>
-            <th scope="col">Value</th>
-            <th scope="col">Weekly Change</th>
+            <th
+              className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left"
+              scope="col"
+            >
+              Date of Observation
+            </th>
+            <th
+              className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left"
+              scope="col"
+            >
+              Value
+            </th>
+            <th
+              className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left"
+              scope="col"
+            >
+              Weekly Change
+            </th>
           </tr>
         </thead>
         <tbody>
           {visibleRows.map((row) => (
             <tr key={row.observedOn}>
-              <td>{row.observedOn}</td>
-              <td>{row.valueDisplay}</td>
+              <td className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left">
+                {row.observedOn}
+              </td>
+              <td className="border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left">
+                {row.valueDisplay}
+              </td>
               <td
-                className={`observations-weekly-change observations-weekly-change-${row.movementState}`}
+                className={`observations-weekly-change observations-weekly-change-${row.movementState} border-b border-(--shell-border) px-[0.58rem] py-[0.58rem] text-left`}
               >
                 {row.weeklyChangeDisplay}
               </td>
@@ -56,7 +84,7 @@ export const ObservationsTable = ({
 
       {hasMoreRows ? (
         <button
-          className="observations-load-archive"
+          className="mx-auto border border-(--shell-border) bg-(--shell-surface) px-[0.9rem] py-[0.42rem] text-[0.73rem] tracking-[0.08em]"
           data-testid="observations-load-archive"
           onClick={() => {
             setShowAll(true);
@@ -66,6 +94,6 @@ export const ObservationsTable = ({
           LOAD ARCHIVE ({rows.length} ROWS)
         </button>
       ) : null}
-    </div>
+    </Card>
   );
 };

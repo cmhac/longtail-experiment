@@ -45,12 +45,19 @@ export const ObservationsChart = ({
   };
 
   return (
-    <div aria-label="Time series chart" data-testid="observations-chart">
-      <div className="observations-chart-controls" data-testid="observations-chart-controls">
+    <div
+      aria-label="Time series chart"
+      className="overflow-x-auto rounded-lg border border-(--shell-border) bg-(--shell-surface) p-2"
+      data-testid="observations-chart"
+    >
+      <div
+        className="mb-[0.45rem] flex justify-end gap-[0.35rem]"
+        data-testid="observations-chart-controls"
+      >
         {rangeOptions.map((range) => (
           <button
             aria-pressed={activeRange === range}
-            className="observations-chart-range"
+            className="border border-(--shell-border) bg-(--shell-surface) px-[0.52rem] py-[0.2rem] text-[0.68rem] tracking-[0.06em] aria-pressed:border-[var(--shell-foreground)] aria-pressed:bg-[var(--shell-foreground)] aria-pressed:text-[var(--shell-surface)]"
             key={range}
             onClick={() => {
               handleRangeChange(range);
@@ -67,7 +74,10 @@ export const ObservationsChart = ({
         <Tooltip />
         <Line dataKey="value" stroke="#111111" type="monotone" />
       </LineChart>
-      <p className="observations-chart-footnote" data-testid="observations-chart-footnote">
+      <p
+        className="mb-0 mt-[0.45rem] text-[0.8rem] text-(--shell-muted)"
+        data-testid="observations-chart-footnote"
+      >
         Showing {chartData.length} observations
       </p>
     </div>

@@ -35,6 +35,7 @@ describe("topic detail page", () => {
     expect(markup).toContain("1 total datasets");
     expect(markup).toContain('data-testid="topic-detail-page"');
     expect(markup).toContain('data-testid="topic-detail-header"');
+    expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('href="/datasets/CPIAUCSL"');
   });
 

@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
@@ -20,34 +21,48 @@ export const DatasetDetailInsights = ({
   const metadataRows = getMetadataRows(data);
 
   return (
-    <aside className="dataset-detail-insights" data-testid="dataset-detail-insights">
-      <section className="dataset-detail-metric-rail" data-testid="dataset-detail-metric-rail">
+    <aside className="grid gap-3" data-testid="dataset-detail-insights">
+      <section className="grid gap-[0.65rem]" data-testid="dataset-detail-metric-rail">
         {metrics.map((metric) => (
-          <article className="dataset-detail-metric-card" key={metric.label}>
-            <p className="dataset-detail-metric-label">{metric.label}</p>
-            <p className="dataset-detail-metric-value">{metric.value}</p>
+          <Card
+            className="border border-(--shell-border) bg-[color-mix(in_srgb,var(--shell-background)_98%,#000000)] p-[1.2rem]"
+            key={metric.label}
+            variant="default"
+          >
+            <p className="m-0 text-[0.7rem] uppercase tracking-widest text-(--shell-muted)">
+              {metric.label}
+            </p>
+            <p className="mt-[0.28rem] font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-[1.65rem] leading-none">
+              {metric.value}
+            </p>
             {metric.movementSummary ? (
               <p
-                className={`dataset-detail-metric-movement dataset-detail-metric-movement-${metric.movementState}`}
+                className={`dataset-detail-metric-movement dataset-detail-metric-movement-${metric.movementState} mt-[0.3rem] text-[0.82rem]`}
               >
                 {metric.movementSummary}
               </p>
             ) : null}
-          </article>
+          </Card>
         ))}
       </section>
 
-      <section className="dataset-detail-metadata" data-testid="dataset-detail-metadata">
-        <h2>Metadata</h2>
-        <dl>
+      <Card
+        className="border border-(--shell-border) bg-transparent p-[0.8rem] shadow-sm"
+        data-testid="dataset-detail-metadata"
+        variant="default"
+      >
+        <h2 className="m-0 font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-[1.4rem]">
+          Metadata
+        </h2>
+        <dl className="mt-[0.7rem] grid gap-2">
           {metadataRows.map((row) => (
-            <div key={row.key}>
-              <dt>{row.key}</dt>
-              <dd>{row.value}</dd>
+            <div className="flex justify-between gap-[0.85rem]" key={row.key}>
+              <dt className="text-(--shell-muted)">{row.key}</dt>
+              <dd className="m-0 font-bold">{row.value}</dd>
             </div>
           ))}
         </dl>
-      </section>
+      </Card>
     </aside>
   );
 };

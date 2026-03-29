@@ -7,8 +7,7 @@ import { ErrorState } from "../../../components/discovery/ErrorState";
 import { GeographyDetailHeader } from "../../../components/discovery/GeographyDetailHeader";
 import { InfiniteCatalogList } from "../../../components/discovery/InfiniteCatalogList";
 import { fetchGeographyDetail } from "../../../lib/api/discovery-client";
-import { SiteHeader } from "../../../shell/site-header";
-import { SHELL_LAYOUT_CLASS_NAMES } from "../../../theme/monochrome-theme";
+import { SitePageFrame } from "../../../shell/site-page-frame";
 
 interface GeographyDetailPageProps {
   params: Promise<{ geographyId: string }>;
@@ -28,26 +27,20 @@ const GeographyDetailPage = async ({ params }: GeographyDetailPageProps): Promis
     const firstPage = await fetchGeographyDetail(geographyId, { page: 1 });
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="geography-detail-page"
-        >
-          <GeographyDetailHeader geography={firstPage.geography} />
-          {firstPage.items.length > 0 ? (
-            <InfiniteCatalogList
-              emptyMessage="No datasets are currently available for this geography."
-              initialItems={firstPage.items}
-              initialPage={firstPage.page}
-              initialTotalPages={firstPage.total_pages}
-              requestPath={`/api/discovery/geographies/${encodeURIComponent(geographyId)}`}
-            />
-          ) : (
-            <EmptyState message="No datasets are currently available for this geography." />
-          )}
-        </main>
-      </div>
+      <SitePageFrame activeTab="datasets" mainTestId="geography-detail-page">
+        <GeographyDetailHeader geography={firstPage.geography} />
+        {firstPage.items.length > 0 ? (
+          <InfiniteCatalogList
+            emptyMessage="No datasets are currently available for this geography."
+            initialItems={firstPage.items}
+            initialPage={firstPage.page}
+            initialTotalPages={firstPage.total_pages}
+            requestPath={`/api/discovery/geographies/${encodeURIComponent(geographyId)}`}
+          />
+        ) : (
+          <EmptyState message="No datasets are currently available for this geography." />
+        )}
+      </SitePageFrame>
     );
   } catch (error) {
     if (isNotFoundError(error)) {
@@ -55,15 +48,9 @@ const GeographyDetailPage = async ({ params }: GeographyDetailPageProps): Promis
     }
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="geography-detail-page"
-        >
-          <ErrorState />
-        </main>
-      </div>
+      <SitePageFrame activeTab="datasets" mainTestId="geography-detail-page">
+        <ErrorState />
+      </SitePageFrame>
     );
   }
 };

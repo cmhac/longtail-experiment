@@ -69,9 +69,9 @@ describe("home page", () => {
     expect(markup).toContain(
       "An editorial archive of time series data across sources, topics, and geographies.",
     );
-    expect(markup).toContain('class="shell-footer-content"');
-    expect(markup).toContain('class="shell-footer-brand"');
-    expect(markup).toContain('class="shell-footer-mission"');
+    expect(markup).toContain("shell-footer-content");
+    expect(markup).toContain("shell-footer-brand");
+    expect(markup).toContain("shell-footer-mission");
     expect(markup).toContain('data-testid="footer-content-container"');
     expect(markup).not.toContain('data-testid="footer-utility-links"');
   });
@@ -112,6 +112,6 @@ describe("home page", () => {
     expect(markup).toContain("Recent updates are temporarily unavailable.");
     expect(markup).toContain("shell-content-constrained");
     expect(markup).toContain('data-testid="footer-content-container"');
-    expect(markup).toContain('class="shell-footer-mission"');
+    expect(markup).toContain("shell-footer-mission");
   });
 });

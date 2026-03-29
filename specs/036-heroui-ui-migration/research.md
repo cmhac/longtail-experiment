@@ -61,3 +61,18 @@
 - Rationale: The feature spec requires bounded completion and documented exceptions. A written contract prevents the migration from becoming an open-ended cleanup effort and gives later task breakdowns a stable acceptance baseline.
 - Alternatives considered:
   - Track exceptions informally in code review only. Rejected because it weakens traceability and makes feature completion subjective.
+
+## Final Migration Notes
+
+### Standardized shared patterns now used by the frontend
+
+- Canonical styling bootstrap uses `@import "tailwindcss";` followed by `@import "@heroui/styles";` in `apps/frontend/src/app/globals.css`.
+- Shared route shell composition uses `apps/frontend/src/shell/site-page-frame.tsx` instead of duplicating shell wrapper markup across route files.
+- Header, footer, hero search, list containers, result containers, detail headers, and explicit fallback states now render through HeroUI card or button primitives plus Tailwind utility classes.
+- Infinite list and infinite search error messaging now use the same state-card language as explicit empty and error surfaces.
+
+### Retained exceptions after implementation
+
+- `ObservationsChart.tsx` keeps Recharts-owned internal markup while using standardized surrounding sections.
+- `ObservationsTable.tsx` keeps semantic table-first markup for information density and readability.
+- Longtail typography and monochrome color intent remain sourced from app-level CSS variables and theme exports rather than being replaced with HeroUI defaults.

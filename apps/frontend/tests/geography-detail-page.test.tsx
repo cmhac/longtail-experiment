@@ -35,6 +35,7 @@ describe("geography detail page", () => {
     expect(markup).toContain("2 total datasets");
     expect(markup).toContain('data-testid="geography-detail-page"');
     expect(markup).toContain('data-testid="geography-detail-header"');
+    expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('href="/datasets/CPIAUCSL"');
   });
 

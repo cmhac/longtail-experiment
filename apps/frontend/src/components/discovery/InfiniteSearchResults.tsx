@@ -1,6 +1,6 @@
 "use client";
 
-import { Spinner } from "@heroui/react";
+import { Card, Spinner } from "@heroui/react";
 import React, { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 
@@ -102,7 +102,12 @@ export const InfiniteSearchResults = ({
         </div>
       ) : null}
       {loadError ? (
-        <p data-testid="infinite-search-error">Unable to load more search results right now.</p>
+        <Card
+          className="rounded-lg border border-border/70 bg-surface/95 p-4 text-sm shadow-sm"
+          data-testid="infinite-search-error"
+        >
+          Unable to load more search results right now.
+        </Card>
       ) : null}
     </>
   );

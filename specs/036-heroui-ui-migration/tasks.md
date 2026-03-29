@@ -27,10 +27,10 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 **Purpose**: Confirm and prepare the frontend styling/tooling baseline for the migration
 
-- [ ] T001 Audit and update frontend dependency declarations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/package.json`
-- [ ] T002 Verify Tailwind CSS v4/PostCSS configuration remains compatible in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/postcss.config.mjs`
-- [ ] T003 [P] Confirm Next.js frontend runtime configuration remains compatible with the migration in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/next.config.ts`
-- [ ] T004 [P] Record canonical HeroUI/Tailwind bootstrap and validation steps in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
+- [X] T001 Audit and update frontend dependency declarations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/package.json`
+- [X] T002 Verify Tailwind CSS v4/PostCSS configuration remains compatible in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/postcss.config.mjs`
+- [X] T003 [P] Confirm Next.js frontend runtime configuration remains compatible with the migration in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/next.config.ts`
+- [X] T004 [P] Record canonical HeroUI/Tailwind bootstrap and validation steps in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
 
 ---
 
@@ -40,13 +40,13 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Add required foundational regression assertions for layout/bootstrap behavior in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/foundation-contracts.test.tsx`
-- [ ] T006 [P] Add shell structure and theme regression assertions for the standardized shell in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/shell-structure-contract.test.tsx`
-- [ ] T007 Update the global styling bootstrap to canonical Tailwind CSS v4 plus HeroUI imports while preserving identity tokens in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/globals.css`
-- [ ] T008 [P] Refactor shared theme token and class exports for the standardized shell in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/theme/monochrome-theme.ts`
-- [ ] T009 [P] Align root theme-preference behavior with the finalized shell/theme strategy in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/theme/theme-preference.ts`
-- [ ] T010 Refactor the root app wrapper to use the new theme/bootstrap assumptions in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/layout.tsx`
-- [ ] T011 Define and document the approved migration surface inventory and exception policy in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/contracts/ui-standardization-contract.md`
+- [X] T005 Add required foundational regression assertions for layout/bootstrap behavior in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/foundation-contracts.test.tsx`
+- [X] T006 [P] Add shell structure and theme regression assertions for the standardized shell in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/shell-structure-contract.test.tsx`
+- [X] T007 Update the global styling bootstrap to canonical Tailwind CSS v4 plus HeroUI imports while preserving identity tokens in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/globals.css`
+- [X] T008 [P] Refactor shared theme token and class exports for the standardized shell in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/theme/monochrome-theme.ts`
+- [X] T009 [P] Align root theme-preference behavior with the finalized shell/theme strategy in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/theme/theme-preference.ts`
+- [X] T010 Refactor the root app wrapper to use the new theme/bootstrap assumptions in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/layout.tsx`
+- [X] T011 Define and document the approved migration surface inventory and exception policy in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/contracts/ui-standardization-contract.md`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -60,21 +60,21 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T012 [P] [US1] Update homepage shell and hero search expectations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/home-page.test.tsx`
-- [ ] T013 [P] [US1] Update search page standardized-surface expectations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/search-page.test.tsx`
-- [ ] T014 [P] [US1] Update dataset list page and filter-surface expectations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/datasets-page.test.tsx`
-- [ ] T015 [P] [US1] Update navbar interaction and dropdown/search surface assertions in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/navbar-interactions.test.tsx`
-- [ ] T016 [P] [US1] Update shared component regression tests for standardized controls and rows in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetSearchBox.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetListControls.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/UnifiedDatasetRow.test.tsx`
+- [X] T012 [P] [US1] Update homepage shell and hero search expectations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/home-page.test.tsx`
+- [X] T013 [P] [US1] Update search page standardized-surface expectations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/search-page.test.tsx`
+- [X] T014 [P] [US1] Update dataset list page and filter-surface expectations in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/datasets-page.test.tsx`
+- [X] T015 [P] [US1] Update navbar interaction and dropdown/search surface assertions in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/navbar-interactions.test.tsx`
+- [X] T016 [P] [US1] Update shared component regression tests for standardized controls and rows in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetSearchBox.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetListControls.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/UnifiedDatasetRow.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Refactor the global shell header to standardized HeroUI/Tailwind navigation patterns in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/shell/site-header.tsx`
-- [ ] T018 [P] [US1] Refactor the global footer surface and layout in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/shell/site-footer.tsx`
-- [ ] T019 [P] [US1] Refactor the homepage and navbar search experience around standardized HeroUI surfaces in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/UnifiedSearchSurface.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetSearchBox.tsx`
-- [ ] T020 [P] [US1] Refactor dataset filter and toggle controls to the shared HeroUI/Tailwind language in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetListControls.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/GroupBySourceToggle.tsx`
-- [ ] T021 [P] [US1] Refactor shared listing and content surfaces in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/UnifiedDatasetRow.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetCard.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx`
-- [ ] T022 [US1] Refactor list container components to reuse the new shared surface language in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetCatalogList.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/SourceCatalogList.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/InfiniteCatalogList.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/InfiniteSearchResults.tsx`
-- [ ] T023 [US1] Integrate the standardized shell and shared surfaces into primary route pages in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/search/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/datasets/page.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/sources/page.tsx`
+- [X] T017 [US1] Refactor the global shell header to standardized HeroUI/Tailwind navigation patterns in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/shell/site-header.tsx`
+- [X] T018 [P] [US1] Refactor the global footer surface and layout in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/shell/site-footer.tsx`
+- [X] T019 [P] [US1] Refactor the homepage and navbar search experience around standardized HeroUI surfaces in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/UnifiedSearchSurface.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetSearchBox.tsx`
+- [X] T020 [P] [US1] Refactor dataset filter and toggle controls to the shared HeroUI/Tailwind language in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetListControls.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/GroupBySourceToggle.tsx`
+- [X] T021 [P] [US1] Refactor shared listing and content surfaces in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/UnifiedDatasetRow.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetCard.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx`
+- [X] T022 [US1] Refactor list container components to reuse the new shared surface language in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetCatalogList.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/SourceCatalogList.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/InfiniteCatalogList.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/InfiniteSearchResults.tsx`
+- [X] T023 [US1] Integrate the standardized shell and shared surfaces into primary route pages in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/search/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/datasets/page.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/sources/page.tsx`
 - [ ] T024 [US1] Verify US1 coverage contribution and update any affected feature documentation in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md` and `/Users/hackerc/Projects/longtail-experiment/AGENTS.md` if needed
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
@@ -89,16 +89,16 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T025 [P] [US2] Update route-level regression coverage for detail and metadata pages in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/detail-page.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/source-detail-page.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/topic-detail-page.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/geography-detail-page.test.tsx`
-- [ ] T026 [P] [US2] Update explicit empty and error state regression coverage in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/EmptyState.test.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/ErrorState.test.tsx`
-- [ ] T027 [P] [US2] Update detail-view supporting component regression coverage in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetDetailHeader.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/ObservationsChart.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/ObservationsTable.test.tsx`
+- [X] T025 [P] [US2] Update route-level regression coverage for detail and metadata pages in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/detail-page.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/source-detail-page.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/topic-detail-page.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/geography-detail-page.test.tsx`
+- [X] T026 [P] [US2] Update explicit empty and error state regression coverage in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/EmptyState.test.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/ErrorState.test.tsx`
+- [X] T027 [P] [US2] Update detail-view supporting component regression coverage in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetDetailHeader.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/ObservationsChart.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/ObservationsTable.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Refactor explicit empty and error state surfaces to standardized HeroUI/Tailwind containers in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/EmptyState.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/ErrorState.tsx`
-- [ ] T029 [P] [US2] Refactor shared detail and metadata headers to the standardized surface language in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailHeader.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/SourceDetailHeader.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/TopicDetailHeader.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/GeographyDetailHeader.tsx`
-- [ ] T030 [P] [US2] Refactor detail-analysis supporting surfaces while preserving information density in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailInsights.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/ObservationsChart.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/ObservationsTable.tsx`
-- [ ] T031 [US2] Integrate the standardized detail and fallback surfaces into route pages in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/datasets/[id]/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/sources/[sourceId]/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/topics/[topicId]/page.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/geographies/[geographyId]/page.tsx`
+- [X] T028 [US2] Refactor explicit empty and error state surfaces to standardized HeroUI/Tailwind containers in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/EmptyState.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/ErrorState.tsx`
+- [X] T029 [P] [US2] Refactor shared detail and metadata headers to the standardized surface language in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailHeader.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/SourceDetailHeader.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/TopicDetailHeader.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/GeographyDetailHeader.tsx`
+- [X] T030 [P] [US2] Refactor detail-analysis supporting surfaces while preserving information density in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailInsights.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/ObservationsChart.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery/ObservationsTable.tsx`
+- [X] T031 [US2] Integrate the standardized detail and fallback surfaces into route pages in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/datasets/[id]/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/sources/[sourceId]/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/topics/[topicId]/page.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/geographies/[geographyId]/page.tsx`
 - [ ] T032 [US2] Verify responsive and state-behavior parity for the migrated routes using the feature audit guidance in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
 - [ ] T033 [US2] Verify US2 coverage contribution maintains >= 90% thresholds for the frontend project via the affected Vitest suites and stop-gate commands documented in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
 
@@ -114,16 +114,16 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T034 [P] [US3] Update shared component regression coverage for remaining standardized content surfaces in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetCard.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/RecentUpdatesFeed.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetCatalogList.test.tsx`
-- [ ] T035 [P] [US3] Add or update shell and navigation regression coverage for final standardized patterns in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/navbar-profile-dropdown.test.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/navbar-theme-mode.test.tsx`
-- [ ] T036 [P] [US3] Add migration-audit regression assertions for remaining standardized route patterns in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/catalog-page.test.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/source-list-page.test.tsx`
+- [X] T034 [P] [US3] Update shared component regression coverage for remaining standardized content surfaces in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetCard.test.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/RecentUpdatesFeed.test.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/DatasetCatalogList.test.tsx`
+- [X] T035 [P] [US3] Add or update shell and navigation regression coverage for final standardized patterns in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/navbar-profile-dropdown.test.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/navbar-theme-mode.test.tsx`
+- [X] T036 [P] [US3] Add migration-audit regression assertions for remaining standardized route patterns in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/catalog-page.test.tsx` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/tests/source-list-page.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Audit and remove remaining bespoke shared-surface divergences across `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/shell`
-- [ ] T038 [P] [US3] Consolidate repeated route-level layout glue into reusable standardized wrappers in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/search/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/datasets/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/sources/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/topics/[topicId]/page.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/geographies/[geographyId]/page.tsx`
-- [ ] T039 [P] [US3] Document every retained exception and final standardized pattern expectations in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/contracts/ui-standardization-contract.md` and `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/research.md`
-- [ ] T040 [US3] Update the migration validation guide and final audit steps in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
+- [X] T037 [US3] Audit and remove remaining bespoke shared-surface divergences across `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/components/discovery` and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/shell`
+- [X] T038 [P] [US3] Consolidate repeated route-level layout glue into reusable standardized wrappers in `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/search/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/datasets/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/sources/page.tsx`, `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/topics/[topicId]/page.tsx`, and `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/geographies/[geographyId]/page.tsx`
+- [X] T039 [P] [US3] Document every retained exception and final standardized pattern expectations in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/contracts/ui-standardization-contract.md` and `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/research.md`
+- [X] T040 [US3] Update the migration validation guide and final audit steps in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
 - [ ] T041 [US3] Verify US3 coverage contribution maintains >= 90% thresholds for the frontend project via the affected Vitest suites and stop-gate commands documented in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
 
 **Checkpoint**: All user stories should now be independently functional
@@ -134,7 +134,7 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 
 **Purpose**: Final validation, cleanup, and repository-wide stop-gate enforcement
 
-- [ ] T042 [P] Review changed frontend files for dead bespoke classes and remove leftover obsolete styling from `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/globals.css` and related component files
+- [X] T042 [P] Review changed frontend files for dead bespoke classes and remove leftover obsolete styling from `/Users/hackerc/Projects/longtail-experiment/apps/frontend/src/app/globals.css` and related component files
 - [ ] T043 [P] Run the feature manual audit from `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md` and record any required follow-up updates in `/Users/hackerc/Projects/longtail-experiment/specs/036-heroui-ui-migration/quickstart.md`
 - [ ] T044 Run `pnpm exec nx run-many -t test --all` and verify pass before commit and before agent handoff/end of work from `/Users/hackerc/Projects/longtail-experiment`
 - [ ] T045 Run `pnpm exec nx run-many -t coverage --all` and verify >= 90% coverage thresholds are satisfied before commit from `/Users/hackerc/Projects/longtail-experiment`

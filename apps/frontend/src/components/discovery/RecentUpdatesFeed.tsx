@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetRecentItem } from "../../lib/api/discovery-types";
@@ -23,13 +24,22 @@ export const RecentUpdatesFeed = ({
   }
 
   return (
-    <section className="recent-updates-feed" data-testid="recent-updates-feed">
-      <header className="recent-updates-header" data-testid="recent-updates-header">
-        <h2>Recent Updates</h2>
+    <Card
+      className="recent-updates-feed grid gap-0 border-border/70 bg-surface/90 p-5 shadow-sm sm:p-6"
+      data-testid="recent-updates-feed"
+      variant="default"
+    >
+      <header
+        className="recent-updates-header flex items-baseline justify-between gap-4 border-b border-[color-mix(in_srgb,var(--shell-border)_82%,transparent)] pb-[0.65rem] max-[720px]:flex-col max-[720px]:items-start max-[720px]:gap-[0.45rem]"
+        data-testid="recent-updates-header"
+      >
+        <h2 className="m-0 font-serif text-[clamp(1.7rem,2.3vw,2.05rem)] leading-[1.1]">
+          Recent Updates
+        </h2>
       </header>
       {items.slice(0, 5).map((item) => (
         <UnifiedDatasetRow key={item.dataset_id} {...toUnifiedRecentUpdatesRow(item)} />
       ))}
-    </section>
+    </Card>
   );
 };

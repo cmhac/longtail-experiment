@@ -74,6 +74,7 @@ describe("datasets page", () => {
 
     expect(markup).toContain("Datasets");
     expect(markup).toContain('data-testid="dataset-list-total-series"');
+    expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain("14,282 total series");
     expect(markup).toContain('data-testid="dataset-source-filter"');
     expect(markup).toContain('data-testid="dataset-category-filter"');

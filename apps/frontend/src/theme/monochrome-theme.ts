@@ -37,6 +37,7 @@ export const FORBIDDEN_ACCENT_VARIANTS = [
 export const MONOCHROME_ALLOWED_VARIANTS = ["light", "flat", "bordered"] as const;
 
 export const SHELL_LAYOUT_CLASS_NAMES = {
+  page: "shell-page shell-scroll-anchor",
   constrainedContent: "shell-content-constrained",
   explicitFullWidth: "shell-region-full-width",
 } as const;

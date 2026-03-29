@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@heroui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
@@ -25,15 +26,16 @@ export const GroupBySourceToggle = (): JSX.Element => {
   const grouped = searchParams.get("group") === "source";
 
   return (
-    <button
+    <Button
       aria-pressed={grouped}
+      className="w-full sm:w-auto"
       data-testid="group-by-source-toggle"
-      onClick={() =>
+      onPress={() =>
         router.push(buildGroupToggleUrl(pathname, new URLSearchParams(searchParams.toString())))
       }
-      type="button"
+      variant={grouped ? "secondary" : "tertiary"}
     >
       Group by source
-    </button>
+    </Button>
   );
 };

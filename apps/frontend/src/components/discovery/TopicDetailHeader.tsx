@@ -2,6 +2,7 @@ import React from "react";
 import type { JSX } from "react";
 
 import type { TopicSummary } from "../../lib/api/discovery-types";
+import { PageHeaderKicker, PageHeaderTitle, PageHeaderWrapper } from "./PageHeader";
 
 interface TopicDetailHeaderProps {
   topic: TopicSummary;
@@ -9,14 +10,14 @@ interface TopicDetailHeaderProps {
 
 export const TopicDetailHeader = ({ topic }: TopicDetailHeaderProps): JSX.Element => {
   return (
-    <header className="topic-detail-header" data-testid="topic-detail-header">
-      <div className="topic-detail-header-copy">
-        <p className="source-detail-eyebrow">Topic</p>
-        <h1 className="discovery-list-title">{topic.label}</h1>
-        <p className="discovery-list-total topic-detail-count" data-testid="topic-detail-count">
+    <PageHeaderWrapper className="!mb-4 pt-2" testId="topic-detail-header">
+      <div className="grid gap-[0.35rem]">
+        <PageHeaderKicker>Topic</PageHeaderKicker>
+        <PageHeaderTitle>{topic.label}</PageHeaderTitle>
+        <PageHeaderKicker className="tracking-[0.16em]" testId="topic-detail-count">
           {Intl.NumberFormat("en-US").format(topic.dataset_count)} total datasets
-        </p>
+        </PageHeaderKicker>
       </div>
-    </header>
+    </PageHeaderWrapper>
   );
 };

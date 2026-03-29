@@ -73,11 +73,16 @@ export const DatasetListControls = ({
     onSelect,
   }: ComboBoxControlProps): JSX.Element => {
     return (
-      <label className="dataset-list-control-group" htmlFor={id}>
-        <span className="dataset-list-control-label">{label}</span>
+      <label
+        className="dataset-list-control-group grid min-w-0 w-full gap-[0.3rem] md:w-[min(100%,12.5rem)]"
+        htmlFor={id}
+      >
+        <span className="dataset-list-control-label text-[0.68rem] tracking-[0.11em] text-(--shell-muted) uppercase">
+          {label}
+        </span>
         <ComboBox
           aria-label={label}
-          className="dataset-list-control-combobox"
+          className="w-full"
           data-testid={testId}
           id={id}
           items={options}
@@ -88,9 +93,15 @@ export const DatasetListControls = ({
           }}
           selectedKey={selectedValue}
         >
-          <ComboBox.InputGroup>
-            <Input data-testid={testId} />
-            <ComboBox.Trigger aria-label={`Open ${label} options`} />
+          <ComboBox.InputGroup className="overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface)">
+            <Input
+              className="min-h-8 border-0 bg-transparent px-[0.45rem] py-[0.28rem] text-[var(--shell-foreground)]"
+              data-testid={testId}
+            />
+            <ComboBox.Trigger
+              aria-label={`Open ${label} options`}
+              className="min-w-[2.15rem] px-[0.45rem] text-(--shell-muted)"
+            />
           </ComboBox.InputGroup>
           <ComboBox.Popover>
             <ListBox>
@@ -108,10 +119,13 @@ export const DatasetListControls = ({
 
   return (
     <section
-      className="dataset-list-controls dataset-list-controls-surface"
+      className="dataset-list-controls dataset-list-controls-surface flex items-end justify-between gap-[1.6rem] bg-transparent p-[0.9rem] max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:gap-[0.9rem]"
       data-testid="dataset-list-controls"
     >
-      <div className="dataset-list-controls-left-group" data-testid="dataset-filter-left-group">
+      <div
+        className="dataset-list-controls-left-group flex flex-1 items-end gap-[0.8rem] max-[720px]:w-full max-[720px]:flex-wrap max-[720px]:justify-start"
+        data-testid="dataset-filter-left-group"
+      >
         {renderComboBox({
           id: "dataset-source-filter",
           label: "Source",
@@ -131,7 +145,10 @@ export const DatasetListControls = ({
         })}
       </div>
 
-      <div className="dataset-list-controls-right-group" data-testid="dataset-sort-right-group">
+      <div
+        className="dataset-list-controls-right-group ml-auto flex flex-none items-end gap-[0.8rem] max-[720px]:ml-0 max-[720px]:w-full max-[720px]:flex-wrap max-[720px]:justify-start"
+        data-testid="dataset-sort-right-group"
+      >
         {renderComboBox({
           id: "dataset-sort-control",
           label: "Sort By",

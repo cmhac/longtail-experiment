@@ -30,6 +30,7 @@ describe("dataset detail page", () => {
     expect(markup).toContain('data-testid="navbar-tab-datasets" href="/datasets"');
     expect(markup).toContain('aria-current="page" data-testid="navbar-tab-datasets"');
     expect(markup).toContain('data-testid="dataset-detail-overview"');
+    expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('data-testid="dataset-detail-insights"');
     expect(markup).toContain('data-testid="dataset-detail-trend-section"');
     expect(markup).toContain('data-testid="dataset-detail-observed-values-section"');

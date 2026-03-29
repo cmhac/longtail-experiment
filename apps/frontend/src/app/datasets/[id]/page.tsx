@@ -6,8 +6,7 @@ import { DatasetDetailHeader } from "../../../components/discovery/DatasetDetail
 import { ErrorState } from "../../../components/discovery/ErrorState";
 import { ObservationsTable } from "../../../components/discovery/ObservationsTable";
 import { fetchDatasetDetail } from "../../../lib/api/discovery-client";
-import { SiteHeader } from "../../../shell/site-header";
-import { SHELL_LAYOUT_CLASS_NAMES } from "../../../theme/monochrome-theme";
+import { SitePageFrame } from "../../../shell/site-page-frame";
 
 interface DatasetDetailPageProps {
   params: Promise<{ id: string }>;
@@ -28,33 +27,33 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
     const encodedId = encodeURIComponent(detail.dataset_id);
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="dataset-detail-page"
+      <SitePageFrame
+        activeTab="datasets"
+        mainClassName="grid gap-4"
+        mainTestId="dataset-detail-page"
+      >
+        <section className="grid gap-3" data-testid="dataset-detail-overview">
+          <DatasetDetailHeader data={detail} exportHref={`/api/datasets/${encodedId}.csv`} />
+        </section>
+
+        <section
+          className="grid items-start gap-4 md:grid-cols-[18rem_minmax(0,1fr)]"
+          data-testid="dataset-detail-analysis"
         >
-          <section className="dataset-detail-overview" data-testid="dataset-detail-overview">
-            <DatasetDetailHeader data={detail} exportHref={`/api/datasets/${encodedId}.csv`} />
-          </section>
+          <DatasetDetailAnalysis data={detail} />
+        </section>
 
-          <section className="dataset-detail-analysis" data-testid="dataset-detail-analysis">
-            <DatasetDetailAnalysis data={detail} />
-          </section>
-
-          <section
-            className="dataset-detail-observed"
-            data-testid="dataset-detail-observed-values-section"
-          >
-            <h2>Observed Values</h2>
-            <ObservationsTable
-              observations={detail.observations}
-              unitType={(detail.metadata.unit_type ?? null) as string | null}
-              unitLabel={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
-            />
-          </section>
-        </main>
-      </div>
+        <section
+          className="border-0 bg-transparent p-0"
+          data-testid="dataset-detail-observed-values-section"
+        >
+          <ObservationsTable
+            observations={detail.observations}
+            unitType={(detail.metadata.unit_type ?? null) as string | null}
+            unitLabel={(detail.metadata.unit ?? detail.metadata.units ?? null) as string | null}
+          />
+        </section>
+      </SitePageFrame>
     );
   } catch (error) {
     if (isNotFoundError(error)) {
@@ -62,15 +61,13 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
     }
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="dataset-detail-page"
-        >
-          <ErrorState />
-        </main>
-      </div>
+      <SitePageFrame
+        activeTab="datasets"
+        mainClassName="grid gap-4"
+        mainTestId="dataset-detail-page"
+      >
+        <ErrorState />
+      </SitePageFrame>
     );
   }
 };

@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 
@@ -7,8 +8,12 @@ interface EmptyStateProps {
 
 export const EmptyState = ({ message = "No results found." }: EmptyStateProps): JSX.Element => {
   return (
-    <output className="discovery-empty-state" data-testid="discovery-empty-state">
-      {message}
-    </output>
+    <Card
+      className="rounded-lg border border-(--shell-border) border-border/70 bg-(--shell-surface) bg-surface/95 p-6 text-center shadow-sm"
+      data-testid="discovery-empty-state"
+      variant="default"
+    >
+      <output>{message}</output>
+    </Card>
   );
 };

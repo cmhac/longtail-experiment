@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, Card } from "@heroui/react";
 import Link from "next/link";
 import React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -47,7 +48,11 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
       data-shell-region="header"
       data-testid="shell-header"
     >
-      <div className={SHELL_NAVBAR_CLASS_NAMES.card} data-testid="navbar-container">
+      <Card
+        className={`${SHELL_NAVBAR_CLASS_NAMES.card} shell-navbar-surface rounded-none border-x-0 border-t-0`}
+        data-testid="navbar-container"
+        variant="transparent"
+      >
         <nav className={SHELL_NAVBAR_CLASS_NAMES.nav} aria-label="Primary">
           <div className={SHELL_NAVBAR_CLASS_NAMES.brandRegion}>
             <Link
@@ -68,7 +73,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                     href={tab.href}
                     className={`${SHELL_NAVBAR_CLASS_NAMES.tabLink} ${
                       tab.isActive ? SHELL_NAVBAR_CLASS_NAMES.tabActive : ""
-                    }`.trim()}
+                    } rounded-full px-3 py-2 text-sm transition-colors hover:bg-background/70 hover:text-foreground`.trim()}
                     aria-current={tab.isActive ? "page" : undefined}
                     data-testid={`navbar-tab-${tab.key}`}
                   >
@@ -78,41 +83,22 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
               }
 
               return (
-                <button
+                <Button
                   key={tab.key}
-                  type="button"
                   className={SHELL_NAVBAR_CLASS_NAMES.tabButton}
                   data-testid={`navbar-tab-${tab.key}`}
-                  disabled
-                  aria-disabled="true"
+                  isDisabled
+                  size="sm"
+                  variant="ghost"
                 >
                   {tab.label}
-                </button>
+                </Button>
               );
             })}
           </div>
 
           <div className={SHELL_NAVBAR_CLASS_NAMES.utilityRegion}>
             <div className={SHELL_NAVBAR_CLASS_NAMES.searchWrapper} ref={searchControlRef}>
-              <button
-                type="button"
-                className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} ${SHELL_NAVBAR_CLASS_NAMES.searchToggle}`}
-                data-testid="navbar-search-control"
-                aria-label="Search"
-                aria-controls="navbar-search-expanded"
-                aria-expanded={isSearchExpanded ? "true" : "false"}
-                onClick={() => {
-                  setIsSearchExpanded((previous) => !previous);
-                }}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
-                  <path
-                    d="M10.5 3a7.5 7.5 0 0 1 5.97 12.05l4.74 4.74-1.41 1.41-4.74-4.74A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </button>
-
               {isSearchExpanded ? (
                 <div
                   id="navbar-search-expanded"
@@ -127,18 +113,41 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                     variant="navbar"
                   />
                 </div>
-              ) : null}
+              ) : (
+                <Button
+                  className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} ${SHELL_NAVBAR_CLASS_NAMES.searchToggle}`}
+                  data-testid="navbar-search-control"
+                  aria-label="Search"
+                  aria-controls="navbar-search-expanded"
+                  aria-expanded="false"
+                  isIconOnly
+                  size="sm"
+                  variant="ghost"
+                  onPress={() => {
+                    setIsSearchExpanded(true);
+                  }}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
+                    <path
+                      d="M10.5 3a7.5 7.5 0 0 1 5.97 12.05l4.74 4.74-1.41 1.41-4.74-4.74A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </Button>
+              )}
             </div>
 
             <div className="shell-navbar-profile-wrapper" ref={profileMenuRef}>
-              <button
-                type="button"
+              <Button
                 className={SHELL_NAVBAR_CLASS_NAMES.iconButton}
                 data-testid="navbar-profile-control"
                 aria-label="Profile"
                 aria-expanded={isProfileMenuOpen ? "true" : "false"}
                 aria-controls="navbar-profile-dropdown"
-                onClick={() => {
+                isIconOnly
+                size="sm"
+                variant="ghost"
+                onPress={() => {
                   setIsProfileMenuOpen((previous) => !previous);
                 }}
               >
@@ -148,22 +157,23 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                     fill="currentColor"
                   />
                 </svg>
-              </button>
+              </Button>
 
               {isProfileMenuOpen ? (
-                <div
+                <Card
                   id="navbar-profile-dropdown"
                   role="menu"
-                  className={SHELL_NAVBAR_CLASS_NAMES.dropdown}
+                  className={`${SHELL_NAVBAR_CLASS_NAMES.dropdown} rounded-xl`}
                   data-testid="navbar-profile-dropdown"
+                  variant="default"
                 >
                   dropdown coming soon
-                </div>
+                </Card>
               ) : null}
             </div>
           </div>
         </nav>
-      </div>
+      </Card>
     </header>
   );
 };

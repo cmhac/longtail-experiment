@@ -16,6 +16,12 @@ Validate the HeroUI/Tailwind standardization work across the existing frontend w
 
 ### 1. Confirm clean frontend bootstrap
 
+Verify the canonical styling bootstrap first:
+
+- `apps/frontend/src/app/globals.css` must import `@import "tailwindcss";` before `@import "@heroui/styles";`
+- `apps/frontend/package.json` must include both `@heroui/react` and `@heroui/styles`
+- no `HeroUIProvider` should be introduced for this migration
+
 Run:
 
 ```bash
@@ -28,6 +34,7 @@ Expected result:
 - TypeScript passes
 - Biome passes
 - no invalid HeroUI bootstrap or styling-import regressions
+- root shell classes still preserve Longtail identity tokens
 
 ### 2. Run focused frontend regression tests during development
 
@@ -103,6 +110,22 @@ Expected result:
 - full monorepo tests pass
 - full monorepo coverage passes at configured thresholds
 - all-files quality gate passes
+
+## Current Approved Exceptions
+
+- `apps/frontend/src/components/discovery/ObservationsChart.tsx`: Recharts internals remain custom; only surrounding surfaces are standardized
+- `apps/frontend/src/components/discovery/ObservationsTable.tsx`: semantic table internals remain custom for readability and density
+- `apps/frontend/src/app/globals.css` and `apps/frontend/src/theme/*`: Longtail typography and monochrome tokens remain app-owned
+
+## Audit Record
+
+Record manual audit outcomes here before handoff:
+
+- Date:
+- Routes checked:
+- Viewports checked:
+- Follow-up findings:
+- Exceptions confirmed:
 
 ## Suggested Manual Audit Checklist
 

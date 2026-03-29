@@ -1,5 +1,6 @@
 import React from "react";
 import type { JSX, ReactNode } from "react";
+import { PageHeaderKicker, PageHeaderTitle, PageHeaderWrapper } from "./PageHeader";
 
 interface DiscoveryListPageHeaderProps {
   title: string;
@@ -19,14 +20,16 @@ export const DiscoveryListPageHeader = ({
   totalValue,
 }: DiscoveryListPageHeaderProps): JSX.Element => {
   return (
-    <header className="discovery-list-page-header" data-testid={headerTestId}>
-      <div>
-        <h1 className="discovery-list-title">{title}</h1>
-        <p className="discovery-list-total" data-testid={totalTestId}>
-          {totalValue} total {totalNoun}
-        </p>
+    <PageHeaderWrapper className="pt-2 max-[720px]:items-stretch" testId={headerTestId}>
+      <div className="flex items-start justify-between gap-4 max-[720px]:flex-col max-[720px]:items-stretch">
+        <div>
+          <PageHeaderTitle>{title}</PageHeaderTitle>
+          <PageHeaderKicker className="m-[0.35rem_0_0] tracking-[0.16em]" testId={totalTestId}>
+            {totalValue} total {totalNoun}
+          </PageHeaderKicker>
+        </div>
+        {actions ? <div className="inline-flex items-center gap-2">{actions}</div> : null}
       </div>
-      {actions ? <div className="discovery-list-page-actions">{actions}</div> : null}
-    </header>
+    </PageHeaderWrapper>
   );
 };

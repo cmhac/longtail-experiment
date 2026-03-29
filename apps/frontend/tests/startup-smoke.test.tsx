@@ -39,7 +39,7 @@ describe("frontend shell startup", () => {
     expect(markup).toContain('data-testid="footer-content-container"');
     expect(markup).toContain('data-testid="footer-brand"');
     expect(markup).toContain('data-testid="footer-mission"');
-    expect(markup).toContain('class="shell-footer-content"');
+    expect(markup).toContain("shell-footer-content");
     expect(markup).toContain("Longtail");
   });
 });

@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetSummary } from "../../lib/api/discovery-types";
@@ -21,10 +22,10 @@ export const DatasetCatalogList = ({
   }
 
   return (
-    <section className="dataset-list-results" data-testid="catalog-flat-list">
+    <Card className="grid gap-0 p-5 sm:p-6" data-testid="catalog-flat-list" variant="default">
       {dedupedItems.map((item) => (
         <UnifiedDatasetRow key={item.dataset_id} {...toUnifiedCatalogRow(item)} />
       ))}
-    </section>
+    </Card>
   );
 };

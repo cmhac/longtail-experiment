@@ -90,6 +90,14 @@ Search, filtering, browsing, navigation, and detail-page reading flows must rema
 
 If the same interface need appears on multiple routes, the migration must converge on one shared standardized pattern rather than creating route-local replacements.
 
+### Rule 6: Route pages must use the shared shell frame
+
+Route pages in scope must compose the shared shell through `apps/frontend/src/shell/site-page-frame.tsx` unless a route has a documented reason to diverge. Header, constrained-content main region, and optional footer rendering should not be hand-recreated per page.
+
+### Rule 7: Repeated list and state surfaces must render through HeroUI cards
+
+Shared content surfaces such as dataset rows, recent-updates feeds, catalog containers, search result containers, detail headers, and explicit state messages must present through HeroUI card-style surfaces plus Tailwind utility layout. Bare section or paragraph wrappers are not the default approved pattern for those surfaces.
+
 ## Allowed Exception Policy
 
 A retained non-standard surface is allowed only when at least one of the following is true:
@@ -104,6 +112,29 @@ Each allowed exception must include:
 - the file or route location
 - the reason it remains custom
 - what standardized alternatives were considered
+
+## Approved Exceptions
+
+### Exception 1: Chart internals remain custom
+
+- Surface: Recharts visualization internals
+- Location: `apps/frontend/src/components/discovery/ObservationsChart.tsx`
+- Reason: Chart rendering relies on Recharts primitives and density-specific markup that HeroUI does not replace directly without loss of clarity.
+- Alternatives considered: wrapping the chart in fully custom card markup, or replacing chart internals with HeroUI-only structure
+
+### Exception 2: Data table internals remain custom
+
+- Surface: observations table markup
+- Location: `apps/frontend/src/components/discovery/ObservationsTable.tsx`
+- Reason: The table needs dense, semantic tabular markup and sorting/readability control that is clearer when kept as table-first HTML.
+- Alternatives considered: replacing the table body with card/list patterns or introducing heavier abstraction around table cells
+
+### Exception 3: Typography and shell identity tokens remain custom variables
+
+- Surface: shell typography and Longtail monochrome token definitions
+- Location: `apps/frontend/src/app/globals.css`, `apps/frontend/src/theme/monochrome-theme.ts`, `apps/frontend/src/theme/theme-preference.ts`
+- Reason: The feature explicitly preserves Longtail identity; HeroUI defaults are used structurally, while typography and color intent remain governed by app-level variables.
+- Alternatives considered: adopting HeroUI default typography and color variables wholesale
 
 ## Validation Requirements
 

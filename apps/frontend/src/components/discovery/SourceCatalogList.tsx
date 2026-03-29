@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 
@@ -19,10 +20,10 @@ export const SourceCatalogList = ({
   }
 
   return (
-    <section className="source-catalog-list" data-testid="source-catalog-list">
+    <Card className="grid gap-0 p-5 sm:p-6" data-testid="source-catalog-list" variant="default">
       {items.map((item) => (
         <SourceListRow key={item.id} source={item} />
       ))}
-    </section>
+    </Card>
   );
 };

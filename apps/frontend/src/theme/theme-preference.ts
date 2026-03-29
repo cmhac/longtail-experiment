@@ -21,7 +21,7 @@ export const createRootDocumentAttributes = (
 ): RootDocumentAttributes => {
   return {
     dataThemePreference: preference,
-    className: "shell-root",
+    className: "shell-root bg-background text-foreground",
     style: { colorScheme: preference === "system" ? "light dark" : preference },
   };
 };

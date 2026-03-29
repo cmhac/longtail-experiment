@@ -20,6 +20,7 @@ describe("source list page", () => {
 
     expect(markup).toContain("Sources");
     expect(markup).toContain('data-testid="source-list-page"');
+    expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('data-testid="source-catalog-list"');
     expect(markup).toContain("FRED");
     expect(markup).toContain("2 datasets");

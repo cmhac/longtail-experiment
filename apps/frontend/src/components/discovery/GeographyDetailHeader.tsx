@@ -2,6 +2,7 @@ import React from "react";
 import type { JSX } from "react";
 
 import type { GeographySummary } from "../../lib/api/discovery-types";
+import { PageHeaderKicker, PageHeaderTitle, PageHeaderWrapper } from "./PageHeader";
 
 interface GeographyDetailHeaderProps {
   geography: GeographySummary;
@@ -9,17 +10,14 @@ interface GeographyDetailHeaderProps {
 
 export const GeographyDetailHeader = ({ geography }: GeographyDetailHeaderProps): JSX.Element => {
   return (
-    <header className="geography-detail-header" data-testid="geography-detail-header">
-      <div className="geography-detail-header-copy">
-        <p className="source-detail-eyebrow">Geography</p>
-        <h1 className="discovery-list-title">{geography.label}</h1>
-        <p
-          className="discovery-list-total geography-detail-count"
-          data-testid="geography-detail-count"
-        >
+    <PageHeaderWrapper className="!mb-4 pt-2" testId="geography-detail-header">
+      <div className="grid gap-[0.35rem]">
+        <PageHeaderKicker>Geography</PageHeaderKicker>
+        <PageHeaderTitle>{geography.label}</PageHeaderTitle>
+        <PageHeaderKicker className="tracking-[0.16em]" testId="geography-detail-count">
           {Intl.NumberFormat("en-US").format(geography.dataset_count)} total datasets
-        </p>
+        </PageHeaderKicker>
       </div>
-    </header>
+    </PageHeaderWrapper>
   );
 };

@@ -7,8 +7,7 @@ import { ErrorState } from "../../../components/discovery/ErrorState";
 import { InfiniteCatalogList } from "../../../components/discovery/InfiniteCatalogList";
 import { TopicDetailHeader } from "../../../components/discovery/TopicDetailHeader";
 import { fetchTopicDetail } from "../../../lib/api/discovery-client";
-import { SiteHeader } from "../../../shell/site-header";
-import { SHELL_LAYOUT_CLASS_NAMES } from "../../../theme/monochrome-theme";
+import { SitePageFrame } from "../../../shell/site-page-frame";
 
 interface TopicDetailPageProps {
   params: Promise<{ topicId: string }>;
@@ -28,26 +27,20 @@ const TopicDetailPage = async ({ params }: TopicDetailPageProps): Promise<JSX.El
     const firstPage = await fetchTopicDetail(topicId, { page: 1 });
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="topic-detail-page"
-        >
-          <TopicDetailHeader topic={firstPage.topic} />
-          {firstPage.items.length > 0 ? (
-            <InfiniteCatalogList
-              emptyMessage="No datasets are currently available for this topic."
-              initialItems={firstPage.items}
-              initialPage={firstPage.page}
-              initialTotalPages={firstPage.total_pages}
-              requestPath={`/api/discovery/topics/${encodeURIComponent(topicId)}`}
-            />
-          ) : (
-            <EmptyState message="No datasets are currently available for this topic." />
-          )}
-        </main>
-      </div>
+      <SitePageFrame activeTab="datasets" mainTestId="topic-detail-page">
+        <TopicDetailHeader topic={firstPage.topic} />
+        {firstPage.items.length > 0 ? (
+          <InfiniteCatalogList
+            emptyMessage="No datasets are currently available for this topic."
+            initialItems={firstPage.items}
+            initialPage={firstPage.page}
+            initialTotalPages={firstPage.total_pages}
+            requestPath={`/api/discovery/topics/${encodeURIComponent(topicId)}`}
+          />
+        ) : (
+          <EmptyState message="No datasets are currently available for this topic." />
+        )}
+      </SitePageFrame>
     );
   } catch (error) {
     if (isNotFoundError(error)) {
@@ -55,15 +48,9 @@ const TopicDetailPage = async ({ params }: TopicDetailPageProps): Promise<JSX.El
     }
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="topic-detail-page"
-        >
-          <ErrorState />
-        </main>
-      </div>
+      <SitePageFrame activeTab="datasets" mainTestId="topic-detail-page">
+        <ErrorState />
+      </SitePageFrame>
     );
   }
 };

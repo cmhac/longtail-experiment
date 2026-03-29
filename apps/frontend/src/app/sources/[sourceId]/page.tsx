@@ -7,8 +7,7 @@ import { ErrorState } from "../../../components/discovery/ErrorState";
 import { InfiniteCatalogList } from "../../../components/discovery/InfiniteCatalogList";
 import { SourceDetailHeader } from "../../../components/discovery/SourceDetailHeader";
 import { fetchSourceDetail } from "../../../lib/api/discovery-client";
-import { SiteHeader } from "../../../shell/site-header";
-import { SHELL_LAYOUT_CLASS_NAMES } from "../../../theme/monochrome-theme";
+import { SitePageFrame } from "../../../shell/site-page-frame";
 
 interface SourceDetailPageProps {
   params: Promise<{ sourceId: string }>;
@@ -28,26 +27,24 @@ const SourceDetailPage = async ({ params }: SourceDetailPageProps): Promise<JSX.
     const firstPage = await fetchSourceDetail(sourceId, { page: 1 });
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="sources" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="source-detail-page"
-        >
-          <SourceDetailHeader source={firstPage.source} />
-          {firstPage.items.length > 0 ? (
-            <InfiniteCatalogList
-              emptyMessage="No datasets are currently available for this source."
-              initialItems={firstPage.items}
-              initialPage={firstPage.page}
-              initialTotalPages={firstPage.total_pages}
-              requestPath={`/api/discovery/sources/${encodeURIComponent(sourceId)}`}
-            />
-          ) : (
-            <EmptyState message="No datasets are currently available for this source." />
-          )}
-        </main>
-      </div>
+      <SitePageFrame
+        activeTab="sources"
+        mainClassName="grid content-start gap-4"
+        mainTestId="source-detail-page"
+      >
+        <SourceDetailHeader source={firstPage.source} />
+        {firstPage.items.length > 0 ? (
+          <InfiniteCatalogList
+            emptyMessage="No datasets are currently available for this source."
+            initialItems={firstPage.items}
+            initialPage={firstPage.page}
+            initialTotalPages={firstPage.total_pages}
+            requestPath={`/api/discovery/sources/${encodeURIComponent(sourceId)}`}
+          />
+        ) : (
+          <EmptyState message="No datasets are currently available for this source." />
+        )}
+      </SitePageFrame>
     );
   } catch (error) {
     if (isNotFoundError(error)) {
@@ -55,15 +52,13 @@ const SourceDetailPage = async ({ params }: SourceDetailPageProps): Promise<JSX.
     }
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="sources" />
-        <main
-          className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent}
-          data-testid="source-detail-page"
-        >
-          <ErrorState />
-        </main>
-      </div>
+      <SitePageFrame
+        activeTab="sources"
+        mainClassName="grid content-start gap-4"
+        mainTestId="source-detail-page"
+      >
+        <ErrorState />
+      </SitePageFrame>
     );
   }
 };

@@ -20,7 +20,7 @@ const RootLayout = ({ children }: RootLayoutProps): JSX.Element => {
       lang="en"
       style={rootAttributes.style}
     >
-      <body className="shell-body">{children}</body>
+      <body className="shell-body bg-background text-foreground antialiased">{children}</body>
     </html>
   );
 };

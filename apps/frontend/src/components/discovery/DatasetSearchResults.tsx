@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetSummary } from "../../lib/api/discovery-types";
@@ -15,11 +16,16 @@ export const DatasetSearchResults = ({ items, query }: DatasetSearchResultsProps
   }
 
   return (
-    <section aria-label="Search results" data-testid="dataset-search-results">
+    <Card
+      aria-label="Search results"
+      className="p-5 sm:p-6"
+      data-testid="dataset-search-results"
+      variant="default"
+    >
       <h2>Results for "{query}"</h2>
       {items.map((item) => (
         <DatasetCard item={item} key={item.dataset_id} />
       ))}
-    </section>
+    </Card>
   );
 };

@@ -8,8 +8,7 @@ import { DiscoveryListPageHeader } from "../../components/discovery/DiscoveryLis
 import { ErrorState } from "../../components/discovery/ErrorState";
 import { InfiniteCatalogList } from "../../components/discovery/InfiniteCatalogList";
 import { fetchDatasetCatalog } from "../../lib/api/discovery-client";
-import { SiteHeader } from "../../shell/site-header";
-import { SHELL_LAYOUT_CLASS_NAMES } from "../../theme/monochrome-theme";
+import { SitePageFrame } from "../../shell/site-page-frame";
 
 interface CatalogPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -60,55 +59,57 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
     ];
 
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="catalog-page">
-          <DiscoveryListPageHeader
-            headerTestId="dataset-list-page-header"
-            title="Datasets"
-            totalNoun="series"
-            totalTestId="dataset-list-total-series"
-            totalValue={formatSeriesCount(firstPage.aggregations.total_dataset_count)}
-          />
+      <SitePageFrame
+        activeTab="datasets"
+        mainClassName="grid content-start gap-[1.2rem]"
+        mainTestId="catalog-page"
+      >
+        <DiscoveryListPageHeader
+          headerTestId="dataset-list-page-header"
+          title="Datasets"
+          totalNoun="series"
+          totalTestId="dataset-list-total-series"
+          totalValue={formatSeriesCount(firstPage.aggregations.total_dataset_count)}
+        />
 
-          <DatasetListControls
-            categoryOptions={categoryOptions}
-            selectedCategory={categoryFilter}
-            selectedSort={sortMode}
-            selectedSource={sourceFilter}
-            sourceOptions={sourceOptions}
-          />
+        <DatasetListControls
+          categoryOptions={categoryOptions}
+          selectedCategory={categoryFilter}
+          selectedSort={sortMode}
+          selectedSource={sourceFilter}
+          sourceOptions={sourceOptions}
+        />
 
-          <InfiniteCatalogList
-            emptyMessage="No datasets match the selected filters. Reset filters to see the full catalog."
-            initialItems={firstPage.items}
-            initialPage={firstPage.page}
-            initialTotalPages={firstPage.total_pages}
-            requestPath="/api/discovery/datasets"
-            requestQuery={{
-              ...(sortMode ? { sort: sortMode } : {}),
-              ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
-              ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
-            }}
-          />
-        </main>
-      </div>
+        <InfiniteCatalogList
+          emptyMessage="No datasets match the selected filters. Reset filters to see the full catalog."
+          initialItems={firstPage.items}
+          initialPage={firstPage.page}
+          initialTotalPages={firstPage.total_pages}
+          requestPath="/api/discovery/datasets"
+          requestQuery={{
+            ...(sortMode ? { sort: sortMode } : {}),
+            ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
+            ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
+          }}
+        />
+      </SitePageFrame>
     );
   } catch {
     return (
-      <div className="shell-page shell-scroll-anchor" data-testid="site-shell">
-        <SiteHeader activeTab="datasets" />
-        <main className={SHELL_LAYOUT_CLASS_NAMES.constrainedContent} data-testid="catalog-page">
-          <DiscoveryListPageHeader
-            headerTestId="dataset-list-page-header"
-            title="Datasets"
-            totalNoun="series"
-            totalTestId="dataset-list-total-series"
-            totalValue="--"
-          />
-          <ErrorState />
-        </main>
-      </div>
+      <SitePageFrame
+        activeTab="datasets"
+        mainClassName="grid content-start gap-[1.2rem]"
+        mainTestId="catalog-page"
+      >
+        <DiscoveryListPageHeader
+          headerTestId="dataset-list-page-header"
+          title="Datasets"
+          totalNoun="series"
+          totalTestId="dataset-list-total-series"
+          totalValue="--"
+        />
+        <ErrorState />
+      </SitePageFrame>
     );
   }
 };

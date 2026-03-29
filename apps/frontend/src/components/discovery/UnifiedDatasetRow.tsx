@@ -1,6 +1,8 @@
+import { Card } from "@heroui/react/card";
 import Link from "next/link";
 import React from "react";
 import type { JSX } from "react";
+import { TagPillGroup } from "./TagPill";
 
 export interface UnifiedDatasetRowProps {
   datasetId: string;
@@ -13,47 +15,6 @@ export interface UnifiedDatasetRowProps {
   emphasizedPills?: string[];
   interactionMode: "row_link" | "title_link";
 }
-
-const toMetadataSlug = (value: string): string => {
-  return (
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "unknown"
-  );
-};
-
-const renderPill = (label: string, href: string, emphasized: boolean): JSX.Element => (
-  <Link
-    className={
-      emphasized ? "recent-updates-pill recent-updates-geography-pill" : "recent-updates-pill"
-    }
-    href={href}
-    key={`${emphasized ? "em" : "tag"}-${label}`}
-  >
-    {label}
-  </Link>
-);
-
-const renderPills = (tagPills: string[], emphasizedPills: string[]): JSX.Element | null => {
-  const hasPills = emphasizedPills.length > 0 || tagPills.length > 0;
-
-  if (!hasPills) {
-    return null;
-  }
-
-  return (
-    <div className="recent-updates-pills" data-testid="unified-dataset-row-pills">
-      {emphasizedPills.map((pill) =>
-        renderPill(pill, `/geographies/${encodeURIComponent(toMetadataSlug(pill))}`, true),
-      )}
-      {tagPills.map((tag) =>
-        renderPill(tag, `/topics/${encodeURIComponent(toMetadataSlug(tag))}`, false),
-      )}
-    </div>
-  );
-};
 
 export const UnifiedDatasetRow = ({
   datasetId,
@@ -68,22 +29,41 @@ export const UnifiedDatasetRow = ({
 }: UnifiedDatasetRowProps): JSX.Element => {
   void datasetId;
   void interactionMode;
-  const pills = renderPills(tagPills, emphasizedPills);
 
   return (
-    <article className="recent-updates-row unified-dataset-row" data-testid="unified-dataset-row">
-      <div className="recent-updates-meta-rail">
-        <span className="recent-updates-source">{sourceLabel}</span>
-        <span className="recent-updates-date">{updatedLabel}</span>
+    <Card
+      className="recent-updates-row unified-dataset-row unified-dataset-row-card grid grid-cols-[minmax(7.5rem,9.25rem)_1fr] gap-[1.15rem] rounded-none border-0 border-t border-t-[color-mix(in_srgb,var(--shell-border)_68%,transparent)] bg-transparent px-0 py-[1.55rem] text-inherit no-underline shadow-none first:border-t-0 max-[720px]:grid-cols-1 max-[720px]:gap-[0.52rem] max-[720px]:py-[1.1rem]"
+      data-testid="unified-dataset-row"
+      variant="transparent"
+    >
+      <div className="recent-updates-meta-rail grid min-w-0 content-start gap-[0.32rem] max-[720px]:flex max-[720px]:items-center max-[720px]:gap-[0.6rem]">
+        <span className="recent-updates-source text-[0.73rem] font-bold tracking-[0.08em]">
+          {sourceLabel}
+        </span>
+        <span className="recent-updates-date text-[0.82rem] text-(--shell-muted)">
+          {updatedLabel}
+        </span>
       </div>
-      <div className="recent-updates-body">
-        <h3 data-testid="unified-dataset-row-title">
-          <Link href={destinationHref}>{title}</Link>
+      <div className="recent-updates-body grid min-w-0 gap-[0.42rem]">
+        <h3
+          className="m-0 font-serif text-[clamp(1.18rem,2.1vw,1.95rem)] leading-[1.05] max-[720px]:leading-[1.13]"
+          data-testid="unified-dataset-row-title"
+        >
+          <Link className="text-inherit no-underline" href={destinationHref}>
+            {title}
+          </Link>
         </h3>
-        {summaryText ? <p>{summaryText}</p> : null}
-        {pills}
+        {summaryText ? (
+          <p className="m-0 max-w-[70ch] leading-[1.4] text-(--shell-muted)">{summaryText}</p>
+        ) : null}
+        <TagPillGroup
+          emphasizedPills={emphasizedPills}
+          groupClassName="mt-[0.18rem]"
+          tagPills={tagPills}
+          testId="unified-dataset-row-pills"
+        />
       </div>
-    </article>
+    </Card>
   );
 };
 

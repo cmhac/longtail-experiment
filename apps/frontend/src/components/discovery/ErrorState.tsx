@@ -1,3 +1,4 @@
+import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 
@@ -9,8 +10,13 @@ export const ErrorState = ({
   message = "Unable to load data. Please try again.",
 }: ErrorStateProps): JSX.Element => {
   return (
-    <div className="discovery-error-state" data-testid="discovery-error-state" role="alert">
+    <Card
+      className="rounded-lg border border-(--shell-border) border-border/70 bg-(--shell-surface) bg-surface/95 p-6 text-center shadow-sm"
+      data-testid="discovery-error-state"
+      role="alert"
+      variant="default"
+    >
       {message}
-    </div>
+    </Card>
   );
 };

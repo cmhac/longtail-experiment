@@ -35,6 +35,7 @@ describe("source detail page", () => {
     expect(markup).toContain("2 total datasets");
     expect(markup).toContain('data-testid="source-detail-page"');
     expect(markup).toContain('data-testid="source-detail-header"');
+    expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('data-testid="catalog-flat-list"');
     expect(markup).toContain("Consumer Price Index");
     expect(markup).toContain('href="/datasets/CPIAUCSL"');

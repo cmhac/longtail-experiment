@@ -44,7 +44,7 @@ describe("navbar limited-scope interactions", () => {
     expect(trendsButton.getAttribute("disabled")).not.toBeNull();
   });
 
-  it("expands and collapses search control", () => {
+  it("expands search control and closes it on outside click", () => {
     render(<SiteHeader />);
 
     const searchButton = screen.getByTestId("navbar-search-control");
@@ -53,7 +53,7 @@ describe("navbar limited-scope interactions", () => {
     fireEvent.click(searchButton);
     expect(screen.getByTestId("navbar-search-expanded")).not.toBeNull();
 
-    fireEvent.click(searchButton);
+    fireEvent.mouseDown(document.body);
     expect(screen.queryByTestId("navbar-search-expanded")).toBeNull();
   });
 

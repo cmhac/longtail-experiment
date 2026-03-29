@@ -17,7 +17,7 @@ describe("foundation contracts", () => {
 
     expect(markup).toContain("<html");
     expect(markup).toContain('lang="en"');
-    expect(markup).toContain('<body class="shell-body">');
+    expect(markup).toContain('<body class="shell-body');
     expect(markup).toContain('id="child"');
   });
 
