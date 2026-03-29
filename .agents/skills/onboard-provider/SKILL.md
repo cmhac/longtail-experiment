@@ -352,6 +352,8 @@ Fix any lint or type errors in your new code.
 
 The local development environment runs five services via Docker Compose: PostgreSQL (`db` on port 55432), the backend API (`backend` on port 8080), Dagit (`dagit` on port 3001), the frontend (`frontend` on port 3000), and a pipeline placeholder. All services mount the workspace directory, so your code changes are already visible inside the containers.
 
+Use only the Docker Compose stack defined in `docker-compose.yml` for live verification. Do not start one-off backend, frontend, Dagit, or pipeline processes with ad hoc commands during this phase.
+
 **Step 1 — Bring up the stack and wait for health checks:**
 
 ```bash
@@ -430,24 +432,53 @@ bash tools/quality/local-stack/test-dagit-endpoint.sh
 
 This runs a GraphQL query against Dagit to confirm the workspace has loaded location entries. If it fails, check `docker compose logs dagit` for import errors — a common cause is a syntax error or missing import in the source adapter.
 
+**Step 7 — Verify the new source assets are present in Dagit before materializing anything.**
+
+Query Dagit for asset nodes and confirm the newly onboarded assets appear under the expected provider-group prefix:
+
+```bash
+curl -fsS -X POST http://localhost:3001/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"query AssetNodes { assetNodes { assetKey { path } } }"}'
+```
+
+If the expected asset keys are missing:
+
+1. Read `docker compose logs dagit` and `docker compose logs backend`.
+2. Fix the registration or import problem.
+3. Restart the affected service with `docker compose restart dagit` or `docker compose restart backend`.
+4. Re-run the asset-node query before proceeding.
+
 ### 5e. Materialize the new assets via Dagit GraphQL
 
 Trigger asset materialization for each new series using the Dagster GraphQL API. The Dagit service inside Docker listens on port 3000 internally but is mapped to port 3001 on the host.
 
-**For each new asset** (identified by `key_prefix` and `name` from Phase 4c), execute a materialization:
+Important repo-specific note: in this stack, asset launches must target the generated asset job with a full `JobOrPipelineSelector`. Do not send only `assetSelection`; that will return a GraphQL validation or HTTP 400 error.
+
+First discover the repository metadata if needed:
 
 ```bash
-# Replace <provider_group> and <series_name> with actual values.
-# Repeat this block for each new asset.
+curl -fsS -X POST http://localhost:3001/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ repositoriesOrError { __typename ... on RepositoryConnection { nodes { name location { name } jobs { name } } } ... on PythonError { message } } }"}'
+```
 
+At the time this skill was updated, the local stack returned:
+
+- `repositoryLocationName="src.orchestration.definitions"`
+- `repositoryName="__repository__"`
+- `jobName="__ASSET_JOB"`
+
+**For each new asset** (identified by provider-group prefix and asset name), execute a materialization:
+
+```bash
 DAGIT_URL="http://localhost:3001"
 ASSET_KEY='["<provider_group>", "<series_name>"]'
 
-# Launch the asset materialization run
 LAUNCH_RESPONSE=$(curl -fsS -X POST "${DAGIT_URL}/graphql" \
   -H "Content-Type: application/json" \
   -d "{
-    \"query\": \"mutation LaunchAssetRun(\$assetKeys: [AssetKeyInput!]!) { launchPipelineExecution(executionParams: { mode: \\\"default\\\", executionMetadata: { tags: [{ key: \\\"dagster/step_selection\\\", value: \\\"*\\\" }] }, selector: { assetSelection: \$assetKeys } }) { __typename ... on LaunchRunSuccess { run { runId status } } ... on PythonError { message } ... on RunConfigValidationInvalid { errors { message } } } }\",
+    \"query\": \"mutation LaunchAssetRun(\$assetKeys: [AssetKeyInput!]!) { launchPipelineExecution(executionParams: { selector: { repositoryLocationName: \\\"src.orchestration.definitions\\\", repositoryName: \\\"__repository__\\\", jobName: \\\"__ASSET_JOB\\\", assetSelection: \$assetKeys }, mode: \\\"default\\\", executionMetadata: { tags: [{ key: \\\"dagster/step_selection\\\", value: \\\"*\\\" }] } }) { __typename ... on LaunchRunSuccess { run { runId status } } ... on PythonError { message } ... on RunConfigValidationInvalid { errors { message } } } }\",
     \"variables\": { \"assetKeys\": [{\"path\": ${ASSET_KEY}}] }
   }")
 
@@ -455,6 +486,16 @@ echo "Launch response: ${LAUNCH_RESPONSE}"
 ```
 
 Extract the `runId` from the response. If the launch returned a `PythonError` or `RunConfigValidationInvalid`, the materialization could not start — read the error message, diagnose, and fix before retrying.
+
+If the HTTP request itself returns 400, introspect the GraphQL schema rather than guessing:
+
+```bash
+curl -fsS -X POST http://localhost:3001/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ __type(name: \"ExecutionParams\") { inputFields { name type { kind name ofType { kind name ofType { kind name } } } } } }"}'
+```
+
+Then adjust the launch payload to match the actual schema and retry.
 
 ### 5f. Monitor the run to completion
 
@@ -591,7 +632,7 @@ If no results are returned, this means either:
 **Check 2 — Verify the dataset appears in recent updates:**
 
 ```bash
-RECENT_RESPONSE=$(curl -fsS "http://localhost:8080/api/datasets/recent?limit=10")
+RECENT_RESPONSE=$(curl -fsS "http://localhost:8080/api/datasets/recent?limit=5")
 
 echo "$RECENT_RESPONSE" | python3 -c "
 import json, sys
@@ -604,6 +645,15 @@ for item in items:
 ```
 
 The new dataset should appear near the top since it was just ingested. If it doesn't appear at all, the `reported_at` timestamps may be missing or malformed.
+
+Important repo-specific note: this endpoint currently enforces `limit` between 1 and 5. Requests like `limit=10` return HTTP 400 with `limit must be between 1 and 5`.
+
+Also note that "just ingested" does not guarantee inclusion in `/api/datasets/recent`. This endpoint is sorted by dataset recency, so newly materialized historical datasets can still rank below fresher providers already present in the local database. If the new dataset is absent from `/recent`, do not treat that as a bug by itself. Instead:
+
+1. Confirm it is present in `/api/datasets/search`.
+2. Confirm it is present in `/api/datasets/<dataset_id>`.
+3. Compare its `latest_update_at` / `reported_at` values against the datasets returned by `/recent`.
+4. Only treat absence as a defect if the dataset should rank into the top 5 by recency and does not.
 
 **Check 3 — Fetch dataset detail and verify observations:**
 
@@ -663,6 +713,23 @@ for item in items:
 ```
 
 Confirm the new provider appears as a source group in the catalog.
+
+### 5h.1 Recommended Manual Verification Loop
+
+For every newly onboarded provider, use this exact live-validation order:
+
+1. Reset the compose stack with `docker compose down`.
+2. Start the stack with `docker compose up -d`.
+3. Wait for DB, Dagit, and backend health.
+4. Confirm the new assets appear in Dagit asset nodes.
+5. Materialize each new asset individually through Dagit GraphQL.
+6. Poll every run to terminal status and inspect run logs immediately if any run fails.
+7. Query `/api/datasets/search` with terms distinctive to the new provider/metrics.
+8. Query `/api/datasets/<dataset_id>` for every newly created dataset and validate metadata plus observation counts/date range.
+9. Query `/api/datasets?group_by_source=true` and confirm the provider-group count matches the number of onboarded datasets.
+10. Query `/api/datasets/recent?limit=5`, but interpret absence carefully based on recency rather than assuming it must appear.
+
+If any step fails, stop and fix the issue before continuing. Prefer red/green TDD: reproduce with a focused automated test, implement the fix, rerun the focused test, then rerun the failed manual step.
 
 ### 5i. Tear down or preserve the stack
 
