@@ -10,14 +10,20 @@ from typing import Any, Protocol
 from urllib.parse import urlencode
 from urllib.request import build_opener
 
-from ..source_assets.discovery import ObservationCheckpointRepository
-from ..source_ingest_runner import SourceIngestRunner
-from ..source_schedule_policy import SourceSchedulePolicy
-from ..workflow_registry import SourceWorkflowRegistration
-from ..workflow_request import SourceWorkflowRequest
-from ..workflow_result import SourceWorkflowResult
+from src.orchestration.jobs.source_assets.discovery import ObservationCheckpointRepository
+from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
+from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
+from src.orchestration.jobs.workflow_request import SourceWorkflowRequest
+from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 
 FRED_FEDFUNDS_SOURCE_KEY = "fred_fedfunds"
+FRED_PROVIDER_GROUP_KEY = "fred"
+FRED_SOURCE_NAME = "FRED"
+FRED_SOURCE_TITLE = "Federal Reserve Economic Data"
+FRED_SOURCE_DESCRIPTION = (
+    "Economic time series published by the Federal Reserve Bank of St. Louis via FRED."
+)
 FRED_FEDFUNDS_SERIES_ID = "FEDFUNDS"
 FRED_FEDFUNDS_CANONICAL_SERIES = "INT.US.FEDFUNDS"
 FRED_GASREGW_SERIES_ID = "GASREGW"
@@ -124,6 +130,9 @@ def _map_fred_records(
         mapped.append(
             {
                 "source_name": "FRED",
+                "source_key": FRED_PROVIDER_GROUP_KEY,
+                "source_title": FRED_SOURCE_TITLE,
+                "source_description": FRED_SOURCE_DESCRIPTION,
                 "source_type": "external",
                 "series_key": series_config["canonical_series_key"],
                 "metric_name": metric_name,
@@ -158,6 +167,13 @@ def build_fred_fedfunds_source_workflow(
     fred_client = client or _DefaultFredClient()
 
     def _handler(request: SourceWorkflowRequest) -> SourceWorkflowResult:
+        runner.sync_source_metadata(
+            source_key=FRED_PROVIDER_GROUP_KEY,
+            source_name=FRED_SOURCE_NAME,
+            source_title=FRED_SOURCE_TITLE,
+            source_description=FRED_SOURCE_DESCRIPTION,
+            source_type="external",
+        )
         records = request.run_context.get("records")
         if records is not None:
             if not isinstance(records, list):
@@ -289,6 +305,8 @@ def build_fred_fedfunds_source_workflow(
 SOURCE_SPEC: dict[str, Any] = {
     "source_key": FRED_FEDFUNDS_SOURCE_KEY,
     "provider_group_key": "fred",
+    "title": FRED_SOURCE_TITLE,
+    "description": FRED_SOURCE_DESCRIPTION,
     "series_item_keys": ("fred_fedfunds", "fred_gasregw"),
     "canonical_series_keys": (FRED_FEDFUNDS_CANONICAL_SERIES, FRED_GASREGW_CANONICAL_SERIES),
     "ownership_mode": "grouped",

@@ -12,11 +12,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.definitions import defs, get_ingest_runtime
-from src.orchestration.jobs.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
 from src.orchestration.jobs.workflow_result import map_dagit_failure_category
 from src.orchestration.resources.postgres_observation_repository import (
     PostgresObservationRepository,
 )
+from src.sources.fred_fedfunds_source import FRED_FEDFUNDS_SOURCE_KEY
 
 
 def test_ingest_job_executes_and_persists_fred_source_outcomes() -> None:

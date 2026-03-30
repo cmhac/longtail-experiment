@@ -15,20 +15,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
 from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
-from src.orchestration.jobs.sources.nyfed_college_labor_market_source import (
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistry
+from src.sources.nyfed_college_labor_market_source import (
     NYFED_COLLEGE_LABOR_MARKET_SOURCE_KEY,
+    NYFED_PROVIDER_GROUP_KEY,
+    NYFED_SOURCE_DESCRIPTION,
+    NYFED_SOURCE_TITLE,
     SERIES_CONFIGS,
     _DefaultNyfedClient,
     _parse_workbook_bytes,
     build_nyfed_college_labor_market_source_workflow,
 )
-from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistry
 
 FOUR = 4
 THREE = 3
 
 
 class _Observation(Protocol):
+    source_key: object
+    source_title: object
+    source_description: object
     series_key: object
     observed_on: object
     unit_type: object
@@ -326,6 +332,9 @@ def test_nyfed_source_supports_passthrough_records() -> None:
             "records": [
                 {
                     "source_name": "NYFED",
+                    "source_key": NYFED_PROVIDER_GROUP_KEY,
+                    "source_title": NYFED_SOURCE_TITLE,
+                    "source_description": NYFED_SOURCE_DESCRIPTION,
                     "source_type": "external",
                     "series_key": "LABOR.US.TEST",
                     "metric_name": "Test",
@@ -387,6 +396,8 @@ def test_nyfed_source_maps_grouped_series_and_uses_incremental_start_dates() -> 
     assert start_dates["underemployed_recent_graduates"] == date(2025, 10, 2)
     assert start_dates["underemployed_college_graduates"] == date(2025, 9, 2)
     assert {str(row.unit_type) for row in capture_repo.rows} == {"percent"}
+    assert {str(row.source_key) for row in capture_repo.rows} == {NYFED_PROVIDER_GROUP_KEY}
+    assert {str(row.source_title) for row in capture_repo.rows} == {NYFED_SOURCE_TITLE}
 
 
 def test_nyfed_source_reports_partial_failure_for_series_errors() -> None:

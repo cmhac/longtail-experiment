@@ -1,6 +1,6 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-29
+Auto-generated from all feature plans. Last updated: 2026-03-30
 
 ## Active Technologies
 - TypeScript 5.x + React 19 (Next.js 15 App Router), Python 3.12 backend query layer, existing pipeline contracts/persistence semantics + Existing discovery API client/types, Next.js routing primitives, existing shell/layout tokens, backend dataset discovery service/repository surfaces (032-source-pages)
@@ -14,6 +14,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-29
 - TypeScript 5.x + React 19 in Next.js 15 App Router + `@heroui/react`, HeroUI v3 styling system, Tailwind CSS v4/PostCSS integration, existing Next.js routing primitives, existing discovery client/types, existing Recharts detail visualizations (036-heroui-ui-migration)
 - N/A for new persistence; existing PostgreSQL-backed discovery APIs remain the data source (036-heroui-ui-migration)
 - TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery API client/types, Recharts time-series primitives, HeroUI components, Tailwind utility classes, existing dataset-detail view-model helpers (037-detail-chart-overhaul)
+- Python 3.12 for pipeline/backend layers; TypeScript 5.x + React 19 + Next.js 15 App Router for frontend + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster 1.x, existing pipeline source discovery/registration utilities, existing backend discovery service/repository contracts, HeroUI 3, Tailwind, existing frontend discovery client/types (038-source-metadata-relocation)
+- PostgreSQL 16 discovery metadata in `source_profiles`, `data_series`, `topic_tags`, and `observations`, with Alembic-managed schema changes required for source-level metadata (038-source-metadata-relocation)
 
 - TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery client/types, existing dataset catalog components, shell/nav primitives, HeroUI-aligned theme tokens (027-dataset-list-page)
 - N/A (frontend listing and interaction state over existing discovery catalog payload) (027-dataset-list-page)
@@ -193,7 +195,7 @@ Local stack and duplication:
 - docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 - docker compose down
 
-Current migration head expected by local revision checks: `0009_drop_source_profile_frequency`.
+Current migration head expected by local revision checks: `0010_source_profile_metadata`.
 
 Docker Compose policy:
 
@@ -251,9 +253,9 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 038-source-metadata-relocation: Added Python 3.12 for pipeline/backend layers; TypeScript 5.x + React 19 + Next.js 15 App Router for frontend + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster 1.x, existing pipeline source discovery/registration utilities, existing backend discovery service/repository contracts, HeroUI 3, Tailwind, existing frontend discovery client/types
 - 037-detail-chart-overhaul: Added TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery API client/types, Recharts time-series primitives, HeroUI components, Tailwind utility classes, existing dataset-detail view-model helpers
 - 036-heroui-ui-migration: Added TypeScript 5.x + React 19 in Next.js 15 App Router + `@heroui/react`, HeroUI v3 styling system, Tailwind CSS v4/PostCSS integration, existing Next.js routing primitives, existing discovery client/types, existing Recharts detail visualizations
-- 035-filter-ui-improvements: Added TypeScript 5.x + React 19 in Next.js 15 App Router + Existing discovery UI components, HeroUI component primitives, shell theme tokens and global CSS
 
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
@@ -261,7 +263,7 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
   with HeroUI/Recharts and strict TypeScript + Biome + Vitest quality tooling.
   query layer integration with PostgreSQL 16 canonical tables.
   provider ownership model and source-owned schedule authority in orchestration runtime.
-  manifests discovered from `jobs/sources/*_source.py`, with schedules/assets/catalog/runtime
+  manifests discovered from `src/sources/*_source.py`, with schedules/assets/catalog/runtime
   derived dynamically and anti-hardcoding bootstrap guards.
   coverage stop gates (`nx run-many -t test --all` and `nx run-many -t coverage --all`),
   plus all-project lint/format/typecheck/test/coverage enforcement.

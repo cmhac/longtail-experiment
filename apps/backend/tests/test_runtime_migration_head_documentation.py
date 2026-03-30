@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-EXPECTED_HEAD = "0009_drop_source_profile_frequency"
+EXPECTED_HEAD = "0010_source_profile_metadata"
 
 
 def test_agents_migration_head_matches_runtime_expectation() -> None:

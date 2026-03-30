@@ -87,7 +87,10 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
     dataset_rows = [
         {
             "dataset_id": "INT.US.FEDFUNDS",
+            "source_key": "fred",
             "source_name": "Federal Reserve",
+            "source_title": "Federal Reserve Economic Data",
+            "source_description": "Economic time series published by the St. Louis Fed.",
             "source_type": "external",
             "metric_name": "effective_rate",
             "title": "Effective Federal Funds Rate",
@@ -98,7 +101,10 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
         },
         {
             "dataset_id": "LABOR.US.UNRATE",
+            "source_key": "bls",
             "source_name": "BLS",
+            "source_title": "Bureau of Labor Statistics",
+            "source_description": "US labor market and price statistics.",
             "source_type": "external",
             "metric_name": "unemployment_rate",
             "title": "Unemployment Rate",
@@ -136,7 +142,10 @@ def test_search_and_recent_are_persisted_and_sorted() -> None:
 
     assert total_items == 1
     assert rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
-    assert rows[0]["source"] == {"id": "federal-reserve", "name": "Federal Reserve"}
+    assert rows[0]["source"] == {
+        "id": "fred",
+        "name": "Federal Reserve Economic Data",
+    }
     metadata = cast(dict[str, Any], rows[0]["metadata"])
     assert metadata["source_type"] == "external"
     assert recent[0]["dataset_id"] == "INT.US.FEDFUNDS"
@@ -148,7 +157,7 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
     catalog_rows, total_items = repository.list_catalog_datasets(
         query_text=None,
         options={
-            "source_id": "federal-reserve",
+            "source_id": "fred",
             "category": None,
             "sort": "recency",
             "page": 1,
@@ -163,7 +172,7 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
     assert catalog_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert groups == [
         {
-            "source": {"id": "federal-reserve", "name": "Federal Reserve"},
+            "source": {"id": "fred", "name": "Federal Reserve Economic Data"},
             "dataset_count": 1,
             "dataset_ids": ["INT.US.FEDFUNDS"],
         }
@@ -177,27 +186,30 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
     repository = _build_repository()
 
     sources = repository.list_sources()
-    source_detail = repository.get_source_detail(source_id="federal-reserve", page=1, page_size=1)
+    source_detail = repository.get_source_detail(source_id="fred", page=1, page_size=1)
     missing_source_detail = repository.get_source_detail(source_id="unknown", page=1, page_size=1)
 
     assert sources == [
         {
             "id": "bls",
-            "name": "BLS",
+            "title": "Bureau of Labor Statistics",
+            "description": "US labor market and price statistics.",
             "dataset_count": 1,
             "source_type": "external",
         },
         {
-            "id": "federal-reserve",
-            "name": "Federal Reserve",
+            "id": "fred",
+            "title": "Federal Reserve Economic Data",
+            "description": "Economic time series published by the St. Louis Fed.",
             "dataset_count": 1,
             "source_type": "external",
         },
     ]
     assert source_detail is not None
     assert source_detail["source"] == {
-        "id": "federal-reserve",
-        "name": "Federal Reserve",
+        "id": "fred",
+        "title": "Federal Reserve Economic Data",
+        "description": "Economic time series published by the St. Louis Fed.",
         "dataset_count": 1,
         "source_type": "external",
     }
@@ -248,7 +260,7 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
 def test_source_topic_and_geography_detail_pagination_is_stable() -> None:
     repository = _build_repository()
 
-    source_detail = repository.get_source_detail(source_id="federal-reserve", page=2, page_size=1)
+    source_detail = repository.get_source_detail(source_id="fred", page=2, page_size=1)
     topic_detail = repository.get_topic_detail(topic_id="interest-rates", page=2, page_size=1)
     geography_detail = repository.get_geography_detail(geography_id="us", page=2, page_size=1)
 

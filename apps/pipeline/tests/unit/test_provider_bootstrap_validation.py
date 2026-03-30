@@ -18,6 +18,7 @@ normalize_module_name = validation.normalize_module_name
 validate_cadence_label = validation.validate_cadence_label
 validate_canonical_key = validation.validate_canonical_key
 validate_cron_schedule = validation.validate_cron_schedule
+validate_required_text = validation.validate_required_text
 validate_series_alignment = validation.validate_series_alignment
 validate_snake_identifier = validation.validate_snake_identifier
 
@@ -64,3 +65,9 @@ def test_validate_series_alignment_requires_equal_lengths() -> None:
             canonical_series_keys=["PRICE.US.CPI", "PRICE.US.PPI"],
             provider_series_ids=["CPIAUCSL"],
         )
+
+
+def test_validate_required_text_rejects_blank_value() -> None:
+    """Required text validator should reject blank strings."""
+    with pytest.raises(ValueError):
+        validate_required_text("   ", field="source_title")

@@ -45,6 +45,8 @@ def _valid_source_spec(*, source_key: str) -> dict[str, Any]:
     return {
         "source_key": source_key,
         "provider_group_key": source_key,
+        "title": f"{source_key} title",
+        "description": f"{source_key} description",
         "series_item_keys": (f"{source_key}_series",),
         "canonical_series_keys": (f"{source_key}.series",),
         "ownership_mode": "grouped",
@@ -120,6 +122,8 @@ def test_scan_adapter_modules_rejects_missing_required_fields(
             "broken_source": {
                 "source_key": "",
                 "provider_group_key": "",
+                "title": "",
+                "description": "",
                 "series_item_keys": ("series",),
                 "canonical_series_keys": ("canonical",),
                 "cron_schedule": "",
@@ -135,6 +139,8 @@ def test_scan_adapter_modules_rejects_missing_required_fields(
     message = str(exc_info.value)
     assert "source_key must be non-empty" in message
     assert "provider_group_key must be non-empty" in message
+    assert "title must be non-empty" in message
+    assert "description must be non-empty" in message
     assert "cron_schedule must be non-empty" in message
     assert "cadence_label must be one of" in message
 
@@ -234,6 +240,7 @@ def test_fred_source_spec_is_discoverable_from_real_adapter_module() -> None:
     assert "fred_fedfunds" in by_source_key
     spec = by_source_key["fred_fedfunds"]
     assert spec.provider_group_key == "fred"
+    assert spec.title == "Federal Reserve Economic Data"
     assert spec.cadence_label == "daily"
     assert spec.series_item_keys == ("fred_fedfunds", "fred_gasregw")
 

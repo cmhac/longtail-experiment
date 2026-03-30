@@ -24,9 +24,17 @@ describe("source discovery client", () => {
   it("fetches source list payload from the source endpoint", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({
-        items: [{ id: "fred", name: "FRED", dataset_count: 2, source_type: "external" }],
+        items: [
+          {
+            id: "fred",
+            title: "Federal Reserve Economic Data",
+            description: "Economic time series published by the St. Louis Fed.",
+            dataset_count: 2,
+            source_type: "external",
+          },
+        ],
         total_items: 1,
-        sort: "source_name_asc,source_id_asc",
+        sort: "source_title_asc,source_id_asc",
       }),
     );
 
@@ -39,7 +47,12 @@ describe("source discovery client", () => {
   it("encodes source identifiers on source detail requests", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockJsonResponse({
-        source: { id: "fred-economic-data", name: "FRED Economic Data", dataset_count: 1 },
+        source: {
+          id: "fred-economic-data",
+          title: "FRED Economic Data",
+          description: "Economic time series published by the St. Louis Fed.",
+          dataset_count: 1,
+        },
         items: [],
         page: 1,
         page_size: 20,

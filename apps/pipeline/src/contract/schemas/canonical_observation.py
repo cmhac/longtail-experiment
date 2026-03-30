@@ -14,7 +14,10 @@ class CanonicalObservation(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    source_key: str = Field(min_length=1)
     source_name: str = Field(min_length=1)
+    source_title: str = Field(min_length=1)
+    source_description: str = Field(min_length=1)
     source_type: str = Field(pattern="^(external|internal)$")
     series_key: str = Field(min_length=1)
     metric_name: str = Field(min_length=1)

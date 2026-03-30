@@ -13,20 +13,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
 from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
-from src.orchestration.jobs.sources.fred_fedfunds_source import (
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistry
+from src.sources.fred_fedfunds_source import (
     FRED_FEDFUNDS_CANONICAL_SERIES,
     FRED_FEDFUNDS_SERIES_ID,
     FRED_FEDFUNDS_SOURCE_KEY,
     FRED_GASREGW_CANONICAL_SERIES,
     FRED_GASREGW_SERIES_ID,
+    FRED_PROVIDER_GROUP_KEY,
+    FRED_SOURCE_DESCRIPTION,
+    FRED_SOURCE_TITLE,
     build_fred_fedfunds_source_workflow,
 )
-from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistry
 
 TWO = 2
 
 
 class _Observation(Protocol):
+    source_key: object
+    source_title: object
+    source_description: object
     series_key: object
     observed_on: object
     unit_type: object
@@ -35,9 +41,29 @@ class _Observation(Protocol):
 class _CaptureRepository:
     def __init__(self) -> None:
         self.rows: list[_Observation] = []
+        self.source_profiles: list[dict[str, str]] = []
 
     def upsert_observation(self, observation: _Observation) -> None:
         self.rows.append(observation)
+
+    def upsert_source_profile(
+        self,
+        *,
+        source_key: str,
+        source_name: str,
+        source_title: str,
+        source_description: str,
+        source_type: str,
+    ) -> None:
+        self.source_profiles.append(
+            {
+                "source_key": source_key,
+                "source_name": source_name,
+                "source_title": source_title,
+                "source_description": source_description,
+                "source_type": source_type,
+            }
+        )
 
 
 class _CheckpointRepo:
@@ -165,6 +191,9 @@ def test_fred_source_maps_grouped_series_and_tracks_partial_success() -> None:
     unit_type_by_series = {str(row.series_key): str(row.unit_type) for row in capture_repo.rows}
     assert unit_type_by_series[FRED_FEDFUNDS_CANONICAL_SERIES] == "percent"
     assert unit_type_by_series[FRED_GASREGW_CANONICAL_SERIES] == "usd"
+    assert {str(row.source_key) for row in capture_repo.rows} == {FRED_PROVIDER_GROUP_KEY}
+    assert {str(row.source_title) for row in capture_repo.rows} == {FRED_SOURCE_TITLE}
+    assert {str(row.source_description) for row in capture_repo.rows} == {FRED_SOURCE_DESCRIPTION}
 
 
 def test_fred_source_uses_incremental_start_date_from_latest_checkpoint() -> None:
@@ -190,6 +219,38 @@ def test_fred_source_uses_incremental_start_date_from_latest_checkpoint() -> Non
     start_by_series = {call["series_id"]: call["start_date"] for call in client.calls}
     assert start_by_series[FRED_FEDFUNDS_SERIES_ID] == date(2026, 1, 6)
     assert start_by_series[FRED_GASREGW_SERIES_ID] == date(2026, 1, 11)
+
+
+def test_fred_source_syncs_source_metadata_when_incremental_run_has_no_new_rows() -> None:
+    """Incremental no-op runs should still update source-level metadata."""
+    client = _FakeClient(rows_by_series={})
+    registry, capture_repo = _build_registry(
+        client=client,
+        checkpoint_latest_by_series={
+            FRED_FEDFUNDS_CANONICAL_SERIES: date(2026, 1, 5),
+            FRED_GASREGW_CANONICAL_SERIES: date(2026, 1, 10),
+        },
+    )
+
+    result = registry.execute_for_source(
+        source_key=FRED_FEDFUNDS_SOURCE_KEY,
+        run_id="run-fred-noop-metadata-sync",
+        trigger_type="scheduled",
+        run_context={"api_key": "test-key"},
+    )
+
+    assert result.status == "success"
+    assert result.accepted_count == 0
+    assert capture_repo.rows == []
+    assert capture_repo.source_profiles == [
+        {
+            "source_key": FRED_PROVIDER_GROUP_KEY,
+            "source_name": "FRED",
+            "source_title": FRED_SOURCE_TITLE,
+            "source_description": FRED_SOURCE_DESCRIPTION,
+            "source_type": "external",
+        }
+    ]
 
 
 def test_fred_source_reports_partial_failure_when_one_series_fails() -> None:

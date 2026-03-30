@@ -22,7 +22,8 @@ describe("source list page", () => {
     expect(markup).toContain('data-testid="source-list-page"');
     expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('data-testid="source-catalog-list"');
-    expect(markup).toContain("FRED");
+    expect(markup).toContain("Federal Reserve Economic Data");
+    expect(markup).toContain("Economic time series published by the St. Louis Fed.");
     expect(markup).toContain("2 datasets");
     expect(markup).toContain('href="/sources/fred"');
   });
@@ -31,7 +32,7 @@ describe("source list page", () => {
     vi.spyOn(discoveryClient, "fetchSourceList").mockResolvedValue({
       items: [],
       total_items: 0,
-      sort: "source_name_asc,source_id_asc",
+      sort: "source_title_asc,source_id_asc",
     });
 
     const element = await SourceListPage();

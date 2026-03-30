@@ -387,17 +387,21 @@ class DatasetDiscoveryService:
                 raise ContractQueryError("Repository returned invalid source list item")
 
             source_id = str(item.get("id", "")).strip()
-            source_name = str(item.get("name", "")).strip()
+            source_title = str(item.get("title", "")).strip()
+            source_description = str(item.get("description", "")).strip()
             dataset_count = item.get("dataset_count")
-            if source_id == "" or source_name == "":
-                raise ContractQueryError("Repository returned source without id or name")
+            if source_id == "" or source_title == "" or source_description == "":
+                raise ContractQueryError(
+                    "Repository returned source without id, title, or description"
+                )
             if not isinstance(dataset_count, int) or dataset_count < 0:
                 raise ContractQueryError("Repository returned invalid source dataset_count")
 
             projected.append(
                 {
                     "id": source_id,
-                    "name": source_name,
+                    "title": source_title,
+                    "description": source_description,
                     "dataset_count": dataset_count,
                     "source_type": (
                         str(item.get("source_type"))
@@ -410,7 +414,7 @@ class DatasetDiscoveryService:
         return {
             "items": projected,
             "total_items": len(projected),
-            "sort": "source_name_asc,source_id_asc",
+            "sort": "source_title_asc,source_id_asc",
         }
 
     def get_source_detail(
@@ -479,7 +483,8 @@ class DatasetDiscoveryService:
                 "sort": "title_asc,dataset_id_asc",
                 "source": {
                     "id": str(source.get("id", "")).strip(),
-                    "name": str(source.get("name", "")).strip(),
+                    "title": str(source.get("title", "")).strip(),
+                    "description": str(source.get("description", "")).strip(),
                     "dataset_count": dataset_count,
                     "source_type": (
                         str(source.get("source_type"))

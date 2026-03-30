@@ -18,7 +18,10 @@ from src.contract.schemas.canonical_observation import CanonicalObservation
 def test_canonical_observation_accepts_valid_payload() -> None:
     """A complete canonical payload should validate successfully."""
     payload = CanonicalObservation(
+        source_key="bls_cpi",
         source_name="BLS",
+        source_title="Bureau of Labor Statistics",
+        source_description="US labor market and price statistics.",
         source_type="external",
         series_key="CPI.US.ALL",
         metric_name="Consumer Price Index",
@@ -46,6 +49,9 @@ def test_canonical_observation_requires_mandatory_fields() -> None:
         CanonicalObservation.model_validate(
             {
                 "source_name": "BLS",
+                "source_key": "bls_cpi",
+                "source_title": "Bureau of Labor Statistics",
+                "source_description": "US labor market and price statistics.",
                 "source_type": "external",
                 "metric_name": "Consumer Price Index",
                 "observed_on": date(2026, 1, 1),
@@ -61,6 +67,9 @@ def test_canonical_observation_rejects_invalid_unit_type() -> None:
         CanonicalObservation.model_validate(
             {
                 "source_name": "BLS",
+                "source_key": "bls_cpi",
+                "source_title": "Bureau of Labor Statistics",
+                "source_description": "US labor market and price statistics.",
                 "source_type": "external",
                 "series_key": "CPI.US.ALL",
                 "metric_name": "Consumer Price Index",

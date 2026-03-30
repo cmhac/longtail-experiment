@@ -29,23 +29,29 @@ class _SourceHttpRepoStub:
         self._datasets = [
             {
                 "dataset_id": "UNRATE",
-                "source": {"id": "fred", "name": "FRED"},
+                "source": {"id": "fred", "name": "Federal Reserve Economic Data"},
                 "title": "Unemployment Rate",
                 "description": "Labor market measure",
                 "geographic_scope": "US",
                 "topic_tags": ["labor"],
                 "latest_update_at": "2026-03-10T00:00:00+00:00",
-                "metadata": {"source_type": "external"},
+                "metadata": {
+                    "source_type": "external",
+                    "source_description": "Economic time series published by the St. Louis Fed.",
+                },
             },
             {
                 "dataset_id": "CPIAUCSL",
-                "source": {"id": "fred", "name": "FRED"},
+                "source": {"id": "fred", "name": "Federal Reserve Economic Data"},
                 "title": "Consumer Price Index",
                 "description": "Price level measure",
                 "geographic_scope": "US",
                 "topic_tags": ["inflation"],
                 "latest_update_at": "2026-03-09T00:00:00+00:00",
-                "metadata": {"source_type": "external"},
+                "metadata": {
+                    "source_type": "external",
+                    "source_description": "Economic time series published by the St. Louis Fed.",
+                },
             },
         ]
 
@@ -94,7 +100,8 @@ class _SourceHttpRepoStub:
         return [
             {
                 "id": "fred",
-                "name": "FRED",
+                "title": "Federal Reserve Economic Data",
+                "description": "Economic time series published by the St. Louis Fed.",
                 "dataset_count": 2,
                 "source_type": "external",
             }
@@ -109,7 +116,8 @@ class _SourceHttpRepoStub:
         return {
             "source": {
                 "id": "fred",
-                "name": "FRED",
+                "title": "Federal Reserve Economic Data",
+                "description": "Economic time series published by the St. Louis Fed.",
                 "dataset_count": 2,
                 "source_type": "external",
             },
@@ -163,9 +171,13 @@ def test_http_runtime_source_endpoints_return_expected_payloads(
     assert isinstance(source_list_items, list)
     first_source_item = cast(dict[str, object], source_list_items[0])
     assert first_source_item["id"] == "fred"
+    assert first_source_item["title"] == "Federal Reserve Economic Data"
     assert isinstance(source_detail_payload, dict)
     typed_source_detail_payload = cast(dict[str, object], source_detail_payload)
     assert typed_source_detail_payload["id"] == "fred"
+    assert typed_source_detail_payload["description"] == (
+        "Economic time series published by the St. Louis Fed."
+    )
     assert isinstance(source_detail_items, list)
     assert len(source_detail_items) == 1
     assert source_detail["page"] == 1

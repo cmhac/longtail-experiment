@@ -16,18 +16,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.contract.services.canonical_ingest_service import CanonicalIngestService
 from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
-from src.orchestration.jobs.sources.eia_retail_fuel_prices_source import (
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistry
+from src.sources.eia_retail_fuel_prices_source import (
+    EIA_PROVIDER_GROUP_KEY,
     EIA_RETAIL_FUEL_PRICES_SOURCE_KEY,
+    EIA_SOURCE_DESCRIPTION,
+    EIA_SOURCE_TITLE,
     SERIES_CONFIGS,
     _DefaultEiaClient,
     build_eia_retail_fuel_prices_source_workflow,
 )
-from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistry
 
 TWO = 2
 
 
 class _Observation(Protocol):
+    source_key: object
+    source_title: object
+    source_description: object
     series_key: object
     observed_on: object
     unit_type: object
@@ -210,6 +216,9 @@ def test_eia_source_supports_passthrough_records() -> None:
             "records": [
                 {
                     "source_name": "EIA",
+                    "source_key": EIA_PROVIDER_GROUP_KEY,
+                    "source_title": EIA_SOURCE_TITLE,
+                    "source_description": EIA_SOURCE_DESCRIPTION,
                     "source_type": "external",
                     "series_key": "ENERGY.US.TEST",
                     "metric_name": "Test",
@@ -280,6 +289,8 @@ def test_eia_source_maps_series_and_uses_incremental_start_dates() -> None:
         "start_date"
     ] == date(2026, 1, 3)
     assert {str(row.unit_type) for row in capture_repo.rows} == {"usd"}
+    assert {str(row.source_key) for row in capture_repo.rows} == {EIA_PROVIDER_GROUP_KEY}
+    assert {str(row.source_title) for row in capture_repo.rows} == {EIA_SOURCE_TITLE}
 
 
 def test_eia_source_reports_partial_failure_for_series_errors() -> None:

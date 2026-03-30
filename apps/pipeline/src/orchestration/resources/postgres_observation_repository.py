@@ -16,7 +16,10 @@ from .postgres_run_repository import resolve_database_url
 class ObservationPayload(Protocol):
     """Structural contract for canonical observation persistence payloads."""
 
+    source_key: str
     source_name: str
+    source_title: str
+    source_description: str
     source_type: str
     series_key: str
     metric_name: str
@@ -61,6 +64,77 @@ class PostgresObservationRepository:
         self._database_url = resolve_database_url(explicit_url=database_url)
         self._engine: Engine = create_engine(self._database_url, pool_pre_ping=True)
 
+    @staticmethod
+    def _upsert_source_profile(
+        connection: Any,
+        *,
+        source_profile: dict[str, str],
+        created_at: datetime,
+    ) -> object:
+        return connection.execute(
+            text(
+                """
+                INSERT INTO source_profiles (
+                    id,
+                    source_key,
+                    source_name,
+                    source_type,
+                    title,
+                    description,
+                    created_at
+                ) VALUES (
+                    :id,
+                    :source_key,
+                    :source_name,
+                    :source_type,
+                    :title,
+                    :description,
+                    :created_at
+                )
+                ON CONFLICT (source_key) DO UPDATE
+                SET
+                    source_name = EXCLUDED.source_name,
+                    source_type = EXCLUDED.source_type,
+                    title = EXCLUDED.title,
+                    description = EXCLUDED.description,
+                    created_at = EXCLUDED.created_at
+                RETURNING id
+                """
+            ),
+            {
+                "id": uuid4(),
+                "source_key": source_profile["source_key"],
+                "source_name": source_profile["source_name"],
+                "source_type": source_profile["source_type"],
+                "title": source_profile["source_title"],
+                "description": source_profile["source_description"],
+                "created_at": created_at,
+            },
+        ).scalar_one()
+
+    def upsert_source_profile(
+        self,
+        *,
+        source_key: str,
+        source_name: str,
+        source_title: str,
+        source_description: str,
+        source_type: str,
+    ) -> None:
+        """Persist source-level metadata even when no observations are written."""
+        with self._engine.begin() as connection:
+            self._upsert_source_profile(
+                connection,
+                source_profile={
+                    "source_key": source_key,
+                    "source_name": source_name,
+                    "source_title": source_title,
+                    "source_description": source_description,
+                    "source_type": source_type,
+                },
+                created_at=datetime.now(tz=UTC),
+            )
+
     def upsert_observation(self, observation: ObservationPayload) -> None:
         """Insert or update a canonical observation and its parent data-series row."""
         now = datetime.now(tz=UTC)
@@ -77,34 +151,17 @@ class PostgresObservationRepository:
         )
         topic_tags = _normalize_topic_tags(getattr(observation, "topic_tags", []))
         with self._engine.begin() as connection:
-            source_profile_id = connection.execute(
-                text(
-                    """
-                    INSERT INTO source_profiles (
-                        id,
-                        source_name,
-                        source_type,
-                        created_at
-                    ) VALUES (
-                        :id,
-                        :source_name,
-                        :source_type,
-                        :created_at
-                    )
-                    ON CONFLICT (source_name) DO UPDATE
-                    SET
-                        source_type = EXCLUDED.source_type,
-                        created_at = EXCLUDED.created_at
-                    RETURNING id
-                    """
-                ),
-                {
-                    "id": uuid4(),
+            source_profile_id = self._upsert_source_profile(
+                connection,
+                source_profile={
+                    "source_key": observation.source_key,
                     "source_name": observation.source_name,
+                    "source_title": observation.source_title,
+                    "source_description": observation.source_description,
                     "source_type": observation.source_type,
-                    "created_at": now,
                 },
-            ).scalar_one()
+                created_at=now,
+            )
 
             series_id = connection.execute(
                 text(

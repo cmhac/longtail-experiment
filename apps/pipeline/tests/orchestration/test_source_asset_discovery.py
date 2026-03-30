@@ -70,6 +70,8 @@ def test_discovery_surfaces_malformed_module_failures() -> None:
         SourceBuilderSpec(
             source_key="broken",
             module_name="tests.broken_source",
+            title="Broken source",
+            description="Broken source description",
             builder=_broken_builder,
         ),
     )
@@ -110,11 +112,15 @@ def test_filter_adapter_specs_ignores_non_adapter_modules() -> None:
         SourceBuilderSpec(
             source_key="valid_source",
             module_name="tests.valid_source",
+            title="Valid source",
+            description="Valid source description",
             builder=_valid_builder,
         ),
         SourceBuilderSpec(
             source_key="helper_module",
             module_name="tests.helper_module",
+            title="Helper module",
+            description="Helper module description",
             builder=_helper_builder,
         ),
     )

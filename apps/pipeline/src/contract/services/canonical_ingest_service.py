@@ -33,3 +33,22 @@ class CanonicalIngestService:
             )
 
         return observation
+
+    def sync_source_metadata(
+        self,
+        *,
+        source_key: str,
+        source_name: str,
+        source_title: str,
+        source_description: str,
+        source_type: str,
+    ) -> None:
+        """Persist source metadata independently of observation writes."""
+        if hasattr(self._repository, "upsert_source_profile"):
+            self._repository.upsert_source_profile(
+                source_key=source_key,
+                source_name=source_name,
+                source_title=source_title,
+                source_description=source_description,
+                source_type=source_type,
+            )

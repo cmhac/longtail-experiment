@@ -47,6 +47,10 @@ def test_generated_scaffold_contains_required_sections(tmp_path: Path, capsys) -
             "PRICE.US.CPI",
             "--provider-series-id",
             "CPIAUCSL",
+            "--source-title",
+            "ACME Contract Source",
+            "--source-description",
+            "Contract scaffold for ACME price data.",
             "--output-dir",
             str(tmp_path),
         ]
@@ -61,3 +65,7 @@ def test_generated_scaffold_contains_required_sections(tmp_path: Path, capsys) -
     assert "SourceWorkflowRegistration" in text
     assert "build_acme_contract_source_workflow" in text
     assert '"source_key": ACME_ACME_CONTRACT_SOURCE_KEY' in text
+    assert 'SOURCE_TITLE = "ACME Contract Source"' in text
+    assert 'SOURCE_DESCRIPTION = "Contract scaffold for ACME price data."' in text
+    assert '"title": SOURCE_TITLE' in text
+    assert '"description": SOURCE_DESCRIPTION' in text

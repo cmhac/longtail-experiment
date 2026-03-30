@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { JSX } from "react";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import type { ObservationPoint } from "../../lib/api/discovery-types";
 import { EmptyState } from "./EmptyState";
 import {
@@ -37,6 +37,13 @@ interface ObservationTooltipContentProps {
   }>;
 }
 
+const CHART_MIN_HEIGHT = 288;
+const CHART_MAX_HEIGHT = 360;
+const CHART_ASPECT_RATIO = 0.54;
+const CHART_DEFAULT_WIDTH = 640;
+const Y_AXIS_MIN_PADDING_RATIO = 0.05;
+const Y_AXIS_FALLBACK_PADDING = 1;
+
 const formatSignedNumber = (value: number, maximumFractionDigits: number): string => {
   const abs = Math.abs(value);
   const sign = value > 0 ? "+" : value < 0 ? "-" : "";
@@ -44,6 +51,13 @@ const formatSignedNumber = (value: number, maximumFractionDigits: number): strin
     maximumFractionDigits,
     minimumFractionDigits: maximumFractionDigits,
   }).format(abs)}`;
+};
+
+const formatAxisNumber = (value: number): string => {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  }).format(value);
 };
 
 const toChartData = (
@@ -68,6 +82,23 @@ const toChartData = (
       valueLabel: formatValue(observation.value, unitType, unitLabel),
     };
   });
+};
+
+const getYAxisDomain = (chartData: ObservationChartPoint[]): [number, number] => {
+  if (chartData.length === 0) {
+    return [0, 1];
+  }
+
+  const values = chartData.map((point) => point.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const spread = maxValue - minValue;
+  const padding =
+    spread === 0
+      ? Math.max(Math.abs(maxValue) * Y_AXIS_MIN_PADDING_RATIO, Y_AXIS_FALLBACK_PADDING)
+      : spread * Y_AXIS_MIN_PADDING_RATIO;
+
+  return [minValue - padding, maxValue + padding];
 };
 
 const ObservationsChartTooltip = ({
@@ -116,6 +147,8 @@ export const ObservationsChart = ({
 }: ObservationsChartProps): JSX.Element => {
   const availableRanges = getAvailableTrendRanges(observations);
   const [internalRange, setInternalRange] = React.useState<TrendRangeKey>("ALL");
+  const [chartWidth, setChartWidth] = React.useState(CHART_DEFAULT_WIDTH);
+  const chartContainerRef = React.useRef<HTMLDivElement | null>(null);
   const preferredRange = selectedRange ?? internalRange;
   const activeRange = availableRanges.includes(preferredRange) ? preferredRange : "ALL";
 
@@ -125,6 +158,11 @@ export const ObservationsChart = ({
 
   const filtered = filterObservationRange(observations, activeRange);
   const chartData = toChartData(filtered, unitType, unitLabel);
+  const yAxisDomain = getYAxisDomain(chartData);
+  const chartHeight = Math.max(
+    CHART_MIN_HEIGHT,
+    Math.min(CHART_MAX_HEIGHT, Math.round(chartWidth * CHART_ASPECT_RATIO)),
+  );
 
   const handleRangeChange = (range: TrendRangeKey): void => {
     if (onRangeChange) {
@@ -133,6 +171,29 @@ export const ObservationsChart = ({
     }
     setInternalRange(range);
   };
+
+  React.useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const updateWidth = (): void => {
+      const nextWidth = container.getBoundingClientRect().width;
+      setChartWidth(nextWidth > 0 ? nextWidth : CHART_DEFAULT_WIDTH);
+    };
+
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateWidth();
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   return (
     <div
@@ -160,15 +221,24 @@ export const ObservationsChart = ({
           ))}
         </div>
       ) : null}
-      <div className="min-h-[18rem] w-full min-w-0 flex-1">
-        <ResponsiveContainer height="100%" minHeight={288} minWidth={0} width="100%">
-          <LineChart data={chartData} margin={{ bottom: 18, left: 8, right: 8, top: 8 }}>
-            <XAxis dataKey="date" minTickGap={32} tickMargin={14} />
-            <YAxis />
-            <Tooltip content={<ObservationsChartTooltip />} cursor={false} />
-            <Line dataKey="value" dot={false} stroke="var(--shell-foreground)" type="monotone" />
-          </LineChart>
-        </ResponsiveContainer>
+      <div className="w-full min-w-0 flex-1" ref={chartContainerRef}>
+        <LineChart
+          data={chartData}
+          height={chartHeight}
+          margin={{ bottom: 18, left: 8, right: 8, top: 8 }}
+          width={chartWidth}
+        >
+          <XAxis dataKey="date" minTickGap={32} tickMargin={14} />
+          <YAxis domain={yAxisDomain} tickFormatter={formatAxisNumber} />
+          <Tooltip content={<ObservationsChartTooltip />} cursor={false} />
+          <Line
+            dataKey="value"
+            dot={false}
+            stroke="var(--shell-foreground)"
+            strokeWidth={2.25}
+            type="monotone"
+          />
+        </LineChart>
       </div>
     </div>
   );

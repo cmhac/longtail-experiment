@@ -46,7 +46,7 @@ Before writing any code, evaluate whether the described data source fits the pla
 
 - `apps/pipeline/src/contract/schemas/canonical_observation.py` — the canonical record schema
 - `apps/pipeline/src/contract/normalizers/source_payload_mapper.py` — how records are normalized
-- `apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py` — reference adapter implementation
+- `apps/pipeline/src/sources/fred_fedfunds_source.py` — reference adapter implementation
 - `apps/pipeline/src/orchestration/jobs/source_assets/discovery.py` — current registered sources and `SourceBuilderSpec`
 
 ### 1a. Extract source profile
@@ -83,7 +83,10 @@ Check each of these requirements. If any fail, stop and explain the blocker to t
 1. **Numeric time series** — The data must be dated decimal observations, not categorical, text, or event data.
 2. **Programmatic HTTP access** — The API must return structured responses (JSON or XML) over HTTP. CSV-only or scraping-dependent sources are not viable without user confirmation that they accept the tradeoff.
 3. **Maps to canonical schema** — Each observation must map to these required fields:
+   - `source_key` (string) — stable source identity
    - `source_name` (string) — provider identifier
+   - `source_title` (string) — human-readable source label
+   - `source_description` (string) — human-readable source summary
    - `source_type` — must be `"external"` for third-party data
    - `series_key` (string) — canonical hierarchical key
    - `metric_name` (string) — human-readable name
@@ -107,7 +110,7 @@ If the source is high-dimensional (for example country x category x class), appl
 
 ### 1c. Check for conflicts
 
-- Read discovered adapter manifests from `apps/pipeline/src/orchestration/jobs/sources/*_source.py` and verify the proposed `source_key` does not collide with any existing `SOURCE_SPEC.source_key`.
+- Read discovered adapter manifests from `apps/pipeline/src/sources/*_source.py` and verify the proposed `source_key` does not collide with any existing `SOURCE_SPEC.source_key`.
 - Verify the proposed `canonical_series_keys` do not duplicate any existing canonical keys.
 
 ### 1d. Report assessment
@@ -157,7 +160,7 @@ Once the user confirms the assessment, implement the source adapter.
 
 Read these files to ensure you follow established patterns exactly:
 
-- `apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py` — canonical multi-series adapter
+- `apps/pipeline/src/sources/fred_fedfunds_source.py` — canonical multi-series adapter
 - `apps/pipeline/src/orchestration/jobs/source_ingest_runner.py` — the runner interface your handler calls
 - `apps/pipeline/src/orchestration/jobs/workflow_registry.py` — `SourceWorkflowRegistration` dataclass
 - `apps/pipeline/src/orchestration/jobs/workflow_request.py` — `SourceWorkflowRequest` schema
@@ -165,7 +168,7 @@ Read these files to ensure you follow established patterns exactly:
 
 ### 2b. Create the source module
 
-Create the adapter by running `pnpm run provider:bootstrap -- ...` first, then complete implementation in `apps/pipeline/src/orchestration/jobs/sources/<provider>_<series>_source.py`.
+Create the adapter by running `pnpm run provider:bootstrap -- ... --source-title "<title>" --source-description "<description>"` first, then complete implementation in `apps/pipeline/src/sources/<provider>_<series>_source.py`.
 
 **Critical**: The filename **must** end in `_source.py`. The discovery filter in `discovery.py` enforces this.
 
@@ -194,6 +197,9 @@ The module must export:
    ```python
    {
        "source_name": "<PROVIDER>",
+       "source_key": "<SOURCE_KEY>",
+       "source_title": "<Human Source Title>",
+       "source_description": "<Human Source Description>",
        "source_type": "external",
        "series_key": series_config["canonical_series_key"],
        "metric_name": series_config["metric_name"],
@@ -264,7 +270,7 @@ If the user has provided API credentials or the API is open, optionally test a r
 
 ```bash
 PYTHONPATH=apps/pipeline <ENV_VAR>=<key> uv run --project apps/pipeline python -c "
-from src.orchestration.jobs.sources.<module> import _Default<Provider>Client
+from src.sources.<module> import _Default<Provider>Client
 client = _Default<Provider>Client()
 rows = client.fetch_observations(...)
 print(f'Fetched {len(rows)} rows')
@@ -282,12 +288,14 @@ Implement onboarding in a single adapter module. Do not edit bootstrap orchestra
 
 ### 4a. Add SOURCE_SPEC in the adapter module
 
-In `apps/pipeline/src/orchestration/jobs/sources/<provider>_<series>_source.py`, add:
+In `apps/pipeline/src/sources/<provider>_<series>_source.py`, add:
 
 ```python
 SOURCE_SPEC: dict[str, Any] = {
   "source_key": <SOURCE_KEY_CONSTANT>,
   "provider_group_key": "<provider>",
+  "title": "<Human Source Title>",
+  "description": "<Human Source Description>",
   "series_item_keys": (<tuple_of_series_item_keys>),
   "canonical_series_keys": (<tuple_of_canonical_series_keys>),
   "ownership_mode": "grouped",
@@ -301,6 +309,7 @@ Constraints:
 
 - `series_item_keys` and `canonical_series_keys` must have equal length and matching index order.
 - `source_key` must be unique across all adapter modules.
+- `title` and `description` must be present and non-empty.
 - `cadence_label` must be one of: `hourly`, `daily`, `weekly`, `monthly`, `custom_interval`.
 - `cron_schedule` must use valid five-field cron syntax.
 
@@ -753,10 +762,10 @@ Present the final status:
 ## Provider Onboarded: <Provider Name>
 
 ### Files Created
-- `apps/pipeline/src/orchestration/jobs/sources/<file>.py`
+- `apps/pipeline/src/sources/<file>.py`
 
 ### Files Modified
-- `apps/pipeline/src/orchestration/jobs/sources/<file>.py` (plus tests)
+- `apps/pipeline/src/sources/<file>.py` (plus tests)
 
 ### Series Registered
 | Series Item Key | Canonical Key | Frequency | Schedule |

@@ -6,14 +6,16 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 
-from ..source_assets.discovery import ObservationCheckpointRepository
-from ..source_ingest_runner import SourceIngestRunner
-from ..source_schedule_policy import SourceSchedulePolicy
-from ..workflow_registry import SourceWorkflowRegistration
-from ..workflow_request import SourceWorkflowRequest
-from ..workflow_result import SourceWorkflowResult
+from src.orchestration.jobs.source_assets.discovery import ObservationCheckpointRepository
+from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
+from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
+from src.orchestration.jobs.workflow_request import SourceWorkflowRequest
+from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 
 ${source_constant_name} = "${source_key}"
+SOURCE_TITLE = "${source_title}"
+SOURCE_DESCRIPTION = "${source_description}"
 
 SERIES_CONFIGS: tuple[dict[str, Any], ...] = (
 ${series_configs}
@@ -27,6 +29,9 @@ def _map_records(*, rows: Sequence[dict[str, Any]], series_config: dict[str, Any
         mapped.append(
             {
                 "source_name": "${provider_name}",
+                "source_key": ${source_constant_name},
+                "source_title": SOURCE_TITLE,
+                "source_description": SOURCE_DESCRIPTION,
                 "source_type": "external",
                 "series_key": series_config["canonical_series_key"],
                 "metric_name": series_config["metric_name"],
@@ -120,6 +125,8 @@ def ${builder_function_name}(
 SOURCE_SPEC: dict[str, Any] = {
     "source_key": ${source_constant_name},
     "provider_group_key": "${provider_group_key}",
+    "title": SOURCE_TITLE,
+    "description": SOURCE_DESCRIPTION,
     "series_item_keys": (${series_item_keys},),
     "canonical_series_keys": (${canonical_series_keys},),
     "ownership_mode": "${ownership_mode}",

@@ -24,8 +24,11 @@ class SourceProfile(Base):
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid4
     )
+    source_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     source_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     source_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(String(2048), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )

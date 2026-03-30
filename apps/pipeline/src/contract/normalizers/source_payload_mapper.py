@@ -64,7 +64,10 @@ def normalize_source_payload(payload: dict[str, object]) -> CanonicalObservation
 
     return CanonicalObservation.model_validate(
         {
+            "source_key": str(payload["source_key"]),
             "source_name": str(payload["source_name"]),
+            "source_title": str(payload["source_title"]),
+            "source_description": str(payload["source_description"]),
             "source_type": source_type,
             "series_key": str(payload["series_key"]),
             "metric_name": str(payload["metric_name"]),

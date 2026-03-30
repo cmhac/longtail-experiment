@@ -24,6 +24,10 @@ def test_source_detail_returns_source_context_and_only_matching_datasets() -> No
     payload = execute_source_detail(service, source_id="fred", page=1, page_size=1).model_dump()
 
     assert payload["source"]["id"] == "fred"
+    assert payload["source"]["title"] == "FRED"
+    assert payload["source"]["description"] == (
+        "Federal Reserve Economic Data from the St. Louis Fed."
+    )
     assert payload["source"]["dataset_count"] == EXPECTED_DATASET_COUNT
     assert [item["dataset_id"] for item in payload["items"]] == ["CPIAUCSL"]
     assert all(item["source"]["id"] == "fred" for item in payload["items"])

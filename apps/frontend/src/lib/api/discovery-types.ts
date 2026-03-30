@@ -3,7 +3,10 @@ export interface SourceRef {
   name: string;
 }
 
-export interface SourceSummary extends SourceRef {
+export interface SourceSummary {
+  id: string;
+  title: string;
+  description: string;
   dataset_count: number;
   source_type?: string | null;
 }

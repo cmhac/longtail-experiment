@@ -32,3 +32,15 @@ def test_model_exports_available() -> None:
     assert GeographyNode.__tablename__ == "geography_nodes"
     assert TopicTag.__tablename__ == "topic_tags"
     assert DataSeriesTopicTag.__tablename__ == "data_series_topic_tags"
+
+
+def test_source_profile_model_exposes_stable_identity_and_metadata_columns() -> None:
+    table = SourceProfile.__table__
+
+    assert "source_key" in table.columns
+    assert table.columns["source_key"].nullable is False
+    assert table.columns["source_key"].unique is True
+    assert "title" in table.columns
+    assert table.columns["title"].nullable is False
+    assert "description" in table.columns
+    assert table.columns["description"].nullable is False

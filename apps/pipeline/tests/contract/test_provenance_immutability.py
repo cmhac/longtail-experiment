@@ -58,7 +58,10 @@ def test_pipeline_helpers_and_canonical_schema_are_usable() -> None:
     assert get_contract_tracer() is not None
 
     payload = CanonicalObservation(
+        source_key="bls_cpi",
         source_name="BLS",
+        source_title="Bureau of Labor Statistics",
+        source_description="US labor market and price statistics.",
         source_type="external",
         series_key="CPI.US.ALL",
         metric_name="Consumer Price Index",

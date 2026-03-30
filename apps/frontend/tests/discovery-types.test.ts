@@ -106,12 +106,26 @@ describe("discovery types", () => {
 
   it("supports source discovery payloads", () => {
     const sourceList: SourceListResponse = {
-      items: [{ id: "fred", name: "FRED", dataset_count: 2, source_type: "external" }],
+      items: [
+        {
+          id: "fred",
+          title: "Federal Reserve Economic Data",
+          description: "Economic time series published by the St. Louis Fed.",
+          dataset_count: 2,
+          source_type: "external",
+        },
+      ],
       total_items: 1,
-      sort: "source_name_asc,source_id_asc",
+      sort: "source_title_asc,source_id_asc",
     };
     const sourceDetail: SourceDetail = {
-      source: { id: "fred", name: "FRED", dataset_count: 2, source_type: "external" },
+      source: {
+        id: "fred",
+        title: "Federal Reserve Economic Data",
+        description: "Economic time series published by the St. Louis Fed.",
+        dataset_count: 2,
+        source_type: "external",
+      },
       items: [],
       page: 1,
       page_size: 20,
@@ -121,6 +135,7 @@ describe("discovery types", () => {
     };
 
     expect(sourceList.items[0]?.dataset_count).toBe(2);
+    expect(sourceList.items[0]?.title).toContain("Federal Reserve");
     expect(sourceDetail.source.id).toBe("fred");
   });
 

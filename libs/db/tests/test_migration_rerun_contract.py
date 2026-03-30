@@ -13,5 +13,5 @@ def test_backend_compose_runner_uses_non_destructive_upgrade_head() -> None:
 
 def test_revision_check_guidance_is_deterministic() -> None:
     agents_md = Path("AGENTS.md").read_text(encoding="utf-8")
-    assert "0009_drop_source_profile_frequency" in agents_md
+    assert "0010_source_profile_metadata" in agents_md
     assert "SELECT version_num FROM alembic_version;" in agents_md

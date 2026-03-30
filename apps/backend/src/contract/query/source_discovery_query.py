@@ -11,7 +11,8 @@ class SourceSummary(BaseModel):
     """Summary record for one discoverable source."""
 
     id: str = Field(min_length=1)
-    name: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    description: str = Field(min_length=1)
     dataset_count: int = Field(ge=0)
     source_type: str | None = None
 

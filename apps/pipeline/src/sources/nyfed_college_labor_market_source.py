@@ -12,14 +12,21 @@ from urllib.request import build_opener
 
 import polars as pl
 
-from ..source_assets.discovery import ObservationCheckpointRepository
-from ..source_ingest_runner import SourceIngestRunner
-from ..source_schedule_policy import SourceSchedulePolicy
-from ..workflow_registry import SourceWorkflowRegistration
-from ..workflow_request import SourceWorkflowRequest
-from ..workflow_result import SourceWorkflowResult
+from src.orchestration.jobs.source_assets.discovery import ObservationCheckpointRepository
+from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
+from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
+from src.orchestration.jobs.workflow_request import SourceWorkflowRequest
+from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 
 NYFED_COLLEGE_LABOR_MARKET_SOURCE_KEY = "nyfed_college_labor_market"
+NYFED_PROVIDER_GROUP_KEY = "nyfed"
+NYFED_SOURCE_NAME = "NYFED"
+NYFED_SOURCE_TITLE = "New York Fed College Labor Market"
+NYFED_SOURCE_DESCRIPTION = (
+    "College labor market unemployment and underemployment time series "
+    "published by the New York Fed."
+)
 NYFED_COLLEGE_LABOR_MARKET_URL = (
     "https://www.newyorkfed.org/medialibrary/Research/Interactives/Data/"
     "college-labor-market/College-labor-data"
@@ -331,7 +338,10 @@ def _map_records(
     for row in rows:
         mapped.append(
             {
-                "source_name": "NYFED",
+                "source_name": NYFED_SOURCE_NAME,
+                "source_key": NYFED_PROVIDER_GROUP_KEY,
+                "source_title": NYFED_SOURCE_TITLE,
+                "source_description": NYFED_SOURCE_DESCRIPTION,
                 "source_type": "external",
                 "series_key": series_config["canonical_series_key"],
                 "metric_name": series_config["metric_name"],
@@ -366,6 +376,13 @@ def build_nyfed_college_labor_market_source_workflow(
     nyfed_client = client or _DefaultNyfedClient()
 
     def _handler(request: SourceWorkflowRequest) -> SourceWorkflowResult:
+        runner.sync_source_metadata(
+            source_key=NYFED_PROVIDER_GROUP_KEY,
+            source_name=NYFED_SOURCE_NAME,
+            source_title=NYFED_SOURCE_TITLE,
+            source_description=NYFED_SOURCE_DESCRIPTION,
+            source_type="external",
+        )
         passthrough_records = request.run_context.get("records")
         if passthrough_records is not None:
             if not isinstance(passthrough_records, list):
@@ -477,6 +494,8 @@ def build_nyfed_college_labor_market_source_workflow(
 SOURCE_SPEC: dict[str, Any] = {
     "source_key": NYFED_COLLEGE_LABOR_MARKET_SOURCE_KEY,
     "provider_group_key": "nyfed",
+    "title": NYFED_SOURCE_TITLE,
+    "description": NYFED_SOURCE_DESCRIPTION,
     "series_item_keys": tuple(config["series_item_key"] for config in SERIES_CONFIGS),
     "canonical_series_keys": tuple(config["canonical_series_key"] for config in SERIES_CONFIGS),
     "ownership_mode": "grouped",

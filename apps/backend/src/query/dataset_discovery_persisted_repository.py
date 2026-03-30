@@ -20,11 +20,6 @@ class PersistedDatasetDiscoveryRepository:
         self._engine = engine
 
     @staticmethod
-    def _source_id_from_name(source_name: str) -> str:
-        normalized = re.sub(r"[^a-z0-9]+", "-", source_name.lower()).strip("-")
-        return normalized or "unknown"
-
-    @staticmethod
     def _metadata_slug(value: str) -> str:
         normalized = re.sub(r"[^a-z0-9]+", "-", value.strip().lower()).strip("-")
         return normalized or "unknown"
@@ -59,7 +54,10 @@ class PersistedDatasetDiscoveryRepository:
             """
             SELECT
                 ds.series_key AS dataset_id,
+                sp.source_key AS source_key,
                 sp.source_name AS source_name,
+                sp.title AS source_title,
+                sp.description AS source_description,
                 sp.source_type AS source_type,
                 ds.metric_name AS metric_name,
                 ds.title AS title,
@@ -79,7 +77,10 @@ class PersistedDatasetDiscoveryRepository:
             GROUP BY
                 ds.id,
                 ds.series_key,
+                sp.source_key,
                 sp.source_name,
+                sp.title,
+                sp.description,
                 sp.source_type,
                 ds.metric_name,
                 ds.title,
@@ -92,13 +93,14 @@ class PersistedDatasetDiscoveryRepository:
 
         projected: list[dict[str, object]] = []
         for row in rows:
-            source_name = str(row["source_name"])
+            source_key = str(row["source_key"])
+            source_title = str(row["source_title"])
             projected.append(
                 {
                     "dataset_id": str(row["dataset_id"]),
                     "source": {
-                        "id": self._source_id_from_name(source_name),
-                        "name": source_name,
+                        "id": source_key,
+                        "name": source_title,
                     },
                     "title": str(row["title"]),
                     "description": (
@@ -113,6 +115,10 @@ class PersistedDatasetDiscoveryRepository:
                     "latest_update_at": self._iso_datetime(row["latest_update_at"]),
                     "metadata": {
                         "metric_name": str(row["metric_name"]),
+                        "source_key": source_key,
+                        "source_name": str(row["source_name"]),
+                        "source_title": source_title,
+                        "source_description": str(row["source_description"]),
                         "source_type": str(row["source_type"]),
                     },
                 }
@@ -121,16 +127,21 @@ class PersistedDatasetDiscoveryRepository:
 
     def _group_rows_by_source(
         self, rows: list[dict[str, object]]
-    ) -> dict[tuple[str, str], list[dict[str, object]]]:
-        grouped: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
+    ) -> dict[tuple[str, str, str], list[dict[str, object]]]:
+        grouped: dict[tuple[str, str, str], list[dict[str, object]]] = defaultdict(list)
         for row in rows:
             source = row.get("source")
             source_payload: dict[str, object] = (
                 cast(dict[str, object], source) if isinstance(source, dict) else {}
             )
             source_id = str(source_payload.get("id", ""))
-            source_name = str(source_payload.get("name", ""))
-            grouped[(source_name, source_id)].append(row)
+            source_title = str(source_payload.get("name", ""))
+            metadata = row.get("metadata")
+            metadata_payload: dict[str, object] = (
+                cast(dict[str, object], metadata) if isinstance(metadata, dict) else {}
+            )
+            source_description = str(metadata_payload.get("source_description", ""))
+            grouped[(source_title, source_description, source_id)].append(row)
         return grouped
 
     def _match_topic_rows(self, *, topic_id: str) -> tuple[str, list[dict[str, object]]] | None:
@@ -265,7 +276,7 @@ class PersistedDatasetDiscoveryRepository:
             """
             SELECT
                 COUNT(DISTINCT ds.series_key)::int AS active_dataset_count,
-                COUNT(DISTINCT sp.source_name)::int AS active_source_count,
+                COUNT(DISTINCT sp.source_key)::int AS active_source_count,
                 CURRENT_TIMESTAMP AS generated_at
             FROM data_series ds
             JOIN source_profiles sp ON sp.id = ds.source_profile_id
@@ -295,7 +306,8 @@ class PersistedDatasetDiscoveryRepository:
             """
             SELECT
                 ds.series_key AS dataset_id,
-                sp.source_name AS source_name,
+                sp.source_key AS source_key,
+                sp.title AS source_title,
                 ds.title AS title,
                 GREATEST(
                     similarity(LOWER(ds.title), :query),
@@ -335,7 +347,10 @@ class PersistedDatasetDiscoveryRepository:
                 rows.append(
                     {
                         "dataset_id": item.get("dataset_id", ""),
-                        "source_name": cast(dict[str, object], item.get("source") or {}).get(
+                        "source_key": cast(dict[str, object], item.get("source") or {}).get(
+                            "id", ""
+                        ),
+                        "source_title": cast(dict[str, object], item.get("source") or {}).get(
                             "name", ""
                         ),
                         "title": item.get("title", ""),
@@ -353,13 +368,14 @@ class PersistedDatasetDiscoveryRepository:
 
         suggestions: list[dict[str, object]] = []
         for row in rows:
-            source_name = str(row["source_name"])
+            source_key = str(row["source_key"])
+            source_title = str(row["source_title"])
             suggestions.append(
                 {
                     "dataset_id": str(row["dataset_id"]),
                     "source": {
-                        "id": self._source_id_from_name(source_name),
-                        "name": source_name,
+                        "id": source_key,
+                        "name": source_title,
                     },
                     "title": str(row["title"]),
                     "rank_score": float(row["rank_score"]),
@@ -432,10 +448,12 @@ class PersistedDatasetDiscoveryRepository:
             "total_dataset_count": len(rows),
             "sources": [
                 {
-                    "source": {"id": source_id, "name": source_name},
+                    "source": {"id": source_id, "name": source_title},
                     "dataset_count": len(items),
                 }
-                for (source_name, source_id), items in sorted(grouped_sources.items())
+                for (source_title, _source_description, source_id), items in sorted(
+                    grouped_sources.items()
+                )
             ],
             "categories": [
                 {"value": value, "dataset_count": count}
@@ -448,7 +466,7 @@ class PersistedDatasetDiscoveryRepository:
         grouped = self._group_rows_by_source(self._load_dataset_rows())
 
         sources: list[dict[str, object]] = []
-        for (source_name, source_id), items in sorted(grouped.items()):
+        for (source_title, source_description, source_id), items in sorted(grouped.items()):
             source_type: str | None = None
             if items:
                 metadata = items[0].get("metadata")
@@ -462,7 +480,8 @@ class PersistedDatasetDiscoveryRepository:
             sources.append(
                 {
                     "id": source_id,
-                    "name": source_name,
+                    "title": source_title,
+                    "description": source_description,
                     "dataset_count": len(items),
                     "source_type": source_type,
                 }
@@ -500,7 +519,8 @@ class PersistedDatasetDiscoveryRepository:
         return {
             "source": {
                 "id": str(source_payload.get("id", "")),
-                "name": str(source_payload.get("name", "")),
+                "title": str(source_payload.get("name", "")),
+                "description": str(metadata_payload.get("source_description", "")),
                 "dataset_count": total_items,
                 "source_type": str(raw_source_type) if isinstance(raw_source_type, str) else None,
             },
@@ -623,10 +643,10 @@ class PersistedDatasetDiscoveryRepository:
         grouped = self._group_rows_by_source(rows)
 
         groups: list[dict[str, object]] = []
-        for (source_name, source_id), items in sorted(grouped.items()):
+        for (source_title, _source_description, source_id), items in sorted(grouped.items()):
             groups.append(
                 {
-                    "source": {"id": source_id, "name": source_name},
+                    "source": {"id": source_id, "name": source_title},
                     "dataset_count": len(items),
                     "dataset_ids": [str(item.get("dataset_id", "")) for item in items],
                 }

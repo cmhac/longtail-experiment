@@ -23,7 +23,15 @@ def test_source_list_returns_unique_sources_with_counts() -> None:
 
     assert payload["total_items"] == EXPECTED_SOURCE_COUNT
     assert payload["items"][0]["id"] == "bea"
+    assert payload["items"][0]["title"] == "BEA"
+    assert payload["items"][0]["description"] == (
+        "US national accounts published by the Bureau of Economic Analysis."
+    )
     assert payload["items"][0]["dataset_count"] == 1
     assert payload["items"][1]["id"] == "fred"
+    assert payload["items"][1]["title"] == "FRED"
+    assert payload["items"][1]["description"] == (
+        "Federal Reserve Economic Data from the St. Louis Fed."
+    )
     assert payload["items"][1]["dataset_count"] == EXPECTED_FRED_DATASET_COUNT
-    assert payload["sort"] == "source_name_asc,source_id_asc"
+    assert payload["sort"] == "source_title_asc,source_id_asc"

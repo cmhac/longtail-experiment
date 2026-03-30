@@ -21,6 +21,7 @@ try:  # pragma: no cover - import resolution boundary for script vs package exec
         validate_canonical_key,
         validate_cron_schedule,
         validate_ownership_mode,
+        validate_required_text,
         validate_series_alignment,
         validate_snake_identifier,
     )
@@ -37,12 +38,13 @@ except ImportError:  # pragma: no cover
         validate_canonical_key,
         validate_cron_schedule,
         validate_ownership_mode,
+        validate_required_text,
         validate_series_alignment,
         validate_snake_identifier,
     )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OUTPUT_DIR = REPO_ROOT / "apps/pipeline/src/orchestration/jobs/sources"
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "apps/pipeline/src/sources"
 TEMPLATE_PATH = (
     Path(__file__).resolve().parent / "templates/provider_source_template.py.tmpl"
 )
@@ -66,6 +68,8 @@ class BootstrapRequest:
     provider_name: str
     ownership_mode: str
     output_dir: Path
+    source_title: str
+    source_description: str
     metric_name: str
     dataset_description: str
     dataset_geographic_scope: str
@@ -85,6 +89,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--canonical-series-key", action="append")
     parser.add_argument("--provider-series-id", action="append")
     parser.add_argument("--provider-name", default="TODO_PROVIDER_NAME")
+    parser.add_argument("--source-title", required=True)
+    parser.add_argument("--source-description", required=True)
     parser.add_argument("--metric-name", default="TODO_METRIC_NAME")
     parser.add_argument("--dataset-description", default="TODO_DATASET_DESCRIPTION")
     parser.add_argument("--dataset-geographic-scope", default="TODO_GEOGRAPHIC_SCOPE")
@@ -114,6 +120,11 @@ def parse_request(argv: list[str]) -> BootstrapRequest:
     validate_cadence_label(args.cadence_label)
     validate_ownership_mode(args.ownership_mode)
     validate_cron_schedule(args.cron_schedule)
+    source_title = validate_required_text(args.source_title, field="source_title")
+    source_description = validate_required_text(
+        args.source_description,
+        field="source_description",
+    )
     validate_series_alignment(
         series_item_keys=series_item_keys,
         canonical_series_keys=canonical_series_keys,
@@ -138,6 +149,8 @@ def parse_request(argv: list[str]) -> BootstrapRequest:
         provider_name=args.provider_name,
         ownership_mode=args.ownership_mode,
         output_dir=output_dir,
+        source_title=source_title,
+        source_description=source_description,
         metric_name=args.metric_name,
         dataset_description=args.dataset_description,
         dataset_geographic_scope=args.dataset_geographic_scope,
@@ -187,6 +200,8 @@ def build_context(request: BootstrapRequest) -> dict[str, str]:
         "source_constant_name": source_constant_name,
         "source_key": request.source_key,
         "provider_name": request.provider_name,
+        "source_title": request.source_title,
+        "source_description": request.source_description,
         "provider_group_key": request.provider_group_key,
         "builder_function_name": builder_function_name,
         "workflow_id": workflow_id,

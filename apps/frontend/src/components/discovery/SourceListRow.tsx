@@ -15,6 +15,9 @@ const formatDatasetCount = (count: number): string => {
 
 const buildSummaryText = (source: SourceSummary): string => {
   const countLabel = formatDatasetCount(source.dataset_count);
+  if (source.description) {
+    return source.description;
+  }
   if (source.source_type) {
     return `Browse ${countLabel} from this ${source.source_type.toLowerCase()} source.`;
   }
@@ -46,7 +49,7 @@ export const SourceListRow = ({ source }: SourceListRowProps): JSX.Element => {
             className="source-directory-title m-0 font-serif text-[clamp(1.18rem,2.1vw,1.95rem)] leading-[1.05] max-[720px]:leading-[1.13]"
             data-testid="source-list-row-title"
           >
-            {source.name}
+            {source.title}
           </h3>
           <p className="m-0 max-w-[70ch] text-(--shell-muted) leading-[1.4]">
             {buildSummaryText(source)}

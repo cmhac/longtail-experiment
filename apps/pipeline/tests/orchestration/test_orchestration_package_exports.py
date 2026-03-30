@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-import src.orchestration.jobs.sources as source_packages
 import src.orchestration.sensors as sensor_packages
+import src.sources as source_packages
 from src.orchestration.definitions import get_dagit_workspace_module
 from src.orchestration.runtime import verify_runtime_wiring_for_dagit
 

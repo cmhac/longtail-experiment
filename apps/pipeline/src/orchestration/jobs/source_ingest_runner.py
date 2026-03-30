@@ -24,6 +24,25 @@ class SourceIngestRunner:
         """Initialize runner with canonical ingest service dependency."""
         self._canonical_ingest_service = canonical_ingest_service
 
+    def sync_source_metadata(
+        self,
+        *,
+        source_key: str,
+        source_name: str,
+        source_title: str,
+        source_description: str,
+        source_type: str,
+    ) -> None:
+        """Persist source metadata when supported by the backing service."""
+        if hasattr(self._canonical_ingest_service, "sync_source_metadata"):
+            self._canonical_ingest_service.sync_source_metadata(
+                source_key=source_key,
+                source_name=source_name,
+                source_title=source_title,
+                source_description=source_description,
+                source_type=source_type,
+            )
+
     def run_records(
         self,
         request: SourceWorkflowRequest,

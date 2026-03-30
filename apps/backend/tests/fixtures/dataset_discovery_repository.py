@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 
 class InMemoryDatasetDiscoveryRepository:
@@ -246,26 +246,29 @@ class InMemoryDatasetDiscoveryRepository:
 
     def list_sources(self) -> list[dict[str, Any]]:
         """Return unique sources with dataset counts."""
-        grouped: dict[tuple[str, str], dict[str, Any]] = {}
+        grouped: dict[tuple[str, str, str], dict[str, object]] = {}
         for row in self._datasets:
             source = row.get("source") or {}
             source_id = str(source.get("id", "")).strip()
             source_name = str(source.get("name", "")).strip()
-            if not source_id or not source_name:
+            source_description = str(
+                (row.get("metadata") or {}).get("source_description", "")
+            ).strip()
+            if not source_id or not source_name or not source_description:
                 continue
-            key = (source_name, source_id)
-            entry = grouped.setdefault(
-                key,
-                {
+            key = (source_name, source_description, source_id)
+            if key not in grouped:
+                grouped[key] = {
                     "id": source_id,
-                    "name": source_name,
+                    "title": source_name,
+                    "description": source_description,
                     "dataset_count": 0,
                     "source_type": (row.get("metadata") or {}).get("source_type"),
-                },
-            )
-            entry["dataset_count"] += 1
+                }
+            entry = grouped[key]
+            entry["dataset_count"] = cast(int, entry["dataset_count"]) + 1
 
-        return [grouped[key] for key in sorted(grouped)]
+        return [dict(grouped[key]) for key in sorted(grouped)]
 
     def get_source_detail(
         self,
@@ -291,7 +294,8 @@ class InMemoryDatasetDiscoveryRepository:
         return {
             "source": {
                 "id": str(source.get("id", "")),
-                "name": str(source.get("name", "")),
+                "title": str(source.get("name", "")),
+                "description": str(metadata.get("source_description", "")),
                 "dataset_count": total_items,
                 "source_type": metadata.get("source_type"),
             },

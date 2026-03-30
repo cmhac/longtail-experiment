@@ -10,14 +10,21 @@ from typing import Any, Protocol
 from urllib.parse import urlencode
 from urllib.request import build_opener
 
-from ..source_assets.discovery import ObservationCheckpointRepository
-from ..source_ingest_runner import SourceIngestRunner
-from ..source_schedule_policy import SourceSchedulePolicy
-from ..workflow_registry import SourceWorkflowRegistration
-from ..workflow_request import SourceWorkflowRequest
-from ..workflow_result import SourceWorkflowResult
+from src.orchestration.jobs.source_assets.discovery import ObservationCheckpointRepository
+from src.orchestration.jobs.source_ingest_runner import SourceIngestRunner
+from src.orchestration.jobs.source_schedule_policy import SourceSchedulePolicy
+from src.orchestration.jobs.workflow_registry import SourceWorkflowRegistration
+from src.orchestration.jobs.workflow_request import SourceWorkflowRequest
+from src.orchestration.jobs.workflow_result import SourceWorkflowResult
 
 EIA_RETAIL_FUEL_PRICES_SOURCE_KEY = "eia_retail_fuel_prices"
+EIA_PROVIDER_GROUP_KEY = "eia"
+EIA_SOURCE_NAME = "EIA"
+EIA_SOURCE_TITLE = "US Energy Information Administration"
+EIA_SOURCE_DESCRIPTION = (
+    "Energy market and fuel price time series published by the US Energy "
+    "Information Administration."
+)
 EIA_API_KEY_ENV = "EIA_API_KEY"
 
 
@@ -306,7 +313,10 @@ def _map_records(
         reported_at = row.get("updated") or row.get("last-updated") or now_iso
         mapped.append(
             {
-                "source_name": "EIA",
+                "source_name": EIA_SOURCE_NAME,
+                "source_key": EIA_PROVIDER_GROUP_KEY,
+                "source_title": EIA_SOURCE_TITLE,
+                "source_description": EIA_SOURCE_DESCRIPTION,
                 "source_type": "external",
                 "series_key": series_config["canonical_series_key"],
                 "metric_name": series_config["metric_name"],
@@ -346,6 +356,13 @@ def build_eia_retail_fuel_prices_source_workflow(
     eia_client = client or _DefaultEiaClient()
 
     def _handler(request: SourceWorkflowRequest) -> SourceWorkflowResult:
+        runner.sync_source_metadata(
+            source_key=EIA_PROVIDER_GROUP_KEY,
+            source_name=EIA_SOURCE_NAME,
+            source_title=EIA_SOURCE_TITLE,
+            source_description=EIA_SOURCE_DESCRIPTION,
+            source_type="external",
+        )
         passthrough_records = request.run_context.get("records")
         if passthrough_records is not None:
             if not isinstance(passthrough_records, list):
@@ -480,6 +497,8 @@ def build_eia_retail_fuel_prices_source_workflow(
 SOURCE_SPEC: dict[str, Any] = {
     "source_key": EIA_RETAIL_FUEL_PRICES_SOURCE_KEY,
     "provider_group_key": "eia",
+    "title": EIA_SOURCE_TITLE,
+    "description": EIA_SOURCE_DESCRIPTION,
     "series_item_keys": tuple(config["series_item_key"] for config in SERIES_CONFIGS),
     "canonical_series_keys": tuple(config["canonical_series_key"] for config in SERIES_CONFIGS),
     "ownership_mode": "grouped",

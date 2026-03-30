@@ -226,3 +226,37 @@ def test_dataset_metadata_topic_tags_migration_creates_expected_schema() -> None
         "ix_data_series_topic_tags_topic_tag_id",
     ):
         assert required_fragment in migration_text
+
+
+def test_source_profile_metadata_migration_metadata() -> None:
+    file_path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0010_source_profile_metadata.py"
+    )
+    spec = spec_from_file_location("source_profile_metadata", file_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    assert module.revision == "0010_source_profile_metadata"
+    assert module.down_revision == "0009_drop_source_profile_frequency"
+
+
+def test_source_profile_metadata_migration_adds_identity_and_display_columns() -> None:
+    migration_text = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "0010_source_profile_metadata.py"
+    ).read_text(encoding="utf-8")
+
+    for required_fragment in (
+        '"source_key"',
+        '"title"',
+        '"description"',
+        "uq_source_profiles_source_key",
+    ):
+        assert required_fragment in migration_text

@@ -7,7 +7,7 @@ This guide covers the end-to-end process for adding a new ingestion provider (or
 The standard and required first step for new provider onboarding is generating the adapter scaffold via the root bootstrap command:
 
 ```bash
-pnpm run provider:bootstrap -- --provider-group-key acme --source-key acme_cpi --module-name acme_cpi_source --cadence-label monthly --cron-schedule "0 0 1 * *" --series-item-key acme_cpi --canonical-series-key PRICE.US.CPI --provider-series-id CPIAUCSL
+pnpm run provider:bootstrap -- --provider-group-key acme --source-key acme_cpi --module-name acme_cpi_source --cadence-label monthly --cron-schedule "0 0 1 * *" --series-item-key acme_cpi --canonical-series-key PRICE.US.CPI --provider-series-id CPIAUCSL --source-title "ACME Consumer Prices" --source-description "Monthly ACME consumer price series."
 ```
 
 Do not start by manually authoring a new adapter file unless the bootstrap command is unavailable and an explicit exception is documented in the change notes.
@@ -16,7 +16,7 @@ Do not start by manually authoring a new adapter file unless the bootstrap comma
 
 **Automatically handled by dynamic registration** (no bootstrap edits required):
 
-- Runtime workflow registration — discovery scans `jobs/sources/*_source.py` modules and loads each module `SOURCE_SPEC`.
+- Runtime workflow registration — discovery scans `src/sources/*_source.py` modules and loads each module `SOURCE_SPEC`.
 - Schedule derivation — `SOURCE_CADENCE_DEFINITIONS`, provider-group tags, and `SOURCE_ASSET_SCHEDULES` are built from discovered specs.
 - Dagit asset derivation — `SOURCE_DAGIT_ASSETS` are generated from `SOURCE_SPEC.series_item_keys`.
 - Workspace catalog derivation — `WORKSPACE_DEFINITION_CATALOG` derives assets/schedules from generated definitions.
@@ -29,7 +29,7 @@ Do not start by manually authoring a new adapter file unless the bootstrap comma
 
 | Surface                       | File                                                                | Required                 |
 | ----------------------------- | ------------------------------------------------------------------- | ------------------------ |
-| Source adapter implementation | `apps/pipeline/src/orchestration/jobs/sources/<provider>_source.py` | Always                   |
+| Source adapter implementation | `apps/pipeline/src/sources/<provider>_source.py` | Always                   |
 | DB model + Alembic migration  | `libs/db/src/db/models/`, `libs/db/alembic/versions/`               | Only when schema changes |
 
 ## Data Model Terms
@@ -61,7 +61,7 @@ Provider adapters that emit canonical records feed the backend dataset discovery
 
 ## Step 1: Generate Adapter Scaffold And Implement Source Logic
 
-Run the standard bootstrap command first, then complete provider-specific logic in the generated file under `apps/pipeline/src/orchestration/jobs/sources/<provider>_source.py`.
+Run the standard bootstrap command first, then complete provider-specific logic in the generated file under `apps/pipeline/src/sources/<provider>_source.py`.
 
 > **Naming is required**: the file must end in `_source.py` or dynamic discovery will skip it.
 
@@ -80,7 +80,7 @@ Required interface:
 Minimal single-series skeleton:
 
 ```python
-# apps/pipeline/src/orchestration/jobs/sources/acme_cpi_source.py
+# apps/pipeline/src/sources/acme_cpi_source.py
 from __future__ import annotations
 from ..source_ingest_runner import SourceIngestRunner
 from ..source_schedule_policy import SourceSchedulePolicy
@@ -99,6 +99,9 @@ def build_acme_cpi_source_workflow(
         records = [
             {
                 "source_name": "ACME",
+                "source_key": ACME_CPI_SOURCE_KEY,
+                "source_title": "ACME Consumer Prices",
+                "source_description": "Monthly ACME consumer price series.",
                 "source_type": "external",
                 "series_key": "PRICE.US.CPI",
                 "metric_name": "Consumer Price Index",
@@ -126,8 +129,8 @@ def build_acme_cpi_source_workflow(
 
 References:
 
-- `apps/pipeline/src/orchestration/jobs/sources/example_source.py` (minimal single-series)
-- `apps/pipeline/src/orchestration/jobs/sources/fred_fedfunds_source.py` (multi-series with checkpoint)
+- `apps/pipeline/src/sources/example_source.py` (minimal single-series)
+- `apps/pipeline/src/sources/fred_fedfunds_source.py` (multi-series with checkpoint)
 
 ---
 
@@ -139,6 +142,8 @@ Add `SOURCE_SPEC` in the same `*_source.py` module you created in Step 1.
 SOURCE_SPEC: dict[str, Any] = {
     "source_key": ACME_CPI_SOURCE_KEY,
     "provider_group_key": "acme",
+    "title": "ACME Consumer Prices",
+    "description": "Monthly ACME consumer price series.",
     "series_item_keys": ("acme_cpi",),
     "canonical_series_keys": ("PRICE.US.CPI",),
     "ownership_mode": "grouped",
@@ -152,6 +157,7 @@ Constraints:
 
 - `series_item_keys` and `canonical_series_keys` must have equal length and matching index order.
 - `source_key` must be unique across all adapter modules.
+- `title` and `description` must be present and non-empty.
 - `cron_schedule` must be valid five-field cron syntax.
 - `cadence_label` must be one of: `hourly`, `daily`, `weekly`, `monthly`, `custom_interval`.
 - Discovery ordering is deterministic by `source_key` (alphabetical).
@@ -165,6 +171,7 @@ Once `SOURCE_SPEC` is present, discovery and contract guards run automatically a
 - registration `status` is not `"active"`
 - `workflow_id` is empty
 - `source_key` is empty or a duplicate
+- `title` or `description` is missing or blank
 
 No code changes needed here. Violations include module path, source key, and reason.
 

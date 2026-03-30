@@ -23,16 +23,34 @@ vi.mock("recharts", () => {
       dot?: boolean;
       minTickGap?: number;
       stroke?: string;
+      strokeWidth?: number;
       tickMargin?: number;
+      width?: number;
+      height?: number;
     }) => {
       return (
         <div
           data-dot={name === "Line" ? String(props.dot) : undefined}
+          data-height={
+            name === "LineChart" && typeof props.height === "number"
+              ? String(props.height)
+              : undefined
+          }
           data-has-content={name === "Tooltip" ? String(Boolean(props.content)) : undefined}
           data-min-tick-gap={name === "XAxis" ? String(props.minTickGap) : undefined}
           data-recharts={name}
           data-stroke={name === "Line" ? props.stroke : undefined}
+          data-stroke-width={
+            name === "Line" && typeof props.strokeWidth === "number"
+              ? String(props.strokeWidth)
+              : undefined
+          }
           data-tick-margin={name === "XAxis" ? String(props.tickMargin) : undefined}
+          data-width={
+            name === "LineChart" && typeof props.width === "number"
+              ? String(props.width)
+              : undefined
+          }
         >
           {children}
         </div>
@@ -43,7 +61,6 @@ vi.mock("recharts", () => {
   return {
     Line: passThrough("Line"),
     LineChart: passThrough("LineChart"),
-    ResponsiveContainer: passThrough("ResponsiveContainer"),
     Tooltip: passThrough("Tooltip"),
     XAxis: passThrough("XAxis"),
     YAxis: passThrough("YAxis"),
@@ -51,6 +68,14 @@ vi.mock("recharts", () => {
 });
 
 describe("ObservationsChart", () => {
+  class ResizeObserverMock {
+    observe = vi.fn();
+    disconnect = vi.fn();
+    unobserve = vi.fn();
+  }
+
+  vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+
   it("renders chart wrapper and recharts elements for populated observations", () => {
     const fixture = buildLongHistoryDatasetDetailFixture();
     const markup = renderMarkup(<ObservationsChart observations={fixture.observations} />);
@@ -60,12 +85,12 @@ describe("ObservationsChart", () => {
     expect(markup).toContain('data-testid="observations-chart-controls"');
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).not.toContain('data-testid="observations-chart-footnote"');
-    expect(markup).toContain('data-recharts="ResponsiveContainer"');
     expect(markup).toContain('data-recharts="LineChart"');
     expect(markup).toContain('data-recharts="Line"');
     expect(markup).toContain('data-has-content="true"');
     expect(markup).toContain('data-dot="false"');
     expect(markup).toContain('data-stroke="var(--shell-foreground)"');
+    expect(markup).toContain('data-stroke-width="2.25"');
     expect(markup).toContain('data-min-tick-gap="32"');
     expect(markup).toContain('data-tick-margin="14"');
   });

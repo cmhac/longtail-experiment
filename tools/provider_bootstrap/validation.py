@@ -17,6 +17,13 @@ def validate_snake_identifier(name: str, *, field: str) -> None:
         raise ValueError(f"{field} must be snake_case using lowercase letters, numbers, and underscores")
 
 
+def validate_required_text(value: str, *, field: str) -> str:
+    normalized = value.strip()
+    if normalized == "":
+        raise ValueError(f"{field} must be provided and non-empty")
+    return normalized
+
+
 def normalize_module_name(module_name: str) -> str:
     """Return module stem normalized to *_source format."""
     stem = module_name.replace(".py", "").strip()

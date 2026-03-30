@@ -22,7 +22,7 @@ from ..source_schedule_policy import CadenceType, SourceSchedulePolicy
 from ..workflow_registry import SourceWorkflowRegistration
 from .series_catalog import SeriesCatalogEntry
 
-ADAPTER_PACKAGE_NAME = "src.orchestration.jobs.sources"
+ADAPTER_PACKAGE_NAME = "src.sources"
 CRON_FIELD_COUNT = 5
 
 
@@ -54,6 +54,8 @@ class SourceBuilderSpec:
     module_name: str
     builder: Callable[..., SourceWorkflowRegistration]
     provider_group_key: str = ""
+    title: str = ""
+    description: str = ""
     series_item_keys: tuple[str, ...] = ()
     canonical_series_keys: tuple[str, ...] = ()
     ownership_mode: str = "grouped"
@@ -176,15 +178,27 @@ def _build_source_builder_spec(*, module_name: str, module: Any) -> SourceBuilde
         )
         source_key = "<missing>"
 
-    provider_group_key = _as_non_empty_str(raw_spec.get("provider_group_key"))
-    if provider_group_key is None:
-        violations.append(
-            _violation(
-                module_name=module_name,
-                source_key=source_key,
-                reason="provider_group_key must be non-empty",
-            )
-        )
+    provider_group_key = _require_non_empty_str(
+        raw_spec=raw_spec,
+        field_name="provider_group_key",
+        module_name=module_name,
+        source_key=source_key,
+        violations=violations,
+    )
+    title = _require_non_empty_str(
+        raw_spec=raw_spec,
+        field_name="title",
+        module_name=module_name,
+        source_key=source_key,
+        violations=violations,
+    )
+    description = _require_non_empty_str(
+        raw_spec=raw_spec,
+        field_name="description",
+        module_name=module_name,
+        source_key=source_key,
+        violations=violations,
+    )
 
     cron_schedule = _as_non_empty_str(raw_spec.get("cron_schedule"))
     if cron_schedule is None:
@@ -269,6 +283,8 @@ def _build_source_builder_spec(*, module_name: str, module: Any) -> SourceBuilde
         raise SourceAdapterManifestError(violations=tuple(violations))
 
     assert provider_group_key is not None
+    assert title is not None
+    assert description is not None
     assert cron_schedule is not None
     assert cadence_label is not None
 
@@ -277,6 +293,8 @@ def _build_source_builder_spec(*, module_name: str, module: Any) -> SourceBuilde
         module_name=module_name,
         builder=builder,
         provider_group_key=provider_group_key,
+        title=title,
+        description=description,
         series_item_keys=series_item_keys,
         canonical_series_keys=canonical_series_keys,
         ownership_mode=ownership_mode,
@@ -314,6 +332,26 @@ def _as_non_empty_str(value: Any) -> str | None:
         return None
     normalized = value.strip()
     return normalized or None
+
+
+def _require_non_empty_str(
+    *,
+    raw_spec: dict[str, Any],
+    field_name: str,
+    module_name: str,
+    source_key: str,
+    violations: list[str],
+) -> str | None:
+    value = _as_non_empty_str(raw_spec.get(field_name))
+    if value is None:
+        violations.append(
+            _violation(
+                module_name=module_name,
+                source_key=source_key,
+                reason=f"{field_name} must be non-empty",
+            )
+        )
+    return value
 
 
 def _as_non_empty_str_tuple(value: Any) -> tuple[str, ...]:

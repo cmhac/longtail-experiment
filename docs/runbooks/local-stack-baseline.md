@@ -102,8 +102,8 @@ Dagit is available as a Docker Compose service in this stack. Use `docker compos
 
 ## Source Workflow Onboarding
 
-1. Add a new source adapter under `apps/pipeline/src/orchestration/jobs/sources/`.
-2. Build a `SourceWorkflowRegistration` in that module and export module-level `SOURCE_SPEC`.
+1. Add a new source adapter under `apps/pipeline/src/sources/`.
+2. Build a `SourceWorkflowRegistration` in that module and export module-level `SOURCE_SPEC` including required `title` and `description`.
 3. Do not edit bootstrap orchestration files (`discovery.py`, schedules, assets, definitions, runtime) for provider onboarding.
 4. Validate onboarding behavior with:
 

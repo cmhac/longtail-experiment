@@ -13,7 +13,11 @@ _DISCOVERY_FIXTURE: dict[str, object] = {
             "description": "Percent of labor force unemployed",
             "geographic_scope": "US",
             "topic_tags": ["labor", "employment"],
-            "metadata": {"units": "Percent"},
+            "metadata": {
+                "units": "Percent",
+                "source_type": "external",
+                "source_description": "Federal Reserve Economic Data from the St. Louis Fed.",
+            },
         },
         {
             "dataset_id": "CPIAUCSL",
@@ -22,7 +26,11 @@ _DISCOVERY_FIXTURE: dict[str, object] = {
             "description": "All Urban Consumers",
             "geographic_scope": "US",
             "topic_tags": ["inflation", "prices"],
-            "metadata": {"units": "Index"},
+            "metadata": {
+                "units": "Index",
+                "source_type": "external",
+                "source_description": "Federal Reserve Economic Data from the St. Louis Fed.",
+            },
         },
         {
             "dataset_id": "GDP",
@@ -31,7 +39,13 @@ _DISCOVERY_FIXTURE: dict[str, object] = {
             "description": "Quarterly real GDP",
             "geographic_scope": "US",
             "topic_tags": ["growth"],
-            "metadata": {"units": "Billions of Chained 2017 Dollars"},
+            "metadata": {
+                "units": "Billions of Chained 2017 Dollars",
+                "source_type": "external",
+                "source_description": (
+                    "US national accounts published by the Bureau of Economic Analysis."
+                ),
+            },
         },
     ],
     "observations": [

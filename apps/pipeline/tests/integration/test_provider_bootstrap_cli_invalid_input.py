@@ -7,7 +7,10 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
+import pytest
+
 SCRIPT_PATH = Path(__file__).resolve().parents[4] / "tools/provider_bootstrap/bootstrap_provider.py"
+ARGPARSE_EXIT_CODE = 2
 
 
 def _load_main() -> Callable[[list[str]], int]:
@@ -52,6 +55,10 @@ def test_cli_rejects_invalid_cadence(tmp_path: Path, capsys) -> None:
         "PRICE.US.CPI",
         "--provider-series-id",
         "CPIAUCSL",
+        "--source-title",
+        "ACME Bad",
+        "--source-description",
+        "Invalid cadence example.",
         "--output-dir",
         str(tmp_path),
         capsys=capsys,
@@ -60,3 +67,36 @@ def test_cli_rejects_invalid_cadence(tmp_path: Path, capsys) -> None:
     assert exit_code == 1
     assert "STATUS: failure" in stdout
     assert "ERROR_CODE: invalid_input" in stdout
+
+
+def test_cli_rejects_missing_source_title(tmp_path: Path, capsys) -> None:
+    """CLI should fail fast when source title is omitted."""
+    with pytest.raises(SystemExit) as exc_info:
+        _load_main()(
+            [
+                "--provider-group-key",
+                "acme",
+                "--source-key",
+                "acme_missing_title",
+                "--module-name",
+                "acme_missing_title_source",
+                "--cadence-label",
+                "monthly",
+                "--cron-schedule",
+                "0 0 1 * *",
+                "--series-item-key",
+                "acme_missing_title",
+                "--canonical-series-key",
+                "PRICE.US.CPI",
+                "--provider-series-id",
+                "CPIAUCSL",
+                "--source-description",
+                "Missing title example.",
+                "--output-dir",
+                str(tmp_path),
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == ARGPARSE_EXIT_CODE
+    assert "--source-title" in captured.err

@@ -15,11 +15,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.contract.normalizers.source_payload_mapper import normalize_source_payload
 
 
+def _base_payload(*, source_name: str, source_key: str) -> dict[str, object]:
+    return {
+        "source_key": source_key,
+        "source_name": source_name,
+        "source_title": f"{source_name} Source",
+        "source_description": f"{source_name} source observations.",
+    }
+
+
 def test_source_type_is_normalized_to_lowercase_labels() -> None:
     """Mapper should normalize source type labels to canonical lowercase values."""
     observation = normalize_source_payload(
         {
-            "source_name": "BLS",
+            **_base_payload(source_name="BLS", source_key="bls_cpi"),
             "source_type": "EXTERNAL",
             "series_key": "CPI.US.ALL",
             "metric_name": "Consumer Price Index",
@@ -37,7 +46,7 @@ def test_source_type_rejects_non_contract_values() -> None:
     with pytest.raises(ValidationError):
         normalize_source_payload(
             {
-                "source_name": "Derived",
+                **_base_payload(source_name="Derived", source_key="derived_temp"),
                 "source_type": "partner",
                 "series_key": "TEMP.US.NYC",
                 "metric_name": "Average Temperature",
@@ -52,7 +61,7 @@ def test_payload_mapper_maps_dataset_metadata_aliases() -> None:
     """Mapper should support metadata aliases used by source adapters."""
     observation = normalize_source_payload(
         {
-            "source_name": "FRED",
+            **_base_payload(source_name="FRED", source_key="fred_fedfunds"),
             "source_type": "EXTERNAL",
             "series_key": "INT.US.FEDFUNDS",
             "metric_name": "Effective Federal Funds Rate",
@@ -76,7 +85,7 @@ def test_payload_mapper_normalizes_explicit_unit_type_and_attributes() -> None:
     """Mapper should normalize explicit unit_type and persist it in attributes."""
     observation = normalize_source_payload(
         {
-            "source_name": "FRED",
+            **_base_payload(source_name="FRED", source_key="fred_fedfunds"),
             "source_type": "EXTERNAL",
             "series_key": "INT.US.FEDFUNDS",
             "metric_name": "Effective Federal Funds Rate",
@@ -97,7 +106,7 @@ def test_payload_mapper_infers_unit_type_from_unit_label() -> None:
     """Mapper should infer percent/usd/number unit_type from unit labels."""
     percent_observation = normalize_source_payload(
         {
-            "source_name": "FRED",
+            **_base_payload(source_name="FRED", source_key="fred_fedfunds"),
             "source_type": "EXTERNAL",
             "series_key": "INT.US.FEDFUNDS",
             "metric_name": "Effective Federal Funds Rate",
@@ -109,7 +118,7 @@ def test_payload_mapper_infers_unit_type_from_unit_label() -> None:
     )
     usd_observation = normalize_source_payload(
         {
-            "source_name": "EIA",
+            **_base_payload(source_name="EIA", source_key="eia_gas_price"),
             "source_type": "EXTERNAL",
             "series_key": "ENERGY.US.GASREGW",
             "metric_name": "US Regular Gas Price",
@@ -121,7 +130,7 @@ def test_payload_mapper_infers_unit_type_from_unit_label() -> None:
     )
     number_observation = normalize_source_payload(
         {
-            "source_name": "BLS",
+            **_base_payload(source_name="BLS", source_key="bls_cpi"),
             "source_type": "EXTERNAL",
             "series_key": "CPI.US.ALL",
             "metric_name": "Consumer Price Index",

@@ -31,7 +31,8 @@ describe("source detail page", () => {
     const markup = renderMarkup(element);
 
     expect(detailSpy).toHaveBeenCalledWith("fred", { page: 1 });
-    expect(markup).toContain("FRED");
+    expect(markup).toContain("Federal Reserve Economic Data");
+    expect(markup).toContain("Economic time series published by the St. Louis Fed.");
     expect(markup).toContain("2 total datasets");
     expect(markup).toContain('data-testid="source-detail-page"');
     expect(markup).toContain('data-testid="source-detail-header"');
@@ -43,7 +44,12 @@ describe("source detail page", () => {
 
   it("renders explicit no-datasets state for valid sources with no datasets", async () => {
     vi.spyOn(discoveryClient, "fetchSourceDetail").mockResolvedValue({
-      source: { id: "fred", name: "FRED", dataset_count: 0 },
+      source: {
+        id: "fred",
+        title: "Federal Reserve Economic Data",
+        description: "Economic time series published by the St. Louis Fed.",
+        dataset_count: 0,
+      },
       items: [],
       page: 1,
       page_size: 20,

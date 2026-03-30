@@ -58,7 +58,10 @@ def test_payloads_without_frequency_are_ingested_to_canonical_store() -> None:
 
     service.ingest_payload(
         {
+            "source_key": "bls_cpi",
             "source_name": "BLS",
+            "source_title": "Bureau of Labor Statistics CPI",
+            "source_description": "Consumer Price Index observations published by BLS.",
             "source_type": "external",
             "series_key": "CPI.US.ALL",
             "metric_name": "Consumer Price Index",
@@ -69,7 +72,10 @@ def test_payloads_without_frequency_are_ingested_to_canonical_store() -> None:
     )
     service.ingest_payload(
         {
+            "source_key": "noaa_temperature",
             "source_name": "NOAA",
+            "source_title": "NOAA Temperature Feed",
+            "source_description": "Daily temperature observations published by NOAA.",
             "source_type": "external",
             "series_key": "TEMP.US.NYC",
             "metric_name": "Average Temperature",
@@ -116,7 +122,10 @@ def test_canonical_ingest_prefers_upsert_observation_when_available() -> None:
 
     service.ingest_payload(
         {
+            "source_key": "fred_fedfunds",
             "source_name": "FRED",
+            "source_title": "Federal Funds Effective Rate",
+            "source_description": "Effective federal funds rate observations published by FRED.",
             "source_type": "external",
             "series_key": "INT.US.FEDFUNDS",
             "metric_name": "Effective Federal Funds Rate",

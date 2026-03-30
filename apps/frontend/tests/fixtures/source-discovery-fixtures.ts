@@ -8,19 +8,21 @@ export const buildSourceListFixture = (): SourceListResponse => ({
   items: [
     {
       id: "bea",
-      name: "BEA",
+      title: "Bureau of Economic Analysis",
+      description: "US national accounts and macroeconomic statistics.",
       dataset_count: 1,
       source_type: "external",
     },
     {
       id: "fred",
-      name: "FRED",
+      title: "Federal Reserve Economic Data",
+      description: "Economic time series published by the St. Louis Fed.",
       dataset_count: 2,
       source_type: "external",
     },
   ],
   total_items: 2,
-  sort: "source_name_asc,source_id_asc",
+  sort: "source_title_asc,source_id_asc",
 });
 
 export const buildSourceDatasetsFixture = (): DatasetSummary[] => [
@@ -47,7 +49,8 @@ export const buildSourceDatasetsFixture = (): DatasetSummary[] => [
 export const buildSourceDetailFixture = (): SourceDetail => ({
   source: {
     id: "fred",
-    name: "FRED",
+    title: "Federal Reserve Economic Data",
+    description: "Economic time series published by the St. Louis Fed.",
     dataset_count: 2,
     source_type: "external",
   },
