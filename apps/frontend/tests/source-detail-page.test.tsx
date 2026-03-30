@@ -40,6 +40,7 @@ describe("source detail page", () => {
     expect(markup).toContain('data-testid="catalog-flat-list"');
     expect(markup).toContain("Consumer Price Index");
     expect(markup).toContain('href="/datasets/CPIAUCSL"');
+    expect(markup).toContain('data-testid="discovery-feed-list-wrapper"');
   });
 
   it("renders explicit no-datasets state for valid sources with no datasets", async () => {

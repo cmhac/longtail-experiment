@@ -1,8 +1,8 @@
-import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
 
 import type { SourceSummary } from "../../lib/api/discovery-types";
+import { DiscoveryFeedList } from "./DiscoveryFeedList";
 import { EmptyState } from "./EmptyState";
 import { SourceListRow } from "./SourceListRow";
 
@@ -20,10 +20,10 @@ export const SourceCatalogList = ({
   }
 
   return (
-    <Card className="grid gap-0 p-5 sm:p-6" data-testid="source-catalog-list" variant="default">
+    <DiscoveryFeedList.Wrapper cardClassName="p-5 sm:p-6" cardTestId="source-catalog-list">
       {items.map((item) => (
         <SourceListRow key={item.id} source={item} />
       ))}
-    </Card>
+    </DiscoveryFeedList.Wrapper>
   );
 };

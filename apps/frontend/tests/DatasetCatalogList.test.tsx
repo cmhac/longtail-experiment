@@ -50,6 +50,8 @@ describe("DatasetCatalogList", () => {
     const markup = renderMarkup(<DatasetCatalogList items={items} />);
 
     expect(markup).toContain('data-testid="catalog-flat-list"');
+    expect(markup).toContain('data-testid="discovery-feed-list-wrapper"');
+    expect(markup).not.toContain('data-testid="discovery-feed-list-title-region"');
     expect(markup).toContain("Unemployment Rate");
     expect(markup).toContain("Consumer Price Index");
   });

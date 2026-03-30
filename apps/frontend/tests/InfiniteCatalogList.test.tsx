@@ -74,6 +74,7 @@ describe("InfiniteCatalogList", () => {
       />,
     );
 
+    expect(screen.getByTestId("discovery-feed-list-wrapper")).toBeTruthy();
     expect(screen.getByTestId("infinite-scroll-sentinel")).toBeTruthy();
 
     const observerCallback = observers[0];
@@ -93,5 +94,7 @@ describe("InfiniteCatalogList", () => {
     await waitFor(() => {
       expect(screen.getByText("Page 2 Dataset")).toBeTruthy();
     });
+
+    expect(screen.getByTestId("discovery-feed-list-wrapper")).toBeTruthy();
   });
 });

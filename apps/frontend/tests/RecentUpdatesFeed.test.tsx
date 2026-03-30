@@ -10,6 +10,8 @@ describe("RecentUpdatesFeed", () => {
 
     expect(markup).toContain('data-testid="recent-updates-feed"');
     expect(markup).toContain('data-testid="recent-updates-header"');
+    expect(markup).toContain('data-testid="discovery-feed-list-wrapper"');
+    expect(markup).toContain('data-testid="discovery-feed-list-title-region"');
     expect(markup).toContain("Recent Updates");
     expect(markup).toContain("Editorial Dataset 1");
     expect(markup).toContain("Editorial Dataset 5");

@@ -29,6 +29,12 @@ describe("UnifiedDatasetRow", () => {
     expect(markup).toContain("energy");
     expect(markup).toContain("retail fuel prices");
     expect(markup).toContain('data-testid="unified-dataset-row-title"');
+    expect(markup).toContain('data-testid="discovery-feed-list-row"');
+    expect(markup).toContain('data-testid="discovery-feed-list-metadata-rail"');
+    expect(markup).toContain('data-testid="discovery-feed-list-display-category"');
+    expect(markup).toContain('data-testid="discovery-feed-list-update-date"');
+    expect(markup).toContain('data-testid="discovery-feed-list-title-text"');
+    expect(markup).toContain('data-testid="discovery-feed-list-subtitle"');
     expect(markup).toContain('href="/geographies/us"');
     expect(markup).toContain('href="/topics/energy"');
     expect(markup).toContain('href="/topics/retail-fuel-prices"');
@@ -54,6 +60,8 @@ describe("UnifiedDatasetRow", () => {
     expect(markup).toContain("Unemployment Rate");
     expect(markup).toContain('href="/datasets/UNRATE"');
     expect(markup).toContain('data-testid="unified-dataset-row-title"');
+    expect(markup).toContain('data-testid="discovery-feed-list-display-category"');
+    expect(markup).toContain('data-testid="discovery-feed-list-update-date"');
     expect(markup).toContain('href="/topics/labor"');
     expect(markup).not.toContain(
       'class="recent-updates-row unified-dataset-row" data-testid="unified-dataset-row" href="/datasets/UNRATE"',
@@ -75,6 +83,9 @@ describe("UnifiedDatasetRow", () => {
 
     expect(markup).toContain("No Summary Dataset");
     expect(markup).toContain("not-a-date");
+    expect(markup).toContain('data-testid="discovery-feed-list-display-category"');
+    expect(markup).toContain('data-testid="discovery-feed-list-update-date"');
+    expect(markup).not.toContain('data-testid="discovery-feed-list-subtitle"');
     expect(markup).not.toContain('data-testid="unified-dataset-row-pills"');
   });
 });
