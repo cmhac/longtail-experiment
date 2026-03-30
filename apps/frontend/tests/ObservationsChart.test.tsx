@@ -9,6 +9,7 @@ import {
   buildDatasetDetailFixture,
   buildLongHistoryDatasetDetailFixture,
   buildNoObservationsDatasetDetailFixture,
+  buildRelativeChangeFixture,
 } from "./fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "./test-utils";
 
@@ -25,9 +26,15 @@ vi.mock("recharts", () => {
       stroke?: string;
       strokeWidth?: number;
       tickMargin?: number;
+      tickFormatter?: (value: number) => string;
       width?: number;
       height?: number;
     }) => {
+      const tickSample =
+        name === "YAxis" && typeof props.tickFormatter === "function"
+          ? props.tickFormatter(1.5)
+          : undefined;
+
       return (
         <div
           data-dot={name === "Line" ? String(props.dot) : undefined}
@@ -46,6 +53,7 @@ vi.mock("recharts", () => {
               : undefined
           }
           data-tick-margin={name === "XAxis" ? String(props.tickMargin) : undefined}
+          data-tick-sample={name === "YAxis" ? tickSample : undefined}
           data-width={
             name === "LineChart" && typeof props.width === "number"
               ? String(props.width)
@@ -124,7 +132,8 @@ describe("ObservationsChart", () => {
     );
 
     const chart = within(container);
-    const buttons = chart.getAllByRole("button");
+    const rangeControls = chart.getByTestId("observations-chart-controls");
+    const buttons = within(rangeControls).getAllByRole("button");
 
     expect(buttons.map((button) => button.textContent)).toEqual(["ALL", "5Y", "1Y", "6M", "1M"]);
     for (const button of buttons) {
@@ -138,5 +147,141 @@ describe("ObservationsChart", () => {
     );
 
     expect(markup).not.toContain('data-testid="observations-chart-controls"');
+  });
+
+  it("toggles between observed and relative modes", () => {
+    const { container } = render(
+      <ObservationsChart observations={buildRelativeChangeFixture().observations} />,
+    );
+    const chart = within(container);
+
+    const observedButton = chart.getByRole("button", { name: "Observed" });
+    const relativeButton = chart.getByRole("button", { name: "Relative %" });
+
+    expect(observedButton.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(relativeButton);
+    expect(relativeButton.getAttribute("aria-pressed")).toBe("true");
+    expect(observedButton.getAttribute("aria-pressed")).toBe("false");
+    expect(chart.getByTestId("observations-chart-relative-controls")).toBeDefined();
+  });
+
+  it("renders rolling baseline controls and supports offset switching", () => {
+    const { container } = render(
+      <ObservationsChart observations={buildRelativeChangeFixture().observations} />,
+    );
+    const chart = within(container);
+
+    fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
+    const rollingOffset = chart.getByLabelText("Rolling offset") as HTMLSelectElement;
+
+    expect(rollingOffset.value).toBe("1");
+    fireEvent.change(rollingOffset, { target: { value: "2" } });
+    expect(rollingOffset.value).toBe("2");
+  });
+
+  it("supports fixed baseline mode with exact available date options", () => {
+    const fixture = buildRelativeChangeFixture();
+    const { container } = render(<ObservationsChart observations={fixture.observations} />);
+    const chart = within(container);
+
+    fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
+    fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
+      target: { value: "fixed" },
+    });
+    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
+      target: { value: "date" },
+    });
+
+    const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
+    const options = Array.from(dateSelect.options).map((option) => option.value);
+
+    expect(options).toContain("2024-01-01");
+    expect(options).toContain("2024-01-08");
+    expect(options).toContain("2024-01-15");
+    expect(options).toContain("2024-01-22");
+    expect(options).not.toContain("2024-02-01");
+
+    fireEvent.change(dateSelect, { target: { value: "2024-01-08" } });
+    expect(dateSelect.value).toBe("2024-01-08");
+  });
+
+  it("supports fixed baseline mode using offset selection", () => {
+    const { container } = render(
+      <ObservationsChart observations={buildRelativeChangeFixture().observations} />,
+    );
+    const chart = within(container);
+
+    fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
+    fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
+      target: { value: "fixed" },
+    });
+    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
+      target: { value: "offset" },
+    });
+
+    const offsetSelect = chart.getByLabelText("Fixed baseline offset") as HTMLSelectElement;
+    expect(offsetSelect.value).toBe("12");
+    fireEvent.change(offsetSelect, { target: { value: "2" } });
+    expect(offsetSelect.value).toBe("2");
+  });
+
+  it("shows unavailable state for invalid preserved fixed-baseline settings", () => {
+    const { container } = render(
+      <ObservationsChart
+        observations={buildRelativeChangeFixture().observations}
+        relativeSettings={{
+          baselineMode: "fixed",
+          fixedBaselineDate: "2024-02-01",
+          fixedBaselineOffset: 12,
+          fixedSelectionMode: "date",
+          rollingOffset: 1,
+          valueMode: "relative",
+        }}
+      />,
+    );
+    const chart = within(container);
+
+    const unavailable = chart.getByTestId("relative-change-unavailable");
+    expect(unavailable.textContent).toContain("Selected baseline is unavailable");
+
+    const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
+    const options = Array.from(dateSelect.options).map((option) => option.value);
+    expect(options).toContain("2024-02-01");
+    expect(dateSelect.value).toBe("2024-02-01");
+  });
+
+  it("preserves fixed baseline settings across range changes and shows unavailable state when invalid", () => {
+    const fixture = buildLongHistoryDatasetDetailFixture();
+    const relativeSettings = {
+      baselineMode: "fixed" as const,
+      fixedBaselineDate: fixture.observations[0]?.observed_on ?? null,
+      fixedBaselineOffset: 12,
+      fixedSelectionMode: "date" as const,
+      rollingOffset: 1,
+      valueMode: "relative" as const,
+    };
+
+    const { container, rerender } = render(
+      <ObservationsChart
+        observations={fixture.observations}
+        relativeSettings={relativeSettings}
+        selectedRange="ALL"
+      />,
+    );
+    const chart = within(container);
+    const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
+    expect(dateSelect.value).toBe(relativeSettings.fixedBaselineDate);
+
+    rerender(
+      <ObservationsChart
+        observations={fixture.observations}
+        relativeSettings={relativeSettings}
+        selectedRange="1M"
+      />,
+    );
+
+    const nextDateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
+    expect(nextDateSelect.value).toBe(relativeSettings.fixedBaselineDate);
+    expect(chart.getByTestId("relative-change-unavailable")).toBeDefined();
   });
 });

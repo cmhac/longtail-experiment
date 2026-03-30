@@ -23,10 +23,10 @@
 
 **Purpose**: Prepare implementation scaffolding and verification surfaces.
 
-- [ ] T001 Confirm feature artifacts are present in specs/041-relative-change-visualization/plan.md, specs/041-relative-change-visualization/spec.md, and specs/041-relative-change-visualization/contracts/relative-change-visualization-contract.md
-- [ ] T002 [P] Add relative-change test fixture scenarios to apps/frontend/tests/fixtures/dataset-detail-fixtures.ts
-- [ ] T003 [P] Add task-level verification checklist section to specs/041-relative-change-visualization/quickstart.md for slice-by-slice red/green TDD and manual browser checks
-- [ ] T004 [P] Create placeholder test blocks for new relative-change suites in apps/frontend/tests/ObservationsChart.test.tsx and apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T001 Confirm feature artifacts are present in specs/041-relative-change-visualization/plan.md, specs/041-relative-change-visualization/spec.md, and specs/041-relative-change-visualization/contracts/relative-change-visualization-contract.md
+- [X] T002 [P] Add relative-change test fixture scenarios to apps/frontend/tests/fixtures/dataset-detail-fixtures.ts
+- [X] T003 [P] Add task-level verification checklist section to specs/041-relative-change-visualization/quickstart.md for slice-by-slice red/green TDD and manual browser checks
+- [X] T004 [P] Create placeholder test blocks for new relative-change suites in apps/frontend/tests/ObservationsChart.test.tsx and apps/frontend/tests/dataset-detail-view-model.test.ts
 
 ---
 
@@ -36,12 +36,12 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Extend relative-change domain types in apps/frontend/src/lib/api/discovery-types.ts
-- [ ] T006 Implement baseline and computability enums/helpers in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
-- [ ] T007 [P] Add formula utility for signed baseline-relative change in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
-- [ ] T008 [P] Add chronology and non-computable gap projection helpers in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
-- [ ] T009 Add foundational unit tests for formula, chronology, and gap semantics in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T010 Verify backend dataset detail contract assumptions remain valid in apps/backend/tests/contract/test_dataset_detail_query_contract.py and apps/backend/tests/contract/test_dataset_detail_observation_order.py
+- [X] T005 Extend relative-change domain types in apps/frontend/src/lib/api/discovery-types.ts
+- [X] T006 Implement baseline and computability enums/helpers in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
+- [X] T007 [P] Add formula utility for signed baseline-relative change in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
+- [X] T008 [P] Add chronology and non-computable gap projection helpers in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
+- [X] T009 Add foundational unit tests for formula, chronology, and gap semantics in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T010 Verify backend dataset detail contract assumptions remain valid in apps/backend/tests/contract/test_dataset_detail_query_contract.py and apps/backend/tests/contract/test_dataset_detail_observation_order.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -55,18 +55,18 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T011 [P] [US1] Add chart mode-switch rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
-- [ ] T012 [P] [US1] Add value-formatting and sign-display tests in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T013 [US1] Add dataset detail page integration assertions for mode toggle presence in apps/frontend/tests/detail-page.test.tsx
+- [X] T011 [P] [US1] Add chart mode-switch rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T012 [P] [US1] Add value-formatting and sign-display tests in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T013 [US1] Add dataset detail page integration assertions for mode toggle presence in apps/frontend/tests/detail-page.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Add chart mode state and controls in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
-- [ ] T015 [US1] Implement relative-change projection wiring in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T016 [US1] Implement percentage axis/tooltip formatting paths in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T017 [US1] Update insights-mode compatibility with selected chart mode in apps/frontend/src/components/discovery/DatasetDetailInsights.tsx
-- [ ] T018 [US1] Run targeted frontend tests for US1 in apps/frontend/tests/ObservationsChart.test.tsx, apps/frontend/tests/dataset-detail-view-model.test.ts, and apps/frontend/tests/detail-page.test.tsx
-- [ ] T019 [US1] Manually verify mode switching and signed percentage display using browser tools following specs/041-relative-change-visualization/quickstart.md
+- [X] T014 [US1] Add chart mode state and controls in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
+- [X] T015 [US1] Implement relative-change projection wiring in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [X] T016 [US1] Implement percentage axis/tooltip formatting paths in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [X] T017 [US1] Update insights-mode compatibility with selected chart mode in apps/frontend/src/components/discovery/DatasetDetailInsights.tsx
+- [X] T018 [US1] Run targeted frontend tests for US1 in apps/frontend/tests/ObservationsChart.test.tsx, apps/frontend/tests/dataset-detail-view-model.test.ts, and apps/frontend/tests/detail-page.test.tsx
+- [X] T019 [US1] Manually verify mode switching and signed percentage display using browser tools following specs/041-relative-change-visualization/quickstart.md
 - [ ] T020 [US1] Run full gates before US1 commit: pre-commit run --all-files, pnpm exec nx run-many -t test --all, pnpm exec nx run-many -t coverage --all
 - [ ] T021 [US1] Commit stable US1 slice with touched files in apps/frontend/src/components/discovery/ and apps/frontend/tests/
 
@@ -82,18 +82,18 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T022 [P] [US2] Add rolling-offset computation tests (1, 2, 3, n) in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T023 [P] [US2] Add non-computable gap rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
-- [ ] T024 [US2] Add interaction tests for rolling offset controls in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T022 [P] [US2] Add rolling-offset computation tests (1, 2, 3, n) in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T023 [P] [US2] Add non-computable gap rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T024 [US2] Add interaction tests for rolling offset controls in apps/frontend/tests/ObservationsChart.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Implement rolling offset selector logic in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T026 [US2] Implement rolling baseline computation path in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
-- [ ] T027 [US2] Implement unavailable/gap state rendering for rolling mode in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T028 [US2] Ensure insights and chart controls stay synchronized for rolling mode in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx and apps/frontend/src/components/discovery/DatasetDetailInsights.tsx
-- [ ] T029 [US2] Run targeted frontend tests for US2 in apps/frontend/tests/ObservationsChart.test.tsx and apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T030 [US2] Manually verify rolling offsets and gap behavior using browser tools per specs/041-relative-change-visualization/quickstart.md
+- [X] T025 [US2] Implement rolling offset selector logic in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [X] T026 [US2] Implement rolling baseline computation path in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
+- [X] T027 [US2] Implement unavailable/gap state rendering for rolling mode in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [X] T028 [US2] Ensure insights and chart controls stay synchronized for rolling mode in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx and apps/frontend/src/components/discovery/DatasetDetailInsights.tsx
+- [X] T029 [US2] Run targeted frontend tests for US2 in apps/frontend/tests/ObservationsChart.test.tsx and apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T030 [US2] Manually verify rolling offsets and gap behavior using browser tools per specs/041-relative-change-visualization/quickstart.md
 - [ ] T031 [US2] Run full gates before US2 commit: pre-commit run --all-files, pnpm exec nx run-many -t test --all, pnpm exec nx run-many -t coverage --all
 - [ ] T032 [US2] Commit stable US2 slice with touched files in apps/frontend/src/components/discovery/ and apps/frontend/tests/
 
@@ -109,20 +109,20 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T033 [P] [US3] Add fixed-baseline-by-date and fixed-baseline-by-index tests in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T034 [P] [US3] Add exact-available-date selector tests in apps/frontend/tests/ObservationsChart.test.tsx
-- [ ] T035 [P] [US3] Add persistence/invalid-preserved-setting tests across range changes in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T033 [P] [US3] Add fixed-baseline-by-date and fixed-baseline-by-index tests in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T034 [P] [US3] Add exact-available-date selector tests in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T035 [P] [US3] Add persistence/invalid-preserved-setting tests across range changes in apps/frontend/tests/ObservationsChart.test.tsx
 - [ ] T036 [US3] Add page-level regression checks for preserved settings visibility in apps/frontend/tests/detail-page.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Implement fixed baseline date selector populated from available observation dates in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T038 [US3] Implement fixed baseline index/offset selector and wiring in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T039 [US3] Implement exact-match-only date baseline resolution in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
-- [ ] T040 [US3] Implement baseline setting persistence and invalid-preserved unavailable behavior in apps/frontend/src/components/discovery/ObservationsChart.tsx and apps/frontend/src/components/discovery/dataset-detail-view-model.ts
+- [X] T037 [US3] Implement fixed baseline date selector populated from available observation dates in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [X] T038 [US3] Implement fixed baseline index/offset selector and wiring in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [X] T039 [US3] Implement exact-match-only date baseline resolution in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
+- [X] T040 [US3] Implement baseline setting persistence and invalid-preserved unavailable behavior in apps/frontend/src/components/discovery/ObservationsChart.tsx and apps/frontend/src/components/discovery/dataset-detail-view-model.ts
 - [ ] T041 [US3] Validate contract alignment and update notes if needed in specs/041-relative-change-visualization/contracts/relative-change-visualization-contract.md
-- [ ] T042 [US3] Run targeted frontend tests for US3 in apps/frontend/tests/ObservationsChart.test.tsx, apps/frontend/tests/dataset-detail-view-model.test.ts, and apps/frontend/tests/detail-page.test.tsx
-- [ ] T043 [US3] Manually verify fixed baseline date/index flows and persistence using browser tools per specs/041-relative-change-visualization/quickstart.md
+- [X] T042 [US3] Run targeted frontend tests for US3 in apps/frontend/tests/ObservationsChart.test.tsx, apps/frontend/tests/dataset-detail-view-model.test.ts, and apps/frontend/tests/detail-page.test.tsx
+- [X] T043 [US3] Manually verify fixed baseline date/index flows and persistence using browser tools per specs/041-relative-change-visualization/quickstart.md
 - [ ] T044 [US3] Run full gates before US3 commit: pre-commit run --all-files, pnpm exec nx run-many -t test --all, pnpm exec nx run-many -t coverage --all
 - [ ] T045 [US3] Commit stable US3 slice with touched files in apps/frontend/src/components/discovery/, apps/frontend/tests/, and specs/041-relative-change-visualization/contracts/
 
@@ -183,18 +183,18 @@
 
 ### Parallel Example: User Story 1
 
-- [ ] T011 [P] [US1] Add chart mode-switch rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
-- [ ] T012 [P] [US1] Add value-formatting and sign-display tests in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T011 [P] [US1] Add chart mode-switch rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T012 [P] [US1] Add value-formatting and sign-display tests in apps/frontend/tests/dataset-detail-view-model.test.ts
 
 ### Parallel Example: User Story 2
 
-- [ ] T022 [P] [US2] Add rolling-offset computation tests (1, 2, 3, n) in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T023 [P] [US2] Add non-computable gap rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T022 [P] [US2] Add rolling-offset computation tests (1, 2, 3, n) in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T023 [P] [US2] Add non-computable gap rendering tests in apps/frontend/tests/ObservationsChart.test.tsx
 
 ### Parallel Example: User Story 3
 
-- [ ] T033 [P] [US3] Add fixed-baseline-by-date and fixed-baseline-by-index tests in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T034 [P] [US3] Add exact-available-date selector tests in apps/frontend/tests/ObservationsChart.test.tsx
+- [X] T033 [P] [US3] Add fixed-baseline-by-date and fixed-baseline-by-index tests in apps/frontend/tests/dataset-detail-view-model.test.ts
+- [X] T034 [P] [US3] Add exact-available-date selector tests in apps/frontend/tests/ObservationsChart.test.tsx
 
 ---
 

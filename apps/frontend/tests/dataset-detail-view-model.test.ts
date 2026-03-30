@@ -1,17 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_RELATIVE_CHANGE_SETTINGS,
   buildInsightMetrics,
   buildObservationRows,
+  computeRelativeChangePercent,
   filterObservationRange,
   formatObservedOn,
   formatValue,
   getAvailableTrendRanges,
   getMetadataRows,
+  projectRelativeChangeGaps,
+  projectRelativeChangeSeries,
+  toRollingBaselineIndex,
 } from "../src/components/discovery/dataset-detail-view-model";
 import {
   buildDatasetDetailFixture,
   buildLongHistoryDatasetDetailFixture,
   buildObservationHistory,
+  buildZeroBaselineFixture,
 } from "./fixtures/dataset-detail-fixtures";
 
 describe("dataset-detail-view-model", () => {
@@ -192,5 +198,217 @@ describe("dataset-detail-view-model", () => {
     expect(metrics[0]?.value).toContain("%");
     expect(metrics[1]?.value).toContain("%");
     expect(metrics[2]?.value).toContain("%");
+  });
+
+  it("computes signed baseline-relative change percentages", () => {
+    expect(computeRelativeChangePercent(120, 100)).toBe(20);
+    expect(computeRelativeChangePercent(80, 100)).toBe(-20);
+    expect(computeRelativeChangePercent(100, 100)).toBe(0);
+    expect(computeRelativeChangePercent(10, 0)).toBeNull();
+  });
+
+  it("computes rolling baseline indexes", () => {
+    expect(toRollingBaselineIndex(4, 1)).toBe(3);
+    expect(toRollingBaselineIndex(4, 3)).toBe(1);
+    expect(toRollingBaselineIndex(2, 3)).toBe(-1);
+  });
+
+  it("projects rolling relative-change points with gap semantics", () => {
+    const fixture = buildDatasetDetailFixture({
+      observations: [
+        {
+          observed_on: "2024-01-01",
+          value: 100,
+          reported_at: "2024-01-01T00:00:00Z",
+          attributes: {},
+        },
+        {
+          observed_on: "2024-01-02",
+          value: 110,
+          reported_at: "2024-01-02T00:00:00Z",
+          attributes: {},
+        },
+        {
+          observed_on: "2024-01-03",
+          value: 99,
+          reported_at: "2024-01-03T00:00:00Z",
+          attributes: {},
+        },
+      ],
+    });
+
+    const projection = projectRelativeChangeSeries(fixture.observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 1,
+      valueMode: "relative",
+    });
+
+    expect(projection.points[0]?.computability).toBe("insufficient-history");
+    expect(projection.points[1]?.value).toBe(10);
+    expect(projection.points[2]?.value).toBeCloseTo(-10);
+    expect(projection.hasComputablePoints).toBe(true);
+  });
+
+  it("supports rolling offsets 1, 2, 3 and n", () => {
+    const fixture = buildDatasetDetailFixture({
+      observations: buildObservationHistory({
+        count: 8,
+        initialValue: 100,
+        start: "2024-01-01",
+        valueStep: 10,
+      }),
+    });
+
+    const offsetOne = projectRelativeChangeSeries(fixture.observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 1,
+      valueMode: "relative",
+    });
+    const offsetThree = projectRelativeChangeSeries(fixture.observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 3,
+      valueMode: "relative",
+    });
+    const offsetN = projectRelativeChangeSeries(fixture.observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 5,
+      valueMode: "relative",
+    });
+
+    expect(offsetOne.points.filter((point) => point.value !== null).length).toBe(7);
+    expect(offsetThree.points.filter((point) => point.value !== null).length).toBe(5);
+    expect(offsetN.points.filter((point) => point.value !== null).length).toBe(3);
+  });
+
+  it("supports fixed baselines by exact date", () => {
+    const fixture = buildDatasetDetailFixture({
+      observations: [
+        {
+          observed_on: "2024-01-01",
+          value: 100,
+          reported_at: "2024-01-01T00:00:00Z",
+          attributes: {},
+        },
+        {
+          observed_on: "2024-01-02",
+          value: 120,
+          reported_at: "2024-01-02T00:00:00Z",
+          attributes: {},
+        },
+        {
+          observed_on: "2024-01-03",
+          value: 140,
+          reported_at: "2024-01-03T00:00:00Z",
+          attributes: {},
+        },
+      ],
+    });
+
+    const projection = projectRelativeChangeSeries(fixture.observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "fixed",
+      fixedBaselineDate: "2024-01-02",
+      fixedSelectionMode: "date",
+      valueMode: "relative",
+    });
+
+    expect(projection.points[0]?.computability).toBe("before-fixed-baseline");
+    expect(projection.points[1]?.value).toBe(0);
+    expect(projection.points[2]?.value).toBeCloseTo(16.6666667);
+  });
+
+  it("supports fixed baselines by index/offset", () => {
+    const fixture = buildDatasetDetailFixture({
+      observations: buildObservationHistory({
+        count: 5,
+        initialValue: 100,
+        start: "2024-01-01",
+        valueStep: 5,
+      }),
+    });
+
+    const projection = projectRelativeChangeSeries(fixture.observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "fixed",
+      fixedBaselineOffset: 2,
+      fixedSelectionMode: "offset",
+      valueMode: "relative",
+    });
+
+    expect(projection.points[0]?.computability).toBe("before-fixed-baseline");
+    expect(projection.points[1]?.computability).toBe("before-fixed-baseline");
+    expect(projection.points[2]?.value).toBe(0);
+    expect(projection.points[4]?.value).toBeCloseTo(9.0909091);
+  });
+
+  it("returns missing-baseline when fixed date is not available", () => {
+    const projection = projectRelativeChangeSeries(buildDatasetDetailFixture().observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "fixed",
+      fixedBaselineDate: "2024-02-01",
+      fixedSelectionMode: "date",
+      valueMode: "relative",
+    });
+
+    expect(projection.points.every((point) => point.value === null)).toBe(true);
+    expect(projection.points.every((point) => point.computability === "missing-baseline")).toBe(
+      true,
+    );
+  });
+
+  it("projects non-computable points as timeline gaps", () => {
+    const projection = projectRelativeChangeSeries(buildDatasetDetailFixture().observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 4,
+      valueMode: "relative",
+    });
+
+    const gapSeries = projectRelativeChangeGaps(projection.points);
+    expect(gapSeries).toHaveLength(buildDatasetDetailFixture().observations.length);
+    expect(gapSeries.every((point) => point.value === null)).toBe(true);
+  });
+
+  it("builds relative insight metrics in percent mode", () => {
+    const metrics = buildInsightMetrics(buildDatasetDetailFixture(), "ALL", {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 1,
+      valueMode: "relative",
+    });
+
+    expect(metrics[0]?.value).toContain("%");
+    expect(metrics[1]?.value).toContain("%");
+    expect(metrics[2]?.value).toContain("%");
+  });
+
+  it("returns no-computable relative insight fallback when baseline is unavailable", () => {
+    const metrics = buildInsightMetrics(buildDatasetDetailFixture(), "ALL", {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "fixed",
+      fixedBaselineDate: null,
+      fixedSelectionMode: "date",
+      valueMode: "relative",
+    });
+
+    expect(metrics[0]?.value).toBe("No computable relative points");
+    expect(metrics[1]?.value).toBe("--");
+    expect(metrics[2]?.value).toBe("--");
+  });
+
+  it("marks zero-baseline points as non-computable", () => {
+    const projection = projectRelativeChangeSeries(buildZeroBaselineFixture().observations, {
+      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
+      baselineMode: "rolling",
+      rollingOffset: 1,
+      valueMode: "relative",
+    });
+
+    expect(projection.points[1]?.computability).toBe("zero-baseline");
+    expect(projection.points[1]?.value).toBeNull();
   });
 });

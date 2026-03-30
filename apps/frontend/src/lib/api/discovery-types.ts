@@ -196,4 +196,17 @@ export interface ChartDataPoint {
   value: number;
 }
 
+export type ChartValueMode = "observed" | "relative";
+
+export type RelativeBaselineMode = "rolling" | "fixed";
+
+export type FixedBaselineSelectionMode = "date" | "offset";
+
+export type RelativeComputabilityState =
+  | "computable"
+  | "insufficient-history"
+  | "zero-baseline"
+  | "missing-baseline"
+  | "before-fixed-baseline";
+
 export const DISCOVERY_TYPES_SCHEMA_VERSION = "v1";

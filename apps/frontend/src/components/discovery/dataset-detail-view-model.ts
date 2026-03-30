@@ -1,9 +1,48 @@
-import type { DatasetDetail, ObservationPoint } from "../../lib/api/discovery-types";
+import type {
+  ChartValueMode,
+  DatasetDetail,
+  FixedBaselineSelectionMode,
+  ObservationPoint,
+  RelativeBaselineMode,
+  RelativeComputabilityState,
+} from "../../lib/api/discovery-types";
 
 export type TrendRangeKey = "1M" | "6M" | "1Y" | "5Y" | "ALL";
 
 export type MovementState = "positive" | "negative" | "neutral" | "unavailable";
 type UnitType = "usd" | "percent" | "number";
+
+export interface RelativeChangeSettings {
+  baselineMode: RelativeBaselineMode;
+  fixedBaselineDate: string | null;
+  fixedBaselineOffset: number;
+  fixedSelectionMode: FixedBaselineSelectionMode;
+  rollingOffset: number;
+  valueMode: ChartValueMode;
+}
+
+export interface RelativeChangePoint {
+  baselineObservedOn: string | null;
+  computability: RelativeComputabilityState;
+  observed_on: string;
+  value: number | null;
+}
+
+export interface RelativeChangeProjection {
+  availableDates: string[];
+  hasComputablePoints: boolean;
+  points: RelativeChangePoint[];
+  selectedFixedBaselineDate: string | null;
+}
+
+export const DEFAULT_RELATIVE_CHANGE_SETTINGS: RelativeChangeSettings = {
+  baselineMode: "rolling",
+  fixedBaselineDate: null,
+  fixedBaselineOffset: 12,
+  fixedSelectionMode: "offset",
+  rollingOffset: 1,
+  valueMode: "observed",
+};
 
 export interface InsightMetric {
   label: string;
@@ -66,6 +105,201 @@ export const formatObservedOn = (value: string): string => {
     timeZone: "UTC",
     year: "numeric",
   });
+};
+
+const toChronologicalObservations = (observations: ObservationPoint[]): ObservationPoint[] => {
+  return [...observations].sort((left, right) => {
+    const leftObserved = Date.parse(`${left.observed_on}T00:00:00Z`);
+    const rightObserved = Date.parse(`${right.observed_on}T00:00:00Z`);
+
+    if (
+      Number.isFinite(leftObserved) &&
+      Number.isFinite(rightObserved) &&
+      leftObserved !== rightObserved
+    ) {
+      return leftObserved - rightObserved;
+    }
+
+    const leftReported = Date.parse(left.reported_at);
+    const rightReported = Date.parse(right.reported_at);
+    if (
+      Number.isFinite(leftReported) &&
+      Number.isFinite(rightReported) &&
+      leftReported !== rightReported
+    ) {
+      return leftReported - rightReported;
+    }
+
+    return 0;
+  });
+};
+
+export const toRollingBaselineIndex = (currentIndex: number, rollingOffset: number): number => {
+  return currentIndex - rollingOffset;
+};
+
+export const computeRelativeChangePercent = (
+  currentValue: number,
+  baselineValue: number,
+): number | null => {
+  if (baselineValue === 0) {
+    return null;
+  }
+  return ((currentValue - baselineValue) / baselineValue) * 100;
+};
+
+const buildRollingRelativePoint = (
+  observations: ObservationPoint[],
+  index: number,
+  rollingOffset: number,
+): RelativeChangePoint => {
+  const observation = observations[index];
+  if (!observation) {
+    return {
+      baselineObservedOn: null,
+      computability: "missing-baseline",
+      observed_on: "",
+      value: null,
+    };
+  }
+
+  const baselineIndex = toRollingBaselineIndex(index, rollingOffset);
+  if (baselineIndex < 0) {
+    return {
+      baselineObservedOn: null,
+      computability: "insufficient-history",
+      observed_on: observation.observed_on,
+      value: null,
+    };
+  }
+
+  const baseline = observations[baselineIndex];
+  if (!baseline) {
+    return {
+      baselineObservedOn: null,
+      computability: "missing-baseline",
+      observed_on: observation.observed_on,
+      value: null,
+    };
+  }
+
+  const value = computeRelativeChangePercent(observation.value, baseline.value);
+  return {
+    baselineObservedOn: baseline.observed_on,
+    computability: value === null ? "zero-baseline" : "computable",
+    observed_on: observation.observed_on,
+    value,
+  };
+};
+
+const resolveFixedBaselineIndex = (
+  observations: ObservationPoint[],
+  settings: RelativeChangeSettings,
+): number | null => {
+  if (settings.fixedSelectionMode === "date") {
+    if (!settings.fixedBaselineDate) {
+      return null;
+    }
+
+    const index = observations.findIndex(
+      (observation) => observation.observed_on === settings.fixedBaselineDate,
+    );
+    return index >= 0 ? index : null;
+  }
+
+  const offset = Math.max(0, Math.floor(settings.fixedBaselineOffset));
+  const index = observations.length - 1 - offset;
+  return index >= 0 ? index : null;
+};
+
+const buildFixedRelativePoint = (
+  observations: ObservationPoint[],
+  index: number,
+  baselineIndex: number | null,
+): RelativeChangePoint => {
+  const observation = observations[index];
+  if (!observation) {
+    return {
+      baselineObservedOn: null,
+      computability: "missing-baseline",
+      observed_on: "",
+      value: null,
+    };
+  }
+
+  if (baselineIndex === null) {
+    return {
+      baselineObservedOn: null,
+      computability: "missing-baseline",
+      observed_on: observation.observed_on,
+      value: null,
+    };
+  }
+
+  const baseline = observations[baselineIndex];
+  if (!baseline) {
+    return {
+      baselineObservedOn: null,
+      computability: "missing-baseline",
+      observed_on: observation.observed_on,
+      value: null,
+    };
+  }
+
+  if (index < baselineIndex) {
+    return {
+      baselineObservedOn: baseline.observed_on,
+      computability: "before-fixed-baseline",
+      observed_on: observation.observed_on,
+      value: null,
+    };
+  }
+
+  const value = computeRelativeChangePercent(observation.value, baseline.value);
+  return {
+    baselineObservedOn: baseline.observed_on,
+    computability: value === null ? "zero-baseline" : "computable",
+    observed_on: observation.observed_on,
+    value,
+  };
+};
+
+export const projectRelativeChangeSeries = (
+  observations: ObservationPoint[],
+  settings: RelativeChangeSettings,
+): RelativeChangeProjection => {
+  const chronological = toChronologicalObservations(observations);
+  const availableDates = chronological.map((observation) => observation.observed_on);
+  const fixedBaselineIndex = resolveFixedBaselineIndex(chronological, settings);
+
+  const selectedFixedBaselineDate =
+    settings.fixedSelectionMode === "date"
+      ? settings.fixedBaselineDate
+      : fixedBaselineIndex !== null
+        ? (chronological[fixedBaselineIndex]?.observed_on ?? null)
+        : null;
+
+  const points = chronological.map((_, index) => {
+    if (settings.baselineMode === "rolling") {
+      const rollingOffset = Math.max(1, Math.floor(settings.rollingOffset));
+      return buildRollingRelativePoint(chronological, index, rollingOffset);
+    }
+
+    return buildFixedRelativePoint(chronological, index, fixedBaselineIndex);
+  });
+
+  return {
+    availableDates,
+    hasComputablePoints: points.some((point) => point.computability === "computable"),
+    points,
+    selectedFixedBaselineDate,
+  };
+};
+
+export const projectRelativeChangeGaps = (
+  points: RelativeChangePoint[],
+): Array<{ date: string; value: number | null }> => {
+  return points.map((point) => ({ date: point.observed_on, value: point.value }));
 };
 
 const normalizeUnitType = (value: unknown): UnitType | null => {
@@ -187,8 +421,9 @@ const getDerivedFrequencyLabel = (observations: ObservationPoint[]): string => {
 export const buildInsightMetrics = (
   detail: DatasetDetail,
   selectedRange: TrendRangeKey = "ALL",
+  settings: RelativeChangeSettings = DEFAULT_RELATIVE_CHANGE_SETTINGS,
 ): InsightMetric[] => {
-  const observations = detail.observations;
+  const observations = filterObservationRange(detail.observations, selectedRange);
   const windowLabelPrefix = RANGE_LABEL_PREFIX[selectedRange];
 
   if (observations.length === 0) {
@@ -201,6 +436,62 @@ export const buildInsightMetrics = (
 
   const unit = getUnit(detail);
   const unitType = getUnitType(detail);
+  if (settings.valueMode === "relative") {
+    const projection = projectRelativeChangeSeries(observations, settings);
+    const computable = projection.points.filter(
+      (point): point is RelativeChangePoint & { value: number } =>
+        point.computability === "computable" && point.value !== null,
+    );
+
+    if (computable.length === 0) {
+      return [
+        { label: "Latest Observation", value: "No computable relative points" },
+        { label: `${windowLabelPrefix} High`, value: "--" },
+        { label: `${windowLabelPrefix} Low`, value: "--" },
+      ];
+    }
+
+    const latestComputable = computable[computable.length - 1];
+    if (!latestComputable) {
+      return [
+        { label: "Latest Observation", value: "No computable relative points" },
+        { label: `${windowLabelPrefix} High`, value: "--" },
+        { label: `${windowLabelPrefix} Low`, value: "--" },
+      ];
+    }
+    const previousComputable = computable.length > 1 ? computable[computable.length - 2] : null;
+    const latestMovement =
+      previousComputable?.value !== undefined
+        ? latestComputable.value - previousComputable.value
+        : null;
+    const relativeMovementState =
+      latestMovement === null
+        ? undefined
+        : latestMovement > 0
+          ? "positive"
+          : latestMovement < 0
+            ? "negative"
+            : "neutral";
+
+    const high = Math.max(...computable.map((point) => point.value));
+    const low = Math.min(...computable.map((point) => point.value));
+
+    return [
+      {
+        label: "Latest Observation",
+        value: formatValue(latestComputable.value, "percent"),
+        ...(latestMovement === null
+          ? {}
+          : {
+              movementSummary: `${formatSigned(latestMovement, 3)} vs previous relative point`,
+              ...(relativeMovementState ? { movementState: relativeMovementState } : {}),
+            }),
+      },
+      { label: `${windowLabelPrefix} High`, value: formatValue(high, "percent") },
+      { label: `${windowLabelPrefix} Low`, value: formatValue(low, "percent") },
+    ];
+  }
+
   const latest = observations[observations.length - 1];
   if (!latest) {
     return [

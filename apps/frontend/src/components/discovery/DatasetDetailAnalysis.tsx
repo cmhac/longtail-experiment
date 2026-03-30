@@ -6,7 +6,11 @@ import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
 import { DatasetDetailInsights } from "./DatasetDetailInsights";
 import { ObservationsChart } from "./ObservationsChart";
-import type { TrendRangeKey } from "./dataset-detail-view-model";
+import {
+  DEFAULT_RELATIVE_CHANGE_SETTINGS,
+  type RelativeChangeSettings,
+  type TrendRangeKey,
+} from "./dataset-detail-view-model";
 
 interface DatasetDetailAnalysisProps {
   data: DatasetDetail;
@@ -14,13 +18,20 @@ interface DatasetDetailAnalysisProps {
 
 export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX.Element => {
   const [selectedRange, setSelectedRange] = React.useState<TrendRangeKey>("ALL");
+  const [relativeSettings, setRelativeSettings] = React.useState<RelativeChangeSettings>(
+    DEFAULT_RELATIVE_CHANGE_SETTINGS,
+  );
 
   return (
     <>
-      <DatasetDetailInsights data={data} selectedRange={selectedRange} />
+      <DatasetDetailInsights
+        data={data}
+        relativeSettings={relativeSettings}
+        selectedRange={selectedRange}
+      />
 
       <Card
-        className="grid h-full min-h-[24rem] min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
+        className="grid h-full min-h-96 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
         data-testid="dataset-detail-trend-section"
         variant="default"
       >
@@ -28,7 +39,9 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
           Historical Trend
         </h2>
         <ObservationsChart
+          onRelativeSettingsChange={setRelativeSettings}
           observations={data.observations}
+          relativeSettings={relativeSettings}
           onRangeChange={setSelectedRange}
           selectedRange={selectedRange}
           unitLabel={data.metadata.unit ?? data.metadata.units}

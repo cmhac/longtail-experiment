@@ -46,6 +46,7 @@ describe("dataset detail page", () => {
     expect(markup).toContain('class="dataset-detail-utility-actions"');
     expect(markup).toContain('href="/api/datasets/GAS.REG.CO.csv"');
     expect(markup).toContain('data-testid="observations-chart-controls"');
+    expect(markup).toContain('data-testid="observations-chart-mode-controls"');
     expect(markup).toContain('data-testid="observations-chart"');
     expect(markup).not.toContain('data-testid="observations-chart-footnote"');
     expect(markup).toContain('data-testid="observations-table"');

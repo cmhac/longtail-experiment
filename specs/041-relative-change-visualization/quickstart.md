@@ -33,6 +33,17 @@ Do not defer all work into one large commit.
 6. Run full required gates.
 7. Commit the stable slice.
 
+## Task-Level Verification Checklist
+
+Use this checklist for every task slice before marking it complete:
+
+- [ ] Tests were written or updated first and failed initially (red).
+- [ ] Minimal implementation was applied to satisfy the failing tests (green).
+- [ ] Related tests were rerun and passed.
+- [ ] Manual browser verification was completed for affected interactions.
+- [ ] Any unavailable/error/empty states touched by the change were verified.
+- [ ] Full commit gates were rerun before committing the slice.
+
 ## Required Gates Before Each Commit
 
 1. `pre-commit run --all-files`

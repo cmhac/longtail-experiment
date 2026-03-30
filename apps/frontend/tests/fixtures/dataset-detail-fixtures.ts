@@ -107,3 +107,53 @@ export const buildLimitedHistoryDatasetDetailFixture = (): DatasetDetail => {
 export const buildNoObservationsDatasetDetailFixture = (): DatasetDetail => {
   return buildDatasetDetailFixture({ observations: [] });
 };
+
+export const buildRelativeChangeFixture = (): DatasetDetail => {
+  return buildDatasetDetailFixture({
+    observations: [
+      {
+        observed_on: "2024-01-01",
+        value: 100,
+        reported_at: "2024-01-01T00:00:00Z",
+        attributes: {},
+      },
+      {
+        observed_on: "2024-01-08",
+        value: 110,
+        reported_at: "2024-01-08T00:00:00Z",
+        attributes: {},
+      },
+      {
+        observed_on: "2024-01-15",
+        value: 121,
+        reported_at: "2024-01-15T00:00:00Z",
+        attributes: {},
+      },
+      {
+        observed_on: "2024-01-22",
+        value: 100,
+        reported_at: "2024-01-22T00:00:00Z",
+        attributes: {},
+      },
+    ],
+  });
+};
+
+export const buildZeroBaselineFixture = (): DatasetDetail => {
+  return buildDatasetDetailFixture({
+    observations: [
+      {
+        observed_on: "2024-01-01",
+        value: 0,
+        reported_at: "2024-01-01T00:00:00Z",
+        attributes: {},
+      },
+      {
+        observed_on: "2024-01-08",
+        value: 10,
+        reported_at: "2024-01-08T00:00:00Z",
+        attributes: {},
+      },
+    ],
+  });
+};
