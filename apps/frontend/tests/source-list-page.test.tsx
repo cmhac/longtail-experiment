@@ -22,10 +22,14 @@ describe("source list page", () => {
     expect(markup).toContain('data-testid="source-list-page"');
     expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('data-testid="source-catalog-list"');
+    expect(markup).toContain('data-testid="discovery-feed-list-wrapper"');
     expect(markup).toContain("Federal Reserve Economic Data");
     expect(markup).toContain("Economic time series published by the St. Louis Fed.");
     expect(markup).toContain("2 datasets");
     expect(markup).toContain('href="/sources/fred"');
+    expect(markup).toContain('data-testid="discovery-feed-list-row"');
+    expect(markup).toContain('data-testid="discovery-feed-list-display-category"');
+    expect(markup).toContain('data-testid="discovery-feed-list-update-date"');
   });
 
   it("renders explicit empty state when no sources are available", async () => {

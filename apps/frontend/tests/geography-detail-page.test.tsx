@@ -37,6 +37,7 @@ describe("geography detail page", () => {
     expect(markup).toContain('data-testid="geography-detail-header"');
     expect(markup).toContain("page-header-wrapper");
     expect(markup).toContain('href="/datasets/CPIAUCSL"');
+    expect(markup).toContain('data-testid="discovery-feed-list-wrapper"');
   });
 
   it("renders explicit no-datasets state for valid geographies with no datasets", async () => {
