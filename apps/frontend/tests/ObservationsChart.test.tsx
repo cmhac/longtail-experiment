@@ -29,6 +29,7 @@ vi.mock("recharts", () => {
       tickFormatter?: (value: number) => string;
       width?: number;
       height?: number;
+      data?: Array<{ date?: string }>;
     }) => {
       const tickSample =
         name === "YAxis" && typeof props.tickFormatter === "function"
@@ -46,6 +47,16 @@ vi.mock("recharts", () => {
           data-has-content={name === "Tooltip" ? String(Boolean(props.content)) : undefined}
           data-min-tick-gap={name === "XAxis" ? String(props.minTickGap) : undefined}
           data-recharts={name}
+          data-series-first-date={
+            name === "LineChart" && Array.isArray(props.data) && props.data[0]?.date
+              ? String(props.data[0].date)
+              : undefined
+          }
+          data-series-length={
+            name === "LineChart" && Array.isArray(props.data)
+              ? String(props.data.length)
+              : undefined
+          }
           data-stroke={name === "Line" ? props.stroke : undefined}
           data-stroke-width={
             name === "Line" && typeof props.strokeWidth === "number"
@@ -282,6 +293,56 @@ describe("ObservationsChart", () => {
 
     const nextDateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
     expect(nextDateSelect.value).toBe(relativeSettings.fixedBaselineDate);
-    expect(chart.getByTestId("relative-change-unavailable")).toBeDefined();
+    expect(chart.queryByTestId("relative-change-unavailable")).toBeNull();
+    expect(chart.getByTestId("fixed-baseline-note")).toBeDefined();
+  });
+
+  it("disables year filter buttons when fixed baseline mode is active", () => {
+    const fixture = buildLongHistoryDatasetDetailFixture();
+    const { container } = render(
+      <ObservationsChart
+        observations={fixture.observations}
+        relativeSettings={{
+          baselineMode: "fixed",
+          fixedBaselineDate: fixture.observations[0]?.observed_on ?? null,
+          fixedBaselineOffset: 12,
+          fixedSelectionMode: "date",
+          rollingOffset: 1,
+          valueMode: "relative",
+        }}
+        selectedRange="1M"
+      />,
+    );
+    const chart = within(container);
+    const rangeButtons = within(chart.getByTestId("observations-chart-controls")).getAllByRole(
+      "button",
+    );
+
+    for (const button of rangeButtons) {
+      expect(button.getAttribute("disabled")).not.toBeNull();
+    }
+  });
+
+  it("starts fixed baseline chart timeline at the selected baseline date", () => {
+    const fixture = buildLongHistoryDatasetDetailFixture();
+    const baselineDate = fixture.observations[0]?.observed_on ?? null;
+
+    const markup = renderMarkup(
+      <ObservationsChart
+        observations={fixture.observations}
+        relativeSettings={{
+          baselineMode: "fixed",
+          fixedBaselineDate: baselineDate,
+          fixedBaselineOffset: 12,
+          fixedSelectionMode: "date",
+          rollingOffset: 1,
+          valueMode: "relative",
+        }}
+        selectedRange="1M"
+      />,
+    );
+
+    expect(markup).toContain(`data-series-first-date="${baselineDate}"`);
+    expect(markup).toContain('data-testid="fixed-baseline-note"');
   });
 });

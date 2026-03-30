@@ -108,12 +108,21 @@ const toRelativeChartData = (
   availableDates: string[];
   chartData: ObservationChartPoint[];
   hasComputablePoints: boolean;
+  selectedFixedBaselineDate: string | null;
 } => {
   const projection = projectRelativeChangeSeries(observations, settings);
+  const baselineStartIndex =
+    settings.baselineMode === "fixed" && projection.selectedFixedBaselineDate
+      ? projection.points.findIndex(
+          (point) => point.observed_on === projection.selectedFixedBaselineDate,
+        )
+      : -1;
+  const projectedPoints =
+    baselineStartIndex >= 0 ? projection.points.slice(baselineStartIndex) : projection.points;
 
   return {
     availableDates: projection.availableDates,
-    chartData: projection.points.map((point) => {
+    chartData: projectedPoints.map((point) => {
       const valueLabel = point.value === null ? "Unavailable" : formatPercentValue(point.value);
 
       return {
@@ -128,6 +137,7 @@ const toRelativeChartData = (
       };
     }),
     hasComputablePoints: projection.hasComputablePoints,
+    selectedFixedBaselineDate: projection.selectedFixedBaselineDate,
   };
 };
 
@@ -221,16 +231,21 @@ export const ObservationsChart = ({
   const preferredRange = selectedRange ?? internalRange;
   const activeRange = availableRanges.includes(preferredRange) ? preferredRange : "ALL";
   const settings = relativeSettings ?? internalRelativeSettings;
+  const isFixedBaselineActive =
+    settings.valueMode === "relative" && settings.baselineMode === "fixed";
 
   if (observations.length === 0) {
     return <EmptyState message="No observation data available" />;
   }
 
-  const filtered = filterObservationRange(observations, activeRange);
+  const filtered = isFixedBaselineActive
+    ? observations
+    : filterObservationRange(observations, activeRange);
   const {
     availableDates: relativeAvailableDates,
     chartData: relativeChartData,
     hasComputablePoints,
+    selectedFixedBaselineDate,
   } = toRelativeChartData(filtered, settings);
   const chartData =
     settings.valueMode === "relative"
@@ -317,9 +332,13 @@ export const ObservationsChart = ({
           {availableRanges.map((range) => (
             <button
               aria-pressed={activeRange === range}
-              className="cursor-pointer border border-(--shell-border) bg-(--shell-surface) px-[0.52rem] py-[0.2rem] text-[0.68rem] tracking-[0.06em] aria-pressed:border-(--shell-foreground) aria-pressed:bg-(--shell-foreground) aria-pressed:text-(--shell-surface)"
+              className={`cursor-pointer border border-(--shell-border) bg-(--shell-surface) px-[0.52rem] py-[0.2rem] text-[0.68rem] tracking-[0.06em] aria-pressed:border-(--shell-foreground) aria-pressed:bg-(--shell-foreground) aria-pressed:text-(--shell-surface) ${isFixedBaselineActive ? "cursor-not-allowed opacity-45" : ""}`}
+              disabled={isFixedBaselineActive}
               key={range}
               onClick={() => {
+                if (isFixedBaselineActive) {
+                  return;
+                }
                 handleRangeChange(range);
               }}
               type="button"
@@ -456,6 +475,11 @@ export const ObservationsChart = ({
           data-testid="relative-change-unavailable"
         >
           Selected baseline is unavailable for the current scope.
+        </p>
+      ) : null}
+      {isFixedBaselineActive && selectedFixedBaselineDate ? (
+        <p className="mb-2 text-(--shell-muted) text-[0.78rem]" data-testid="fixed-baseline-note">
+          Chart starts at selected baseline observation.
         </p>
       ) : null}
       <div className="w-full min-w-0 flex-1" ref={chartContainerRef}>
