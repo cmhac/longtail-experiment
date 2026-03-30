@@ -147,6 +147,43 @@ describe("DatasetListControls", () => {
     expect(screen.getByTestId("dataset-source-filter")).toBeTruthy();
     expect(screen.getByTestId("dataset-category-filter")).toBeTruthy();
     expect(screen.getByTestId("dataset-sort-control")).toBeTruthy();
+    expect((screen.getByTestId("dataset-source-filter-input") as HTMLInputElement).value).toBe(
+      "All Sources",
+    );
+    expect((screen.getByTestId("dataset-category-filter-input") as HTMLInputElement).value).toBe(
+      "All Categories",
+    );
+    expect((screen.getByTestId("dataset-sort-control-input") as HTMLInputElement).value).toBe(
+      "Recency",
+    );
+  });
+
+  it("shows preselected values in combobox inputs", () => {
+    render(
+      <DatasetListControls
+        categoryOptions={[
+          { label: "All Categories", value: "all" },
+          { label: "energy", value: "energy" },
+        ]}
+        selectedCategory="energy"
+        selectedSort="title_desc"
+        selectedSource="eia"
+        sourceOptions={[
+          { label: "All Sources", value: "all" },
+          { label: "EIA", value: "eia" },
+        ]}
+      />,
+    );
+
+    expect((screen.getByTestId("dataset-source-filter-input") as HTMLInputElement).value).toBe(
+      "EIA",
+    );
+    expect((screen.getByTestId("dataset-category-filter-input") as HTMLInputElement).value).toBe(
+      "energy",
+    );
+    expect((screen.getByTestId("dataset-sort-control-input") as HTMLInputElement).value).toBe(
+      "Title (Z-A)",
+    );
   });
 
   it("updates source filter query param on selection", () => {

@@ -36,6 +36,11 @@ interface ComboBoxControlProps {
   onSelect: (value: string) => void;
 }
 
+const resolveSelectedLabel = (options: FilterOption[], selectedValue: string): string => {
+  const selectedOption = options.find((option) => option.value === selectedValue);
+  return selectedOption?.label ?? "";
+};
+
 const createNextUrl = (pathname: string, params: URLSearchParams): string => {
   const query = params.toString();
   return query.length > 0 ? `${pathname}?${query}` : pathname;
@@ -48,12 +53,35 @@ export const DatasetListControls = ({
   selectedCategory,
   selectedSort,
 }: DatasetListControlsProps): JSX.Element => {
+  const sortOptions: FilterOption[] = [
+    { value: "recency", label: "Recency" },
+    { value: "title_asc", label: "Title (A-Z)" },
+    { value: "title_desc", label: "Title (Z-A)" },
+  ];
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [sourceInputValue, setSourceInputValue] = React.useState("");
-  const [categoryInputValue, setCategoryInputValue] = React.useState("");
-  const [sortInputValue, setSortInputValue] = React.useState("");
+  const [sourceInputValue, setSourceInputValue] = React.useState(() =>
+    resolveSelectedLabel(sourceOptions, selectedSource),
+  );
+  const [categoryInputValue, setCategoryInputValue] = React.useState(() =>
+    resolveSelectedLabel(categoryOptions, selectedCategory),
+  );
+  const [sortInputValue, setSortInputValue] = React.useState(() =>
+    resolveSelectedLabel(sortOptions, selectedSort),
+  );
+
+  React.useEffect(() => {
+    setSourceInputValue(resolveSelectedLabel(sourceOptions, selectedSource));
+  }, [sourceOptions, selectedSource]);
+
+  React.useEffect(() => {
+    setCategoryInputValue(resolveSelectedLabel(categoryOptions, selectedCategory));
+  }, [categoryOptions, selectedCategory]);
+
+  React.useEffect(() => {
+    setSortInputValue(resolveSelectedLabel(sortOptions, selectedSort));
+  }, [selectedSort]);
 
   const applyParam = (key: string, value: string, defaultValue: string): void => {
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -81,11 +109,13 @@ export const DatasetListControls = ({
     onInputChange,
     onSelect,
   }: ComboBoxControlProps): JSX.Element => {
+    const selectedLabel = resolveSelectedLabel(options, selectedValue);
     const normalizedInput = inputValue.trim().toLowerCase();
-    const filteredOptions =
-      normalizedInput.length === 0
-        ? options
-        : options.filter((option) => option.label.toLowerCase().includes(normalizedInput));
+    const normalizedSelectedLabel = selectedLabel.trim().toLowerCase();
+    const shouldFilter = normalizedInput.length > 0 && normalizedInput !== normalizedSelectedLabel;
+    const filteredOptions = shouldFilter
+      ? options.filter((option) => option.label.toLowerCase().includes(normalizedInput))
+      : options;
     const noMatchValue = `${id}-no-match`;
     const renderedOptions =
       filteredOptions.length > 0
@@ -110,16 +140,17 @@ export const DatasetListControls = ({
           onInputChange={onInputChange}
           onSelectionChange={(key) => {
             if (typeof key === "string" && key !== noMatchValue) {
+              onInputChange(resolveSelectedLabel(options, key));
               onSelect(key);
             }
           }}
           selectedKey={selectedValue}
         >
           <ComboBox.InputGroup
-            className="box-border overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface) transition-[border-width,border-color] duration-150 focus-within:border-(--shell-foreground) focus-within:border-2"
+            className="box-border overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface) transition-[border-width,border-color] duration-150 focus-within:border-(--shell-foreground) focus-within:border-2 focus-within:ring-0"
             data-testid={`${testId}-input-group`}
           >
-            <Input className="min-h-8 border-0 bg-transparent px-[0.45rem] py-[0.28rem] text-(--shell-foreground)" />
+            <Input className="min-h-8 truncate border-0 bg-transparent py-[0.28rem] pr-[2.15rem] pl-[0.45rem] text-(--shell-foreground) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0" />
             <ComboBox.Trigger
               aria-label={`Open ${label} options`}
               className="min-w-[2.15rem] px-[0.45rem] text-(--shell-muted)"
@@ -139,7 +170,7 @@ export const DatasetListControls = ({
                   </ListBoxItem>
                 ) : (
                   <ListBoxItem
-                    className="text-(--shell-foreground) data-[focus-visible=true]:bg-(--shell-background) data-[hover=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focus-visible=true]:text-(--shell-foreground) data-[hover=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
+                    className="text-(--shell-foreground) data-[focused=true]:bg-(--shell-background) data-[hovered=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focused=true]:text-(--shell-foreground) data-[hovered=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
                     id={option.value}
                     key={option.value}
                     textValue={option.label}
@@ -196,11 +227,7 @@ export const DatasetListControls = ({
         {renderComboBox({
           id: "dataset-sort-control",
           label: "Sort By",
-          options: [
-            { value: "recency", label: "Recency" },
-            { value: "title_asc", label: "Title (A-Z)" },
-            { value: "title_desc", label: "Title (Z-A)" },
-          ],
+          options: sortOptions,
           inputValue: sortInputValue,
           selectedValue: selectedSort,
           testId: "dataset-sort-control",
