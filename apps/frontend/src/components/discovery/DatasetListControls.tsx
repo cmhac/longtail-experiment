@@ -28,8 +28,11 @@ interface ComboBoxControlProps {
   id: string;
   label: string;
   options: FilterOption[];
+  inputValue: string;
   selectedValue: string;
   testId: string;
+  noMatchLabel: string;
+  onInputChange: (value: string) => void;
   onSelect: (value: string) => void;
 }
 
@@ -48,6 +51,9 @@ export const DatasetListControls = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [sourceInputValue, setSourceInputValue] = React.useState("");
+  const [categoryInputValue, setCategoryInputValue] = React.useState("");
+  const [sortInputValue, setSortInputValue] = React.useState("");
 
   const applyParam = (key: string, value: string, defaultValue: string): void => {
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -68,10 +74,24 @@ export const DatasetListControls = ({
     id,
     label,
     options,
+    inputValue,
     selectedValue,
     testId,
+    noMatchLabel,
+    onInputChange,
     onSelect,
   }: ComboBoxControlProps): JSX.Element => {
+    const normalizedInput = inputValue.trim().toLowerCase();
+    const filteredOptions =
+      normalizedInput.length === 0
+        ? options
+        : options.filter((option) => option.label.toLowerCase().includes(normalizedInput));
+    const noMatchValue = `${id}-no-match`;
+    const renderedOptions =
+      filteredOptions.length > 0
+        ? filteredOptions
+        : [{ value: noMatchValue, label: noMatchLabel } satisfies FilterOption];
+
     return (
       <label
         className="dataset-list-control-group grid w-full min-w-0 gap-[0.3rem] md:w-[min(100%,12.5rem)]"
@@ -85,31 +105,49 @@ export const DatasetListControls = ({
           className="w-full"
           data-testid={testId}
           id={id}
-          items={options}
+          inputValue={inputValue}
+          items={renderedOptions}
+          onInputChange={onInputChange}
           onSelectionChange={(key) => {
-            if (typeof key === "string") {
+            if (typeof key === "string" && key !== noMatchValue) {
               onSelect(key);
             }
           }}
           selectedKey={selectedValue}
         >
-          <ComboBox.InputGroup className="overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface)">
-            <Input
-              className="min-h-8 border-0 bg-transparent px-[0.45rem] py-[0.28rem] text-[var(--shell-foreground)]"
-              data-testid={testId}
-            />
+          <ComboBox.InputGroup
+            className="box-border overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface) transition-[border-width,border-color] duration-150 focus-within:border-(--shell-foreground) focus-within:border-2"
+            data-testid={`${testId}-input-group`}
+          >
+            <Input className="min-h-8 border-0 bg-transparent px-[0.45rem] py-[0.28rem] text-(--shell-foreground)" />
             <ComboBox.Trigger
               aria-label={`Open ${label} options`}
               className="min-w-[2.15rem] px-[0.45rem] text-(--shell-muted)"
             />
           </ComboBox.InputGroup>
-          <ComboBox.Popover>
+          <ComboBox.Popover className="rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface)">
             <ListBox>
-              {(option: FilterOption) => (
-                <ListBoxItem id={option.value} key={option.value} textValue={option.label}>
-                  {option.label}
-                </ListBoxItem>
-              )}
+              {(option: FilterOption) =>
+                option.value === noMatchValue ? (
+                  <ListBoxItem
+                    className="pointer-events-none cursor-default text-(--shell-muted)"
+                    id={option.value}
+                    key={option.value}
+                    textValue={noMatchLabel}
+                  >
+                    {noMatchLabel}
+                  </ListBoxItem>
+                ) : (
+                  <ListBoxItem
+                    className="text-(--shell-foreground) data-[focus-visible=true]:bg-(--shell-background) data-[hover=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focus-visible=true]:text-(--shell-foreground) data-[hover=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
+                    id={option.value}
+                    key={option.value}
+                    textValue={option.label}
+                  >
+                    {option.label}
+                  </ListBoxItem>
+                )
+              }
             </ListBox>
           </ComboBox.Popover>
         </ComboBox>
@@ -130,8 +168,11 @@ export const DatasetListControls = ({
           id: "dataset-source-filter",
           label: "Source",
           options: sourceOptions,
+          inputValue: sourceInputValue,
           selectedValue: selectedSource,
           testId: "dataset-source-filter",
+          noMatchLabel: "No matching sources",
+          onInputChange: setSourceInputValue,
           onSelect: (value) => applyParam("source", value, DEFAULT_SOURCE),
         })}
 
@@ -139,8 +180,11 @@ export const DatasetListControls = ({
           id: "dataset-category-filter",
           label: "Category",
           options: categoryOptions,
+          inputValue: categoryInputValue,
           selectedValue: selectedCategory,
           testId: "dataset-category-filter",
+          noMatchLabel: "No matching categories",
+          onInputChange: setCategoryInputValue,
           onSelect: (value) => applyParam("category", value, DEFAULT_CATEGORY),
         })}
       </div>
@@ -157,8 +201,11 @@ export const DatasetListControls = ({
             { value: "title_asc", label: "Title (A-Z)" },
             { value: "title_desc", label: "Title (Z-A)" },
           ],
+          inputValue: sortInputValue,
           selectedValue: selectedSort,
           testId: "dataset-sort-control",
+          noMatchLabel: "No matching sort modes",
+          onInputChange: setSortInputValue,
           onSelect: (value) => applyParam("sort", value, DEFAULT_SORT),
         })}
       </div>

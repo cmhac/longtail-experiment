@@ -97,4 +97,55 @@ describe("InfiniteCatalogList", () => {
 
     expect(screen.getByTestId("discovery-feed-list-wrapper")).toBeTruthy();
   });
+
+  it("resets rendered rows when request query changes", async () => {
+    const { rerender } = render(
+      <InfiniteCatalogList
+        emptyMessage="No data"
+        initialItems={[
+          {
+            dataset_id: "EIA.OLD",
+            source: { id: "eia", name: "EIA" },
+            title: "Old Filter Row",
+            description: null,
+            geographic_scope: "US",
+            topic_tags: [],
+            latest_update_at: "2026-03-01T00:00:00Z",
+          },
+        ]}
+        initialPage={1}
+        initialTotalPages={1}
+        requestPath="/api/discovery/datasets"
+        requestQuery={{ source: "eia" }}
+      />,
+    );
+
+    expect(screen.getByText("Old Filter Row")).toBeTruthy();
+
+    rerender(
+      <InfiniteCatalogList
+        emptyMessage="No data"
+        initialItems={[
+          {
+            dataset_id: "BLS.NEW",
+            source: { id: "bls", name: "BLS" },
+            title: "New Filter Row",
+            description: null,
+            geographic_scope: "US",
+            topic_tags: [],
+            latest_update_at: "2026-03-01T00:00:00Z",
+          },
+        ]}
+        initialPage={1}
+        initialTotalPages={1}
+        requestPath="/api/discovery/datasets"
+        requestQuery={{ source: "bls" }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText("Old Filter Row")).toBeNull();
+      expect(screen.getByText("New Filter Row")).toBeTruthy();
+    });
+  });
 });

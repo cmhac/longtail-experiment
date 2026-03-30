@@ -162,3 +162,10 @@ apps/
 ## Complexity Tracking
 
 No constitution violations requiring justification.
+
+## Execution Log
+
+- 2026-03-30 Checkpoint A complete: backend/frontend filter-state normalization and stale-row reset implemented; targeted backend/frontend regression tests added and passing.
+- 2026-03-30 Checkpoint B complete: combobox typed narrowing, explicit no-match states, and selection parity implemented with interaction tests.
+- 2026-03-30 Checkpoint C complete: dark-mode hover readability and thicker active border treatment implemented with UI-state assertions.
+- 2026-03-30 Checkpoint D complete: manual compose-backed API verification plus full quality gates (`pre-commit run --all-files`, `pnpm exec nx run-many -t test --all`, `pnpm exec nx run-many -t coverage --all`) passing.

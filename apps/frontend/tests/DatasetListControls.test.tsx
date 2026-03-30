@@ -14,44 +14,69 @@ vi.mock("@heroui/react", () => {
   }
 
   interface MockComboBoxProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     "data-testid"?: string;
+    inputValue?: string;
     items?: MockComboBoxItem[];
+    onInputChange?: (value: string) => void;
     onSelectionChange?: (value: string) => void;
     selectedKey?: string;
   }
 
   const ComboBoxRoot = ({
+    inputValue,
+    children,
     items,
     "data-testid": dataTestId,
+    onInputChange,
     onSelectionChange,
     selectedKey,
   }: MockComboBoxProps) => {
     const options = items ?? [];
 
     return (
-      <select
-        data-testid={String(dataTestId ?? "dataset-combobox")}
-        onChange={(event) => onSelectionChange?.(event.target.value)}
-        value={selectedKey ?? ""}
-      >
-        {options.map((item) => (
-          <option key={item.value} value={item.value}>
-            {item.label}
-          </option>
-        ))}
-      </select>
+      <div data-testid={`${String(dataTestId ?? "dataset-combobox")}-root`}>
+        <input
+          data-testid={`${String(dataTestId ?? "dataset-combobox")}-input`}
+          onChange={(event) => onInputChange?.(event.target.value)}
+          value={inputValue ?? ""}
+        />
+        <select
+          data-testid={String(dataTestId ?? "dataset-combobox")}
+          onChange={(event) => onSelectionChange?.(event.target.value)}
+          value={selectedKey ?? ""}
+        >
+          {options.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        {children}
+      </div>
     );
   };
 
-  const Input = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
-  const ListBox = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-  const ListBoxItem = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+  const Input = ({ children, ...props }: { children?: React.ReactNode }) => (
+    <div {...props}>{children}</div>
+  );
+  const ListBox = ({ children, ...props }: { children: React.ReactNode }) => (
+    <div {...props}>{children}</div>
+  );
+  const ListBoxItem = ({ children, ...props }: { children: React.ReactNode }) => (
+    <div {...props}>{children}</div>
+  );
   const ComboBox = Object.assign(ComboBoxRoot, {
     Root: ComboBoxRoot,
-    InputGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-    Trigger: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    InputGroup: ({ children, ...props }: { children: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
+    Trigger: ({ children, ...props }: { children?: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
+    Popover: ({ children, ...props }: { children: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
   });
 
   return {
@@ -263,5 +288,52 @@ describe("DatasetListControls", () => {
     expect(screen.getByTestId("dataset-sort-right-group").className).toContain(
       "dataset-list-controls-right-group",
     );
+  });
+
+  it("narrows source options while typing", () => {
+    render(
+      <DatasetListControls
+        categoryOptions={[
+          { label: "All Categories", value: "all" },
+          { label: "energy", value: "energy" },
+        ]}
+        selectedCategory="all"
+        selectedSort="recency"
+        selectedSource="all"
+        sourceOptions={[
+          { label: "All Sources", value: "all" },
+          { label: "EIA", value: "eia" },
+          { label: "BLS", value: "bls" },
+        ]}
+      />,
+    );
+
+    fireEvent.change(screen.getByTestId("dataset-source-filter-input"), {
+      target: { value: "ei" },
+    });
+
+    const sourceSelect = screen.getByTestId("dataset-source-filter") as HTMLSelectElement;
+    expect(Array.from(sourceSelect.options).map((option) => option.textContent)).toEqual(["EIA"]);
+  });
+
+  it("shows an explicit no-match option when combobox query has no matches", () => {
+    renderControls();
+
+    fireEvent.change(screen.getByTestId("dataset-category-filter-input"), {
+      target: { value: "housing" },
+    });
+
+    const categorySelect = screen.getByTestId("dataset-category-filter") as HTMLSelectElement;
+    expect(Array.from(categorySelect.options).map((option) => option.textContent)).toEqual([
+      "No matching categories",
+    ]);
+  });
+
+  it("keeps thicker active-state border class hooks on combobox input groups", () => {
+    renderControls();
+
+    const sourceInputGroup = screen.getByTestId("dataset-source-filter-input-group");
+    expect(sourceInputGroup.className).toContain("focus-within:border-2");
+    expect(sourceInputGroup.className).toContain("border-(--shell-border)");
   });
 });

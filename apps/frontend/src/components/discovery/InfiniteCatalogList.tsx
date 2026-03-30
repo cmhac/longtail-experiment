@@ -50,6 +50,20 @@ export const InfiniteCatalogList = ({
 
   const hasMore = currentPage < totalPages;
   const stableQuery = useMemo(() => requestQuery ?? {}, [requestQuery]);
+  const requestSignature = useMemo(
+    () => `${requestPath}?${new URLSearchParams(stableQuery).toString()}`,
+    [requestPath, stableQuery],
+  );
+
+  useEffect(() => {
+    // Reset paging state whenever server-provided payload context changes.
+    void requestSignature;
+    setItems(initialItems);
+    setCurrentPage(initialPage);
+    setTotalPages(initialTotalPages);
+    setLoadError(false);
+    setLoading(false);
+  }, [initialItems, initialPage, initialTotalPages, requestSignature]);
 
   useEffect(() => {
     if (!hasMore || loading) {

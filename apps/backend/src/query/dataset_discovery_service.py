@@ -28,6 +28,16 @@ CATALOG_SORT_KEYS = {
     "title_desc": "title_desc,dataset_id_desc",
 }
 
+
+def _normalize_catalog_filter_value(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    if normalized == "" or normalized.lower() == "all":
+        return None
+    return normalized
+
+
 # Discovery pagination rollout checklist: keep metadata fields and semantics
 # consistent across all list routes as pagination support expands.
 
@@ -315,10 +325,12 @@ class DatasetDiscoveryService:
         normalized_page_size = normalize_page_size(
             raw_page_size if isinstance(raw_page_size, int) else None
         )
-        normalized_source = raw_source.strip() if isinstance(raw_source, str) else None
-        normalized_category = raw_category.strip() if isinstance(raw_category, str) else None
+        normalized_source = _normalize_catalog_filter_value(raw_source)
+        normalized_category = _normalize_catalog_filter_value(raw_category)
         normalized_sort = (
-            raw_sort.strip() if isinstance(raw_sort, str) and raw_sort.strip() else "recency"
+            raw_sort.strip().lower()
+            if isinstance(raw_sort, str) and raw_sort.strip()
+            else "recency"
         )
         if normalized_sort not in CATALOG_SORT_KEYS:
             normalized_sort = "recency"

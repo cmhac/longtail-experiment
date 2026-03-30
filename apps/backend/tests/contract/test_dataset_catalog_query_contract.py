@@ -138,3 +138,28 @@ def test_catalog_rejects_out_of_bounds_page_inputs() -> None:
             },
             group_by_source=False,
         )
+
+
+def test_catalog_treats_all_filters_as_unset_and_normalizes_sort_case() -> None:
+    datasets, observations = build_discovery_rows()
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=observations,
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = service.list_catalog(
+        query_text=None,
+        options={
+            "source_id": " all ",
+            "category": "all",
+            "sort": "TITLE_ASC",
+            "page": 1,
+            "page_size": 20,
+        },
+        group_by_source=False,
+    )
+
+    assert response["items"]
+    assert response["total_items"] == len(datasets)
+    assert response["sort"] == "title_asc,dataset_id_asc"

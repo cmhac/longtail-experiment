@@ -410,4 +410,32 @@ describe("datasets page", () => {
       sort: "recency",
     });
   });
+
+  it("treats all filter sentinels as unset request params", async () => {
+    const catalogSpy = vi.spyOn(discoveryClient, "fetchDatasetCatalog").mockResolvedValue({
+      items: [CATALOG_ITEMS[0] as DatasetSummary],
+      groups: null,
+      aggregations: {
+        total_dataset_count: 14282,
+        sources: [{ source: { id: "eia", name: "EIA" }, dataset_count: 1 }],
+        categories: [{ value: "energy", dataset_count: 1 }],
+      },
+      page: 1,
+      page_size: 20,
+      total_items: 1,
+      total_pages: 1,
+      sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+    });
+
+    await CatalogPage({
+      searchParams: Promise.resolve({ source: "all", category: " all ", sort: "recency" }),
+    });
+
+    expect(catalogSpy).toHaveBeenCalledWith({
+      page: 1,
+      source: undefined,
+      category: undefined,
+      sort: "recency",
+    });
+  });
 });

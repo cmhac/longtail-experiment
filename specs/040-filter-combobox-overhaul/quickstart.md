@@ -59,3 +59,10 @@ Frontend:
 - Filter selections change dataset results instead of only changing the URL.
 - Typing inside the comboboxes narrows visible options locally and predictably.
 - Dark-mode option hover and active combobox states remain readable and consistent.
+
+## Implementation Notes (2026-03-30)
+
+- Catalog filter normalization now treats sentinel values (such as `all`) as unset across backend service/repository handling.
+- Infinite list state now resets when filter query context changes, preventing stale rows from persisting after source/category/sort updates.
+- Source/category comboboxes now narrow option lists by typed input, show explicit no-match options, and restore full lists when input is cleared.
+- Combobox active state now uses a thicker focus border, and dark-mode option hover text is forced to readable foreground contrast.

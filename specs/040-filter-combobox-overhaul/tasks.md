@@ -9,10 +9,10 @@
 
 **Purpose**: Prepare verification baseline and feature scaffolding for backend/frontend filter work.
 
-- [ ] T001 Capture current regression baseline and failing scenarios in specs/040-filter-combobox-overhaul/quickstart.md
-- [ ] T002 Create feature task execution log and checkpoint plan in specs/040-filter-combobox-overhaul/plan.md
-- [ ] T003 [P] Add backend test matrix placeholders for filter/sort combinations in apps/backend/tests/contract/test_filter_matrix_queries.py
-- [ ] T004 [P] Add frontend interaction test placeholders for dataset filters in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T001 Capture current regression baseline and failing scenarios in specs/040-filter-combobox-overhaul/quickstart.md
+- [X] T002 Create feature task execution log and checkpoint plan in specs/040-filter-combobox-overhaul/plan.md
+- [X] T003 [P] Add backend test matrix placeholders for filter/sort combinations in apps/backend/tests/contract/test_filter_matrix_queries.py
+- [X] T004 [P] Add frontend interaction test placeholders for dataset filters in apps/frontend/tests/DatasetListControls.test.tsx
 
 ---
 
@@ -20,11 +20,11 @@
 
 **Purpose**: Build shared filter-state invariants and contracts that all user stories rely on.
 
-- [ ] T005 Define and enforce dataset filter-state normalization (`source`, `category`, `sort`, `page`) in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T006 [P] Align backend catalog query contract fields with normalized filter-state expectations in apps/backend/src/contract/query/dataset_catalog_query.py
-- [ ] T007 [P] Align frontend discovery request typing for filter-state parity in apps/frontend/src/lib/api/discovery-types.ts
-- [ ] T008 Add URL-to-request filter mapping guardrails in apps/frontend/src/app/datasets/page.tsx
-- [ ] T009 Add cross-layer stale-results prevention assertions in apps/frontend/tests/datasets-page.test.tsx
+- [X] T005 Define and enforce dataset filter-state normalization (`source`, `category`, `sort`, `page`) in apps/backend/src/query/dataset_discovery_service.py
+- [X] T006 [P] Align backend catalog query contract fields with normalized filter-state expectations in apps/backend/src/contract/query/dataset_catalog_query.py
+- [X] T007 [P] Align frontend discovery request typing for filter-state parity in apps/frontend/src/lib/api/discovery-types.ts
+- [X] T008 Add URL-to-request filter mapping guardrails in apps/frontend/src/app/datasets/page.tsx
+- [X] T009 Add cross-layer stale-results prevention assertions in apps/frontend/tests/datasets-page.test.tsx
 
 **Checkpoint**: Foundation complete; user story slices can proceed independently.
 
@@ -38,18 +38,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Extend backend filter+sort contract coverage in apps/backend/tests/contract/test_dataset_catalog_query_contract.py
-- [ ] T011 [P] [US1] Add filter-combination regression coverage in apps/backend/tests/contract/test_filter_matrix_queries.py
-- [ ] T012 [P] [US1] Add frontend dataset-result refresh assertions for filter changes in apps/frontend/tests/datasets-page.test.tsx
+- [X] T010 [P] [US1] Extend backend filter+sort contract coverage in apps/backend/tests/contract/test_dataset_catalog_query_contract.py
+- [X] T011 [P] [US1] Add filter-combination regression coverage in apps/backend/tests/contract/test_filter_matrix_queries.py
+- [X] T012 [P] [US1] Add frontend dataset-result refresh assertions for filter changes in apps/frontend/tests/datasets-page.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Implement source/category/sort normalization and dispatch in apps/backend/src/query/dataset_catalog_query.py
-- [ ] T014 [US1] Fix persisted repository filter application and ordering behavior in apps/backend/src/query/dataset_discovery_persisted_repository.py
-- [ ] T015 [US1] Update backend service orchestration for aligned catalog result scope in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T016 [US1] Update frontend dataset fetch wiring for source/category/sort parity in apps/frontend/src/lib/api/discovery-client.ts
-- [ ] T017 [US1] Reconcile datasets page URL state transitions and stale-row resets in apps/frontend/src/app/datasets/page.tsx
-- [ ] T018 [US1] Ensure rendered dataset rows always reflect active filter state in apps/frontend/src/components/discovery/DatasetCatalogList.tsx
+- [X] T013 [US1] Implement source/category/sort normalization and dispatch in apps/backend/src/query/dataset_catalog_query.py
+- [X] T014 [US1] Fix persisted repository filter application and ordering behavior in apps/backend/src/query/dataset_discovery_persisted_repository.py
+- [X] T015 [US1] Update backend service orchestration for aligned catalog result scope in apps/backend/src/query/dataset_discovery_service.py
+- [X] T016 [US1] Update frontend dataset fetch wiring for source/category/sort parity in apps/frontend/src/lib/api/discovery-client.ts
+- [X] T017 [US1] Reconcile datasets page URL state transitions and stale-row resets in apps/frontend/src/app/datasets/page.tsx
+- [X] T018 [US1] Ensure rendered dataset rows always reflect active filter state in apps/frontend/src/components/discovery/DatasetCatalogList.tsx
 
 **Checkpoint**: US1 is independently testable and delivers trustworthy server-backed filtering.
 
@@ -63,15 +63,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Add typed-input narrowing and clear-reset tests in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T020 [P] [US2] Add no-match and selection-from-narrowed-list tests in apps/frontend/tests/datasets-page.test.tsx
+- [X] T019 [P] [US2] Add typed-input narrowing and clear-reset tests in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T020 [P] [US2] Add no-match and selection-from-narrowed-list tests in apps/frontend/tests/datasets-page.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Implement combobox input match-state handling for source/category controls in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T022 [US2] Add explicit no-match rendering contract for narrowed option lists in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T023 [US2] Ensure narrowed-selection events map to canonical filter updates in apps/frontend/src/app/datasets/page.tsx
-- [ ] T024 [US2] Keep discovery client request behavior unchanged for narrowed-option selection parity in apps/frontend/src/lib/api/discovery-client.ts
+- [X] T021 [US2] Implement combobox input match-state handling for source/category controls in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T022 [US2] Add explicit no-match rendering contract for narrowed option lists in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T023 [US2] Ensure narrowed-selection events map to canonical filter updates in apps/frontend/src/app/datasets/page.tsx
+- [X] T024 [US2] Keep discovery client request behavior unchanged for narrowed-option selection parity in apps/frontend/src/lib/api/discovery-client.ts
 
 **Checkpoint**: US2 is independently testable and combobox narrowing is reliable.
 
@@ -85,14 +85,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Add dark-mode hover and active-state visual behavior assertions in apps/frontend/tests/DatasetListControls.test.tsx
-- [ ] T026 [P] [US3] Add datasets-page regression checks for keyboard/pointer visual-state coherence in apps/frontend/tests/datasets-page.test.tsx
+- [X] T025 [P] [US3] Add dark-mode hover and active-state visual behavior assertions in apps/frontend/tests/DatasetListControls.test.tsx
+- [X] T026 [P] [US3] Add datasets-page regression checks for keyboard/pointer visual-state coherence in apps/frontend/tests/datasets-page.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Update combobox hover and active-state styling tokens/classes in apps/frontend/src/components/discovery/DatasetListControls.tsx
-- [ ] T028 [US3] Adjust shared discovery row/control styling interactions for dark-mode readability in apps/frontend/src/components/discovery/DatasetCatalogList.tsx
-- [ ] T029 [US3] Verify active border-width treatment does not introduce layout shift in apps/frontend/src/app/datasets/page.tsx
+- [X] T027 [US3] Update combobox hover and active-state styling tokens/classes in apps/frontend/src/components/discovery/DatasetListControls.tsx
+- [X] T028 [US3] Adjust shared discovery row/control styling interactions for dark-mode readability in apps/frontend/src/components/discovery/DatasetCatalogList.tsx
+- [X] T029 [US3] Verify active border-width treatment does not introduce layout shift in apps/frontend/src/app/datasets/page.tsx
 
 **Checkpoint**: US3 is independently testable and dark-mode filter interactions are legible and consistent.
 
@@ -102,10 +102,10 @@
 
 **Purpose**: Final hardening, docs alignment, and mandatory quality gates.
 
-- [ ] T030 [P] Update verification notes and manual steps in specs/040-filter-combobox-overhaul/quickstart.md
-- [ ] T031 [P] Document final behavior/contract refinements in specs/040-filter-combobox-overhaul/contracts/dataset-filter-overhaul-contract.md
-- [ ] T032 Run full validation gate `pre-commit run --all-files` from repository root in .pre-commit-config.yaml
-- [ ] T033 Run mandatory monorepo tests `pnpm exec nx run-many -t test --all` and `pnpm exec nx run-many -t coverage --all` from package.json
+- [X] T030 [P] Update verification notes and manual steps in specs/040-filter-combobox-overhaul/quickstart.md
+- [X] T031 [P] Document final behavior/contract refinements in specs/040-filter-combobox-overhaul/contracts/dataset-filter-overhaul-contract.md
+- [X] T032 Run full validation gate `pre-commit run --all-files` from repository root in .pre-commit-config.yaml
+- [X] T033 Run mandatory monorepo tests `pnpm exec nx run-many -t test --all` and `pnpm exec nx run-many -t coverage --all` from package.json
 
 ---
 

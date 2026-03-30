@@ -392,16 +392,22 @@ class PersistedDatasetDiscoveryRepository:
         """Return paginated catalog rows with source and text filtering."""
         source_id = options.get("source_id")
         category = options.get("category")
-        sort = str(options.get("sort", "recency"))
+        sort = str(options.get("sort", "recency")).strip().lower()
         raw_page = options.get("page")
         raw_page_size = options.get("page_size")
         page = raw_page if isinstance(raw_page, int) else 1
         page_size = raw_page_size if isinstance(raw_page_size, int) else 20
+        normalized_source = source_id.strip() if isinstance(source_id, str) else None
+        normalized_category = category.strip() if isinstance(category, str) else None
+        if isinstance(normalized_source, str) and normalized_source.strip().lower() == "all":
+            normalized_source = None
+        if isinstance(normalized_category, str) and normalized_category.strip().lower() == "all":
+            normalized_category = None
 
         rows = self._apply_search(
             query_text=query_text,
-            source_id=source_id if isinstance(source_id, str) else None,
-            category=category if isinstance(category, str) else None,
+            source_id=normalized_source,
+            category=normalized_category,
         )
         if sort == "title_asc":
             rows.sort(
