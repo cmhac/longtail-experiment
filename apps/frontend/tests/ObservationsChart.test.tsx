@@ -13,6 +13,79 @@ import {
 } from "./fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "./test-utils";
 
+void React;
+
+vi.mock("@heroui/react", () => {
+  interface MockComboBoxItem {
+    value: string;
+    label: string;
+  }
+
+  interface MockComboBoxProps {
+    children?: React.ReactNode;
+    items?: MockComboBoxItem[];
+    onSelectionChange?: (value: string) => void;
+    selectedKey?: string;
+    "aria-label"?: string;
+    "data-testid"?: string;
+  }
+
+  const ComboBoxRoot = ({
+    children,
+    items,
+    onSelectionChange,
+    selectedKey,
+    "aria-label": ariaLabel,
+    "data-testid": dataTestId,
+  }: MockComboBoxProps) => {
+    return (
+      <div data-testid={dataTestId}>
+        <select
+          aria-label={ariaLabel}
+          onChange={(event) => onSelectionChange?.(event.target.value)}
+          value={selectedKey ?? ""}
+        >
+          {(items ?? []).map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        {children}
+      </div>
+    );
+  };
+
+  const Input = ({ children, ...props }: { children?: React.ReactNode }) => (
+    <div {...props}>{children}</div>
+  );
+  const ListBox = ({ children, ...props }: { children: React.ReactNode }) => (
+    <div {...props}>{children}</div>
+  );
+  const ListBoxItem = ({ children, ...props }: { children: React.ReactNode }) => (
+    <div {...props}>{children}</div>
+  );
+  const ComboBox = Object.assign(ComboBoxRoot, {
+    Root: ComboBoxRoot,
+    InputGroup: ({ children, ...props }: { children: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
+    Trigger: ({ children, ...props }: { children?: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
+    Popover: ({ children, ...props }: { children: React.ReactNode }) => (
+      <div {...props}>{children}</div>
+    ),
+  });
+
+  return {
+    ComboBox,
+    Input,
+    ListBox,
+    ListBoxItem,
+  };
+});
+
 vi.mock("recharts", () => {
   const passThrough = (name: string) => {
     return ({
@@ -211,6 +284,7 @@ describe("ObservationsChart", () => {
     expect(options).toContain("2024-01-15");
     expect(options).toContain("2024-01-22");
     expect(options).not.toContain("2024-02-01");
+    expect(options.slice(1, 5)).toEqual(["2024-01-22", "2024-01-15", "2024-01-08", "2024-01-01"]);
 
     fireEvent.change(dateSelect, { target: { value: "2024-01-08" } });
     expect(dateSelect.value).toBe("2024-01-08");

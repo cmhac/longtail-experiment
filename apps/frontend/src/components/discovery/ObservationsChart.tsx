@@ -1,5 +1,6 @@
 "use client";
 
+import { ComboBox, Input, ListBox, ListBoxItem } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
@@ -44,6 +45,11 @@ interface ObservationTooltipContentProps {
   }>;
 }
 
+interface ComboBoxOption {
+  label: string;
+  value: string;
+}
+
 const CHART_MIN_HEIGHT = 288;
 const CHART_MAX_HEIGHT = 360;
 const CHART_ASPECT_RATIO = 0.54;
@@ -74,6 +80,18 @@ const formatPercentValue = (value: number): string => {
 const parseNumericControl = (value: string): number => {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const sortObservationDatesDesc = (dates: string[]): string[] => {
+  return [...dates].sort((left, right) => {
+    const leftTime = Date.parse(`${left}T00:00:00Z`);
+    const rightTime = Date.parse(`${right}T00:00:00Z`);
+    if (Number.isFinite(leftTime) && Number.isFinite(rightTime)) {
+      return rightTime - leftTime;
+    }
+
+    return right.localeCompare(left);
+  });
 };
 
 const toChartData = (
@@ -292,6 +310,61 @@ export const ObservationsChart = ({
   const fixedDateOptions = settings.fixedBaselineDate
     ? [...new Set([settings.fixedBaselineDate, ...relativeAvailableDates])]
     : relativeAvailableDates;
+  const sortedFixedDateOptions = sortObservationDatesDesc(fixedDateOptions);
+
+  const renderControlComboBox = ({
+    label,
+    onSelect,
+    options,
+    selectedValue,
+    testId,
+  }: {
+    label: string;
+    onSelect: (value: string) => void;
+    options: ComboBoxOption[];
+    selectedValue: string;
+    testId: string;
+  }): JSX.Element => {
+    return (
+      <ComboBox
+        aria-label={label}
+        className="w-full min-w-[11rem]"
+        data-testid={testId}
+        items={options}
+        onSelectionChange={(key) => {
+          if (typeof key === "string") {
+            onSelect(key);
+          }
+        }}
+        selectedKey={selectedValue}
+      >
+        <ComboBox.InputGroup className="box-border overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface) transition-[border-width,border-color] duration-150 focus-within:border-(--shell-foreground) focus-within:border-2 focus-within:ring-0">
+          <Input
+            className="min-h-8 truncate border-0 bg-transparent py-[0.28rem] pr-[2.15rem] pl-[0.45rem] text-(--shell-foreground) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+            readOnly
+          />
+          <ComboBox.Trigger
+            aria-label={`Open ${label} options`}
+            className="min-w-[2.15rem] px-[0.45rem] text-(--shell-muted)"
+          />
+        </ComboBox.InputGroup>
+        <ComboBox.Popover className="rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface)">
+          <ListBox>
+            {(option: ComboBoxOption) => (
+              <ListBoxItem
+                className="text-(--shell-foreground) data-[focused=true]:bg-(--shell-background) data-[hovered=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focused=true]:text-(--shell-foreground) data-[hovered=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
+                id={option.value}
+                key={option.value}
+                textValue={option.label}
+              >
+                {option.label}
+              </ListBoxItem>
+            )}
+          </ListBox>
+        </ComboBox.Popover>
+      </ComboBox>
+    );
+  };
 
   const showRelativeUnavailableState = settings.valueMode === "relative" && !hasComputablePoints;
 
@@ -380,89 +453,82 @@ export const ObservationsChart = ({
             className="flex flex-wrap items-center gap-[0.4rem]"
             data-testid="observations-chart-relative-controls"
           >
-            <select
-              aria-label="Relative baseline mode"
-              className="border border-(--shell-border) bg-(--shell-surface) px-2 py-1 text-[0.72rem]"
-              onChange={(event) => {
+            {renderControlComboBox({
+              label: "Relative baseline mode",
+              onSelect: (value) => {
                 updateRelativeSettings({
-                  baselineMode: event.target.value as RelativeChangeSettings["baselineMode"],
+                  baselineMode: value as RelativeChangeSettings["baselineMode"],
                 });
-              }}
-              value={settings.baselineMode}
-            >
-              <option value="rolling">Rolling baseline</option>
-              <option value="fixed">Fixed baseline</option>
-            </select>
+              },
+              options: [
+                { label: "Rolling baseline", value: "rolling" },
+                { label: "Fixed baseline", value: "fixed" },
+              ],
+              selectedValue: settings.baselineMode,
+              testId: "relative-baseline-mode-control",
+            })}
 
             {settings.baselineMode === "rolling" ? (
-              <select
-                aria-label="Rolling offset"
-                className="border border-(--shell-border) bg-(--shell-surface) px-2 py-1 text-[0.72rem]"
-                onChange={(event) => {
+              renderControlComboBox({
+                label: "Rolling offset",
+                onSelect: (value) => {
                   updateRelativeSettings({
-                    rollingOffset: parseNumericControl(event.target.value),
+                    rollingOffset: parseNumericControl(value),
                   });
-                }}
-                value={settings.rollingOffset}
-              >
-                {rollingOffsetCandidates.map((offset) => (
-                  <option key={offset} value={offset}>
-                    {`${offset} observations ago`}
-                  </option>
-                ))}
-              </select>
+                },
+                options: rollingOffsetCandidates.map((offset) => ({
+                  label: `${offset} observations ago`,
+                  value: String(offset),
+                })),
+                selectedValue: String(settings.rollingOffset),
+                testId: "rolling-offset-control",
+              })
             ) : (
               <>
-                <select
-                  aria-label="Fixed baseline source"
-                  className="border border-(--shell-border) bg-(--shell-surface) px-2 py-1 text-[0.72rem]"
-                  onChange={(event) => {
+                {renderControlComboBox({
+                  label: "Fixed baseline source",
+                  onSelect: (value) => {
                     updateRelativeSettings({
-                      fixedSelectionMode: event.target
-                        .value as RelativeChangeSettings["fixedSelectionMode"],
+                      fixedSelectionMode: value as RelativeChangeSettings["fixedSelectionMode"],
                     });
-                  }}
-                  value={settings.fixedSelectionMode}
-                >
-                  <option value="date">By date</option>
-                  <option value="offset">By offset</option>
-                </select>
-                {settings.fixedSelectionMode === "date" ? (
-                  <select
-                    aria-label="Fixed baseline date"
-                    className="border border-(--shell-border) bg-(--shell-surface) px-2 py-1 text-[0.72rem]"
-                    onChange={(event) => {
-                      updateRelativeSettings({ fixedBaselineDate: event.target.value });
-                    }}
-                    value={settings.fixedBaselineDate ?? ""}
-                  >
-                    {!settings.fixedBaselineDate ? (
-                      <option value="">Select baseline date</option>
-                    ) : null}
-                    {fixedDateOptions.map((date) => (
-                      <option key={date} value={date}>
-                        {date}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <select
-                    aria-label="Fixed baseline offset"
-                    className="border border-(--shell-border) bg-(--shell-surface) px-2 py-1 text-[0.72rem]"
-                    onChange={(event) => {
-                      updateRelativeSettings({
-                        fixedBaselineOffset: parseNumericControl(event.target.value),
-                      });
-                    }}
-                    value={settings.fixedBaselineOffset}
-                  >
-                    {fixedOffsetCandidates.map((offset) => (
-                      <option key={offset} value={offset}>
-                        {`${offset} observations ago`}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                  },
+                  options: [
+                    { label: "By date", value: "date" },
+                    { label: "By offset", value: "offset" },
+                  ],
+                  selectedValue: settings.fixedSelectionMode,
+                  testId: "fixed-baseline-source-control",
+                })}
+                {settings.fixedSelectionMode === "date"
+                  ? renderControlComboBox({
+                      label: "Fixed baseline date",
+                      onSelect: (value) => {
+                        updateRelativeSettings({ fixedBaselineDate: value === "" ? null : value });
+                      },
+                      options: [
+                        { label: "Select baseline date", value: "" },
+                        ...sortedFixedDateOptions.map((date) => ({
+                          label: date,
+                          value: date,
+                        })),
+                      ],
+                      selectedValue: settings.fixedBaselineDate ?? "",
+                      testId: "fixed-baseline-date-control",
+                    })
+                  : renderControlComboBox({
+                      label: "Fixed baseline offset",
+                      onSelect: (value) => {
+                        updateRelativeSettings({
+                          fixedBaselineOffset: parseNumericControl(value),
+                        });
+                      },
+                      options: fixedOffsetCandidates.map((offset) => ({
+                        label: `${offset} observations ago`,
+                        value: String(offset),
+                      })),
+                      selectedValue: String(settings.fixedBaselineOffset),
+                      testId: "fixed-baseline-offset-control",
+                    })}
               </>
             )}
           </div>
