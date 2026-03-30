@@ -200,8 +200,6 @@ export type ChartValueMode = "observed" | "relative";
 
 export type RelativeBaselineMode = "rolling" | "fixed";
 
-export type FixedBaselineSelectionMode = "date" | "offset";
-
 export type RelativeComputabilityState =
   | "computable"
   | "insufficient-history"

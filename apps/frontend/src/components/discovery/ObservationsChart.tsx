@@ -251,9 +251,7 @@ export const ObservationsChart = ({
   const [chartWidth, setChartWidth] = React.useState(CHART_DEFAULT_WIDTH);
   const [baselineModeInput, setBaselineModeInput] = React.useState("");
   const [rollingOffsetInput, setRollingOffsetInput] = React.useState("");
-  const [fixedSourceInput, setFixedSourceInput] = React.useState("");
   const [fixedDateInput, setFixedDateInput] = React.useState("");
-  const [fixedOffsetInput, setFixedOffsetInput] = React.useState("");
   const [fixedDateLoadingMore, setFixedDateLoadingMore] = React.useState(false);
   const [fixedDateVisibleCount, setFixedDateVisibleCount] = React.useState(COMBOBOX_PAGE_SIZE);
   const chartContainerRef = React.useRef<HTMLDivElement | null>(null);
@@ -314,12 +312,6 @@ export const ObservationsChart = ({
     .filter((value, index, values) => value > 0 && values.indexOf(value) === index)
     .sort((left, right) => left - right);
 
-  const fixedOffsetCandidates = [1, 2, 3, 6, 12, 24]
-    .filter((value) => value <= maxOffset)
-    .concat(settings.fixedBaselineOffset)
-    .filter((value, index, values) => value >= 0 && values.indexOf(value) === index)
-    .sort((left, right) => left - right);
-
   const fixedDateOptions = settings.fixedBaselineDate
     ? [...new Set([settings.fixedBaselineDate, ...relativeAvailableDates])]
     : relativeAvailableDates;
@@ -331,7 +323,6 @@ export const ObservationsChart = ({
   const canPaginateFixedDates =
     settings.valueMode === "relative" &&
     settings.baselineMode === "fixed" &&
-    settings.fixedSelectionMode === "date" &&
     !shouldFilterFixedDates;
   const hasMoreFixedDates =
     canPaginateFixedDates && fixedDateVisibleCount < sortedFixedDateOptions.length;
@@ -379,18 +370,10 @@ export const ObservationsChart = ({
   }, [settings.rollingOffset]);
 
   React.useEffect(() => {
-    setFixedSourceInput(settings.fixedSelectionMode === "date" ? "By date" : "By offset");
+    setFixedDateInput(settings.fixedBaselineDate ?? "");
     setFixedDateLoadingMore(false);
     setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
-  }, [settings.fixedSelectionMode]);
-
-  React.useEffect(() => {
-    setFixedDateInput(settings.fixedBaselineDate ?? "");
   }, [settings.fixedBaselineDate]);
-
-  React.useEffect(() => {
-    setFixedOffsetInput(`${settings.fixedBaselineOffset} observations ago`);
-  }, [settings.fixedBaselineOffset]);
 
   const renderControlComboBox = ({
     emptyLabel,
@@ -609,89 +592,50 @@ export const ObservationsChart = ({
               testId: "relative-baseline-mode-control",
             })}
 
-            {settings.baselineMode === "rolling" ? (
-              renderControlComboBox({
-                inputValue: rollingOffsetInput,
-                label: "Rolling offset",
-                onInputChange: setRollingOffsetInput,
-                onSelect: (value) => {
-                  updateRelativeSettings({
-                    rollingOffset: parseNumericControl(value),
-                  });
-                },
-                options: rollingOffsetCandidates.map((offset) => ({
-                  label: `${offset} observations ago`,
-                  value: String(offset),
-                })),
-                emptyLabel: "No matching offsets",
-                selectedValue: String(settings.rollingOffset),
-                testId: "rolling-offset-control",
-              })
-            ) : (
-              <>
-                {renderControlComboBox({
-                  inputValue: fixedSourceInput,
-                  label: "Fixed baseline source",
-                  onInputChange: setFixedSourceInput,
+            {settings.baselineMode === "rolling"
+              ? renderControlComboBox({
+                  inputValue: rollingOffsetInput,
+                  label: "Rolling offset",
+                  onInputChange: setRollingOffsetInput,
                   onSelect: (value) => {
                     updateRelativeSettings({
-                      fixedSelectionMode: value as RelativeChangeSettings["fixedSelectionMode"],
+                      rollingOffset: parseNumericControl(value),
                     });
                   },
+                  options: rollingOffsetCandidates.map((offset) => ({
+                    label: `${offset} observations ago`,
+                    value: String(offset),
+                  })),
+                  emptyLabel: "No matching offsets",
+                  selectedValue: String(settings.rollingOffset),
+                  testId: "rolling-offset-control",
+                })
+              : renderControlComboBox({
+                  infiniteScrollRef: fixedDateSentinelRef,
+                  inputValue: fixedDateInput,
+                  isInfiniteLoading: fixedDateLoadingMore,
+                  label: "Fixed baseline date",
+                  listContainerRef: fixedDateListContainerRef,
+                  onInputChange: (value) => {
+                    setFixedDateInput(value);
+                    setFixedDateLoadingMore(false);
+                    setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
+                  },
+                  onSelect: (value) => {
+                    updateRelativeSettings({ fixedBaselineDate: value === "" ? null : value });
+                  },
                   options: [
-                    { label: "By date", value: "date" },
-                    { label: "By offset", value: "offset" },
+                    { label: "Select baseline date", value: "" },
+                    ...sortedFixedDateOptions.map((date) => ({
+                      label: date,
+                      value: date,
+                    })),
                   ],
-                  emptyLabel: "No baseline sources",
-                  selectedValue: settings.fixedSelectionMode,
-                  testId: "fixed-baseline-source-control",
+                  emptyLabel: "No matching dates",
+                  paginated: true,
+                  selectedValue: settings.fixedBaselineDate ?? "",
+                  testId: "fixed-baseline-date-control",
                 })}
-                {settings.fixedSelectionMode === "date"
-                  ? renderControlComboBox({
-                      infiniteScrollRef: fixedDateSentinelRef,
-                      inputValue: fixedDateInput,
-                      isInfiniteLoading: fixedDateLoadingMore,
-                      label: "Fixed baseline date",
-                      listContainerRef: fixedDateListContainerRef,
-                      onInputChange: (value) => {
-                        setFixedDateInput(value);
-                        setFixedDateLoadingMore(false);
-                        setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
-                      },
-                      onSelect: (value) => {
-                        updateRelativeSettings({ fixedBaselineDate: value === "" ? null : value });
-                      },
-                      options: [
-                        { label: "Select baseline date", value: "" },
-                        ...sortedFixedDateOptions.map((date) => ({
-                          label: date,
-                          value: date,
-                        })),
-                      ],
-                      emptyLabel: "No matching dates",
-                      paginated: true,
-                      selectedValue: settings.fixedBaselineDate ?? "",
-                      testId: "fixed-baseline-date-control",
-                    })
-                  : renderControlComboBox({
-                      inputValue: fixedOffsetInput,
-                      label: "Fixed baseline offset",
-                      onInputChange: setFixedOffsetInput,
-                      onSelect: (value) => {
-                        updateRelativeSettings({
-                          fixedBaselineOffset: parseNumericControl(value),
-                        });
-                      },
-                      options: fixedOffsetCandidates.map((offset) => ({
-                        label: `${offset} observations ago`,
-                        value: String(offset),
-                      })),
-                      emptyLabel: "No matching offsets",
-                      selectedValue: String(settings.fixedBaselineOffset),
-                      testId: "fixed-baseline-offset-control",
-                    })}
-              </>
-            )}
           </div>
         ) : null}
       </div>

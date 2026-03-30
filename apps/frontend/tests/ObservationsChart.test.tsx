@@ -310,9 +310,6 @@ describe("ObservationsChart", () => {
     fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
       target: { value: "fixed" },
     });
-    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
-      target: { value: "date" },
-    });
 
     const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
     const options = Array.from(dateSelect.options).map((option) => option.value);
@@ -328,26 +325,6 @@ describe("ObservationsChart", () => {
     expect(dateSelect.value).toBe("2024-01-08");
   });
 
-  it("supports fixed baseline mode using offset selection", () => {
-    const { container } = render(
-      <ObservationsChart observations={buildRelativeChangeFixture().observations} />,
-    );
-    const chart = within(container);
-
-    fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
-    fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
-      target: { value: "fixed" },
-    });
-    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
-      target: { value: "offset" },
-    });
-
-    const offsetSelect = chart.getByLabelText("Fixed baseline offset") as HTMLSelectElement;
-    expect(offsetSelect.value).toBe("12");
-    fireEvent.change(offsetSelect, { target: { value: "2" } });
-    expect(offsetSelect.value).toBe("2");
-  });
-
   it("shows unavailable state for invalid preserved fixed-baseline settings", () => {
     const { container } = render(
       <ObservationsChart
@@ -355,8 +332,6 @@ describe("ObservationsChart", () => {
         relativeSettings={{
           baselineMode: "fixed",
           fixedBaselineDate: "2024-02-01",
-          fixedBaselineOffset: 12,
-          fixedSelectionMode: "date",
           rollingOffset: 1,
           valueMode: "relative",
         }}
@@ -378,8 +353,6 @@ describe("ObservationsChart", () => {
     const relativeSettings = {
       baselineMode: "fixed" as const,
       fixedBaselineDate: fixture.observations[0]?.observed_on ?? null,
-      fixedBaselineOffset: 12,
-      fixedSelectionMode: "date" as const,
       rollingOffset: 1,
       valueMode: "relative" as const,
     };
@@ -417,8 +390,6 @@ describe("ObservationsChart", () => {
         relativeSettings={{
           baselineMode: "fixed",
           fixedBaselineDate: fixture.observations[0]?.observed_on ?? null,
-          fixedBaselineOffset: 12,
-          fixedSelectionMode: "date",
           rollingOffset: 1,
           valueMode: "relative",
         }}
@@ -445,8 +416,6 @@ describe("ObservationsChart", () => {
         relativeSettings={{
           baselineMode: "fixed",
           fixedBaselineDate: baselineDate,
-          fixedBaselineOffset: 12,
-          fixedSelectionMode: "date",
           rollingOffset: 1,
           valueMode: "relative",
         }}
@@ -467,9 +436,6 @@ describe("ObservationsChart", () => {
     fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
       target: { value: "fixed" },
     });
-    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
-      target: { value: "date" },
-    });
     fireEvent.change(chart.getByTestId("fixed-baseline-date-control-input"), {
       target: { value: "2024-01-22" },
     });
@@ -487,9 +453,6 @@ describe("ObservationsChart", () => {
     fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
     fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
       target: { value: "fixed" },
-    });
-    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
-      target: { value: "date" },
     });
 
     const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;

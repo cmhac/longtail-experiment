@@ -312,7 +312,6 @@ describe("dataset-detail-view-model", () => {
       ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
       baselineMode: "fixed",
       fixedBaselineDate: "2024-01-02",
-      fixedSelectionMode: "date",
       valueMode: "relative",
     });
 
@@ -321,36 +320,11 @@ describe("dataset-detail-view-model", () => {
     expect(projection.points[2]?.value).toBeCloseTo(16.6666667);
   });
 
-  it("supports fixed baselines by index/offset", () => {
-    const fixture = buildDatasetDetailFixture({
-      observations: buildObservationHistory({
-        count: 5,
-        initialValue: 100,
-        start: "2024-01-01",
-        valueStep: 5,
-      }),
-    });
-
-    const projection = projectRelativeChangeSeries(fixture.observations, {
-      ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
-      baselineMode: "fixed",
-      fixedBaselineOffset: 2,
-      fixedSelectionMode: "offset",
-      valueMode: "relative",
-    });
-
-    expect(projection.points[0]?.computability).toBe("before-fixed-baseline");
-    expect(projection.points[1]?.computability).toBe("before-fixed-baseline");
-    expect(projection.points[2]?.value).toBe(0);
-    expect(projection.points[4]?.value).toBeCloseTo(9.0909091);
-  });
-
   it("returns missing-baseline when fixed date is not available", () => {
     const projection = projectRelativeChangeSeries(buildDatasetDetailFixture().observations, {
       ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
       baselineMode: "fixed",
       fixedBaselineDate: "2024-02-01",
-      fixedSelectionMode: "date",
       valueMode: "relative",
     });
 
@@ -391,7 +365,6 @@ describe("dataset-detail-view-model", () => {
       ...DEFAULT_RELATIVE_CHANGE_SETTINGS,
       baselineMode: "fixed",
       fixedBaselineDate: null,
-      fixedSelectionMode: "date",
       valueMode: "relative",
     });
 

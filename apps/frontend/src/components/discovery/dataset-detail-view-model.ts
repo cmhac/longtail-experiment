@@ -1,7 +1,6 @@
 import type {
   ChartValueMode,
   DatasetDetail,
-  FixedBaselineSelectionMode,
   ObservationPoint,
   RelativeBaselineMode,
   RelativeComputabilityState,
@@ -15,8 +14,6 @@ type UnitType = "usd" | "percent" | "number";
 export interface RelativeChangeSettings {
   baselineMode: RelativeBaselineMode;
   fixedBaselineDate: string | null;
-  fixedBaselineOffset: number;
-  fixedSelectionMode: FixedBaselineSelectionMode;
   rollingOffset: number;
   valueMode: ChartValueMode;
 }
@@ -38,8 +35,6 @@ export interface RelativeChangeProjection {
 export const DEFAULT_RELATIVE_CHANGE_SETTINGS: RelativeChangeSettings = {
   baselineMode: "rolling",
   fixedBaselineDate: null,
-  fixedBaselineOffset: 12,
-  fixedSelectionMode: "offset",
   rollingOffset: 1,
   valueMode: "observed",
 };
@@ -196,19 +191,13 @@ const resolveFixedBaselineIndex = (
   observations: ObservationPoint[],
   settings: RelativeChangeSettings,
 ): number | null => {
-  if (settings.fixedSelectionMode === "date") {
-    if (!settings.fixedBaselineDate) {
-      return null;
-    }
-
-    const index = observations.findIndex(
-      (observation) => observation.observed_on === settings.fixedBaselineDate,
-    );
-    return index >= 0 ? index : null;
+  if (!settings.fixedBaselineDate) {
+    return null;
   }
 
-  const offset = Math.max(0, Math.floor(settings.fixedBaselineOffset));
-  const index = observations.length - 1 - offset;
+  const index = observations.findIndex(
+    (observation) => observation.observed_on === settings.fixedBaselineDate,
+  );
   return index >= 0 ? index : null;
 };
 
@@ -272,12 +261,7 @@ export const projectRelativeChangeSeries = (
   const availableDates = chronological.map((observation) => observation.observed_on);
   const fixedBaselineIndex = resolveFixedBaselineIndex(chronological, settings);
 
-  const selectedFixedBaselineDate =
-    settings.fixedSelectionMode === "date"
-      ? settings.fixedBaselineDate
-      : fixedBaselineIndex !== null
-        ? (chronological[fixedBaselineIndex]?.observed_on ?? null)
-        : null;
+  const selectedFixedBaselineDate = settings.fixedBaselineDate;
 
   const points = chronological.map((_, index) => {
     if (settings.baselineMode === "rolling") {
