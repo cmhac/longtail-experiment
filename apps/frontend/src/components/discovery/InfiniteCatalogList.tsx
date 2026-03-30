@@ -1,11 +1,12 @@
 "use client";
 
 import { Card, Spinner } from "@heroui/react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { JSX } from "react";
 
 import type { DatasetSummary } from "../../lib/api/discovery-types";
 import { DatasetCatalogList } from "./DatasetCatalogList";
+import { useInfiniteScrollObserver } from "./useInfiniteScrollObserver";
 
 interface InfiniteCatalogListProps {
   initialItems: DatasetSummary[];
@@ -46,7 +47,6 @@ export const InfiniteCatalogList = ({
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const hasMore = currentPage < totalPages;
   const stableQuery = useMemo(() => requestQuery ?? {}, [requestQuery]);
@@ -65,55 +65,45 @@ export const InfiniteCatalogList = ({
     setLoading(false);
   }, [initialItems, initialPage, initialTotalPages, requestSignature]);
 
-  useEffect(() => {
+  const loadNextPage = useCallback(() => {
     if (!hasMore || loading) {
       return;
     }
 
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
-    }
+    const nextPage = currentPage + 1;
+    setLoading(true);
+    setLoadError(false);
 
-    const observer = new IntersectionObserver((entries) => {
-      const [entry] = entries;
-      if (!entry?.isIntersecting) {
-        return;
-      }
-
-      const nextPage = currentPage + 1;
-      setLoading(true);
-      setLoadError(false);
-
-      void fetch(buildRequestUrl(requestPath, stableQuery, nextPage), {
-        method: "GET",
-        cache: "no-store",
-        headers: {
-          accept: "application/json",
-        },
+    void fetch(buildRequestUrl(requestPath, stableQuery, nextPage), {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "application/json",
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch next page");
+        }
+        return (await response.json()) as PaginatedItemsPayload;
       })
-        .then(async (response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch next page");
-          }
-          return (await response.json()) as PaginatedItemsPayload;
-        })
-        .then((payload) => {
-          setItems((previous) => [...previous, ...payload.items]);
-          setCurrentPage(payload.page);
-          setTotalPages(payload.total_pages);
-        })
-        .catch(() => {
-          setLoadError(true);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+      .then((payload) => {
+        setItems((previous) => [...previous, ...payload.items]);
+        setCurrentPage(payload.page);
+        setTotalPages(payload.total_pages);
+      })
+      .catch(() => {
+        setLoadError(true);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [currentPage, hasMore, loading, requestPath, stableQuery]);
+
+  const sentinelRef = useInfiniteScrollObserver({
+    enabled: hasMore && !loading,
+    onIntersect: loadNextPage,
+  });
 
   return (
     <>

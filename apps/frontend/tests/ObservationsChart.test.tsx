@@ -1,9 +1,9 @@
 /** @vitest-environment jsdom */
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ObservationsChart } from "../src/components/discovery/ObservationsChart";
 import {
   buildDatasetDetailFixture,
@@ -15,6 +15,8 @@ import { renderMarkup } from "./test-utils";
 
 void React;
 
+const observers: Array<(entries: Array<{ isIntersecting: boolean }>) => void> = [];
+
 vi.mock("@heroui/react", () => {
   interface MockComboBoxItem {
     value: string;
@@ -23,7 +25,9 @@ vi.mock("@heroui/react", () => {
 
   interface MockComboBoxProps {
     children?: React.ReactNode;
+    inputValue?: string;
     items?: MockComboBoxItem[];
+    onInputChange?: (value: string) => void;
     onSelectionChange?: (value: string) => void;
     selectedKey?: string;
     "aria-label"?: string;
@@ -32,7 +36,9 @@ vi.mock("@heroui/react", () => {
 
   const ComboBoxRoot = ({
     children,
+    inputValue,
     items,
+    onInputChange,
     onSelectionChange,
     selectedKey,
     "aria-label": ariaLabel,
@@ -40,6 +46,12 @@ vi.mock("@heroui/react", () => {
   }: MockComboBoxProps) => {
     return (
       <div data-testid={dataTestId}>
+        <input
+          aria-label={`${ariaLabel ?? "combobox"} input`}
+          data-testid={`${String(dataTestId ?? "combobox")}-input`}
+          onChange={(event) => onInputChange?.(event.target.value)}
+          value={inputValue ?? ""}
+        />
         <select
           aria-label={ariaLabel}
           onChange={(event) => onSelectionChange?.(event.target.value)}
@@ -63,8 +75,11 @@ vi.mock("@heroui/react", () => {
     <div {...props}>{children}</div>
   );
   const ListBoxItem = ({ children, ...props }: { children: React.ReactNode }) => (
-    <div {...props}>{children}</div>
+    <div {...Object.fromEntries(Object.entries(props).filter(([key]) => key !== "textValue"))}>
+      {children}
+    </div>
   );
+  const Spinner = ({ ...props }: { [key: string]: unknown }) => <div {...props}>loading</div>;
   const ComboBox = Object.assign(ComboBoxRoot, {
     Root: ComboBoxRoot,
     InputGroup: ({ children, ...props }: { children: React.ReactNode }) => (
@@ -83,6 +98,7 @@ vi.mock("@heroui/react", () => {
     Input,
     ListBox,
     ListBoxItem,
+    Spinner,
   };
 });
 
@@ -166,7 +182,29 @@ describe("ObservationsChart", () => {
     unobserve = vi.fn();
   }
 
-  vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+  beforeEach(() => {
+    observers.length = 0;
+
+    class MockIntersectionObserver {
+      private readonly callback: (entries: Array<{ isIntersecting: boolean }>) => void;
+
+      constructor(callback: (entries: Array<{ isIntersecting: boolean }>) => void) {
+        this.callback = callback;
+        observers.push(this.callback);
+      }
+
+      observe(): void {}
+      disconnect(): void {}
+      unobserve(): void {}
+    }
+
+    vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
+    vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it("renders chart wrapper and recharts elements for populated observations", () => {
     const fixture = buildLongHistoryDatasetDetailFixture();
@@ -418,5 +456,59 @@ describe("ObservationsChart", () => {
 
     expect(markup).toContain(`data-series-first-date="${baselineDate}"`);
     expect(markup).toContain('data-testid="fixed-baseline-note"');
+  });
+
+  it("filters fixed baseline date options when typing in combobox input", () => {
+    const fixture = buildRelativeChangeFixture();
+    const { container } = render(<ObservationsChart observations={fixture.observations} />);
+    const chart = within(container);
+
+    fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
+    fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
+      target: { value: "fixed" },
+    });
+    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
+      target: { value: "date" },
+    });
+    fireEvent.change(chart.getByTestId("fixed-baseline-date-control-input"), {
+      target: { value: "2024-01-22" },
+    });
+
+    const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
+    const options = Array.from(dateSelect.options).map((option) => option.value);
+    expect(options).toEqual(["2024-01-22"]);
+  });
+
+  it("paginates fixed baseline date options via infinite scroll sentinel", async () => {
+    const fixture = buildLongHistoryDatasetDetailFixture();
+    const { container } = render(<ObservationsChart observations={fixture.observations} />);
+    const chart = within(container);
+
+    fireEvent.click(chart.getByRole("button", { name: "Relative %" }));
+    fireEvent.change(chart.getByLabelText("Relative baseline mode"), {
+      target: { value: "fixed" },
+    });
+    fireEvent.change(chart.getByLabelText("Fixed baseline source"), {
+      target: { value: "date" },
+    });
+
+    const dateSelect = chart.getByLabelText("Fixed baseline date") as HTMLSelectElement;
+    const options = Array.from(dateSelect.options).map((option) => option.value);
+    expect(chart.getByTestId("fixed-baseline-date-control-infinite-sentinel")).toBeTruthy();
+
+    if (observers.length === 0) {
+      throw new Error("Expected observer callback to be registered");
+    }
+
+    for (const observerCallback of observers) {
+      observerCallback([{ isIntersecting: true }]);
+    }
+
+    await chart.findByTestId("fixed-baseline-date-control-infinite-loading");
+
+    await waitFor(() => {
+      const nextOptions = Array.from(dateSelect.options).map((option) => option.value);
+      expect(nextOptions.length).toBeGreaterThan(options.length);
+    });
   });
 });

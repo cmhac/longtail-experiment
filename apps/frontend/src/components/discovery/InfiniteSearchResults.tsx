@@ -1,11 +1,12 @@
 "use client";
 
 import { Card, Spinner } from "@heroui/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import type { JSX } from "react";
 
 import type { DatasetSummary } from "../../lib/api/discovery-types";
 import { DatasetSearchResults } from "./DatasetSearchResults";
+import { useInfiniteScrollObserver } from "./useInfiniteScrollObserver";
 
 interface InfiniteSearchResultsProps {
   query: string;
@@ -38,59 +39,48 @@ export const InfiniteSearchResults = ({
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const hasMore = currentPage < totalPages;
 
-  useEffect(() => {
+  const loadNextPage = useCallback(() => {
     if (!hasMore || loading) {
       return;
     }
 
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return;
-    }
+    const nextPage = currentPage + 1;
+    setLoading(true);
+    setLoadError(false);
 
-    const observer = new IntersectionObserver((entries) => {
-      const [entry] = entries;
-      if (!entry?.isIntersecting) {
-        return;
-      }
-
-      const nextPage = currentPage + 1;
-      setLoading(true);
-      setLoadError(false);
-
-      void fetch(buildSearchUrl(query, nextPage), {
-        method: "GET",
-        cache: "no-store",
-        headers: {
-          accept: "application/json",
-        },
+    void fetch(buildSearchUrl(query, nextPage), {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "application/json",
+      },
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch next page");
+        }
+        return (await response.json()) as SearchPayload;
       })
-        .then(async (response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch next page");
-          }
-          return (await response.json()) as SearchPayload;
-        })
-        .then((payload) => {
-          setItems((previous) => [...previous, ...payload.items]);
-          setCurrentPage(payload.page);
-          setTotalPages(payload.total_pages);
-        })
-        .catch(() => {
-          setLoadError(true);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+      .then((payload) => {
+        setItems((previous) => [...previous, ...payload.items]);
+        setCurrentPage(payload.page);
+        setTotalPages(payload.total_pages);
+      })
+      .catch(() => {
+        setLoadError(true);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [currentPage, hasMore, loading, query]);
+
+  const sentinelRef = useInfiniteScrollObserver({
+    enabled: hasMore && !loading,
+    onIntersect: loadNextPage,
+  });
 
   return (
     <>

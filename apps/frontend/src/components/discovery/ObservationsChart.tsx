@@ -1,6 +1,6 @@
 "use client";
 
-import { ComboBox, Input, ListBox, ListBoxItem } from "@heroui/react";
+import { ComboBox, Input, ListBox, ListBoxItem, Spinner } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
@@ -16,6 +16,7 @@ import {
   getAvailableTrendRanges,
   projectRelativeChangeSeries,
 } from "./dataset-detail-view-model";
+import { useInfiniteScrollObserver } from "./useInfiniteScrollObserver";
 
 interface ObservationsChartProps {
   observations: ObservationPoint[];
@@ -49,6 +50,9 @@ interface ComboBoxOption {
   label: string;
   value: string;
 }
+
+const COMBOBOX_PAGE_SIZE = 24;
+const NO_MATCH_VALUE = "__no_match__";
 
 const CHART_MIN_HEIGHT = 288;
 const CHART_MAX_HEIGHT = 360;
@@ -245,7 +249,16 @@ export const ObservationsChart = ({
   const [internalRelativeSettings, setInternalRelativeSettings] =
     React.useState<RelativeChangeSettings>(DEFAULT_RELATIVE_CHANGE_SETTINGS);
   const [chartWidth, setChartWidth] = React.useState(CHART_DEFAULT_WIDTH);
+  const [baselineModeInput, setBaselineModeInput] = React.useState("");
+  const [rollingOffsetInput, setRollingOffsetInput] = React.useState("");
+  const [fixedSourceInput, setFixedSourceInput] = React.useState("");
+  const [fixedDateInput, setFixedDateInput] = React.useState("");
+  const [fixedOffsetInput, setFixedOffsetInput] = React.useState("");
+  const [fixedDateLoadingMore, setFixedDateLoadingMore] = React.useState(false);
+  const [fixedDateVisibleCount, setFixedDateVisibleCount] = React.useState(COMBOBOX_PAGE_SIZE);
   const chartContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const fixedDateListContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const fixedDateLoadTimerRef = React.useRef<number | null>(null);
   const preferredRange = selectedRange ?? internalRange;
   const activeRange = availableRanges.includes(preferredRange) ? preferredRange : "ALL";
   const settings = relativeSettings ?? internalRelativeSettings;
@@ -311,56 +324,181 @@ export const ObservationsChart = ({
     ? [...new Set([settings.fixedBaselineDate, ...relativeAvailableDates])]
     : relativeAvailableDates;
   const sortedFixedDateOptions = sortObservationDatesDesc(fixedDateOptions);
+  const normalizedFixedDateInput = fixedDateInput.trim().toLowerCase();
+  const normalizedSelectedFixedDate = (settings.fixedBaselineDate ?? "").trim().toLowerCase();
+  const shouldFilterFixedDates =
+    normalizedFixedDateInput.length > 0 && normalizedFixedDateInput !== normalizedSelectedFixedDate;
+  const canPaginateFixedDates =
+    settings.valueMode === "relative" &&
+    settings.baselineMode === "fixed" &&
+    settings.fixedSelectionMode === "date" &&
+    !shouldFilterFixedDates;
+  const hasMoreFixedDates =
+    canPaginateFixedDates && fixedDateVisibleCount < sortedFixedDateOptions.length;
+
+  const loadMoreFixedDates = React.useCallback(() => {
+    if (!hasMoreFixedDates || fixedDateLoadingMore) {
+      return;
+    }
+
+    setFixedDateLoadingMore(true);
+    if (fixedDateLoadTimerRef.current !== null) {
+      window.clearTimeout(fixedDateLoadTimerRef.current);
+    }
+
+    fixedDateLoadTimerRef.current = window.setTimeout(() => {
+      setFixedDateVisibleCount((value) => value + COMBOBOX_PAGE_SIZE);
+      setFixedDateLoadingMore(false);
+      fixedDateLoadTimerRef.current = null;
+    }, 100);
+  }, [fixedDateLoadingMore, hasMoreFixedDates]);
+
+  React.useEffect(() => {
+    return () => {
+      if (fixedDateLoadTimerRef.current !== null) {
+        window.clearTimeout(fixedDateLoadTimerRef.current);
+      }
+    };
+  }, []);
+
+  const fixedDateSentinelRef = useInfiniteScrollObserver({
+    enabled: hasMoreFixedDates && !fixedDateLoadingMore,
+    onIntersect: loadMoreFixedDates,
+    rootRef: fixedDateListContainerRef,
+    rootMargin: "0px 0px 80px 0px",
+  });
+
+  React.useEffect(() => {
+    setBaselineModeInput(
+      settings.baselineMode === "rolling" ? "Rolling baseline" : "Fixed baseline",
+    );
+  }, [settings.baselineMode]);
+
+  React.useEffect(() => {
+    setRollingOffsetInput(`${settings.rollingOffset} observations ago`);
+  }, [settings.rollingOffset]);
+
+  React.useEffect(() => {
+    setFixedSourceInput(settings.fixedSelectionMode === "date" ? "By date" : "By offset");
+    setFixedDateLoadingMore(false);
+    setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
+  }, [settings.fixedSelectionMode]);
+
+  React.useEffect(() => {
+    setFixedDateInput(settings.fixedBaselineDate ?? "");
+  }, [settings.fixedBaselineDate]);
+
+  React.useEffect(() => {
+    setFixedOffsetInput(`${settings.fixedBaselineOffset} observations ago`);
+  }, [settings.fixedBaselineOffset]);
 
   const renderControlComboBox = ({
+    emptyLabel,
+    infiniteScrollRef,
+    inputValue,
+    isInfiniteLoading,
     label,
+    listContainerRef,
+    onInputChange,
     onSelect,
     options,
+    paginated,
     selectedValue,
     testId,
   }: {
+    emptyLabel?: string;
+    infiniteScrollRef?: React.RefObject<HTMLDivElement | null>;
+    inputValue: string;
+    isInfiniteLoading?: boolean;
     label: string;
+    listContainerRef?: React.RefObject<HTMLDivElement | null>;
+    onInputChange?: (value: string) => void;
     onSelect: (value: string) => void;
     options: ComboBoxOption[];
+    paginated?: boolean;
     selectedValue: string;
     testId: string;
   }): JSX.Element => {
+    const normalizedInput = inputValue.trim().toLowerCase();
+    const selectedOption = options.find((option) => option.value === selectedValue);
+    const normalizedSelectedLabel = selectedOption?.label.trim().toLowerCase() ?? "";
+    const shouldFilter = normalizedInput.length > 0 && normalizedInput !== normalizedSelectedLabel;
+    const filteredOptions = !shouldFilter
+      ? options
+      : options.filter((option) => option.label.toLowerCase().includes(normalizedInput));
+    const visibleOptions =
+      paginated && !shouldFilter
+        ? (() => {
+            const pagedOptions = filteredOptions.slice(0, fixedDateVisibleCount);
+            if (
+              !selectedOption ||
+              pagedOptions.some((option) => option.value === selectedOption.value)
+            ) {
+              return pagedOptions;
+            }
+
+            return [selectedOption, ...pagedOptions];
+          })()
+        : filteredOptions;
+    const hasMore =
+      Boolean(paginated) && !shouldFilter && filteredOptions.length > visibleOptions.length;
+    const renderedOptions =
+      visibleOptions.length > 0
+        ? visibleOptions
+        : [{ label: emptyLabel ?? "No matching options", value: NO_MATCH_VALUE }];
+
     return (
       <ComboBox
         aria-label={label}
-        className="w-full min-w-[11rem]"
+        className="w-[9.25rem] min-w-[8rem]"
         data-testid={testId}
-        items={options}
+        inputValue={inputValue}
+        items={renderedOptions}
+        onInputChange={onInputChange ?? (() => {})}
         onSelectionChange={(key) => {
           if (typeof key === "string") {
+            if (key === NO_MATCH_VALUE) {
+              return;
+            }
             onSelect(key);
           }
         }}
         selectedKey={selectedValue}
       >
         <ComboBox.InputGroup className="box-border overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface) transition-[border-width,border-color] duration-150 focus-within:border-(--shell-foreground) focus-within:border-2 focus-within:ring-0">
-          <Input
-            className="min-h-8 truncate border-0 bg-transparent py-[0.28rem] pr-[2.15rem] pl-[0.45rem] text-(--shell-foreground) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-            readOnly
-          />
+          <Input className="min-h-8 truncate border-0 bg-transparent py-[0.28rem] pr-[2.15rem] pl-[0.45rem] text-(--shell-foreground) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0" />
           <ComboBox.Trigger
             aria-label={`Open ${label} options`}
             className="min-w-[2.15rem] px-[0.45rem] text-(--shell-muted)"
           />
         </ComboBox.InputGroup>
         <ComboBox.Popover className="rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface)">
-          <ListBox>
-            {(option: ComboBoxOption) => (
-              <ListBoxItem
-                className="text-(--shell-foreground) data-[focused=true]:bg-(--shell-background) data-[hovered=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focused=true]:text-(--shell-foreground) data-[hovered=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
-                id={option.value}
-                key={option.value}
-                textValue={option.label}
-              >
-                {option.label}
-              </ListBoxItem>
-            )}
-          </ListBox>
+          <div className="max-h-56 overflow-y-auto" ref={listContainerRef}>
+            <ListBox>
+              {renderedOptions.map((option) => (
+                <ListBoxItem
+                  className="text-(--shell-foreground) data-[focused=true]:bg-(--shell-background) data-[hovered=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focused=true]:text-(--shell-foreground) data-[hovered=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
+                  id={option.value}
+                  key={option.value}
+                  textValue={option.label}
+                >
+                  {option.label}
+                </ListBoxItem>
+              ))}
+            </ListBox>
+            {hasMore ? (
+              <div
+                className="h-2 w-full"
+                data-testid={`${testId}-infinite-sentinel`}
+                ref={infiniteScrollRef}
+              />
+            ) : null}
+            {isInfiniteLoading ? (
+              <div className="flex justify-center py-2" data-testid={`${testId}-infinite-loading`}>
+                <Spinner color="current" size="sm" style={{ color: "var(--foreground)" }} />
+              </div>
+            ) : null}
+          </div>
         </ComboBox.Popover>
       </ComboBox>
     );
@@ -450,11 +588,13 @@ export const ObservationsChart = ({
 
         {settings.valueMode === "relative" ? (
           <div
-            className="flex flex-wrap items-center gap-[0.4rem]"
+            className="flex flex-nowrap items-center gap-[0.4rem] overflow-x-auto"
             data-testid="observations-chart-relative-controls"
           >
             {renderControlComboBox({
+              inputValue: baselineModeInput,
               label: "Relative baseline mode",
+              onInputChange: setBaselineModeInput,
               onSelect: (value) => {
                 updateRelativeSettings({
                   baselineMode: value as RelativeChangeSettings["baselineMode"],
@@ -464,13 +604,16 @@ export const ObservationsChart = ({
                 { label: "Rolling baseline", value: "rolling" },
                 { label: "Fixed baseline", value: "fixed" },
               ],
+              emptyLabel: "No baseline modes",
               selectedValue: settings.baselineMode,
               testId: "relative-baseline-mode-control",
             })}
 
             {settings.baselineMode === "rolling" ? (
               renderControlComboBox({
+                inputValue: rollingOffsetInput,
                 label: "Rolling offset",
+                onInputChange: setRollingOffsetInput,
                 onSelect: (value) => {
                   updateRelativeSettings({
                     rollingOffset: parseNumericControl(value),
@@ -480,13 +623,16 @@ export const ObservationsChart = ({
                   label: `${offset} observations ago`,
                   value: String(offset),
                 })),
+                emptyLabel: "No matching offsets",
                 selectedValue: String(settings.rollingOffset),
                 testId: "rolling-offset-control",
               })
             ) : (
               <>
                 {renderControlComboBox({
+                  inputValue: fixedSourceInput,
                   label: "Fixed baseline source",
+                  onInputChange: setFixedSourceInput,
                   onSelect: (value) => {
                     updateRelativeSettings({
                       fixedSelectionMode: value as RelativeChangeSettings["fixedSelectionMode"],
@@ -496,12 +642,22 @@ export const ObservationsChart = ({
                     { label: "By date", value: "date" },
                     { label: "By offset", value: "offset" },
                   ],
+                  emptyLabel: "No baseline sources",
                   selectedValue: settings.fixedSelectionMode,
                   testId: "fixed-baseline-source-control",
                 })}
                 {settings.fixedSelectionMode === "date"
                   ? renderControlComboBox({
+                      infiniteScrollRef: fixedDateSentinelRef,
+                      inputValue: fixedDateInput,
+                      isInfiniteLoading: fixedDateLoadingMore,
                       label: "Fixed baseline date",
+                      listContainerRef: fixedDateListContainerRef,
+                      onInputChange: (value) => {
+                        setFixedDateInput(value);
+                        setFixedDateLoadingMore(false);
+                        setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
+                      },
                       onSelect: (value) => {
                         updateRelativeSettings({ fixedBaselineDate: value === "" ? null : value });
                       },
@@ -512,11 +668,15 @@ export const ObservationsChart = ({
                           value: date,
                         })),
                       ],
+                      emptyLabel: "No matching dates",
+                      paginated: true,
                       selectedValue: settings.fixedBaselineDate ?? "",
                       testId: "fixed-baseline-date-control",
                     })
                   : renderControlComboBox({
+                      inputValue: fixedOffsetInput,
                       label: "Fixed baseline offset",
+                      onInputChange: setFixedOffsetInput,
                       onSelect: (value) => {
                         updateRelativeSettings({
                           fixedBaselineOffset: parseNumericControl(value),
@@ -526,6 +686,7 @@ export const ObservationsChart = ({
                         label: `${offset} observations ago`,
                         value: String(offset),
                       })),
+                      emptyLabel: "No matching offsets",
                       selectedValue: String(settings.fixedBaselineOffset),
                       testId: "fixed-baseline-offset-control",
                     })}
