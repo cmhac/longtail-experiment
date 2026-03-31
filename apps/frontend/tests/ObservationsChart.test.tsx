@@ -80,6 +80,44 @@ vi.mock("@heroui/react", () => {
     </div>
   );
   const Spinner = ({ ...props }: { [key: string]: unknown }) => <div {...props}>loading</div>;
+  const Button = ({
+    children,
+    isDisabled,
+    onPress,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    isDisabled?: boolean;
+    onPress?: () => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      {...props}
+      disabled={isDisabled}
+      onClick={() => {
+        if (!isDisabled) {
+          onPress?.();
+        }
+      }}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+  const ButtonGroup = Object.assign(
+    ({
+      children,
+      isDisabled: _isDisabled,
+      ...props
+    }: {
+      children: React.ReactNode;
+      isDisabled?: boolean;
+      [key: string]: unknown;
+    }) => <div {...props}>{children}</div>,
+    {
+      Separator: () => <span aria-hidden="true" />,
+    },
+  );
   const ComboBox = Object.assign(ComboBoxRoot, {
     Root: ComboBoxRoot,
     InputGroup: ({ children, ...props }: { children: React.ReactNode }) => (
@@ -95,6 +133,8 @@ vi.mock("@heroui/react", () => {
 
   return {
     ComboBox,
+    Button,
+    ButtonGroup,
     Input,
     ListBox,
     ListBoxItem,

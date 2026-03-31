@@ -1,11 +1,19 @@
 "use client";
 
-import { ComboBox, Input, ListBox, ListBoxItem, Spinner } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import type { ObservationPoint } from "../../lib/api/discovery-types";
 import { EmptyState } from "./EmptyState";
+import { ChartComboControl, type ChartComboOption } from "./chart-controls/ChartComboControl";
+import { ChartToggleGroup } from "./chart-controls/ChartToggleGroup";
+import {
+  ChartTooltipDate,
+  ChartTooltipDivider,
+  ChartTooltipRoot,
+  ChartTooltipText,
+  ChartTooltipValue,
+} from "./chart-controls/ChartTooltip";
 import {
   DEFAULT_RELATIVE_CHANGE_SETTINGS,
   type RelativeChangeSettings,
@@ -46,13 +54,7 @@ interface ObservationTooltipContentProps {
   }>;
 }
 
-interface ComboBoxOption {
-  label: string;
-  value: string;
-}
-
 const COMBOBOX_PAGE_SIZE = 24;
-const NO_MATCH_VALUE = "__no_match__";
 
 const CHART_MIN_HEIGHT = 288;
 const CHART_MAX_HEIGHT = 360;
@@ -192,12 +194,10 @@ const ObservationsChartTooltip = ({
   const point = payload[0].payload;
   if (point.computability && point.computability !== "computable") {
     return (
-      <div className="min-w-48 rounded-[1.15rem] bg-[color-mix(in_srgb,var(--shell-background)_96%,#ffffff)] px-5 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.14)] ring-1 ring-[color-mix(in_srgb,var(--shell-border)_82%,transparent)] backdrop-blur-sm">
-        <p className="m-0 font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-(--shell-muted) text-[1.05rem] italic">
-          {point.dateLabel}
-        </p>
-        <p className="mt-3 text-(--shell-muted) text-[0.95rem]">Relative value unavailable</p>
-      </div>
+      <ChartTooltipRoot>
+        <ChartTooltipDate>{point.dateLabel}</ChartTooltipDate>
+        <ChartTooltipText>Relative value unavailable</ChartTooltipText>
+      </ChartTooltipRoot>
     );
   }
 
@@ -211,27 +211,23 @@ const ObservationsChartTooltip = ({
       : "text-(--shell-muted)";
 
   return (
-    <div className="min-w-48 rounded-[1.15rem] bg-[color-mix(in_srgb,var(--shell-background)_96%,#ffffff)] px-5 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.14)] ring-1 ring-[color-mix(in_srgb,var(--shell-border)_82%,transparent)] backdrop-blur-sm">
-      <p className="m-0 font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-(--shell-muted) text-[1.05rem] italic">
-        {point.dateLabel}
-      </p>
-      <div className="mt-4 h-px w-16 bg-(--shell-border)" />
-      <p className="mt-5 font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-(--shell-foreground) text-[2.4rem] leading-none">
-        {point.valueLabel}
-      </p>
+    <ChartTooltipRoot>
+      <ChartTooltipDate>{point.dateLabel}</ChartTooltipDate>
+      <ChartTooltipDivider />
+      <ChartTooltipValue>{point.valueLabel}</ChartTooltipValue>
       {isRelativeModePoint ? (
-        <p className={`mt-3 font-semibold text-[1.05rem] ${movementClass}`}>
+        <ChartTooltipText className={`mt-3 font-semibold text-[1.05rem] ${movementClass}`}>
           {`Relative to ${point.baselineObservedOn}`}
-        </p>
+        </ChartTooltipText>
       ) : null}
       {point.changeValue !== null && point.changePercent !== null ? (
-        <p className={`mt-3 font-semibold text-[1.05rem] ${movementClass}`}>
+        <ChartTooltipText className={`mt-3 font-semibold text-[1.05rem] ${movementClass}`}>
           {`${formatSignedNumber(point.changeValue, 3)} (${formatSignedNumber(point.changePercent, 2)}%)`}
-        </p>
+        </ChartTooltipText>
       ) : (
-        <p className="mt-3 text-(--shell-muted) text-[0.95rem]">No prior observation</p>
+        <ChartTooltipText>No prior observation</ChartTooltipText>
       )}
-    </div>
+    </ChartTooltipRoot>
   );
 };
 
@@ -375,119 +371,25 @@ export const ObservationsChart = ({
     setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
   }, [settings.fixedBaselineDate]);
 
-  const renderControlComboBox = ({
-    emptyLabel,
-    infiniteScrollRef,
-    inputValue,
-    isInfiniteLoading,
-    label,
-    listContainerRef,
-    onInputChange,
-    onSelect,
-    options,
-    paginated,
-    selectedValue,
-    testId,
-  }: {
-    emptyLabel?: string;
-    infiniteScrollRef?: React.RefObject<HTMLDivElement | null>;
-    inputValue: string;
-    isInfiniteLoading?: boolean;
-    label: string;
-    listContainerRef?: React.RefObject<HTMLDivElement | null>;
-    onInputChange?: (value: string) => void;
-    onSelect: (value: string) => void;
-    options: ComboBoxOption[];
-    paginated?: boolean;
-    selectedValue: string;
-    testId: string;
-  }): JSX.Element => {
-    const normalizedInput = inputValue.trim().toLowerCase();
-    const selectedOption = options.find((option) => option.value === selectedValue);
-    const normalizedSelectedLabel = selectedOption?.label.trim().toLowerCase() ?? "";
-    const shouldFilter = normalizedInput.length > 0 && normalizedInput !== normalizedSelectedLabel;
-    const filteredOptions = !shouldFilter
-      ? options
-      : options.filter((option) => option.label.toLowerCase().includes(normalizedInput));
-    const visibleOptions =
-      paginated && !shouldFilter
-        ? (() => {
-            const pagedOptions = filteredOptions.slice(0, fixedDateVisibleCount);
-            if (
-              !selectedOption ||
-              pagedOptions.some((option) => option.value === selectedOption.value)
-            ) {
-              return pagedOptions;
-            }
-
-            return [selectedOption, ...pagedOptions];
-          })()
-        : filteredOptions;
-    const hasMore =
-      Boolean(paginated) && !shouldFilter && filteredOptions.length > visibleOptions.length;
-    const renderedOptions =
-      visibleOptions.length > 0
-        ? visibleOptions
-        : [{ label: emptyLabel ?? "No matching options", value: NO_MATCH_VALUE }];
-
-    return (
-      <ComboBox
-        aria-label={label}
-        className="w-[9.25rem] min-w-[8rem]"
-        data-testid={testId}
-        inputValue={inputValue}
-        items={renderedOptions}
-        onInputChange={onInputChange ?? (() => {})}
-        onSelectionChange={(key) => {
-          if (typeof key === "string") {
-            if (key === NO_MATCH_VALUE) {
-              return;
-            }
-            onSelect(key);
-          }
-        }}
-        selectedKey={selectedValue}
-      >
-        <ComboBox.InputGroup className="box-border overflow-hidden rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface) transition-[border-width,border-color] duration-150 focus-within:border-(--shell-foreground) focus-within:border-2 focus-within:ring-0">
-          <Input className="min-h-8 truncate border-0 bg-transparent py-[0.28rem] pr-[2.15rem] pl-[0.45rem] text-(--shell-foreground) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0" />
-          <ComboBox.Trigger
-            aria-label={`Open ${label} options`}
-            className="min-w-[2.15rem] px-[0.45rem] text-(--shell-muted)"
-          />
-        </ComboBox.InputGroup>
-        <ComboBox.Popover className="rounded-[0.8rem] border border-(--shell-border) bg-(--shell-surface)">
-          <div className="max-h-56 overflow-y-auto" ref={listContainerRef}>
-            <ListBox>
-              {renderedOptions.map((option) => (
-                <ListBoxItem
-                  className="text-(--shell-foreground) data-[focused=true]:bg-(--shell-background) data-[hovered=true]:bg-(--shell-background) data-[selected=true]:bg-(--shell-background) data-[focused=true]:text-(--shell-foreground) data-[hovered=true]:text-(--shell-foreground) data-[selected=true]:text-(--shell-foreground)"
-                  id={option.value}
-                  key={option.value}
-                  textValue={option.label}
-                >
-                  {option.label}
-                </ListBoxItem>
-              ))}
-            </ListBox>
-            {hasMore ? (
-              <div
-                className="h-2 w-full"
-                data-testid={`${testId}-infinite-sentinel`}
-                ref={infiniteScrollRef}
-              />
-            ) : null}
-            {isInfiniteLoading ? (
-              <div className="flex justify-center py-2" data-testid={`${testId}-infinite-loading`}>
-                <Spinner color="current" size="sm" style={{ color: "var(--foreground)" }} />
-              </div>
-            ) : null}
-          </div>
-        </ComboBox.Popover>
-      </ComboBox>
-    );
-  };
-
   const showRelativeUnavailableState = settings.valueMode === "relative" && !hasComputablePoints;
+
+  const baselineModeOptions: ChartComboOption[] = [
+    { label: "Rolling baseline", value: "rolling" },
+    { label: "Fixed baseline", value: "fixed" },
+  ];
+
+  const rollingOffsetOptions: ChartComboOption[] = rollingOffsetCandidates.map((offset) => ({
+    label: `${offset} observations ago`,
+    value: String(offset),
+  }));
+
+  const fixedDateControlOptions: ChartComboOption[] = [
+    { label: "Select baseline date", value: "" },
+    ...sortedFixedDateOptions.map((date) => ({
+      label: date,
+      value: date,
+    })),
+  ];
 
   React.useEffect(() => {
     const container = chartContainerRef.current;
@@ -519,123 +421,99 @@ export const ObservationsChart = ({
       data-testid="observations-chart"
     >
       {availableRanges.length > 1 ? (
-        <div
+        <ChartToggleGroup
+          activeValue={activeRange}
           className="mb-[0.7rem] flex flex-wrap justify-end gap-[0.35rem]"
-          data-testid="observations-chart-controls"
-        >
-          {availableRanges.map((range) => (
-            <button
-              aria-pressed={activeRange === range}
-              className={`cursor-pointer border border-(--shell-border) bg-(--shell-surface) px-[0.52rem] py-[0.2rem] text-[0.68rem] tracking-[0.06em] aria-pressed:border-(--shell-foreground) aria-pressed:bg-(--shell-foreground) aria-pressed:text-(--shell-surface) ${isFixedBaselineActive ? "cursor-not-allowed opacity-45" : ""}`}
-              disabled={isFixedBaselineActive}
-              key={range}
-              onClick={() => {
-                if (isFixedBaselineActive) {
-                  return;
-                }
-                handleRangeChange(range);
-              }}
-              type="button"
-            >
-              {range}
-            </button>
-          ))}
-        </div>
+          disabled={isFixedBaselineActive}
+          onChange={handleRangeChange}
+          options={availableRanges.map((range) => ({
+            label: range,
+            value: range,
+          }))}
+          testId="observations-chart-controls"
+        />
       ) : null}
       <div className="mb-[0.7rem] flex flex-wrap items-center justify-between gap-2">
-        <div
+        <ChartToggleGroup
+          activeValue={settings.valueMode}
           className="flex flex-wrap gap-[0.35rem]"
-          data-testid="observations-chart-mode-controls"
-        >
-          <button
-            aria-pressed={settings.valueMode === "observed"}
-            className="cursor-pointer border border-(--shell-border) bg-(--shell-surface) px-[0.52rem] py-[0.2rem] text-[0.68rem] tracking-[0.06em] aria-pressed:border-(--shell-foreground) aria-pressed:bg-(--shell-foreground) aria-pressed:text-(--shell-surface)"
-            onClick={() => {
-              updateRelativeSettings({ valueMode: "observed" });
-            }}
-            type="button"
-          >
-            Observed
-          </button>
-          <button
-            aria-pressed={settings.valueMode === "relative"}
-            className="cursor-pointer border border-(--shell-border) bg-(--shell-surface) px-[0.52rem] py-[0.2rem] text-[0.68rem] tracking-[0.06em] aria-pressed:border-(--shell-foreground) aria-pressed:bg-(--shell-foreground) aria-pressed:text-(--shell-surface)"
-            onClick={() => {
-              updateRelativeSettings({ valueMode: "relative" });
-            }}
-            type="button"
-          >
-            Relative %
-          </button>
-        </div>
+          onChange={(value) => {
+            updateRelativeSettings({ valueMode: value });
+          }}
+          options={[
+            {
+              label: "Observed",
+              value: "observed",
+            },
+            {
+              label: "Relative %",
+              value: "relative",
+            },
+          ]}
+          testId="observations-chart-mode-controls"
+        />
 
         {settings.valueMode === "relative" ? (
           <div
             className="flex flex-nowrap items-center gap-[0.4rem] overflow-x-auto"
             data-testid="observations-chart-relative-controls"
           >
-            {renderControlComboBox({
-              inputValue: baselineModeInput,
-              label: "Relative baseline mode",
-              onInputChange: setBaselineModeInput,
-              onSelect: (value) => {
+            <ChartComboControl
+              className="w-37 min-w-32"
+              inputValue={baselineModeInput}
+              label="Relative baseline mode"
+              emptyLabel="No baseline modes"
+              onInputChange={setBaselineModeInput}
+              onSelect={(value) => {
                 updateRelativeSettings({
                   baselineMode: value as RelativeChangeSettings["baselineMode"],
                 });
-              },
-              options: [
-                { label: "Rolling baseline", value: "rolling" },
-                { label: "Fixed baseline", value: "fixed" },
-              ],
-              emptyLabel: "No baseline modes",
-              selectedValue: settings.baselineMode,
-              testId: "relative-baseline-mode-control",
-            })}
+              }}
+              options={baselineModeOptions}
+              selectedValue={settings.baselineMode}
+              testId="relative-baseline-mode-control"
+            />
 
-            {settings.baselineMode === "rolling"
-              ? renderControlComboBox({
-                  inputValue: rollingOffsetInput,
-                  label: "Rolling offset",
-                  onInputChange: setRollingOffsetInput,
-                  onSelect: (value) => {
-                    updateRelativeSettings({
-                      rollingOffset: parseNumericControl(value),
-                    });
-                  },
-                  options: rollingOffsetCandidates.map((offset) => ({
-                    label: `${offset} observations ago`,
-                    value: String(offset),
-                  })),
-                  emptyLabel: "No matching offsets",
-                  selectedValue: String(settings.rollingOffset),
-                  testId: "rolling-offset-control",
-                })
-              : renderControlComboBox({
-                  infiniteScrollRef: fixedDateSentinelRef,
-                  inputValue: fixedDateInput,
-                  isInfiniteLoading: fixedDateLoadingMore,
-                  label: "Fixed baseline date",
-                  listContainerRef: fixedDateListContainerRef,
-                  onInputChange: (value) => {
-                    setFixedDateInput(value);
-                    setFixedDateLoadingMore(false);
-                    setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
-                  },
-                  onSelect: (value) => {
-                    updateRelativeSettings({ fixedBaselineDate: value === "" ? null : value });
-                  },
-                  options: [
-                    { label: "Select baseline date", value: "" },
-                    ...sortedFixedDateOptions.map((date) => ({
-                      label: date,
-                      value: date,
-                    })),
-                  ],
-                  emptyLabel: "No matching dates",
-                  paginated: true,
-                  selectedValue: settings.fixedBaselineDate ?? "",
-                  testId: "fixed-baseline-date-control",
-                })}
+            {settings.baselineMode === "rolling" ? (
+              <ChartComboControl
+                className="w-37 min-w-32"
+                emptyLabel="No matching offsets"
+                inputValue={rollingOffsetInput}
+                label="Rolling offset"
+                onInputChange={setRollingOffsetInput}
+                onSelect={(value) => {
+                  updateRelativeSettings({
+                    rollingOffset: parseNumericControl(value),
+                  });
+                }}
+                options={rollingOffsetOptions}
+                selectedValue={String(settings.rollingOffset)}
+                testId="rolling-offset-control"
+              />
+            ) : (
+              <ChartComboControl
+                className="w-37 min-w-32"
+                emptyLabel="No matching dates"
+                infiniteScrollRef={fixedDateSentinelRef}
+                inputValue={fixedDateInput}
+                isInfiniteLoading={fixedDateLoadingMore}
+                label="Fixed baseline date"
+                listContainerRef={fixedDateListContainerRef}
+                onInputChange={(value) => {
+                  setFixedDateInput(value);
+                  setFixedDateLoadingMore(false);
+                  setFixedDateVisibleCount(COMBOBOX_PAGE_SIZE);
+                }}
+                onSelect={(value) => {
+                  updateRelativeSettings({ fixedBaselineDate: value === "" ? null : value });
+                }}
+                options={fixedDateControlOptions}
+                paginated
+                selectedValue={settings.fixedBaselineDate ?? ""}
+                testId="fixed-baseline-date-control"
+                visibleCount={fixedDateVisibleCount}
+              />
+            )}
           </div>
         ) : null}
       </div>

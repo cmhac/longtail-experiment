@@ -1,11 +1,11 @@
 "use client";
 
-import { Card } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
 import { DatasetDetailInsights } from "./DatasetDetailInsights";
 import { ObservationsChart } from "./ObservationsChart";
+import { ChartSurfaceCard } from "./chart-controls/ChartSurfaceCard";
 import {
   DEFAULT_RELATIVE_CHANGE_SETTINGS,
   type RelativeChangeSettings,
@@ -30,14 +30,11 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
         selectedRange={selectedRange}
       />
 
-      <Card
+      <ChartSurfaceCard
         className="grid h-full min-h-96 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
-        data-testid="dataset-detail-trend-section"
-        variant="default"
+        testId="dataset-detail-trend-section"
+        title="Historical Trend"
       >
-        <h2 className="m-0 font-[Iowan_Old_Style,Palatino_Linotype,Times_New_Roman,serif] text-[1.4rem]">
-          Historical Trend
-        </h2>
         <ObservationsChart
           onRelativeSettingsChange={setRelativeSettings}
           observations={data.observations}
@@ -47,7 +44,7 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
           unitLabel={data.metadata.unit ?? data.metadata.units}
           unitType={data.metadata.unit_type}
         />
-      </Card>
+      </ChartSurfaceCard>
     </>
   );
 };

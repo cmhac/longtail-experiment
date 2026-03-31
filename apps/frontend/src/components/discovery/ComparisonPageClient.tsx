@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Input, Label, ListBox, Select } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import React, { useEffect, useMemo, useState } from "react";
 import type { JSX } from "react";
 import {
@@ -15,6 +15,18 @@ import {
 } from "recharts";
 import { fetchDatasetDetail } from "../../lib/api/discovery-client";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
+import { ChartChipButton } from "./chart-controls/ChartChipButton";
+import { ChartControlField } from "./chart-controls/ChartControlField";
+import { ChartNumberInputControl } from "./chart-controls/ChartNumberInputControl";
+import { ChartSelectControl } from "./chart-controls/ChartSelectControl";
+import { ChartSurfaceCard } from "./chart-controls/ChartSurfaceCard";
+import { ChartToggleGroup } from "./chart-controls/ChartToggleGroup";
+import {
+  ChartTooltipDate,
+  ChartTooltipDivider,
+  ChartTooltipRoot,
+  ChartTooltipText,
+} from "./chart-controls/ChartTooltip";
 import {
   COMPARISON_STATE_EVENT,
   ComparisonStateCorruptedError,
@@ -34,6 +46,19 @@ interface ChartRow {
 interface SeriesBaseline {
   baselineDate: string | null;
   baselineValue: number | null;
+}
+
+interface ComparisonTooltipPayload {
+  payload?: Record<string, number | string | null>;
+}
+
+interface ComparisonTooltipProps {
+  active?: boolean;
+  datasetIds: readonly string[];
+  datasetNameById: Map<string, string>;
+  label?: string | number;
+  payload?: ComparisonTooltipPayload[];
+  valueMode: "observed" | "relative";
 }
 
 export const parseDate = (value: string): number => Date.parse(`${value}T00:00:00Z`);
@@ -183,6 +208,62 @@ const formatDate = (value: string): string => {
   });
 };
 
+const ComparisonChartTooltip = ({
+  active,
+  datasetIds,
+  datasetNameById,
+  label,
+  payload,
+  valueMode,
+}: ComparisonTooltipProps): JSX.Element | null => {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const row = payload[0]?.payload;
+  if (!row) {
+    return null;
+  }
+
+  const dateLabel = typeof label === "string" ? formatDate(label) : String(label ?? "");
+
+  return (
+    <ChartTooltipRoot className="w-[min(92vw,24rem)] max-w-[24rem]">
+      <ChartTooltipDate>{dateLabel}</ChartTooltipDate>
+      <ChartTooltipDivider />
+      <div className="mt-3 grid gap-1.5">
+        {datasetIds.map((datasetId) => {
+          const rawValue = row[datasetId];
+          const formattedValue =
+            typeof rawValue === "number"
+              ? valueMode === "relative"
+                ? `${rawValue.toFixed(2)}%`
+                : rawValue.toFixed(2)
+              : "-";
+
+          return (
+            <ChartTooltipText
+              className="mt-0 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 font-semibold text-[0.88rem]"
+              key={datasetId}
+            >
+              <span className="inline-flex min-w-0 items-start gap-1.5">
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: getComparisonLineColor(datasetId, datasetIds) }}
+                />
+                <span className="min-w-0 whitespace-normal break-words">
+                  {datasetNameById.get(datasetId) ?? datasetId}
+                </span>
+              </span>
+              <span className="whitespace-nowrap">{formattedValue}</span>
+            </ChartTooltipText>
+          );
+        })}
+      </div>
+    </ChartTooltipRoot>
+  );
+};
+
 export const ComparisonPageClient = (): JSX.Element => {
   const [datasetIds, setDatasetIds] = useState<string[]>([]);
   const [datasets, setDatasets] = useState<DatasetDetail[]>([]);
@@ -302,6 +383,9 @@ export const ComparisonPageClient = (): JSX.Element => {
   }, [datasetIds, datasets]);
 
   const isAbsoluteMode = chartSettings.valueMode === "observed";
+  const datasetNameById = useMemo(() => {
+    return new Map(selectedDatasets.map((dataset) => [dataset.datasetId, dataset.title]));
+  }, [selectedDatasets]);
 
   if (stateError) {
     return (
@@ -325,15 +409,12 @@ export const ComparisonPageClient = (): JSX.Element => {
 
   if (datasetIds.length === 0) {
     return (
-      <section
-        className="rounded-[2rem] border border-(--shell-border) bg-(--shell-surface) p-5"
-        data-testid="comparison-empty-state"
-      >
+      <ChartSurfaceCard className="rounded-[2rem] p-5" testId="comparison-empty-state">
         <h2 className="font-semibold text-lg">Comparison</h2>
         <p className="text-default-600 text-sm">
           Select at least two datasets from dataset detail pages to unlock comparison overlays.
         </p>
-      </section>
+      </ChartSurfaceCard>
     );
   }
 
@@ -345,24 +426,15 @@ export const ComparisonPageClient = (): JSX.Element => {
           data-testid="comparison-selected-datasets"
         >
           {selectedDatasets.map((dataset) => (
-            <Button
+            <ChartChipButton
+              accentColor={getComparisonLineColor(dataset.datasetId, datasetIds)}
               key={dataset.datasetId}
-              size="sm"
-              variant="secondary"
               className="comparison-control-chip rounded-full transition-colors hover:bg-zinc-300 hover:text-zinc-950 data-[hovered=true]:bg-zinc-300 data-[hovered=true]:text-zinc-950 dark:data-[hovered=true]:bg-zinc-700 dark:data-[hovered=true]:text-white dark:hover:bg-zinc-700 dark:hover:text-white"
+              label={dataset.title}
               onPress={() => {
                 removeComparisonDataset(dataset.datasetId);
               }}
-            >
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{
-                  backgroundColor: getComparisonLineColor(dataset.datasetId, datasetIds),
-                }}
-              />
-              {dataset.title}
-              <span aria-hidden="true">×</span>
-            </Button>
+            />
           ))}
         </div>
 
@@ -370,134 +442,80 @@ export const ComparisonPageClient = (): JSX.Element => {
           className="grid gap-3 sm:grid-cols-[minmax(11rem,12rem)_minmax(11rem,12rem)_minmax(8.5rem,9rem)]"
           data-testid="comparison-mode-controls"
         >
-          <Select
-            className="comparison-control-select w-full"
-            isDisabled={!compatibleForObserved}
-            placeholder="Select mode"
-            value={chartSettings.valueMode}
-            variant="secondary"
-            onChange={(value) => {
-              const nextMode = value === "relative" ? "relative" : "observed";
-              setComparisonChartSettings({ valueMode: nextMode });
-            }}
-          >
-            <Label>Mode</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover className="comparison-control-popover">
-              <ListBox>
-                <ListBox.Item
-                  className="comparison-control-option"
-                  id="observed"
-                  textValue="Absolute"
-                >
-                  Absolute
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item
-                  className="comparison-control-option"
-                  id="relative"
-                  textValue="Relative"
-                >
-                  Relative
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
+          <ChartControlField label="Mode">
+            <ChartToggleGroup
+              activeValue={chartSettings.valueMode}
+              className="comparison-control-toggle-group flex flex-wrap gap-[0.35rem]"
+              onChange={(value) => {
+                setComparisonChartSettings({ valueMode: value });
+              }}
+              options={[
+                {
+                  disabled: !compatibleForObserved,
+                  label: "Absolute",
+                  value: "observed",
+                },
+                {
+                  label: "Relative",
+                  value: "relative",
+                },
+              ]}
+            />
+          </ChartControlField>
 
-          <Select
+          <ChartSelectControl
             className="comparison-control-select w-full"
             isDisabled={isAbsoluteMode}
-            placeholder="Select baseline"
-            value={chartSettings.baselineMode}
-            variant="secondary"
+            label="Baseline"
             onChange={(value) => {
               const nextMode = value === "fixed" ? "fixed" : "rolling";
               setComparisonChartSettings({ baselineMode: nextMode });
             }}
-          >
-            <Label>Baseline</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover className="comparison-control-popover">
-              <ListBox>
-                <ListBox.Item
-                  className="comparison-control-option"
-                  id="rolling"
-                  textValue="Rolling"
-                >
-                  Rolling
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-                <ListBox.Item className="comparison-control-option" id="fixed" textValue="Fixed">
-                  Fixed
-                  <ListBox.ItemIndicator />
-                </ListBox.Item>
-              </ListBox>
-            </Select.Popover>
-          </Select>
+            optionClassName="comparison-control-option"
+            options={[
+              { label: "Rolling", value: "rolling" },
+              { label: "Fixed", value: "fixed" },
+            ]}
+            placeholder="Select baseline"
+            popoverClassName="comparison-control-popover"
+            value={chartSettings.baselineMode}
+          />
 
           {chartSettings.baselineMode === "rolling" ? (
-            <div className="flex w-full flex-col gap-1">
-              <Label className="px-1" htmlFor="comparison-rolling-offset">
-                Offset
-              </Label>
-              <Input
-                className="comparison-control-input"
-                disabled={isAbsoluteMode}
-                id="comparison-rolling-offset"
-                min={1}
-                max={24}
-                type="number"
-                value={String(chartSettings.rollingOffset)}
-                variant="secondary"
-                onChange={(event) => {
-                  const nextOffset = Number.parseInt(event.target.value, 10);
-                  setComparisonChartSettings({
-                    rollingOffset: Number.isFinite(nextOffset) ? nextOffset : 1,
-                  });
-                }}
-              />
-            </div>
-          ) : (
-            <Select
-              className="comparison-control-select w-full sm:col-span-2"
-              isDisabled={isAbsoluteMode}
-              placeholder="Select baseline date"
-              value={chartSettings.fixedBaselineDate}
-              variant="secondary"
+            <ChartNumberInputControl
+              className="comparison-control-input"
+              disabled={isAbsoluteMode}
+              id="comparison-rolling-offset"
+              label="Offset"
+              max={24}
+              min={1}
+              value={String(chartSettings.rollingOffset)}
               onChange={(value) => {
+                const nextOffset = Number.parseInt(value, 10);
                 setComparisonChartSettings({
-                  fixedBaselineDate: value === null ? null : String(value),
+                  rollingOffset: Number.isFinite(nextOffset) ? nextOffset : 1,
                 });
               }}
-            >
-              <Label>Date</Label>
-              <Select.Trigger>
-                <Select.Value />
-                <Select.Indicator />
-              </Select.Trigger>
-              <Select.Popover className="comparison-control-popover">
-                <ListBox>
-                  {availableBaselineDates.map((date) => (
-                    <ListBox.Item
-                      className="comparison-control-option"
-                      key={date}
-                      id={date}
-                      textValue={formatDate(date)}
-                    >
-                      {formatDate(date)}
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                  ))}
-                </ListBox>
-              </Select.Popover>
-            </Select>
+            />
+          ) : (
+            <ChartSelectControl
+              className="comparison-control-select w-full sm:col-span-2"
+              isDisabled={isAbsoluteMode}
+              label="Date"
+              onChange={(value) => {
+                setComparisonChartSettings({
+                  fixedBaselineDate: value === "" ? null : value,
+                });
+              }}
+              optionClassName="comparison-control-option"
+              options={availableBaselineDates.map((date) => ({
+                label: formatDate(date),
+                value: date,
+              }))}
+              placeholder="Select baseline date"
+              popoverClassName="comparison-control-popover"
+              value={chartSettings.fixedBaselineDate}
+            />
           )}
         </div>
 
@@ -510,7 +528,7 @@ export const ComparisonPageClient = (): JSX.Element => {
       </Card>
 
       {datasetIds.length >= 2 ? (
-        <Card className="h-135 p-3" data-testid="comparison-chart-card">
+        <ChartSurfaceCard className="h-135 p-3" testId="comparison-chart-card">
           {loading ? (
             <div className="flex h-full items-center justify-center text-default-500 text-sm">
               Loading chart...
@@ -527,7 +545,16 @@ export const ComparisonPageClient = (): JSX.Element => {
                       : value.toFixed(1)
                   }
                 />
-                <Tooltip labelFormatter={(label) => formatDate(String(label))} />
+                <Tooltip
+                  content={
+                    <ComparisonChartTooltip
+                      datasetIds={datasetIds}
+                      datasetNameById={datasetNameById}
+                      valueMode={chartSettings.valueMode}
+                    />
+                  }
+                  cursor={false}
+                />
                 <Legend />
                 {datasets.map((dataset) => (
                   <Line
@@ -544,16 +571,13 @@ export const ComparisonPageClient = (): JSX.Element => {
               </LineChart>
             </ResponsiveContainer>
           )}
-        </Card>
+        </ChartSurfaceCard>
       ) : (
-        <section
-          className="rounded-[2rem] border border-(--shell-border) bg-(--shell-surface) p-4"
-          data-testid="comparison-chart-disabled-message"
-        >
+        <ChartSurfaceCard className="rounded-[2rem] p-4" testId="comparison-chart-disabled-message">
           <p className="text-default-600 text-sm">
             Select one more dataset to unlock the comparison chart.
           </p>
-        </section>
+        </ChartSurfaceCard>
       )}
     </div>
   );
