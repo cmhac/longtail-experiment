@@ -86,8 +86,8 @@ describe("navbar limited-scope interactions", () => {
 
     const comparisonLink = screen.getByTestId("navbar-comparison-link");
     const comparisonCount = screen.getByTestId("navbar-comparison-count");
-    expect(comparisonLink.getAttribute("href")).toBe("/comparison");
     expect(comparisonCount.textContent).toBe("0");
+    expect(comparisonLink.getAttribute("aria-label")).toBe("Comparison datasets selected: 0");
 
     window.localStorage.setItem(
       COMPARISON_STATE_STORAGE_KEY,
@@ -108,5 +108,8 @@ describe("navbar limited-scope interactions", () => {
     await waitFor(() => {
       expect(screen.getByTestId("navbar-comparison-count").textContent).toBe("2");
     });
+    expect(screen.getByTestId("navbar-comparison-link").getAttribute("aria-label")).toBe(
+      "Comparison datasets selected: 2",
+    );
   });
 });

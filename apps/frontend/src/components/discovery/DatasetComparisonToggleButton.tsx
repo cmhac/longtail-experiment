@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@heroui/react";
 import React, { useCallback, useEffect, useState } from "react";
 import type { JSX } from "react";
 import {
@@ -54,27 +55,27 @@ export const DatasetComparisonToggleButton = ({
 
   if (hasCorruptedState) {
     return (
-      <button
+      <Button
+        variant="danger-soft"
         className="inline-flex min-h-[2.1rem] flex-none items-center justify-center border border-red-500/70 px-[0.8rem] py-[0.35rem] text-[0.74rem] uppercase tracking-[0.08em]"
-        type="button"
-        onClick={() => {
+        onPress={() => {
           resetComparisonState();
           syncState();
         }}
       >
         Reset Comparison State
-      </button>
+      </Button>
     );
   }
 
   const isAtLimit = !isSelected && count >= MAX_COMPARISON_DATASETS;
 
   return (
-    <button
-      className="inline-flex min-h-[2.1rem] flex-none items-center justify-center border border-(--shell-border) px-[0.8rem] py-[0.35rem] text-[0.74rem] uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-55"
-      type="button"
-      disabled={isAtLimit}
-      onClick={() => {
+    <Button
+      variant="secondary"
+      className="dataset-detail-action-export inline-flex min-h-[2.1rem] flex-none items-center justify-center border border-(--shell-border) px-[0.8rem] py-[0.35rem] text-[0.74rem] uppercase tracking-[0.08em] disabled:cursor-not-allowed disabled:opacity-55"
+      isDisabled={isAtLimit}
+      onPress={() => {
         if (isSelected) {
           removeComparisonDataset(datasetId);
         } else {
@@ -88,6 +89,6 @@ export const DatasetComparisonToggleButton = ({
         : isSelected
           ? "Remove from Comparison"
           : "Add to Comparison"}
-    </button>
+    </Button>
   );
 };

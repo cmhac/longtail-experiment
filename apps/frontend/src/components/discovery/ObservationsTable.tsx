@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@heroui/react";
 import { Card } from "@heroui/react/card";
 import React from "react";
 import type { JSX } from "react";
@@ -83,16 +84,18 @@ export const ObservationsTable = ({
       </table>
 
       {hasMoreRows ? (
-        <button
+        <Button
           className="mx-auto border border-(--shell-border) bg-(--shell-surface) px-[0.9rem] py-[0.42rem] text-[0.73rem] tracking-[0.08em]"
           data-testid="observations-load-archive"
-          onClick={() => {
+          onPress={() => {
             setShowAll(true);
           }}
+          size="sm"
+          variant="secondary"
           type="button"
         >
           LOAD ARCHIVE ({rows.length} ROWS)
-        </button>
+        </Button>
       ) : null}
     </Card>
   );

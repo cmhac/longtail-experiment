@@ -166,21 +166,29 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
               )}
             </div>
 
-            <Link
-              href="/comparison"
-              className="shell-navbar-comparison-link"
+            <Button
+              className={`shell-navbar-comparison-link${
+                comparisonCount > 0 && !hasComparisonStateError ? " is-active" : ""
+              }`}
               data-testid="navbar-comparison-link"
               aria-label={
                 hasComparisonStateError
                   ? "Comparison state needs reset"
                   : `Comparison datasets selected: ${comparisonCount}`
               }
+              size="sm"
+              variant="ghost"
+              onPress={() => {
+                if (typeof window !== "undefined") {
+                  window.location.assign("/comparison");
+                }
+              }}
             >
               <span className="shell-navbar-comparison-label">Compare</span>
               <span className="shell-navbar-comparison-count" data-testid="navbar-comparison-count">
                 {hasComparisonStateError ? "!" : comparisonCount}
               </span>
-            </Link>
+            </Button>
 
             <div className="shell-navbar-profile-wrapper" ref={profileMenuRef}>
               <Button
