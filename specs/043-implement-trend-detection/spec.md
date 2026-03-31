@@ -121,7 +121,7 @@ As an end user exploring datasets, I want trend periods highlighted directly on 
 - **FR-004**: System MUST avoid creating duplicate historical trend segments when trend classification remains unchanged across runs.
 - **FR-004a**: System MUST end an ongoing trend at the latest available observation when a subsequent run finds no significant trend and MUST leave the dataset with no ongoing trend record.
 - **FR-005**: System MUST fail trend processing for the affected dataset when seasonality classification for a continuing trend context changes between runs, while allowing core observation ingestion for that dataset and other datasets to continue.
-- **FR-006**: System MUST ensure trend writes are idempotent for repeated processing of the same observation state.
+- **FR-006**: System MUST ensure trend analysis outputs are idempotent for repeated evaluation of the same persisted observation state under the same library version.
 - **FR-007**: System MUST expose persisted trend information through backend discovery responses needed by recent updates and dataset detail experiences.
 - **FR-008**: System MUST intermix trend events with dataset updates in the recent updates feed response, using a single recency ordering model.
 - **FR-008a**: System MUST use trend start period as the ordering timestamp for trend events in the unified recent updates feed.

@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: Discovery API Trend Contract Additions
+  version: 0.1.0
+  description: |
+    Contract additions for unified trend feed items and dataset detail trend visualization payloads.
+paths:
+  /api/discovery/recent-updates:
+    get:
+      summary: Get unified recent updates including trend events
+      responses:
+        "200":
+          description: Unified recent update items
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      oneOf:
+                        - $ref: "#/components/schemas/DatasetUpdateItem"
+                        - $ref: "#/components/schemas/TrendFeedItem"
+  /api/discovery/datasets/{datasetId}:
+    get:
+      summary: Get dataset detail including trend visualization spans
+      parameters:
+        - name: datasetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dataset detail response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetDetailResponse"
+        "422":
+          description: Trend span payload invalid/malformed for trend-enabled response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrendPayloadErrorResponse"
+components:
+  schemas:
+    DatasetUpdateItem:
+      type: object
+      required: [itemType, eventTimestamp, datasetId]
+      properties:
+        itemType:
+          type: string
+          enum: [dataset_update]
+        eventTimestamp:
+          type: string
+          format: date-time
+        datasetId:
+          type: string
+
+    TrendFeedItem:
+      type: object
+      required:
+        - itemType
+        - eventTimestamp
+        - datasetId
+        - direction
+        - strength
+        - startPeriod
+        - isOngoing
+      properties:
+        itemType:
+          type: string
+          enum: [trend_event]
+        eventTimestamp:
+          type: string
+          format: date-time
+          description: Uses trend start period by contract.
+        datasetId:
+          type: string
+        direction:
+          type: string
+          enum: [up, down, flat]
+        strength:
+          type: string
+        startPeriod:
+          type: string
+          format: date-time
+        endPeriod:
+          type: string
+          format: date-time
+          nullable: true
+        isOngoing:
+          type: boolean
+
+    DatasetDetailResponse:
+      type: object
+      required: [dataset, series, trendSpans]
+      properties:
+        dataset:
+          type: object
+          additionalProperties: true
+        series:
+          type: object
+          additionalProperties: true
+        trendSpans:
+          type: array
+          description: Non-overlapping display regions.
+          items:
+            $ref: "#/components/schemas/TrendVisualizationSpan"
+
+    TrendVisualizationSpan:
+      type: object
+      required:
+        - spanId
+        - startX
+        - endX
+        - direction
+        - colorToken
+        - patternToken
+        - directionIcon
+        - tooltip
+      properties:
+        spanId:
+          type: string
+        startX:
+          type: string
+          format: date-time
+        endX:
+          type: string
+          format: date-time
+        direction:
+          type: string
+          enum: [up, down, flat]
+        colorToken:
+          type: string
+        patternToken:
+          type: string
+        directionIcon:
+          type: string
+        tooltip:
+          $ref: "#/components/schemas/TrendTooltipPayload"
+
+    TrendTooltipPayload:
+      type: object
+      required: [title, startPeriod, direction, strength]
+      properties:
+        title:
+          type: string
+        startPeriod:
+          type: string
+          format: date-time
+        endPeriod:
+          type: string
+          format: date-time
+          nullable: true
+        direction:
+          type: string
+          enum: [up, down, flat]
+        strength:
+          type: string
+        seasonalityClassification:
+          type: string
+
+    TrendPayloadErrorResponse:
+      type: object
+      required: [errorCode, message]
+      properties:
+        errorCode:
+          type: string
+          enum: [TREND_PAYLOAD_INVALID]
+        message:
+          type: string
