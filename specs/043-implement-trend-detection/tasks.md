@@ -11,12 +11,12 @@
 
 **Purpose**: Establish feature scaffolding, shared fixtures, and quality workflow anchors.
 
-- [ ] T001 Create trend-analysis library package scaffold in libs/trend_analysis/pyproject.toml
-- [ ] T002 [P] Create trend-analysis source package init in libs/trend_analysis/src/trend_analysis/__init__.py
-- [ ] T003 [P] Create trend-analysis test package init in libs/trend_analysis/tests/__init__.py
-- [ ] T004 [P] Add feature-local test fixtures for trend scenarios in libs/trend_analysis/tests/fixtures/trend_series_fixtures.py
-- [ ] T005 [P] Add feature-level quality command section for developers in specs/043-implement-trend-detection/quickstart.md
-- [ ] T006 Add monorepo execution wiring for the new trend library targets in libs/trend_analysis/project.json
+- [X] T001 Create trend-analysis library package scaffold in libs/trend_analysis/pyproject.toml
+- [X] T002 [P] Create trend-analysis source package init in libs/trend_analysis/src/trend_analysis/__init__.py
+- [X] T003 [P] Create trend-analysis test package init in libs/trend_analysis/tests/__init__.py
+- [X] T004 [P] Add feature-local test fixtures for trend scenarios in libs/trend_analysis/tests/fixtures/trend_series_fixtures.py
+- [X] T005 [P] Add feature-level quality command section for developers in specs/043-implement-trend-detection/quickstart.md
+- [X] T006 Add monorepo execution wiring for the new trend library targets in libs/trend_analysis/project.json
 
 ---
 

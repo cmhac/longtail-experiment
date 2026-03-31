@@ -6,6 +6,14 @@
 - Local Docker runtime available
 - Local stack configuration present (`docker/compose/local.secrets.env`)
 
+## Feature Quality Commands
+
+- `pre-commit run --all-files`
+- `pnpm exec nx run trend-analysis:lint`
+- `pnpm exec nx run trend-analysis:typecheck`
+- `pnpm exec nx run trend-analysis:test`
+- `pnpm exec nx run trend-analysis:coverage`
+
 ## 1. Start from clean local runtime
 
 1. `docker compose down`
