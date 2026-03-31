@@ -10,7 +10,7 @@ interface TopicDetailHeaderProps {
 
 export const TopicDetailHeader = ({ topic }: TopicDetailHeaderProps): JSX.Element => {
   return (
-    <PageHeaderWrapper className="!mb-4 pt-2" testId="topic-detail-header">
+    <PageHeaderWrapper className="mb-4! pt-2" testId="topic-detail-header">
       <div className="grid gap-[0.35rem]">
         <PageHeaderKicker>Topic</PageHeaderKicker>
         <PageHeaderTitle>{topic.label}</PageHeaderTitle>

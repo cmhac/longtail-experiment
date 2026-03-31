@@ -10,7 +10,7 @@ interface GeographyDetailHeaderProps {
 
 export const GeographyDetailHeader = ({ geography }: GeographyDetailHeaderProps): JSX.Element => {
   return (
-    <PageHeaderWrapper className="!mb-4 pt-2" testId="geography-detail-header">
+    <PageHeaderWrapper className="mb-4! pt-2" testId="geography-detail-header">
       <div className="grid gap-[0.35rem]">
         <PageHeaderKicker>Geography</PageHeaderKicker>
         <PageHeaderTitle>{geography.label}</PageHeaderTitle>

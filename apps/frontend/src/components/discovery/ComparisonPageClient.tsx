@@ -260,7 +260,7 @@ const ComparisonChartTooltip = ({
                   className="inline-block h-2 w-2 rounded-full"
                   style={{ backgroundColor: getComparisonLineColor(datasetId, datasetIds) }}
                 />
-                <span className="min-w-0 whitespace-normal break-words">
+                <span className="wrap-break-word min-w-0 whitespace-normal">
                   {datasetNameById.get(datasetId) ?? datasetId}
                 </span>
               </span>

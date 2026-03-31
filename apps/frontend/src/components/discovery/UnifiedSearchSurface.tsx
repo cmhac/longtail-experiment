@@ -106,21 +106,21 @@ export const UnifiedSearchSurface = ({
 
   const sectionClassName = isNavbar
     ? "h-8 w-full overflow-visible border-0 bg-(--shell-surface) p-0"
-    : "mx-auto grid w-full max-w-[72rem] justify-items-center gap-[0.45rem] overflow-visible px-4 pb-[1.25rem] pt-[3.2rem] max-[720px]:pt-[1.7rem]";
+    : "mx-auto grid w-full max-w-6xl justify-items-center gap-[0.45rem] overflow-visible px-4 pb-5 pt-[3.2rem] max-[720px]:pt-[1.7rem]";
 
   const formClassName = isNavbar
     ? "relative z-30 grid w-full gap-[0.3rem]"
-    : "relative z-30 grid w-full max-w-[64rem] gap-[0.4rem] overflow-visible";
+    : "relative z-30 grid w-full max-w-5xl gap-[0.4rem] overflow-visible";
 
   const inputWrapClassName = isNavbar
     ? "relative grid h-8 w-full grid-cols-1 items-center gap-0 overflow-visible rounded-full border border-[color-mix(in_srgb,var(--shell-border)_78%,transparent)]"
     : "relative grid w-full grid-cols-1 items-center gap-0 overflow-visible rounded-[0.8rem]";
 
   const suggestionsClassName = isNavbar
-    ? "dataset-search-suggestions absolute inset-x-0 top-[calc(100%+0.35rem)] z-[120] isolate overflow-hidden"
-    : "dataset-search-suggestions absolute inset-x-0 top-[calc(100%+0.7rem)] z-[120] isolate overflow-hidden";
+    ? "dataset-search-suggestions absolute inset-x-0 top-[calc(100%+0.35rem)] z-120 isolate overflow-hidden"
+    : "dataset-search-suggestions absolute inset-x-0 top-[calc(100%+0.7rem)] z-120 isolate overflow-hidden";
 
-  const suggestionsScrollClassName = `${isNavbar ? "max-h-[min(55vh,22rem)]" : "max-h-[min(70vh,36rem)]"} dataset-search-suggestions-scroll overflow-x-hidden overflow-y-auto overscroll-x-contain overscroll-y-none [contain:paint] [scrollbar-width:none] [scrollbar-color:transparent_transparent] [transform:translateZ(0)] [will-change:scroll-position]`;
+  const suggestionsScrollClassName = `${isNavbar ? "max-h-[min(55vh,22rem)]" : "max-h-[min(70vh,36rem)]"} dataset-search-suggestions-scroll overflow-x-hidden overflow-y-auto overscroll-x-contain overscroll-y-none contain-[paint] [scrollbar-width:none] [scrollbar-color:transparent_transparent] transform-[translateZ(0)] will-change-scroll`;
 
   const suggestionScrollStateClassName = isSuggestionsScrolling ? " is-scrolling" : "";
 
@@ -162,7 +162,7 @@ export const UnifiedSearchSurface = ({
                   variant="default"
                 >
                   <div
-                    className="flex items-center justify-between gap-3 border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] border-b bg-[var(--surface)] px-5 py-[1.05rem] font-bold text-[0.72rem] tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
+                    className="flex items-center justify-between gap-3 border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] border-b bg-(--surface) px-5 py-[1.05rem] font-bold text-[0.72rem] tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
                     data-testid="dataset-search-suggestions-header"
                   >
                     <span>SEARCH RESULTS ({suggestions.length})</span>
@@ -179,7 +179,7 @@ export const UnifiedSearchSurface = ({
                       {suggestions.map((item) => (
                         <li key={item.dataset_id}>
                           <button
-                            className="grid w-full gap-[0.55rem] bg-transparent px-[1.45rem] py-[1.65rem] text-left text-inherit [margin:0.42rem_0] hover:bg-[color-mix(in_srgb,var(--shell-surface)_55%,var(--shell-background))] max-[720px]:gap-[0.45rem] max-[720px]:px-4 max-[720px]:py-[1.2rem] max-[720px]:[margin:0.28rem_0]"
+                            className="m-[0.42rem_0] grid w-full gap-[0.55rem] bg-transparent px-[1.45rem] py-[1.65rem] text-left text-inherit hover:bg-[color-mix(in_srgb,var(--shell-surface)_55%,var(--shell-background))] max-[720px]:m-[0.28rem_0] max-[720px]:gap-[0.45rem] max-[720px]:px-4 max-[720px]:py-[1.2rem]"
                             data-testid="dataset-search-suggestion-item"
                             onClick={() => {
                               setShowSuggestions(false);
@@ -194,7 +194,7 @@ export const UnifiedSearchSurface = ({
                             <span className="font-bold text-(--shell-muted) text-[0.72rem] tracking-[0.15em]">
                               DATASET • {item.source.name.toUpperCase()}
                             </span>
-                            <span className="font-bold font-serif text-[clamp(1.08rem,1.6vw,1.5rem)] text-[var(--shell-foreground)] leading-[1.1] max-[720px]:text-[1.12rem]">
+                            <span className="font-bold font-serif text-(--shell-foreground) text-[clamp(1.08rem,1.6vw,1.5rem)] leading-[1.1] max-[720px]:text-[1.12rem]">
                               {item.title}
                             </span>
                             <span className="flex items-center gap-[1.2rem] max-[720px]:flex-wrap max-[720px]:gap-3">
@@ -248,7 +248,7 @@ export const UnifiedSearchSurface = ({
                   variant="default"
                 >
                   <div
-                    className="flex items-center justify-between gap-3 border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] border-b bg-[var(--surface)] px-5 py-[1.05rem] font-bold text-[0.72rem] tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
+                    className="flex items-center justify-between gap-3 border-[color-mix(in_srgb,var(--shell-border)_70%,transparent)] border-b bg-(--surface) px-5 py-[1.05rem] font-bold text-[0.72rem] tracking-[0.17em] max-[720px]:flex-col max-[720px]:items-start"
                     data-testid="dataset-search-suggestions-header"
                   >
                     <span>SEARCH RESULTS ({suggestions.length})</span>
@@ -265,7 +265,7 @@ export const UnifiedSearchSurface = ({
                       {suggestions.map((item) => (
                         <li key={item.dataset_id}>
                           <button
-                            className="grid w-full gap-[0.55rem] bg-transparent px-[1.45rem] py-[1.65rem] text-left text-inherit [margin:0.42rem_0] hover:bg-[color-mix(in_srgb,var(--shell-surface)_55%,var(--shell-background))] max-[720px]:gap-[0.45rem] max-[720px]:px-4 max-[720px]:py-[1.2rem] max-[720px]:[margin:0.28rem_0]"
+                            className="m-[0.42rem_0] grid w-full gap-[0.55rem] bg-transparent px-[1.45rem] py-[1.65rem] text-left text-inherit hover:bg-[color-mix(in_srgb,var(--shell-surface)_55%,var(--shell-background))] max-[720px]:m-[0.28rem_0] max-[720px]:gap-[0.45rem] max-[720px]:px-4 max-[720px]:py-[1.2rem]"
                             data-testid="dataset-search-suggestion-item"
                             onClick={() => {
                               setShowSuggestions(false);
@@ -280,7 +280,7 @@ export const UnifiedSearchSurface = ({
                             <span className="font-bold text-(--shell-muted) text-[0.72rem] tracking-[0.15em]">
                               DATASET • {item.source.name.toUpperCase()}
                             </span>
-                            <span className="font-bold font-serif text-[clamp(1.08rem,1.6vw,1.5rem)] text-[var(--shell-foreground)] leading-[1.1] max-[720px]:text-[1.12rem]">
+                            <span className="font-bold font-serif text-(--shell-foreground) text-[clamp(1.08rem,1.6vw,1.5rem)] leading-[1.1] max-[720px]:text-[1.12rem]">
                               {item.title}
                             </span>
                             <span className="flex items-center gap-[1.2rem] max-[720px]:flex-wrap max-[720px]:gap-3">
@@ -301,7 +301,7 @@ export const UnifiedSearchSurface = ({
             </div>
           </form>
           <p
-            className="relative z-[1] m-0 max-w-[56ch] text-center text-(--shell-muted) text-[0.9rem]"
+            className="relative z-1 m-0 max-w-[56ch] text-center text-(--shell-muted) text-[0.9rem]"
             data-testid="dataset-search-summary"
           >
             {summaryText}
