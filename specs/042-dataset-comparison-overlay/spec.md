@@ -147,6 +147,7 @@ As a dataset viewer, I can compare observed values only when units are compatibl
 - **SC-003**: 100% of relative-mode validation scenarios with multiple compared datasets apply one shared baseline configuration consistently across rendered series.
 - **SC-004**: 100% of limit-enforcement validation scenarios prevent selection counts from exceeding 5 and preserve existing selections without unintended replacements.
 - **SC-005**: 95% of users in validation can remove one or more selected datasets from either the detail page or comparison page on first attempt.
+- **SC-006**: In local validation with up to 5 selected datasets, at least 95% of sampled mode/baseline/add/remove interactions visibly update the comparison chart within 1 second.
 
 ## Constitution Alignment _(mandatory)_
 

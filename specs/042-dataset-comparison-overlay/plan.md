@@ -17,7 +17,7 @@ Introduce a comparison-set workflow for dataset charts: users add datasets from 
 **Testing**: Vitest + Testing Library (frontend), existing backend contract/runtime tests unaffected unless optional guardrails are added, `pre-commit run --all-files`, Nx full-suite test/coverage gates  
 **Target Platform**: Next.js web UI (desktop/mobile browsers) with local Docker Compose parity for full stack
 **Project Type**: Nx monorepo web application (frontend route/component work with existing backend contracts)  
-**Performance Goals**: Comparison page interactions (mode switch, baseline changes, add/remove actions) remain responsive under current dataset-detail payload sizes and avoid perceptible chart lag in normal usage  
+**Performance Goals**: For selections up to 5 datasets, chart mode/baseline changes and add/remove actions should produce visible chart updates within 1 second for at least 95% of sampled interactions during local validation  
 **Constraints**: Maintain existing discovery API contract compatibility; no gate bypasses; >=90% coverage thresholds; HeroUI/Tailwind/shared-component patterns; single centralized max-selection constant; fail-hard handling for corrupted persisted state  
 **Scale/Scope**: New comparison UX across detail and dedicated comparison page, with up to 5 selected datasets and multi-series chart projection logic
 
@@ -64,9 +64,11 @@ apps/
 │   │   │   ├── DatasetDetailAnalysis.tsx
 │   │   │   ├── ObservationsChart.tsx
 │   │   │   ├── dataset-detail-view-model.ts
-│   │   │   └── [new comparison selection/chart helpers]
-│   │   ├── components/shell/
-│   │   │   └── [top-nav integration for comparison count indicator]
+│   │   │   ├── comparison-state.ts
+│   │   │   ├── ComparisonSelectionList.tsx
+│   │   │   └── ComparisonChartPanel.tsx
+│   │   ├── shell/
+│   │   │   └── site-header.tsx
 │   │   └── lib/api/
 │   │       ├── discovery-client.ts
 │   │       └── discovery-types.ts
@@ -74,13 +76,15 @@ apps/
 │       ├── ObservationsChart.test.tsx
 │       ├── detail-page.test.tsx
 │       ├── dataset-detail-view-model.test.ts
-│       └── [new comparison page and selection-state tests]
+│       ├── comparison-page.test.tsx
+│       └── SiteHeader.test.tsx
 └── backend/
     ├── src/query/
     │   ├── dataset_discovery_service.py
     │   └── dataset_discovery_persisted_repository.py
     └── tests/contract/
-        └── [existing discovery contract coverage retained unless changed]
+    ├── test_dataset_detail_query_contract.py
+    └── test_http_runtime_persisted_discovery_endpoints.py
 ```
 
 **Structure Decision**: Implement as a frontend-focused vertical slice that extends existing dataset-detail and chart abstractions, adds a new dedicated comparison page route, and keeps backend contracts unchanged unless optional guardrail adjustments become necessary during implementation.

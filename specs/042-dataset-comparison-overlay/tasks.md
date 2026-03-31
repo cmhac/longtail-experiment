@@ -43,7 +43,7 @@
 - [ ] T009 Implement shared multi-series timeline projection helpers (union dates + gaps) in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
 - [ ] T010 Implement fixed-baseline fallback resolver (nearest prior else nearest any) in apps/frontend/src/components/discovery/dataset-detail-view-model.ts
 - [ ] T011 Add foundational unit tests for constants, persistence validation, and projection rules in apps/frontend/tests/dataset-detail-view-model.test.ts
-- [ ] T012 Add top-nav comparison indicator shell slot and baseline rendering hooks in apps/frontend/src/shell/site-header.tsx
+- [ ] T012 Add comparison indicator shell extension points (between search and profile controls) in apps/frontend/src/shell/site-header.tsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -148,6 +148,7 @@
 - [ ] T057 Run local stack restart and browser regression walkthrough per specs/042-dataset-comparison-overlay/quickstart.md
 - [ ] T058 Run final mandatory gates: pre-commit run --all-files, pnpm exec nx run-many -t test --all, pnpm exec nx run-many -t coverage --all and record outcomes in specs/042-dataset-comparison-overlay/quickstart.md
 - [ ] T059 Create final feature integration commit covering all remaining implementation and docs in specs/042-dataset-comparison-overlay/
+- [ ] T060 Validate SC-006 performance target (95% of sampled mode/baseline/add/remove interactions update chart within 1 second for <=5 selections) and record evidence in specs/042-dataset-comparison-overlay/quickstart.md
 
 ---
 
