@@ -33,6 +33,8 @@ export const ChartSelectControl = ({
   testId,
   value,
 }: ChartSelectControlProps): JSX.Element => {
+  const selectedKey = value ?? null;
+
   return (
     <ChartControlField label={label}>
       <Select
@@ -41,10 +43,10 @@ export const ChartSelectControl = ({
         {...(testId ? { "data-testid": testId } : {})}
         {...(typeof isDisabled === "boolean" ? { isDisabled } : {})}
         placeholder={placeholder}
-        value={value}
+        selectedKey={selectedKey}
         variant="secondary"
-        onChange={(nextValue) => {
-          onChange(nextValue === null ? "" : String(nextValue));
+        onSelectionChange={(nextKey) => {
+          onChange(typeof nextKey === "string" ? nextKey : "");
         }}
       >
         <Select.Trigger>

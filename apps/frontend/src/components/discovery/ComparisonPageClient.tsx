@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { JSX } from "react";
 import {
   CartesianGrid,
@@ -114,6 +114,11 @@ export const buildChartRows = (
   rollingOffset: number,
   fixedBaselineDate: string | null,
 ): ChartRow[] => {
+  const usesFixedRelativeMode = valueMode === "relative" && baselineMode === "fixed";
+  if (usesFixedRelativeMode && !fixedBaselineDate) {
+    return [];
+  }
+
   const allDates = new Set<string>();
   for (const dataset of datasets) {
     for (const point of dataset.observations) {
@@ -122,6 +127,10 @@ export const buildChartRows = (
   }
 
   const orderedDates = [...allDates].sort((left, right) => parseDate(left) - parseDate(right));
+  const visibleDates =
+    usesFixedRelativeMode && fixedBaselineDate
+      ? orderedDates.filter((date) => parseDate(date) >= parseDate(fixedBaselineDate))
+      : orderedDates;
 
   const lookup = new Map<string, Map<string, number>>();
   const rollingBaselineLookup = new Map<string, Map<string, number | null>>();
@@ -160,7 +169,7 @@ export const buildChartRows = (
     }
   }
 
-  return orderedDates.map((date) => {
+  return visibleDates.map((date) => {
     const row: ChartRow = { date };
 
     for (const dataset of datasets) {
@@ -269,6 +278,7 @@ export const ComparisonPageClient = (): JSX.Element => {
   const [datasets, setDatasets] = useState<DatasetDetail[]>([]);
   const [loading, setLoading] = useState(false);
   const [stateError, setStateError] = useState<string | null>(null);
+  const hasProcessedInitialSync = useRef(false);
   const [chartSettings, setChartSettings] = useState(() => {
     try {
       return getComparisonState().chartSettings;
@@ -286,9 +296,30 @@ export const ComparisonPageClient = (): JSX.Element => {
     const sync = (): void => {
       try {
         const state = getComparisonState();
+        const shouldResetPersistedFixedBaseline =
+          !hasProcessedInitialSync.current &&
+          state.chartSettings.baselineMode === "fixed" &&
+          state.chartSettings.fixedBaselineDate !== null;
+        hasProcessedInitialSync.current = true;
+
+        const shouldResetFixedBaseline = shouldResetPersistedFixedBaseline;
+        const nextChartSettings = shouldResetFixedBaseline
+          ? {
+              ...state.chartSettings,
+              fixedBaselineDate: null,
+            }
+          : state.chartSettings;
+
         setDatasetIds(state.selectedDatasetIds);
-        setChartSettings(state.chartSettings);
+        setChartSettings(nextChartSettings);
         setStateError(null);
+
+        if (shouldResetFixedBaseline) {
+          setComparisonChartSettings({
+            baselineMode: "fixed",
+            fixedBaselineDate: null,
+          });
+        }
       } catch (error) {
         if (error instanceof ComparisonStateCorruptedError) {
           setStateError(error.message);
@@ -368,7 +399,7 @@ export const ComparisonPageClient = (): JSX.Element => {
         dates.add(point.observed_on);
       }
     }
-    return [...dates].sort((left, right) => parseDate(left) - parseDate(right));
+    return [...dates].sort((left, right) => parseDate(right) - parseDate(left));
   }, [datasets]);
 
   const selectedDatasets = useMemo(() => {
@@ -469,7 +500,10 @@ export const ComparisonPageClient = (): JSX.Element => {
             label="Baseline"
             onChange={(value) => {
               const nextMode = value === "fixed" ? "fixed" : "rolling";
-              setComparisonChartSettings({ baselineMode: nextMode });
+              setComparisonChartSettings({
+                baselineMode: nextMode,
+                fixedBaselineDate: nextMode === "fixed" ? null : chartSettings.fixedBaselineDate,
+              });
             }}
             optionClassName="comparison-control-option"
             options={[

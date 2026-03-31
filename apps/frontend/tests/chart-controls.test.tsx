@@ -70,25 +70,29 @@ vi.mock("@heroui/react", () => {
 
   const Select = ({
     children,
+    className,
+    "data-testid": dataTestId,
+    "aria-label": ariaLabel,
     isDisabled,
-    onChange,
-    ...props
+    onSelectionChange,
   }: MockBaseProps & {
     isDisabled?: boolean;
-    onChange?: (value: string | null) => void;
+    onSelectionChange?: (value: string | null) => void;
   }) => {
-    const testId = typeof props["data-testid"] === "string" ? props["data-testid"] : "select";
+    const testId = typeof dataTestId === "string" ? dataTestId : "select";
 
     return (
       <div
-        {...(props as React.HTMLAttributes<HTMLDivElement>)}
+        aria-label={typeof ariaLabel === "string" ? ariaLabel : undefined}
+        className={typeof className === "string" ? className : undefined}
+        data-testid={testId}
         data-select-disabled={isDisabled ? "true" : "false"}
       >
         <button
           data-testid={`${testId}-change`}
           type="button"
           onClick={() => {
-            onChange?.("mock-value");
+            onSelectionChange?.("mock-value");
           }}
         >
           trigger-change
@@ -97,7 +101,7 @@ vi.mock("@heroui/react", () => {
           data-testid={`${testId}-change-null`}
           type="button"
           onClick={() => {
-            onChange?.(null);
+            onSelectionChange?.(null);
           }}
         >
           trigger-change-null

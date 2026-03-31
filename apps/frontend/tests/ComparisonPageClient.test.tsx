@@ -226,6 +226,69 @@ describe("ComparisonPageClient", () => {
     const nextState = JSON.parse(window.localStorage.getItem(COMPARISON_STATE_STORAGE_KEY) ?? "{}");
     expect(nextState.chartSettings.valueMode).toBe("relative");
   });
+
+  it("resets persisted fixed baseline date to null and requires explicit selection", async () => {
+    window.localStorage.setItem(
+      COMPARISON_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        selectedDatasetIds: ["A", "B"],
+        chartSettings: {
+          valueMode: "relative",
+          baselineMode: "fixed",
+          rollingOffset: 1,
+          fixedBaselineDate: "2024-01-08",
+        },
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+
+    const rendered = render(<ComparisonPageClient />);
+    const { container } = rendered;
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="comparison-controls"]')).toBeTruthy();
+      const state = JSON.parse(window.localStorage.getItem(COMPARISON_STATE_STORAGE_KEY) ?? "{}");
+      expect(state.chartSettings.fixedBaselineDate).toBeNull();
+    });
+  });
+
+  it("lists fixed baseline dates in descending order", async () => {
+    window.localStorage.setItem(
+      COMPARISON_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        selectedDatasetIds: ["A", "B"],
+        chartSettings: {
+          valueMode: "relative",
+          baselineMode: "fixed",
+          rollingOffset: 1,
+          fixedBaselineDate: null,
+        },
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+
+    const rendered = render(<ComparisonPageClient />);
+    const { container } = rendered;
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="comparison-controls"]')).toBeTruthy();
+    });
+
+    const hiddenSelects = Array.from(
+      container.querySelectorAll('[data-testid="hidden-select-container"] select'),
+    ) as HTMLSelectElement[];
+    const dateNativeSelect = hiddenSelects.find((selectElement) =>
+      Array.from(selectElement.options).some((option) => option.value === "2024-01-15"),
+    );
+
+    const dateOptions = Array.from(dateNativeSelect?.options ?? [])
+      .map((option) => option.value)
+      .filter((value) => value !== "");
+
+    expect(dateOptions.slice(0, 3)).toEqual(["2024-01-15", "2024-01-08", "2024-01-01"]);
+  });
 });
 
 describe("ComparisonPageClient helpers", () => {
@@ -297,8 +360,13 @@ describe("ComparisonPageClient helpers", () => {
     expect(relativeRows[0]?.A).toBeNull();
     expect(relativeRows[1]?.A).toBe(10);
 
-    const fixedRows = buildChartRows([first], "relative", "fixed", 1, "2024-01-01");
+    const fixedRows = buildChartRows([first], "relative", "fixed", 1, "2024-01-08");
+    expect(fixedRows).toHaveLength(1);
+    expect(fixedRows[0]?.date).toBe("2024-01-08");
     expect(fixedRows[0]?.A).toBe(0);
+
+    const unsetFixedRows = buildChartRows([first], "relative", "fixed", 1, null);
+    expect(unsetFixedRows).toHaveLength(0);
   });
 
   it("returns null relative values when fixed baseline is zero", () => {
