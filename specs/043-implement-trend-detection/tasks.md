@@ -52,9 +52,9 @@
 - [X] T017 [P] [US1] Add library unit tests for insufficient_data/no_significant_trend outcomes and hardcoded-defaults-only behavior (no runtime config overrides) in libs/trend_analysis/tests/test_terminal_outcomes.py
 - [X] T018 [P] [US1] Add library unit tests for cadence inference and explicit failure cases in libs/trend_analysis/tests/test_cadence_and_failures.py
 - [X] T019 [P] [US1] Add pipeline unit tests for signature change transitions and analysis-version identity coupled to library version in apps/pipeline/tests/orchestration/test_trend_transition_logic.py
-- [ ] T020 [P] [US1] Add pipeline integration tests for branch-scoped failure handling in apps/pipeline/tests/orchestration/test_trend_asset_failure_scope.py
-- [ ] T021 [P] [US1] Add pipeline integration tests for state-based idempotent retries in apps/pipeline/tests/orchestration/test_trend_asset_retry_idempotency.py
-- [ ] T022 [P] [US1] Add pipeline integration tests for no-op successful outcomes in apps/pipeline/tests/orchestration/test_trend_asset_noop_outcomes.py
+- [X] T020 [P] [US1] Add pipeline integration tests for branch-scoped failure handling in apps/pipeline/tests/orchestration/test_trend_asset_failure_scope.py
+- [X] T021 [P] [US1] Add pipeline integration tests for state-based idempotent retries in apps/pipeline/tests/orchestration/test_trend_asset_retry_idempotency.py
+- [X] T022 [P] [US1] Add pipeline integration tests for no-op successful outcomes in apps/pipeline/tests/orchestration/test_trend_asset_noop_outcomes.py
 
 ### Implementation for User Story 1
 
@@ -62,10 +62,10 @@
 - [X] T024 [US1] Implement trend classification core algorithm in libs/trend_analysis/src/trend_analysis/classifier.py
 - [X] T025 [US1] Implement cadence inference and seasonality validation helpers in libs/trend_analysis/src/trend_analysis/cadence.py
 - [ ] T026 [US1] Implement trend signature comparison logic in apps/pipeline/src/pipeline/services/trend_signature.py
-- [ ] T027 [US1] Implement trend lifecycle persistence service in apps/pipeline/src/pipeline/services/trend_lifecycle_service.py
+- [X] T027 [US1] Implement trend lifecycle persistence service in apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py
 - [ ] T028 [US1] Implement per-series downstream trend asset execution in apps/pipeline/src/pipeline/orchestration/assets/trend_processing_asset.py
 - [ ] T029 [US1] Wire fetch/update to trend downstream asset dependency in apps/pipeline/src/pipeline/orchestration/definitions.py
-- [ ] T030 [US1] Implement branch-scoped failure mapping in apps/pipeline/src/pipeline/orchestration/parallel_source_executor.py
+- [X] T030 [US1] Implement branch-scoped failure mapping in apps/pipeline/src/orchestration/jobs/parallel_source_executor.py
 - [ ] T031 [US1] Implement first-run historical backfill decision path and library-release-change full rerun/re-backfill trigger flow in apps/pipeline/src/pipeline/services/trend_backfill_service.py
 - [ ] T032 [US1] Implement trend repository SQL operations in libs/db/src/db/repository/postgres_trend_repository.py
 - [ ] T033 [US1] Add explicit no-op outcome metadata emission in apps/pipeline/src/pipeline/orchestration/assets/trend_processing_asset.py
