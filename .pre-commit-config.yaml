@@ -1,6 +1,12 @@
 repos:
   - repo: local
     hooks:
+      - id: frontend-tailwind-upgrade
+        name: frontend-tailwind-upgrade
+        entry: bash -c "cd apps/frontend && pnpx @tailwindcss/upgrade"
+        language: system
+        files: ^apps/frontend/
+        pass_filenames: false
       - id: monorepo-lint-all
         name: monorepo-lint-all
         entry: pnpm exec nx run-many -t lint --all
