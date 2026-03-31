@@ -15,6 +15,7 @@ from .ingestion_runtime import (
 from .observation import Observation
 from .source_profile import SourceProfile
 from .taxonomy import CategoryNode, GeographyNode
+from .trends import TrendRecord, TrendTransitionEvent
 from .topic_tag import DataSeriesTopicTag, TopicTag
 
 __all__ = [
@@ -34,5 +35,7 @@ __all__ = [
     "SeriesRunOutcome",
     "SourceSchedulePolicy",
     "SourceProfile",
+    "TrendRecord",
+    "TrendTransitionEvent",
     "TopicTag",
 ]

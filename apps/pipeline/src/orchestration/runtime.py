@@ -57,6 +57,12 @@ REQUIRED_DAGSTER_METADATA_ENV_VARS: tuple[str, ...] = (
     "DAGSTER_METADATA_DB_PASSWORD",
 )
 
+FORBIDDEN_TREND_OVERRIDE_ENV_VARS: tuple[str, ...] = (
+    "LONGTAIL_TREND_THRESHOLD",
+    "LONGTAIL_TREND_CADENCE_WINDOW",
+    "LONGTAIL_TREND_SEASONALITY_WINDOW",
+)
+
 
 def metadata_storage_enforcement_enabled() -> bool:
     """Return whether metadata DB env validation is enforced for Dagster startup."""
@@ -85,6 +91,19 @@ def validate_dagster_metadata_storage_config() -> dict[str, str]:
             "do not fall back to SQLite."
         )
     return config
+
+
+def validate_trend_runtime_defaults_policy() -> None:
+    """Fail fast if runtime attempts to override hardcoded trend defaults."""
+    configured = sorted(
+        key for key in FORBIDDEN_TREND_OVERRIDE_ENV_VARS if os.getenv(key, "").strip() != ""
+    )
+    if configured:
+        joined = ", ".join(configured)
+        raise RuntimeError(
+            "Trend analysis defaults are library-owned and cannot be overridden via "
+            f"environment variables: {joined}"
+        )
 
 
 class RuntimeWorkspaceLoadState(TypedDict):
@@ -224,6 +243,7 @@ def get_runtime_workspace_load_state(runtime: IngestRuntime) -> RuntimeWorkspace
 
 def build_ingest_runtime() -> IngestRuntime:
     """Build the default ingest runtime used by Dagster definitions."""
+    validate_trend_runtime_defaults_policy()
     run_repository = PostgresRunRepository()
     observation_repository = PostgresObservationRepository()
     canonical_service = CanonicalIngestService(repository=observation_repository)
