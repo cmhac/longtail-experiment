@@ -18,6 +18,7 @@ const RootLayout = ({ children }: RootLayoutProps): JSX.Element => {
       className={rootAttributes.className}
       data-theme-preference={rootAttributes.dataThemePreference}
       lang="en"
+      suppressHydrationWarning
       style={rootAttributes.style}
     >
       <body className="shell-body bg-background text-foreground antialiased">{children}</body>

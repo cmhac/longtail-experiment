@@ -6,6 +6,11 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 import { UnifiedSearchSurface } from "../components/discovery/UnifiedSearchSurface";
+import {
+  COMPARISON_STATE_EVENT,
+  ComparisonStateCorruptedError,
+  getComparisonCount,
+} from "../components/discovery/comparison-state";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
@@ -18,9 +23,33 @@ interface SiteHeaderProps {
 export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [comparisonCount, setComparisonCount] = useState(0);
+  const [hasComparisonStateError, setHasComparisonStateError] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchControlRef = useRef<HTMLDivElement | null>(null);
   const tabs = resolveNavbarTabs(activeTab);
+
+  useEffect(() => {
+    const syncComparisonCount = (): void => {
+      try {
+        setComparisonCount(getComparisonCount());
+        setHasComparisonStateError(false);
+      } catch (error) {
+        if (error instanceof ComparisonStateCorruptedError) {
+          setHasComparisonStateError(true);
+        }
+      }
+    };
+
+    syncComparisonCount();
+
+    window.addEventListener(COMPARISON_STATE_EVENT, syncComparisonCount);
+    window.addEventListener("storage", syncComparisonCount);
+    return () => {
+      window.removeEventListener(COMPARISON_STATE_EVENT, syncComparisonCount);
+      window.removeEventListener("storage", syncComparisonCount);
+    };
+  }, []);
 
   useEffect(() => {
     const handleDocumentPointerDown = (event: MouseEvent): void => {
@@ -136,6 +165,22 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                 </Button>
               )}
             </div>
+
+            <Link
+              href="/comparison"
+              className="shell-navbar-comparison-link"
+              data-testid="navbar-comparison-link"
+              aria-label={
+                hasComparisonStateError
+                  ? "Comparison state needs reset"
+                  : `Comparison datasets selected: ${comparisonCount}`
+              }
+            >
+              <span className="shell-navbar-comparison-label">Compare</span>
+              <span className="shell-navbar-comparison-count" data-testid="navbar-comparison-count">
+                {hasComparisonStateError ? "!" : comparisonCount}
+              </span>
+            </Link>
 
             <div className="shell-navbar-profile-wrapper" ref={profileMenuRef}>
               <Button

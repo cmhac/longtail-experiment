@@ -188,7 +188,10 @@ export const fetchDatasetCatalog = async (params: {
 };
 
 export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDetail> => {
-  const response = await fetch(createUrl(`/api/datasets/${encodeURIComponent(datasetId)}`));
+  const response =
+    typeof window === "undefined"
+      ? await fetch(createUrl(`/api/datasets/${encodeURIComponent(datasetId)}`))
+      : await fetch(`/api/datasets/${encodeURIComponent(datasetId)}`);
   return parseResponse<DatasetDetail>(response);
 };
 

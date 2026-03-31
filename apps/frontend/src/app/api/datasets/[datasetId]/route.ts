@@ -25,7 +25,7 @@ export const GET = async (
       ? datasetIdValue[0]
       : datasetIdValue;
 
-    if (!datasetIdWithExtension || !datasetIdWithExtension.endsWith(".csv")) {
+    if (!datasetIdWithExtension) {
       return NextResponse.json(
         {
           error: {
@@ -37,23 +37,40 @@ export const GET = async (
       );
     }
 
-    const datasetId = datasetIdWithExtension.slice(0, -".csv".length);
+    const isCsvRequest = datasetIdWithExtension.endsWith(".csv");
+    const datasetId = isCsvRequest
+      ? datasetIdWithExtension.slice(0, -".csv".length)
+      : datasetIdWithExtension;
     const backendBaseUrl = getDiscoveryApiBaseUrl();
     const query = request.nextUrl.searchParams.toString();
-    const target = `${backendBaseUrl}/api/datasets/${encodeURIComponent(datasetId)}.csv${
-      query ? `?${query}` : ""
-    }`;
+    const targetPath = isCsvRequest
+      ? `/api/datasets/${encodeURIComponent(datasetId)}.csv`
+      : `/api/datasets/${encodeURIComponent(datasetId)}`;
+    const target = `${backendBaseUrl}${targetPath}${query ? `?${query}` : ""}`;
 
     const response = await fetch(target, {
       method: "GET",
       cache: "no-store",
-      headers: {
-        accept: "text/csv",
-      },
+      headers: isCsvRequest
+        ? {
+            accept: "text/csv",
+          }
+        : {
+            accept: "application/json",
+          },
     });
 
-    const body = await response.text();
+    if (!isCsvRequest) {
+      const body = await response.text();
+      return new NextResponse(body, {
+        status: response.status,
+        headers: {
+          "content-type": response.headers.get("content-type") ?? "application/json",
+        },
+      });
+    }
 
+    const body = await response.text();
     return new NextResponse(body, {
       status: response.status,
       headers: {

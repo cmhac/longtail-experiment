@@ -24,7 +24,6 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
   try {
     const { id } = await params;
     const detail = await fetchDatasetDetail(id);
-    const encodedId = encodeURIComponent(detail.dataset_id);
 
     return (
       <SitePageFrame
@@ -33,7 +32,7 @@ const DatasetDetailPage = async ({ params }: DatasetDetailPageProps): Promise<JS
         mainTestId="dataset-detail-page"
       >
         <section className="grid gap-3" data-testid="dataset-detail-overview">
-          <DatasetDetailHeader data={detail} exportHref={`/api/datasets/${encodedId}.csv`} />
+          <DatasetDetailHeader data={detail} />
         </section>
 
         <section

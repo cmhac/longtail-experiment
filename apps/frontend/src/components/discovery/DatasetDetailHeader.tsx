@@ -1,6 +1,7 @@
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
+import { DatasetComparisonToggleButton } from "./DatasetComparisonToggleButton";
 import {
   PageHeaderKicker,
   PageHeaderSubtitle,
@@ -11,13 +12,9 @@ import { TagPillGroup } from "./TagPill";
 
 interface DatasetDetailHeaderProps {
   data: DatasetDetail;
-  exportHref?: string;
 }
 
-export const DatasetDetailHeader = ({
-  data,
-  exportHref = "#",
-}: DatasetDetailHeaderProps): JSX.Element => {
+export const DatasetDetailHeader = ({ data }: DatasetDetailHeaderProps): JSX.Element => {
   return (
     <PageHeaderWrapper testId="dataset-detail-header">
       <div className="grid gap-[0.55rem]">
@@ -51,12 +48,7 @@ export const DatasetDetailHeader = ({
           data-testid="dataset-detail-utility-actions"
         >
           <div className="inline-flex flex-none flex-wrap gap-[0.45rem]">
-            <a
-              className="dataset-detail-action-export inline-flex min-h-[2.1rem] flex-none items-center justify-center border border-(--shell-border) px-[0.8rem] py-[0.35rem] text-[0.74rem] uppercase tracking-[0.08em] no-underline"
-              href={exportHref}
-            >
-              Export CSV
-            </a>
+            <DatasetComparisonToggleButton datasetId={data.dataset_id} />
           </div>
         </div>
       </div>

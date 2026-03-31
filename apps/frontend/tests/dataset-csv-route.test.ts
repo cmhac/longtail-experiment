@@ -85,19 +85,34 @@ describe("dataset csv route", () => {
     });
   });
 
-  it("returns not_found when route param does not include .csv suffix", async () => {
+  it("proxies JSON requests when route param does not include .csv suffix", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ dataset_id: "FEDFUNDS" }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+        },
+      }),
+    );
+
     const request = new NextRequest("http://localhost/api/datasets/FEDFUNDS");
 
     const response = await GET(request, {
       params: Promise.resolve({ datasetId: "FEDFUNDS" }),
     });
 
-    expect(response.status).toBe(404);
-    await expect(response.json()).resolves.toMatchObject({
-      error: {
-        code: "not_found",
-      },
-    });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "http://backend:8080/api/datasets/FEDFUNDS",
+      expect.objectContaining({
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          accept: "application/json",
+        },
+      }),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ dataset_id: "FEDFUNDS" });
   });
 
   it("returns a 502 envelope when backend base URL is missing", async () => {

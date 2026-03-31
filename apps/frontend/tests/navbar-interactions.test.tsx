@@ -1,8 +1,12 @@
 /** @vitest-environment jsdom */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  COMPARISON_STATE_EVENT,
+  COMPARISON_STATE_STORAGE_KEY,
+} from "../src/components/discovery/comparison-state";
 import { SiteHeader } from "../src/shell/site-header";
 
 const { navigationState, routerPushMock } = vi.hoisted(() => {
@@ -27,6 +31,7 @@ vi.mock("next/navigation", () => ({
 
 afterEach(() => {
   document.body.innerHTML = "";
+  window.localStorage.clear();
   routerPushMock.mockReset();
   navigationState.setSearchParams("");
 });
@@ -74,5 +79,34 @@ describe("navbar limited-scope interactions", () => {
 
     const brandLink = screen.getByTestId("navbar-brand-link");
     expect(brandLink.getAttribute("href")).toBe("/");
+  });
+
+  it("shows comparison count and updates on state event", async () => {
+    render(<SiteHeader />);
+
+    const comparisonLink = screen.getByTestId("navbar-comparison-link");
+    const comparisonCount = screen.getByTestId("navbar-comparison-count");
+    expect(comparisonLink.getAttribute("href")).toBe("/comparison");
+    expect(comparisonCount.textContent).toBe("0");
+
+    window.localStorage.setItem(
+      COMPARISON_STATE_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        selectedDatasetIds: ["A", "B"],
+        chartSettings: {
+          valueMode: "observed",
+          baselineMode: "rolling",
+          rollingOffset: 1,
+          fixedBaselineDate: null,
+        },
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+    window.dispatchEvent(new Event(COMPARISON_STATE_EVENT));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("navbar-comparison-count").textContent).toBe("2");
+    });
   });
 });

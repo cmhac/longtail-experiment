@@ -8,14 +8,12 @@ const baseDataset = buildDatasetDetailFixture();
 
 describe("DatasetDetailHeader", () => {
   it("renders full metadata", () => {
-    const markup = renderMarkup(
-      <DatasetDetailHeader data={baseDataset} exportHref="/api/export.csv" />,
-    );
+    const markup = renderMarkup(<DatasetDetailHeader data={baseDataset} />);
 
     expect(markup).toContain("Data Source: EIA");
     expect(markup).toContain("Retail gasoline prices for Colorado.");
     expect(markup).toContain('href="/geographies/colorado"');
-    expect(markup).toContain('href="/api/export.csv"');
+    expect(markup).toContain("Add to Comparison");
     expect(markup).not.toContain("Share");
     expect(markup).toContain('href="/topics/energy"');
     expect(markup).toContain('href="/topics/gasoline"');
@@ -23,10 +21,7 @@ describe("DatasetDetailHeader", () => {
 
   it("handles null description and geographic scope", () => {
     const markup = renderMarkup(
-      <DatasetDetailHeader
-        data={{ ...baseDataset, description: null, geographic_scope: null }}
-        exportHref="/api/export.csv"
-      />,
+      <DatasetDetailHeader data={{ ...baseDataset, description: null, geographic_scope: null }} />,
     );
 
     expect(markup).toContain("No description available");
@@ -34,21 +29,15 @@ describe("DatasetDetailHeader", () => {
   });
 
   it("handles empty topic tags", () => {
-    const markup = renderMarkup(
-      <DatasetDetailHeader
-        data={{ ...baseDataset, topic_tags: [] }}
-        exportHref="/api/export.csv"
-      />,
-    );
+    const markup = renderMarkup(<DatasetDetailHeader data={{ ...baseDataset, topic_tags: [] }} />);
 
     expect(markup).toContain("No topic tags");
   });
 
-  it("renders utility actions with default href fallbacks", () => {
+  it("renders utility actions with comparison toggle", () => {
     const markup = renderMarkup(<DatasetDetailHeader data={baseDataset} />);
 
-    expect(markup).toContain('href="#"');
-    expect(markup).toContain("Export CSV");
+    expect(markup).toContain("Add to Comparison");
     expect(markup).not.toContain("Share");
   });
 });

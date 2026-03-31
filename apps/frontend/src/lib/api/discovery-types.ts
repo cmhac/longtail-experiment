@@ -208,3 +208,17 @@ export type RelativeComputabilityState =
   | "before-fixed-baseline";
 
 export const DISCOVERY_TYPES_SCHEMA_VERSION = "v1";
+
+export interface ComparisonChartSettings {
+  valueMode: ChartValueMode;
+  baselineMode: RelativeBaselineMode;
+  rollingOffset: number;
+  fixedBaselineDate: string | null;
+}
+
+export interface ComparisonSelectionState {
+  version: 1;
+  selectedDatasetIds: string[];
+  chartSettings: ComparisonChartSettings;
+  updatedAt: string;
+}
