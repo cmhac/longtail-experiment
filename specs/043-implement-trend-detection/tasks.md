@@ -30,7 +30,7 @@
 - [X] T008 [P] Add SQLAlchemy models for trend persistence in libs/db/src/db/models/trends.py
 - [X] T009 [P] Add DB repository interface for trend lifecycle operations in apps/pipeline/src/orchestration/resources/trend_repository.py
 - [X] T010 [P] Add backend contract types for trend payloads in apps/backend/src/contract/discovery_trends.py
-- [ ] T011 [P] Add shared frontend trend payload types in apps/frontend/src/lib/discovery/trendTypes.ts
+- [X] T011 [P] Add shared frontend trend payload types in apps/frontend/src/lib/api/discovery-trend-types.ts
 - [X] T012 Define/verify Dagster asset dependency entry point for trend stage in apps/pipeline/src/orchestration/definitions.py
 - [X] T013 Add trend feature toggles/required env validation guardrails in apps/pipeline/src/orchestration/runtime.py
 - [X] T014 Add foundational regression test for trend table schema invariants in libs/db/tests/test_trend_schema_invariants.py
