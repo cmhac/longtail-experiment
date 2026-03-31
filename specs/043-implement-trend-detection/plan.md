@@ -93,6 +93,8 @@ apps/frontend/
 1. Create shared Python library package under `libs/` with pure, side-effect-free analysis functions.
 2. Implement deterministic trend output contract (`significant`, `no_significant_trend`, `insufficient_data`, explicit error states).
 3. Implement cadence inference + seasonality handling behavior aligned with clarified failure semantics.
+4. Enforce hardcoded in-library thresholds/cadence defaults only, with no external runtime configuration overrides.
+5. Couple analysis-version identity directly to released library version and validate deterministic repeatability under that version identity.
 4. Use these prototype files as implementation and test-guidance references for scenario coverage shape and edge-case sampling:
    - `specs/043-implement-trend-detection/prototype/spike_real_series_seasonality.py`
    - `specs/043-implement-trend-detection/prototype/spike_multi_horizon.py`
@@ -122,6 +124,7 @@ Stage 1 manual validation (mandatory):
 4. Implement successful no-op handling for `insufficient_data` and `no_significant_trend` outcomes with explicit metadata.
 5. Implement backfill behavior for zero-existing-trend series with sufficient history.
 6. Add/extend DB migration(s) and repository paths for trend lifecycle persistence.
+7. Implement operator-triggered manual full rerun/full historical re-backfill workflow when a library release changes trend-analysis behavior.
 
 Stage 2 quality loop (mandatory, repeated):
 
@@ -149,6 +152,7 @@ Stage 2 manual validation (mandatory):
 2. Add unified recent updates feed behavior with trend items using trend start period ordering.
 3. Add dataset detail trend span payload with fields required by frontend behavior (including non-overlap normalization inputs/outputs).
 4. Ensure malformed/missing trend payload conditions map to explicit error semantics expected by frontend.
+5. Preserve baseline no-trend behavior so discovery responses remain fully usable when trend records are absent.
 
 Stage 3 quality loop (mandatory, repeated):
 
@@ -180,6 +184,7 @@ Stage 3 manual validation (mandatory):
 4. Apply navigation behavior: trend feed click opens dataset detail default view (no trend-focused URL state).
 5. Enforce explicit error-state rendering when required trend span payload is missing/malformed.
 6. Reuse/extract shared components in `apps/frontend/src/components` for repeated trend UI patterns.
+7. Preserve baseline no-trend dataset detail/feed usability so absence of trend data does not degrade core interactions.
 
 Stage 4 quality loop (mandatory, repeated):
 
