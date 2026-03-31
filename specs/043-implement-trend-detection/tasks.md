@@ -48,19 +48,19 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T016 [P] [US1] Add library unit tests for deterministic outcomes in libs/trend_analysis/tests/test_deterministic_outputs.py
-- [ ] T017 [P] [US1] Add library unit tests for insufficient_data/no_significant_trend outcomes and hardcoded-defaults-only behavior (no runtime config overrides) in libs/trend_analysis/tests/test_terminal_outcomes.py
-- [ ] T018 [P] [US1] Add library unit tests for cadence inference and explicit failure cases in libs/trend_analysis/tests/test_cadence_and_failures.py
-- [ ] T019 [P] [US1] Add pipeline unit tests for signature change transitions and analysis-version identity coupled to library version in apps/pipeline/tests/services/test_trend_transition_logic.py
+- [X] T016 [P] [US1] Add library unit tests for deterministic outcomes in libs/trend_analysis/tests/test_deterministic_outputs.py
+- [X] T017 [P] [US1] Add library unit tests for insufficient_data/no_significant_trend outcomes and hardcoded-defaults-only behavior (no runtime config overrides) in libs/trend_analysis/tests/test_terminal_outcomes.py
+- [X] T018 [P] [US1] Add library unit tests for cadence inference and explicit failure cases in libs/trend_analysis/tests/test_cadence_and_failures.py
+- [X] T019 [P] [US1] Add pipeline unit tests for signature change transitions and analysis-version identity coupled to library version in apps/pipeline/tests/orchestration/test_trend_transition_logic.py
 - [ ] T020 [P] [US1] Add pipeline integration tests for branch-scoped failure handling in apps/pipeline/tests/orchestration/test_trend_asset_failure_scope.py
 - [ ] T021 [P] [US1] Add pipeline integration tests for state-based idempotent retries in apps/pipeline/tests/orchestration/test_trend_asset_retry_idempotency.py
 - [ ] T022 [P] [US1] Add pipeline integration tests for no-op successful outcomes in apps/pipeline/tests/orchestration/test_trend_asset_noop_outcomes.py
 
 ### Implementation for User Story 1
 
-- [ ] T023 [US1] Implement trend analysis result models with analysis-version identity derived from released library version in libs/trend_analysis/src/trend_analysis/models.py
-- [ ] T024 [US1] Implement trend classification core algorithm in libs/trend_analysis/src/trend_analysis/classifier.py
-- [ ] T025 [US1] Implement cadence inference and seasonality validation helpers in libs/trend_analysis/src/trend_analysis/cadence.py
+- [X] T023 [US1] Implement trend analysis result models with analysis-version identity derived from released library version in libs/trend_analysis/src/trend_analysis/models.py
+- [X] T024 [US1] Implement trend classification core algorithm in libs/trend_analysis/src/trend_analysis/classifier.py
+- [X] T025 [US1] Implement cadence inference and seasonality validation helpers in libs/trend_analysis/src/trend_analysis/cadence.py
 - [ ] T026 [US1] Implement trend signature comparison logic in apps/pipeline/src/pipeline/services/trend_signature.py
 - [ ] T027 [US1] Implement trend lifecycle persistence service in apps/pipeline/src/pipeline/services/trend_lifecycle_service.py
 - [ ] T028 [US1] Implement per-series downstream trend asset execution in apps/pipeline/src/pipeline/orchestration/assets/trend_processing_asset.py
