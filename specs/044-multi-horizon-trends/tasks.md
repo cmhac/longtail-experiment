@@ -27,12 +27,12 @@
 
 **Purpose**: Core shared infrastructure that MUST complete before user-story delivery.
 
-- [ ] T004 Create Alembic migration for lookback snapshots and canonical descriptors in libs/db/alembic/versions/0012_lookback_trend_snapshots.py
-- [ ] T005 [P] Add SQLAlchemy model definitions for new lookback persistence tables in libs/db/src/db/models.py
-- [ ] T006 [P] Add shared pipeline repository protocol types for lookback/canonical writes in apps/pipeline/src/orchestration/resources/trend_repository.py
-- [ ] T007 [P] Add backend contract model scaffolding for canonical trend descriptor payloads in apps/backend/src/contract/query/dataset_detail_query.py
-- [ ] T008 [P] Add frontend API type scaffolding for canonical trend descriptor payloads in apps/frontend/src/lib/api/discovery-types.ts
-- [ ] T009 Add foundational migration/repository contract tests in libs/db/tests/test_lookback_trend_migration_contract.py and apps/pipeline/tests/orchestration/test_trend_repository_contract.py
+- [x] T004 Create Alembic migration for lookback snapshots and canonical descriptors in libs/db/alembic/versions/0012_lookback_trend_snapshots.py
+- [x] T005 [P] Add SQLAlchemy model definitions for new lookback persistence tables in libs/db/src/db/models.py
+- [x] T006 [P] Add shared pipeline repository protocol types for lookback/canonical writes in apps/pipeline/src/orchestration/resources/trend_repository.py
+- [x] T007 [P] Add backend contract model scaffolding for canonical trend descriptor payloads in apps/backend/src/contract/query/dataset_detail_query.py
+- [x] T008 [P] Add frontend API type scaffolding for canonical trend descriptor payloads in apps/frontend/src/lib/api/discovery-types.ts
+- [x] T009 Add foundational migration/repository contract tests in libs/db/tests/test_lookback_trend_migration_contract.py and apps/pipeline/tests/orchestration/test_trend_repository_contract.py
 
 **Checkpoint**: Foundation ready. User stories can now proceed.
 

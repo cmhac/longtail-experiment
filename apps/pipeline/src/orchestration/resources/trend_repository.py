@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Protocol, TypedDict
+from datetime import date, datetime
+from typing import Literal, Protocol, TypedDict
 
 
 class TrendRecordInsert(TypedDict):
@@ -30,6 +30,45 @@ class TrendTransitionInsert(TypedDict):
     reason: str
 
 
+class LookbackApplicabilityInsert(TypedDict):
+    """Values needed to persist one lookback applicability evaluation row."""
+
+    series_key: str
+    observed_on: date
+    lookback_points: int
+    applicability_state: Literal["applicable", "inapplicable"]
+    reason_code: str
+    reason_detail: str | None
+
+
+class LookbackSnapshotInsert(TypedDict):
+    """Values needed to persist one lookback trend snapshot row."""
+
+    series_key: str
+    observed_on: date
+    lookback_points: int
+    outcome_state: Literal["significant_trend", "no_significant_trend"]
+    trend_label: str | None
+    direction: Literal["up", "down"] | None
+    strength: str | None
+    seasonality_classification: str | None
+    analysis_version: str
+
+
+class CanonicalDescriptorInsert(TypedDict):
+    """Values needed to persist one canonical trend descriptor snapshot row."""
+
+    series_key: str
+    observed_on: date
+    descriptor_state: Literal["available", "unavailable"]
+    canonical_trend_label: str | None
+    canonical_direction: Literal["up", "down"] | None
+    canonical_strength: str | None
+    selected_lookback_points: int | None
+    weighting_version: str
+    weighting_trace: dict[str, object] | None
+
+
 class TrendRepository(Protocol):
     """Persistence contract for trend lifecycle records/events."""
 
@@ -52,3 +91,12 @@ class TrendRepository(Protocol):
 
     def count_trend_records_for_series(self, *, series_key: str) -> int:
         """Return persisted trend record count for one canonical series key."""
+
+    def upsert_lookback_applicability(self, payload: LookbackApplicabilityInsert) -> None:
+        """Persist one applicability decision for a series at one observation lookback."""
+
+    def upsert_lookback_snapshot(self, payload: LookbackSnapshotInsert) -> None:
+        """Persist one per-lookback trend outcome snapshot for a series observation."""
+
+    def upsert_canonical_descriptor(self, payload: CanonicalDescriptorInsert) -> None:
+        """Persist one weighted canonical descriptor snapshot for a series observation."""

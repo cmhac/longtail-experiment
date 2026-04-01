@@ -33,8 +33,32 @@ class DatasetTrendSpan(BaseModel):
     tooltip: DatasetTrendTooltip
 
 
-class DatasetDetailResponse(BaseModel):
-    """Dataset detail payload containing metadata and observations."""
+class CanonicalTrendDescriptor(BaseModel):
+    """Canonical trend descriptor scaffold for dataset detail responses."""
+
+    descriptor_state: str = Field(min_length=1)
+    trend_label: str | None = Field(default=None, min_length=1)
+    direction: str | None = Field(default=None, min_length=1)
+    strength: str | None = Field(default=None, min_length=1)
+    selected_lookback_points: int | None = Field(default=None, ge=1)
+    observed_on: str | None = Field(default=None, min_length=1)
+    reason_code: str | None = Field(default=None, min_length=1)
+
+
+class LookbackTrendSnapshot(BaseModel):
+    """Per-lookback trend snapshot scaffold for dataset detail responses."""
+
+    lookback_points: int = Field(ge=1)
+    applicability_state: str = Field(min_length=1)
+    outcome_state: str | None = Field(default=None, min_length=1)
+    trend_label: str | None = Field(default=None, min_length=1)
+    direction: str | None = Field(default=None, min_length=1)
+    strength: str | None = Field(default=None, min_length=1)
+    reason_code: str | None = Field(default=None, min_length=1)
+
+
+class DatasetDetailQueryResult(BaseModel):
+    """Dataset detail query payload containing metadata and observations."""
 
     dataset_id: str = Field(min_length=1)
     source: SourceRef
@@ -45,4 +69,10 @@ class DatasetDetailResponse(BaseModel):
     metadata: dict[str, object] = Field(default_factory=dict)
     observations: list[DatasetObservationPoint] = Field(default_factory=list)
     trend_spans: list[DatasetTrendSpan] = Field(default_factory=list)
+    canonical_trend_descriptor: CanonicalTrendDescriptor | None = None
+    lookback_trend_snapshots: list[LookbackTrendSnapshot] = Field(default_factory=list)
     observation_sort: str = Field(min_length=1)
+
+
+class DatasetDetailResponse(DatasetDetailQueryResult):
+    """Backward-compatible dataset detail response model."""

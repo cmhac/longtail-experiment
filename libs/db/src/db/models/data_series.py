@@ -17,7 +17,13 @@ if TYPE_CHECKING:
     from .observation import Observation
     from .source_profile import SourceProfile
     from .topic_tag import TopicTag
-    from .trends import TrendRecord, TrendTransitionEvent
+    from .trends import (
+        TrendCanonicalDescriptor,
+        TrendLookbackEvaluation,
+        TrendLookbackSnapshot,
+        TrendRecord,
+        TrendTransitionEvent,
+    )
 
 
 class DataSeries(Base):
@@ -53,4 +59,13 @@ class DataSeries(Base):
     )
     trend_transition_events: Mapped[list["TrendTransitionEvent"]] = relationship(
         back_populates="data_series"
+    )
+    trend_lookback_evaluations: Mapped[list["TrendLookbackEvaluation"]] = relationship(
+        back_populates="data_series"
+    )
+    trend_lookback_snapshots: Mapped[list["TrendLookbackSnapshot"]] = relationship(
+        back_populates="data_series"
+    )
+    trend_canonical_descriptors: Mapped[list["TrendCanonicalDescriptor"]] = (
+        relationship(back_populates="data_series")
     )
