@@ -34,10 +34,6 @@ class TrendTransitionDecision:
     analysis_version: str
 
 
-class SeasonalityClassificationChangedError(RuntimeError):
-    """Raised when seasonality classification changes in a continuing context."""
-
-
 def _signature_changed(
     *,
     existing: PersistedTrendSignature,
@@ -106,13 +102,6 @@ def classify_trend_transition(
             transition_type="replaced",
             reason="analysis_version_changed",
             analysis_version=analysis_result.analysis_version,
-        )
-
-    if existing.seasonality_classification != _signature_value(
-        analysis_result.signature, "seasonality_classification"
-    ):
-        raise SeasonalityClassificationChangedError(
-            "seasonality classification changed for continuing trend context"
         )
 
     if _signature_changed(existing=existing, incoming=analysis_result.signature):

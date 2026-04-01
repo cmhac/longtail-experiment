@@ -7,13 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, cast
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_transition_logic import (
     PersistedTrendSignature,
-    SeasonalityClassificationChangedError,
     TrendAnalysisResultLike,
     classify_trend_transition,
 )
@@ -131,8 +128,8 @@ def test_end_transition_when_no_significant_trend_found() -> None:
     assert decision.transition_type == "ended"
 
 
-def test_raise_when_seasonality_changes_for_existing_trend() -> None:
-    """Seasonality shifts for same context should fail fast at dataset scope."""
+def test_replace_when_seasonality_changes_for_existing_trend() -> None:
+    """Seasonality shifts should replace the ongoing trend segment."""
     existing = PersistedTrendSignature(
         trend_label="mild_sustained_uptrend",
         direction="up",
@@ -151,11 +148,13 @@ def test_raise_when_seasonality_changes_for_existing_trend() -> None:
         },
     )
 
-    with pytest.raises(SeasonalityClassificationChangedError):
-        classify_trend_transition(
-            existing=existing,
-            analysis_result=cast(TrendAnalysisResultLike, result),
-        )
+    decision = classify_trend_transition(
+        existing=existing,
+        analysis_result=cast(TrendAnalysisResultLike, result),
+    )
+
+    assert decision.transition_type == "replaced"
+    assert decision.reason == "trend_signature_changed"
 
 
 def test_replace_transition_when_analysis_version_changes() -> None:

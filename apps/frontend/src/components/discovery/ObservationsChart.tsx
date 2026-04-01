@@ -2,9 +2,8 @@
 
 import React from "react";
 import type { JSX } from "react";
-import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Line, LineChart, ReferenceArea, Tooltip, XAxis, YAxis } from "recharts";
 import type { ObservationPoint, TrendVisualizationSpan } from "../../lib/api/discovery-types";
-import { TrendTooltipController } from "../trends/TrendTooltipController";
 import { EmptyState } from "./EmptyState";
 import { ChartComboControl, type ChartComboOption } from "./chart-controls/ChartComboControl";
 import { ChartToggleGroup } from "./chart-controls/ChartToggleGroup";
@@ -44,9 +43,18 @@ interface ObservationChartPoint {
   changeValue: number | null;
   computability?: string;
   date: string;
+  dateMs: number;
   dateLabel: string;
   value: number;
   valueLabel: string;
+}
+
+interface TrendBand {
+  endMs: number;
+  fill: string;
+  stroke: string;
+  trendLabel: string;
+  startMs: number;
 }
 
 interface ObservationTooltipContentProps {
@@ -102,6 +110,85 @@ const sortObservationDatesDesc = (dates: string[]): string[] => {
   });
 };
 
+const toUtcDateMs = (dateValue: string): number => {
+  return Date.parse(`${dateValue}T00:00:00Z`);
+};
+
+const formatXAxisDate = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  const isoDate = new Date(value).toISOString().slice(0, 10);
+  return formatObservedOn(isoDate);
+};
+
+const getTrendBandColors = (
+  direction: TrendVisualizationSpan["direction"],
+): {
+  fill: string;
+  stroke: string;
+} => {
+  if (direction === "up") {
+    return {
+      fill: "rgba(16, 185, 129, 0.18)",
+      stroke: "rgba(16, 185, 129, 0.52)",
+    };
+  }
+
+  return {
+    fill: "rgba(239, 68, 68, 0.18)",
+    stroke: "rgba(239, 68, 68, 0.52)",
+  };
+};
+
+const buildTrendBands = (
+  spans: TrendVisualizationSpan[],
+  chartData: ObservationChartPoint[],
+): TrendBand[] => {
+  if (spans.length === 0 || chartData.length === 0) {
+    return [];
+  }
+
+  const minMsCandidate = chartData[0]?.dateMs;
+  const maxMsCandidate = chartData[chartData.length - 1]?.dateMs;
+  if (
+    typeof minMsCandidate !== "number" ||
+    typeof maxMsCandidate !== "number" ||
+    !Number.isFinite(minMsCandidate) ||
+    !Number.isFinite(maxMsCandidate)
+  ) {
+    return [];
+  }
+  const minMs = minMsCandidate;
+  const maxMs = maxMsCandidate;
+
+  return spans
+    .map((span) => {
+      const startMs = toUtcDateMs(span.start_period);
+      const endMs = toUtcDateMs(span.end_period);
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+        return null;
+      }
+
+      const clampedStart = Math.max(minMs, Math.min(maxMs, startMs));
+      const clampedEnd = Math.max(minMs, Math.min(maxMs, endMs));
+      if (clampedEnd <= clampedStart) {
+        return null;
+      }
+
+      const palette = getTrendBandColors(span.direction);
+      return {
+        endMs: clampedEnd,
+        fill: palette.fill,
+        startMs: clampedStart,
+        stroke: palette.stroke,
+        trendLabel: span.trend_label,
+      };
+    })
+    .filter((band): band is TrendBand => band !== null);
+};
+
 const toChartData = (
   observations: ObservationPoint[],
   unitType?: string | null,
@@ -120,6 +207,7 @@ const toChartData = (
       changeValue,
       computability: "computable",
       date: observation.observed_on,
+      dateMs: toUtcDateMs(observation.observed_on),
       dateLabel: formatObservedOn(observation.observed_on),
       value: observation.value,
       valueLabel: formatValue(observation.value, unitType, unitLabel),
@@ -157,6 +245,7 @@ const toRelativeChartData = (
         changeValue: point.value,
         computability: point.computability,
         date: point.observed_on,
+        dateMs: toUtcDateMs(point.observed_on),
         dateLabel: formatObservedOn(point.observed_on),
         value: point.value ?? Number.NaN,
         valueLabel,
@@ -279,8 +368,9 @@ export const ObservationsChart = ({
     settings.valueMode === "relative"
       ? relativeChartData
       : toChartData(filtered, unitType, unitLabel);
+  const trendBands =
+    settings.valueMode === "observed" ? buildTrendBands(trendSpans, chartData) : [];
   const yAxisDomain = getYAxisDomain(chartData);
-  const chartDates = chartData.map((point) => point.date);
   const chartHeight = Math.max(
     CHART_MIN_HEIGHT,
     Math.min(CHART_MAX_HEIGHT, Math.round(chartWidth * CHART_ASPECT_RATIO)),
@@ -542,7 +632,15 @@ export const ObservationsChart = ({
           margin={{ bottom: 18, left: 8, right: 8, top: 8 }}
           width={chartWidth}
         >
-          <XAxis dataKey="date" minTickGap={32} tickMargin={14} />
+          <XAxis
+            dataKey="dateMs"
+            domain={["dataMin", "dataMax"]}
+            minTickGap={32}
+            scale="time"
+            tickFormatter={formatXAxisDate}
+            tickMargin={14}
+            type="number"
+          />
           <YAxis
             domain={yAxisDomain}
             tickFormatter={(value: number) =>
@@ -552,6 +650,19 @@ export const ObservationsChart = ({
             }
           />
           <Tooltip content={<ObservationsChartTooltip />} cursor={false} />
+          {trendBands.map((band) => (
+            <ReferenceArea
+              fill={band.fill}
+              fillOpacity={1}
+              ifOverflow="hidden"
+              key={`${band.trendLabel}-${band.startMs}-${band.endMs}`}
+              stroke={band.stroke}
+              strokeOpacity={0.9}
+              strokeWidth={1}
+              x1={band.startMs}
+              x2={band.endMs}
+            />
+          ))}
           <Line
             dataKey="value"
             dot={false}
@@ -560,9 +671,6 @@ export const ObservationsChart = ({
             type="monotone"
           />
         </LineChart>
-        {settings.valueMode === "observed" ? (
-          <TrendTooltipController chartDates={chartDates} spans={trendSpans} />
-        ) : null}
       </div>
     </div>
   );

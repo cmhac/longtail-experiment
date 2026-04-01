@@ -209,6 +209,7 @@ vi.mock("recharts", () => {
   return {
     Line: passThrough("Line"),
     LineChart: passThrough("LineChart"),
+    ReferenceArea: passThrough("ReferenceArea"),
     Tooltip: passThrough("Tooltip"),
     XAxis: passThrough("XAxis"),
     YAxis: passThrough("YAxis"),
@@ -263,6 +264,74 @@ describe("ObservationsChart", () => {
     expect(markup).toContain('data-stroke-width="2.25"');
     expect(markup).toContain('data-min-tick-gap="32"');
     expect(markup).toContain('data-tick-margin="14"');
+  });
+
+  it("renders clamped trend bands and filters invalid spans", () => {
+    const fixture = buildLongHistoryDatasetDetailFixture();
+    const markup = renderMarkup(
+      <ObservationsChart
+        observations={fixture.observations}
+        trendSpans={[
+          {
+            direction: "up",
+            end_period: "2018-02-15",
+            start_period: "2017-12-15",
+            tooltip: { detail: "Uptrend", headline: "Up" },
+            trend_label: "strong_sustained_uptrend",
+          },
+          {
+            direction: "down",
+            end_period: "2018-05-01",
+            start_period: "2018-03-01",
+            tooltip: { detail: "Downtrend", headline: "Down" },
+            trend_label: "sustained_downtrend",
+          },
+          {
+            direction: "up",
+            end_period: "invalid-date",
+            start_period: "2018-06-01",
+            tooltip: { detail: "Invalid", headline: "Invalid" },
+            trend_label: "invalid_span",
+          },
+          {
+            direction: "down",
+            end_period: "2018-06-01",
+            start_period: "2018-06-15",
+            tooltip: { detail: "Reverse", headline: "Reverse" },
+            trend_label: "reverse_span",
+          },
+        ]}
+      />,
+    );
+
+    const renderedBands = markup.match(/data-recharts="ReferenceArea"/g) ?? [];
+    expect(renderedBands).toHaveLength(2);
+  });
+
+  it("does not render trend bands in relative mode", () => {
+    const fixture = buildLongHistoryDatasetDetailFixture();
+    const markup = renderMarkup(
+      <ObservationsChart
+        observations={fixture.observations}
+        relativeSettings={{
+          baselineMode: "rolling",
+          fixedBaselineDate: null,
+          rollingOffset: 1,
+          valueMode: "relative",
+        }}
+        trendSpans={[
+          {
+            direction: "up",
+            end_period: "2018-02-01",
+            start_period: "2018-01-15",
+            tooltip: { detail: "Uptrend", headline: "Up" },
+            trend_label: "strong_sustained_uptrend",
+          },
+        ]}
+      />,
+    );
+
+    expect(markup).not.toContain('data-recharts="ReferenceArea"');
   });
 
   it("renders empty state when no observations are provided", () => {
