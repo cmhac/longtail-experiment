@@ -134,6 +134,7 @@ def test_protocol_surface_supports_lifecycle_and_snapshot_payloads() -> None:
         LookbackApplicabilityInsert(
             series_key="SERIES.T009",
             observed_on=observed_on,
+            observation_id=None,
             lookback_points=EXPECTED_LOOKBACK_POINTS,
             applicability_state="applicable",
             reason_code="enough_observations",
@@ -144,6 +145,7 @@ def test_protocol_surface_supports_lifecycle_and_snapshot_payloads() -> None:
         LookbackSnapshotInsert(
             series_key="SERIES.T009",
             observed_on=observed_on,
+            observation_id=None,
             lookback_points=EXPECTED_LOOKBACK_POINTS,
             outcome_state="significant_trend",
             trend_label="mild_sustained_uptrend",
@@ -157,6 +159,7 @@ def test_protocol_surface_supports_lifecycle_and_snapshot_payloads() -> None:
         CanonicalDescriptorInsert(
             series_key="SERIES.T009",
             observed_on=observed_on,
+            observation_id=None,
             descriptor_state="available",
             canonical_trend_label="mild_sustained_uptrend",
             canonical_direction="up",
@@ -190,6 +193,7 @@ def test_new_typed_dict_payload_keys_are_accessible() -> None:
     applicability_payload = LookbackApplicabilityInsert(
         series_key="SERIES.KEYS",
         observed_on=date(2026, 2, 1),
+        observation_id=None,
         lookback_points=EXPECTED_LOOKBACK_POINTS,
         applicability_state="inapplicable",
         reason_code="insufficient_points",
@@ -198,6 +202,7 @@ def test_new_typed_dict_payload_keys_are_accessible() -> None:
     snapshot_payload = LookbackSnapshotInsert(
         series_key="SERIES.KEYS",
         observed_on=date(2026, 2, 1),
+        observation_id=None,
         lookback_points=EXPECTED_LOOKBACK_POINTS,
         outcome_state="no_significant_trend",
         trend_label=None,
@@ -209,6 +214,7 @@ def test_new_typed_dict_payload_keys_are_accessible() -> None:
     descriptor_payload = CanonicalDescriptorInsert(
         series_key="SERIES.KEYS",
         observed_on=date(2026, 2, 1),
+        observation_id=None,
         descriptor_state="unavailable",
         canonical_trend_label=None,
         canonical_direction=None,

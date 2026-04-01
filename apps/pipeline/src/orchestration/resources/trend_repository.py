@@ -35,6 +35,7 @@ class LookbackApplicabilityInsert(TypedDict):
 
     series_key: str
     observed_on: date
+    observation_id: str | None
     lookback_points: int
     applicability_state: Literal["applicable", "inapplicable"]
     reason_code: str
@@ -46,6 +47,7 @@ class LookbackSnapshotInsert(TypedDict):
 
     series_key: str
     observed_on: date
+    observation_id: str | None
     lookback_points: int
     outcome_state: Literal["significant_trend", "no_significant_trend"]
     trend_label: str | None
@@ -60,6 +62,7 @@ class CanonicalDescriptorInsert(TypedDict):
 
     series_key: str
     observed_on: date
+    observation_id: str | None
     descriptor_state: Literal["available", "unavailable"]
     canonical_trend_label: str | None
     canonical_direction: Literal["up", "down"] | None

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 DEFAULT_ANALYSIS_VERSION = "0.1.0"
+LOOKBACK_RECLASSIFICATION_REASON = "lookback_snapshot_reclassification"
 
 
 @dataclass(frozen=True)
@@ -40,3 +41,15 @@ def requires_global_rerun_for_library_release(
     if persisted_analysis_version is None:
         return False
     return persisted_analysis_version != current_library_version
+
+
+def requires_lookback_reclassification_for_library_release(
+    *,
+    persisted_analysis_version: str | None,
+    current_library_version: str = DEFAULT_ANALYSIS_VERSION,
+) -> bool:
+    """Return whether lookback snapshots require deterministic reclassification."""
+    return requires_global_rerun_for_library_release(
+        persisted_analysis_version=persisted_analysis_version,
+        current_library_version=current_library_version,
+    )

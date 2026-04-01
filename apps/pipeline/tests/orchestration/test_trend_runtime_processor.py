@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import sys
-from datetime import UTC, date, datetime
+from datetime import date
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_runtime_processor import TrendRuntimeProcessor
+
+EXPECTED_LOOKBACK_COUNT = 12
 
 
 class _FakeObservationRepository:
@@ -21,91 +24,28 @@ class _FakeObservationRepository:
 
 class _FakeTrendRepository:
     def __init__(self) -> None:
-        self._records: dict[str, dict[str, object]] = {}
-        self._ongoing_by_series: dict[str, str] = {}
-        self._transitions: list[dict[str, object]] = []
+        self.applicability_writes: list[dict[str, object]] = []
+        self.snapshot_writes: list[dict[str, object]] = []
+        self.canonical_writes: list[dict[str, object]] = []
 
-    def get_ongoing_trend_for_series(self, *, series_key: str) -> dict[str, object] | None:
-        row_id = self._ongoing_by_series.get(series_key)
-        if row_id is None:
-            return None
-        return dict(self._records[row_id])
+    def upsert_lookback_applicability(self, payload: dict[str, object]) -> None:
+        self.applicability_writes.append(dict(payload))
 
-    def upsert_trend_record(self, payload: dict[str, object]) -> str:
-        record_id = f"record-{len(self._records) + 1}"
-        row = {
-            "id": record_id,
-            "trend_label": payload["trend_label"],
-            "direction": payload["direction"],
-            "strength": payload["strength"],
-            "seasonality_classification": payload["seasonality_classification"],
-            "is_ongoing": payload["is_ongoing"],
-            "start_period": payload["start_period"],
-            "end_period": payload["end_period"],
-            "series_key": payload["series_key"],
-        }
-        self._records[record_id] = row
-        if bool(payload["is_ongoing"]):
-            self._ongoing_by_series[str(payload["series_key"])] = record_id
-        return record_id
+    def upsert_lookback_snapshot(self, payload: dict[str, object]) -> None:
+        self.snapshot_writes.append(dict(payload))
 
-    def close_ongoing_trend_for_series(
-        self,
-        *,
-        series_key: str,
-        end_period: datetime,
-    ) -> str | None:
-        row_id = self._ongoing_by_series.pop(series_key, None)
-        if row_id is None:
-            return None
-        row = self._records[row_id]
-        row["end_period"] = end_period
-        row["is_ongoing"] = False
-        return row_id
-
-    def append_transition(self, payload: dict[str, object]) -> None:
-        self._transitions.append(dict(payload))
-
-    def count_trend_records_for_series(self, *, series_key: str) -> int:
-        return sum(1 for row in self._records.values() if row["series_key"] == series_key)
+    def upsert_canonical_descriptor(self, payload: dict[str, object]) -> None:
+        self.canonical_writes.append(dict(payload))
 
 
-def test_first_run_backfill_writes_lifecycle_rows() -> None:
-    """First run with sufficient history should execute backfill lifecycle writes."""
+def test_first_run_persists_lookback_rows() -> None:
+    """First run with sufficient history should persist applicability/snapshot rows."""
     series_key = "SERIES.UP"
-    rows: list[dict[str, object]] = [
-        {"observed_on": date(2026, 1, day), "value": float(day)} for day in (1, 2, 3, 4, 5, 6)
-    ]
-    processor = TrendRuntimeProcessor(
-        observation_repository=_FakeObservationRepository({series_key: rows}),
-        trend_repository=_FakeTrendRepository(),
+    rows: list[dict[str, object]] = cast(
+        list[dict[str, object]],
+        [{"observed_on": date(2026, 1, day), "value": float(day)} for day in (1, 2, 3, 4, 5, 6)],
     )
-
-    result = processor.process_series(series_key=series_key)
-
-    assert result["outcome_reason_code"] == "first_run_full_backfill"
-
-
-def test_existing_trends_use_incremental_processing() -> None:
-    """Series with existing trends should use incremental processing branch."""
-    series_key = "SERIES.UP"
-    rows: list[dict[str, object]] = [
-        {"observed_on": date(2026, 1, day), "value": float(day)} for day in (1, 2, 3, 4, 5, 6)
-    ]
     trend_repository = _FakeTrendRepository()
-    trend_repository.upsert_trend_record(
-        {
-            "series_key": series_key,
-            "trend_label": "strong_sustained_uptrend",
-            "direction": "up",
-            "strength": "strong",
-            "seasonality_classification": "non_seasonal",
-            "start_period": datetime(2026, 1, 6, tzinfo=UTC),
-            "end_period": None,
-            "is_ongoing": True,
-        }
-    )
-
     processor = TrendRuntimeProcessor(
         observation_repository=_FakeObservationRepository({series_key: rows}),
         trend_repository=trend_repository,
@@ -113,8 +53,21 @@ def test_existing_trends_use_incremental_processing() -> None:
 
     result = processor.process_series(series_key=series_key)
 
-    assert result["outcome_reason_code"] in {
-        "trend_signature_unchanged",
-        "trend_signature_changed",
-        "analysis_version_changed",
-    }
+    assert result["execution_state"] == "applied"
+    assert result["outcome_reason_code"] == "lookback_snapshots_persisted"
+    assert len(trend_repository.applicability_writes) == EXPECTED_LOOKBACK_COUNT
+    assert len(trend_repository.snapshot_writes) >= 1
+    assert len(trend_repository.canonical_writes) == 1
+
+
+def test_empty_series_is_noop() -> None:
+    """No observations should return explicit no-op metadata."""
+    processor = TrendRuntimeProcessor(
+        observation_repository=_FakeObservationRepository({"SERIES.EMPTY": []}),
+        trend_repository=_FakeTrendRepository(),
+    )
+
+    result = processor.process_series(series_key="SERIES.EMPTY")
+
+    assert result["execution_state"] == "no_op"
+    assert result["outcome_reason_code"] == "no_observations"

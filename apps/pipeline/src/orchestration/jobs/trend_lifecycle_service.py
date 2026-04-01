@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Literal, cast
+from datetime import date, datetime
+from typing import Literal, Protocol, cast
 
 from ..resources.trend_repository import TrendRepository
 from .trend_transition_logic import (
@@ -32,6 +32,55 @@ class TrendLifecycleApplyResult:
 
     outcome_state: Literal["applied", "no_op"]
     outcome_reason_code: str
+
+
+@dataclass(frozen=True)
+class TrendLookbackApplyResult:
+    """Outcome emitted after applying one lookback evaluation payload."""
+
+    outcome_state: Literal["applied", "partial_applied"]
+    outcome_reason_code: str
+
+
+class LookbackEvaluationResultLike(Protocol):
+    """Structural shape required for lookback persistence apply flow."""
+
+    applicability: tuple[LookbackApplicabilityLike, ...]
+    lookback_snapshots: tuple[LookbackSnapshotLike, ...]
+    canonical_descriptor: CanonicalDescriptorLike
+
+
+class LookbackApplicabilityLike(Protocol):
+    """Structural lookback applicability item."""
+
+    lookback_points: int
+    applicability_state: Literal["applicable", "inapplicable"]
+    reason_code: str
+    reason_detail: str | None
+
+
+class LookbackSnapshotLike(Protocol):
+    """Structural lookback snapshot item."""
+
+    lookback_points: int
+    outcome_state: Literal["significant_trend", "no_significant_trend"]
+    trend_label: str | None
+    direction: Literal["up", "down"] | None
+    strength: str | None
+    seasonality_classification: str | None
+    analysis_version: str
+
+
+class CanonicalDescriptorLike(Protocol):
+    """Structural canonical descriptor item."""
+
+    descriptor_state: Literal["available", "unavailable"]
+    trend_label: str | None
+    direction: Literal["up", "down"] | None
+    strength: str | None
+    selected_lookback_points: int | None
+    weighting_version: str
+    weighting_trace: dict[str, object] | None
 
 
 def _signature_value(signature: object, key: str) -> str:
@@ -150,4 +199,79 @@ class TrendLifecycleService:
         return TrendLifecycleApplyResult(
             outcome_state="applied",
             outcome_reason_code=decision.transition_type,
+        )
+
+    def apply_lookback_evaluation(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+        observation_id: str | None,
+        evaluation_result: object,
+    ) -> TrendLookbackApplyResult:
+        """Persist lookback applicability/snapshots and canonical descriptor payloads."""
+        typed_result = cast(LookbackEvaluationResultLike, evaluation_result)
+        applicability = typed_result.applicability
+        snapshots = typed_result.lookback_snapshots
+        canonical = typed_result.canonical_descriptor
+
+        first_snapshot_error: Exception | None = None
+        for item in applicability:
+            self._repository.upsert_lookback_applicability(
+                {
+                    "series_key": series_key,
+                    "observed_on": observed_on,
+                    "observation_id": observation_id,
+                    "lookback_points": item.lookback_points,
+                    "applicability_state": item.applicability_state,
+                    "reason_code": item.reason_code,
+                    "reason_detail": item.reason_detail,
+                }
+            )
+
+        for snapshot in snapshots:
+            try:
+                self._repository.upsert_lookback_snapshot(
+                    {
+                        "series_key": series_key,
+                        "observed_on": observed_on,
+                        "observation_id": observation_id,
+                        "lookback_points": snapshot.lookback_points,
+                        "outcome_state": snapshot.outcome_state,
+                        "trend_label": snapshot.trend_label,
+                        "direction": snapshot.direction,
+                        "strength": snapshot.strength,
+                        "seasonality_classification": snapshot.seasonality_classification,
+                        "analysis_version": snapshot.analysis_version,
+                    }
+                )
+            except Exception as exc:  # pragma: no cover - failure isolation boundary
+                # Intentionally isolate per-lookback write failures so remaining
+                # lookbacks and canonical descriptor still persist for this series.
+                if first_snapshot_error is None:
+                    first_snapshot_error = exc
+
+        self._repository.upsert_canonical_descriptor(
+            {
+                "series_key": series_key,
+                "observed_on": observed_on,
+                "observation_id": observation_id,
+                "descriptor_state": canonical.descriptor_state,
+                "canonical_trend_label": canonical.trend_label,
+                "canonical_direction": canonical.direction,
+                "canonical_strength": canonical.strength,
+                "selected_lookback_points": canonical.selected_lookback_points,
+                "weighting_version": canonical.weighting_version,
+                "weighting_trace": canonical.weighting_trace,
+            }
+        )
+
+        if first_snapshot_error is not None:
+            return TrendLookbackApplyResult(
+                outcome_state="partial_applied",
+                outcome_reason_code="partial_lookback_write_failure",
+            )
+        return TrendLookbackApplyResult(
+            outcome_state="applied",
+            outcome_reason_code="lookback_snapshots_persisted",
         )

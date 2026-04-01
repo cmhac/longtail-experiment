@@ -46,23 +46,23 @@
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Add classifier lookback-catalog and determinism unit tests in libs/trend_analysis/tests/test_multi_lookback_classifier.py
-- [ ] T011 [P] [US1] Add canonical weighting determinism tests in libs/trend_analysis/tests/test_canonical_descriptor_weighting.py
-- [ ] T012 [P] [US1] Add pipeline lookback applicability and no-signal tests in apps/pipeline/tests/orchestration/test_trend_runtime_processor_lookbacks.py
-- [ ] T013 [P] [US1] Add pipeline idempotency and partial-failure isolation tests in apps/pipeline/tests/orchestration/test_trend_runtime_processor_idempotency.py
+- [x] T010 [P] [US1] Add classifier lookback-catalog and determinism unit tests in libs/trend_analysis/tests/test_multi_lookback_classifier.py
+- [x] T011 [P] [US1] Add canonical weighting determinism tests in libs/trend_analysis/tests/test_canonical_descriptor_weighting.py
+- [x] T012 [P] [US1] Add pipeline lookback applicability and no-signal tests in apps/pipeline/tests/orchestration/test_trend_runtime_processor_lookbacks.py
+- [x] T013 [P] [US1] Add pipeline idempotency and partial-failure isolation tests in apps/pipeline/tests/orchestration/test_trend_runtime_processor_idempotency.py
 
 ### Implementation for User Story 1
 
-- [ ] T014 [US1] Implement multi-lookback evaluation entrypoint and result model exports in libs/trend_analysis/src/trend_analysis/**init**.py
-- [ ] T015 [US1] Implement fixed lookback evaluation logic in libs/trend_analysis/src/trend_analysis/classifier.py
-- [ ] T016 [US1] Implement lookback/canonical descriptor domain models in libs/trend_analysis/src/trend_analysis/models.py
-- [ ] T017 [US1] Implement weighting/version metadata for canonical descriptors in libs/trend_analysis/src/trend_analysis/version.py
-- [ ] T018 [US1] Implement lookback snapshot and canonical descriptor write methods in apps/pipeline/src/orchestration/resources/postgres_trend_repository.py
-- [ ] T019 [US1] Replace lifecycle transition apply path with lookback snapshot apply flow in apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py
-- [ ] T020 [US1] Update per-series runtime execution to evaluate all applicable lookbacks in apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py
-- [ ] T021 [US1] Update trend processing asset orchestration wiring for lookback outputs in apps/pipeline/src/orchestration/jobs/trend_processing_asset.py
-- [ ] T022 [US1] Add/refresh runtime error mappings for per-lookback failures in apps/pipeline/src/orchestration/jobs/trend_errors.py
-- [ ] T023 [US1] Add reclassification runtime coverage for lookback snapshots in apps/pipeline/src/orchestration/jobs/trend_backfill_service.py
+- [x] T014 [US1] Implement multi-lookback evaluation entrypoint and result model exports in libs/trend_analysis/src/trend_analysis/**init**.py
+- [x] T015 [US1] Implement fixed lookback evaluation logic in libs/trend_analysis/src/trend_analysis/classifier.py
+- [x] T016 [US1] Implement lookback/canonical descriptor domain models in libs/trend_analysis/src/trend_analysis/models.py
+- [x] T017 [US1] Implement weighting/version metadata for canonical descriptors in libs/trend_analysis/src/trend_analysis/version.py
+- [x] T018 [US1] Implement lookback snapshot and canonical descriptor write methods in apps/pipeline/src/orchestration/resources/postgres_trend_repository.py
+- [x] T019 [US1] Replace lifecycle transition apply path with lookback snapshot apply flow in apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py
+- [x] T020 [US1] Update per-series runtime execution to evaluate all applicable lookbacks in apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py
+- [x] T021 [US1] Update trend processing asset orchestration wiring for lookback outputs in apps/pipeline/src/orchestration/jobs/trend_processing_asset.py
+- [x] T022 [US1] Add/refresh runtime error mappings for per-lookback failures in apps/pipeline/src/orchestration/jobs/trend_errors.py
+- [x] T023 [US1] Add reclassification runtime coverage for lookback snapshots in apps/pipeline/src/orchestration/jobs/trend_backfill_service.py
 
 **Checkpoint**: US1 persists deterministic lookback snapshots + canonical descriptor and is independently testable.
 

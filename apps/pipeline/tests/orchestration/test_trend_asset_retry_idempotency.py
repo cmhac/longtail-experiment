@@ -4,27 +4,61 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import date
 from pathlib import Path
-from typing import Literal, cast
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.orchestration.jobs.trend_lifecycle_service import (
-    PersistedTrendSnapshot,
-    TrendLifecycleService,
-)
-from src.orchestration.jobs.trend_transition_logic import TrendAnalysisResultLike
+from src.orchestration.jobs.trend_lifecycle_service import TrendLifecycleService
 from src.orchestration.resources.trend_repository import TrendRepository
+
+EXPECTED_RETRY_WRITES = 2
 
 
 @dataclass(frozen=True)
-class FakeAnalysisResult:
-    """Minimal trend-analysis result shape used by lifecycle service tests."""
+class FakeLookbackEvaluation:
+    """Minimal lookback evaluation shape used by lifecycle service tests."""
 
-    outcome: Literal["significant_trend", "no_significant_trend", "insufficient_data"]
+    applicability: tuple[object, ...]
+    lookback_snapshots: tuple[object, ...]
+    canonical_descriptor: object
+
+
+@dataclass(frozen=True)
+class FakeLookbackApplicability:
+    """Minimal applicability row fixture."""
+
+    lookback_points: int
+    applicability_state: str
+    reason_code: str
+    reason_detail: str | None
+
+
+@dataclass(frozen=True)
+class FakeLookbackSnapshot:
+    """Minimal lookback snapshot fixture."""
+
+    lookback_points: int
+    outcome_state: str
+    trend_label: str | None
+    direction: str | None
+    strength: str | None
+    seasonality_classification: str | None
     analysis_version: str
-    signature: dict[str, str] | None
+
+
+@dataclass(frozen=True)
+class FakeCanonicalResult:
+    """Minimal canonical descriptor fixture."""
+
+    descriptor_state: str
+    weighting_version: str
+    trend_label: str | None
+    direction: str | None
+    strength: str | None
+    selected_lookback_points: int | None
+    weighting_trace: dict[str, object] | None
 
 
 class FakeTrendRepository(TrendRepository):
@@ -34,6 +68,9 @@ class FakeTrendRepository(TrendRepository):
         """Initialize empty write-collection buffers for assertions."""
         self.record_writes: list[dict[str, object]] = []
         self.transition_writes: list[dict[str, object]] = []
+        self.applicability_writes: list[dict[str, object]] = []
+        self.snapshot_writes: list[dict[str, object]] = []
+        self.canonical_writes: list[dict[str, object]] = []
 
     def upsert_trend_record(self, payload):
         """Collect one trend record write and return a stable fake id."""
@@ -44,41 +81,72 @@ class FakeTrendRepository(TrendRepository):
         """Collect one transition write for downstream assertions."""
         self.transition_writes.append(dict(payload))
 
+    def upsert_lookback_applicability(self, payload):
+        """Collect one lookback applicability write."""
+        self.applicability_writes.append(dict(payload))
+
+    def upsert_lookback_snapshot(self, payload):
+        """Collect one lookback snapshot write."""
+        self.snapshot_writes.append(dict(payload))
+
+    def upsert_canonical_descriptor(self, payload):
+        """Collect one canonical descriptor write."""
+        self.canonical_writes.append(dict(payload))
+
 
 def test_retry_with_unchanged_state_is_idempotent_and_writes_nothing() -> None:
-    """Repeated processing for unchanged persisted state must not add lifecycle rows."""
+    """Repeated processing for unchanged lookback state must upsert same logical rows."""
     repository = FakeTrendRepository()
     service = TrendLifecycleService(repository=repository)
 
-    existing = PersistedTrendSnapshot(
-        trend_record_id="existing-record",
-        trend_label="mild_sustained_uptrend",
-        direction="up",
-        strength="mild",
-        seasonality_classification="non_seasonal",
-        analysis_version="0.1.0",
-    )
-
-    result = service.apply_analysis_result(
-        series_key="SERIES.IDEMPOTENT",
-        latest_observation_on=datetime(2026, 3, 1, tzinfo=UTC),
-        analysis_result=cast(
-            TrendAnalysisResultLike,
-            FakeAnalysisResult(
-                outcome="significant_trend",
-                analysis_version="0.1.0",
-                signature={
-                    "trend_label": "mild_sustained_uptrend",
-                    "direction": "up",
-                    "strength": "mild",
-                    "seasonality_classification": "non_seasonal",
-                },
+    evaluation = FakeLookbackEvaluation(
+        applicability=(
+            FakeLookbackApplicability(
+                lookback_points=1,
+                applicability_state="applicable",
+                reason_code="applicable",
+                reason_detail=None,
             ),
         ),
-        existing_trend=existing,
+        lookback_snapshots=(
+            FakeLookbackSnapshot(
+                lookback_points=1,
+                outcome_state="significant_trend",
+                trend_label="mild_sustained_uptrend",
+                direction="up",
+                strength="mild",
+                seasonality_classification="non_seasonal",
+                analysis_version="0.1.0",
+            ),
+        ),
+        canonical_descriptor=FakeCanonicalResult(
+            descriptor_state="available",
+            weighting_version="1.0.0",
+            trend_label="mild_sustained_uptrend",
+            direction="up",
+            strength="mild",
+            selected_lookback_points=1,
+            weighting_trace={"selected": 1},
+        ),
     )
 
-    assert result.outcome_state == "no_op"
-    assert result.outcome_reason_code == "trend_signature_unchanged"
-    assert repository.record_writes == []
-    assert repository.transition_writes == []
+    first = service.apply_lookback_evaluation(
+        series_key="SERIES.IDEMPOTENT",
+        observed_on=date(2026, 3, 1),
+        observation_id=None,
+        evaluation_result=cast(object, evaluation),
+    )
+    second = service.apply_lookback_evaluation(
+        series_key="SERIES.IDEMPOTENT",
+        observed_on=date(2026, 3, 1),
+        observation_id=None,
+        evaluation_result=cast(object, evaluation),
+    )
+
+    assert first.outcome_state == "applied"
+    assert first.outcome_reason_code == "lookback_snapshots_persisted"
+    assert second.outcome_state == "applied"
+    assert second.outcome_reason_code == "lookback_snapshots_persisted"
+    assert len(repository.applicability_writes) == EXPECTED_RETRY_WRITES
+    assert len(repository.snapshot_writes) == EXPECTED_RETRY_WRITES
+    assert len(repository.canonical_writes) == EXPECTED_RETRY_WRITES
