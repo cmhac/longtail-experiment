@@ -1,0 +1,152 @@
+openapi: 3.1.0
+info:
+  title: Discovery Lookback Trend Contract
+  version: 0.1.0
+  description: >
+    Contract additions for current-state multi-lookback trend snapshots and
+    API-provided canonical trend descriptor rendering on dataset detail.
+paths:
+  /api/datasets/{datasetId}:
+    get:
+      summary: Get dataset detail with canonical trend descriptor
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dataset detail response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetDetailResponse"
+components:
+  schemas:
+    CanonicalTrendDescriptor:
+      type: object
+      required:
+        - descriptor_state
+      properties:
+        descriptor_state:
+          type: string
+          enum: [available, unavailable]
+        trend_label:
+          type: string
+          nullable: true
+        direction:
+          type: string
+          enum: [up, down]
+          nullable: true
+        strength:
+          type: string
+          nullable: true
+        selected_lookback_points:
+          type: integer
+          nullable: true
+        observed_on:
+          type: string
+          format: date
+          nullable: true
+        reason_code:
+          type: string
+          nullable: true
+
+    LookbackTrendSnapshot:
+      type: object
+      required:
+        - lookback_points
+        - applicability_state
+      properties:
+        lookback_points:
+          type: integer
+          enum: [1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000]
+        applicability_state:
+          type: string
+          enum: [applicable, inapplicable]
+        outcome_state:
+          type: string
+          enum: [significant_trend, no_significant_trend]
+          nullable: true
+        trend_label:
+          type: string
+          nullable: true
+        direction:
+          type: string
+          enum: [up, down]
+          nullable: true
+        strength:
+          type: string
+          nullable: true
+        reason_code:
+          type: string
+          nullable: true
+
+    ObservationPoint:
+      type: object
+      required: [observed_on, value, reported_at, attributes]
+      properties:
+        observed_on:
+          type: string
+          format: date
+        value:
+          type: number
+        reported_at:
+          type: string
+          format: date-time
+        attributes:
+          type: object
+          additionalProperties: true
+
+    SourceRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    DatasetDetailResponse:
+      type: object
+      required:
+        - dataset_id
+        - source
+        - title
+        - metadata
+        - observations
+        - observation_sort
+        - canonical_trend_descriptor
+      properties:
+        dataset_id:
+          type: string
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        geographic_scope:
+          type: string
+          nullable: true
+        topic_tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        observations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ObservationPoint"
+        canonical_trend_descriptor:
+          $ref: "#/components/schemas/CanonicalTrendDescriptor"
+        lookback_trend_snapshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/LookbackTrendSnapshot"
+        observation_sort:
+          type: string
