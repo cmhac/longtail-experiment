@@ -89,23 +89,16 @@ class TrendLifecycleService:
                     outcome_reason_code="no_existing_trend",
                 )
 
-            self._repository.upsert_trend_record(
-                {
-                    "series_key": series_key,
-                    "trend_label": existing_trend.trend_label,
-                    "direction": existing_trend.direction,
-                    "strength": existing_trend.strength,
-                    "seasonality_classification": existing_trend.seasonality_classification,
-                    "start_period": latest_observation_on,
-                    "end_period": latest_observation_on,
-                    "is_ongoing": False,
-                }
+            closed_record_id = self._repository.close_ongoing_trend_for_series(
+                series_key=series_key,
+                end_period=latest_observation_on,
             )
+            prior_id = closed_record_id or existing_trend.trend_record_id
             self._repository.append_transition(
                 {
                     "series_key": series_key,
                     "transition_type": "ended",
-                    "prior_trend_record_id": existing_trend.trend_record_id,
+                    "prior_trend_record_id": prior_id,
                     "new_trend_record_id": None,
                     "trigger_observation_on": latest_observation_on,
                     "reason": decision.reason,
@@ -119,6 +112,15 @@ class TrendLifecycleService:
         signature = analysis_result.signature
         if signature is None:
             raise ValueError("significant_trend outcome requires signature for lifecycle writes")
+
+        prior_record_id = existing_trend.trend_record_id if existing_trend is not None else None
+        if existing_trend is not None and decision.transition_type == "replaced":
+            closed_record_id = self._repository.close_ongoing_trend_for_series(
+                series_key=series_key,
+                end_period=latest_observation_on,
+            )
+            if closed_record_id is not None:
+                prior_record_id = closed_record_id
 
         new_record_id = self._repository.upsert_trend_record(
             {
@@ -139,9 +141,7 @@ class TrendLifecycleService:
             {
                 "series_key": series_key,
                 "transition_type": decision.transition_type,
-                "prior_trend_record_id": (
-                    existing_trend.trend_record_id if existing_trend is not None else None
-                ),
+                "prior_trend_record_id": prior_record_id,
                 "new_trend_record_id": new_record_id,
                 "trigger_observation_on": latest_observation_on,
                 "reason": decision.reason,

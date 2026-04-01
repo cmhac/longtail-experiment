@@ -3,31 +3,29 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import Engine, create_engine, text
 
-from .interfaces import TrendLifecycleRepository
+from .postgres_run_repository import resolve_database_url
 
 
 def _parse_uuid(value: str) -> UUID:
     return UUID(value)
 
 
-class PostgresTrendRepository(TrendLifecycleRepository):
+class PostgresTrendRepository:
     """Persist and read trend lifecycle records in PostgreSQL."""
 
-    def __init__(self, *, database_url: str) -> None:
-        """Initialize repository with explicit Postgres connection URL."""
+    def __init__(self, *, database_url: str | None = None) -> None:
+        """Initialize repository with resolved Postgres connection URL."""
+        self._engine: Engine = create_engine(
+            resolve_database_url(explicit_url=database_url),
+            pool_pre_ping=True,
+        )
 
-        self._engine: Engine = create_engine(database_url, pool_pre_ping=True)
-
-    def get_ongoing_trend_for_series(
-        self, *, series_key: str
-    ) -> dict[str, object] | None:
+    def get_ongoing_trend_for_series(self, *, series_key: str) -> dict[str, object] | None:
         """Return one ongoing trend snapshot for a series when present."""
-
         with self._engine.begin() as connection:
             row = (
                 connection.execute(
@@ -58,7 +56,6 @@ class PostgresTrendRepository(TrendLifecycleRepository):
 
     def upsert_trend_record(self, payload: dict[str, object]) -> str:
         """Insert one trend record row and return its canonical identifier."""
-
         now = datetime.now(tz=UTC)
         with self._engine.begin() as connection:
             row_id = connection.execute(
@@ -122,7 +119,6 @@ class PostgresTrendRepository(TrendLifecycleRepository):
         end_period: datetime,
     ) -> str | None:
         """Close current ongoing trend for a series and return the closed record id."""
-
         with self._engine.begin() as connection:
             row_id = connection.execute(
                 text(
@@ -159,7 +155,6 @@ class PostgresTrendRepository(TrendLifecycleRepository):
 
     def append_transition(self, payload: dict[str, object]) -> None:
         """Append one immutable transition event row."""
-
         with self._engine.begin() as connection:
             connection.execute(
                 text(
@@ -211,9 +206,8 @@ class PostgresTrendRepository(TrendLifecycleRepository):
 
     def count_trend_records_for_series(self, *, series_key: str) -> int:
         """Return total trend record count for one series key."""
-
         with self._engine.begin() as connection:
-            count_value: Any = connection.execute(
+            count_value = connection.execute(
                 text(
                     """
                     SELECT COUNT(*)

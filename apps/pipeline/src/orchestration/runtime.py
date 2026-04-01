@@ -32,9 +32,11 @@ from .jobs.source_assets.series_catalog import (
     validate_series_catalog_entries,
 )
 from .jobs.source_ingest_runner import SourceIngestRunner
+from .jobs.trend_runtime_processor import TrendRuntimeProcessor
 from .jobs.workflow_registry import SourceWorkflowRegistry
 from .resources.postgres_observation_repository import PostgresObservationRepository
 from .resources.postgres_run_repository import PostgresRunRepository
+from .resources.postgres_trend_repository import PostgresTrendRepository
 from .resources.source_lock_service import SourceLockService
 
 logger = logging.getLogger(__name__)
@@ -246,8 +248,16 @@ def build_ingest_runtime() -> IngestRuntime:
     validate_trend_runtime_defaults_policy()
     run_repository = PostgresRunRepository()
     observation_repository = PostgresObservationRepository()
+    trend_repository = PostgresTrendRepository()
+    trend_runtime_processor = TrendRuntimeProcessor(
+        observation_repository=observation_repository,
+        trend_repository=trend_repository,
+    )
     canonical_service = CanonicalIngestService(repository=observation_repository)
-    runner = SourceIngestRunner(canonical_ingest_service=canonical_service)
+    runner = SourceIngestRunner(
+        canonical_ingest_service=canonical_service,
+        trend_runtime_processor=trend_runtime_processor,
+    )
 
     registry = SourceWorkflowRegistry()
     series_catalog_entries = discover_series_catalog_entries()
