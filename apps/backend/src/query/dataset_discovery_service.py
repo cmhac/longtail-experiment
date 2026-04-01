@@ -17,7 +17,6 @@ from .dataset_discovery_validators import (
     parse_optional_date,
     validate_date_range,
 )
-from .trend_span_mapper import normalize_trend_spans
 
 DEFAULT_SUGGESTION_LIMIT = 5
 MIN_SUGGESTION_LIMIT = 1
@@ -767,21 +766,70 @@ class DatasetDiscoveryService:
             metadata_fields["unit_type"] = unit_type
         metadata_payload["metadata"] = metadata_fields
 
-        trend_spans: list[dict[str, Any]] = []
-        if hasattr(self._repository, "list_dataset_trend_spans"):
-            raw_spans = self._repository.list_dataset_trend_spans(dataset_id=normalized_dataset_id)
-            if not isinstance(raw_spans, list):
-                raise ContractQueryError("dataset_detail_trend_payload_invalid")
-            if not all(isinstance(span, dict) for span in raw_spans):
-                raise ContractQueryError("dataset_detail_trend_payload_invalid")
-            try:
-                trend_spans = normalize_trend_spans(raw_spans)
-            except ValueError as exc:
-                raise ContractQueryError("dataset_detail_trend_payload_invalid") from exc
+        canonical_descriptor = {
+            "descriptor_state": "unavailable",
+            "trend_label": None,
+            "direction": None,
+            "strength": None,
+            "selected_lookback_points": None,
+            "observed_on": None,
+            "reason_code": "missing_canonical_descriptor",
+        }
+        if hasattr(self._repository, "get_latest_dataset_canonical_trend_descriptor"):
+            raw_canonical = self._repository.get_latest_dataset_canonical_trend_descriptor(
+                dataset_id=normalized_dataset_id
+            )
+            if raw_canonical is not None:
+                if not isinstance(raw_canonical, dict):
+                    raise ContractQueryError("dataset_detail_canonical_payload_invalid")
+                required_fields = {
+                    "descriptor_state",
+                    "trend_label",
+                    "direction",
+                    "strength",
+                    "selected_lookback_points",
+                    "observed_on",
+                    "reason_code",
+                }
+                if not required_fields.issubset(raw_canonical.keys()):
+                    raise ContractQueryError("dataset_detail_canonical_payload_invalid")
+                canonical_descriptor = {
+                    "descriptor_state": raw_canonical["descriptor_state"],
+                    "trend_label": raw_canonical["trend_label"],
+                    "direction": raw_canonical["direction"],
+                    "strength": raw_canonical["strength"],
+                    "selected_lookback_points": raw_canonical["selected_lookback_points"],
+                    "observed_on": raw_canonical["observed_on"],
+                    "reason_code": raw_canonical["reason_code"],
+                }
+
+        lookback_snapshots: list[dict[str, Any]] = []
+        if hasattr(self._repository, "list_dataset_lookback_trend_snapshots"):
+            raw_lookbacks = self._repository.list_dataset_lookback_trend_snapshots(
+                dataset_id=normalized_dataset_id
+            )
+            if not isinstance(raw_lookbacks, list):
+                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+            if not all(isinstance(snapshot, dict) for snapshot in raw_lookbacks):
+                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+            required_snapshot_fields = {
+                "lookback_points",
+                "applicability_state",
+                "outcome_state",
+                "trend_label",
+                "direction",
+                "strength",
+                "reason_code",
+            }
+            for snapshot in raw_lookbacks:
+                if not required_snapshot_fields.issubset(snapshot.keys()):
+                    raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+            lookback_snapshots = deepcopy(raw_lookbacks)
 
         return {
             **metadata_payload,
             "observations": deepcopy(observations),
-            "trend_spans": trend_spans,
+            "canonical_trend_descriptor": canonical_descriptor,
+            "lookback_trend_snapshots": lookback_snapshots,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }

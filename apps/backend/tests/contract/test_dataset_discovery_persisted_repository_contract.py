@@ -65,8 +65,9 @@ class _FakeConnection:
         if "FROM trend_records tr" in sql and "LIMIT :limit" in sql:
             params = parameters or {}
             limit = int(params.get("limit", 0))
+            rows = [row for row in self._trend_rows if "start_period" in row]
             rows = sorted(
-                self._trend_rows,
+                rows,
                 key=lambda row: (
                     row["start_period"],
                     row["dataset_id"],
@@ -78,9 +79,52 @@ class _FakeConnection:
         if "FROM trend_records tr" in sql and "WHERE ds.series_key = :dataset_id" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
-            rows = [row for row in self._trend_rows if str(row.get("dataset_id", "")) == dataset_id]
+            rows = [
+                row
+                for row in self._trend_rows
+                if str(row.get("dataset_id", "")) == dataset_id and "start_period" in row
+            ]
             rows.sort(key=lambda row: (row["start_period"], row["created_at"]))
             return _FakeResult(rows)
+        if "FROM trend_canonical_descriptors tcd" in sql:
+            params = parameters or {}
+            dataset_id = str(params.get("dataset_id", ""))
+            rows = [row for row in self._trend_rows if str(row.get("dataset_id", "")) == dataset_id]
+            rows.sort(
+                key=lambda row: (
+                    row["observed_on"],
+                    row["created_at"],
+                ),
+                reverse=True,
+            )
+            return _FakeResult(rows[:1])
+        if "FROM trend_lookback_evaluations tle" in sql:
+            params = parameters or {}
+            dataset_id = str(params.get("dataset_id", ""))
+            if dataset_id != "INT.US.FEDFUNDS":
+                return _FakeResult([])
+            return _FakeResult(
+                [
+                    {
+                        "lookback_points": 10,
+                        "applicability_state": "applicable",
+                        "outcome_state": "significant_trend",
+                        "trend_label": "mild_sustained_downtrend",
+                        "direction": "down",
+                        "strength": "mild",
+                        "reason_code": None,
+                    },
+                    {
+                        "lookback_points": 500,
+                        "applicability_state": "inapplicable",
+                        "outcome_state": None,
+                        "trend_label": None,
+                        "direction": None,
+                        "strength": None,
+                        "reason_code": "insufficient_history",
+                    },
+                ]
+            )
 
         raise AssertionError(f"Unexpected SQL executed: {sql}")
 
@@ -185,6 +229,28 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "start_period": datetime(2026, 2, 1, tzinfo=timezone.utc),
             "end_period": None,
             "is_ongoing": True,
+            "created_at": datetime(2026, 2, 2, tzinfo=timezone.utc),
+        },
+        {
+            "dataset_id": "INT.US.FEDFUNDS",
+            "descriptor_state": "available",
+            "trend_label": "mild_sustained_downtrend",
+            "direction": "down",
+            "strength": "mild",
+            "selected_lookback_points": 25,
+            "observed_on": date(2026, 2, 1),
+            "reason_code": None,
+            "created_at": datetime(2026, 1, 2, tzinfo=timezone.utc),
+        },
+        {
+            "dataset_id": "LABOR.US.UNRATE",
+            "descriptor_state": "available",
+            "trend_label": "strong_sustained_uptrend",
+            "direction": "up",
+            "strength": "strong",
+            "selected_lookback_points": 10,
+            "observed_on": date(2026, 2, 1),
+            "reason_code": None,
             "created_at": datetime(2026, 2, 2, tzinfo=timezone.utc),
         },
     ]
@@ -398,20 +464,19 @@ def test_recent_trend_events_projection_uses_persisted_rows() -> None:
     ]
 
 
-def test_dataset_trend_spans_projection_includes_tooltip_fields() -> None:
+def test_dataset_canonical_descriptor_projection_uses_latest_descriptor_row() -> None:
     repository = _build_repository()
 
-    spans = repository.list_dataset_trend_spans(dataset_id="INT.US.FEDFUNDS")
+    descriptor = repository.get_latest_dataset_canonical_trend_descriptor(
+        dataset_id="INT.US.FEDFUNDS"
+    )
 
-    assert spans == [
-        {
-            "start_period": "2026-01-01",
-            "end_period": "2026-02-01",
-            "direction": "down",
-            "trend_label": "mild_sustained_downtrend",
-            "tooltip": {
-                "headline": "Mild Sustained Downtrend",
-                "detail": "mild down trend (none)",
-            },
-        }
-    ]
+    assert descriptor == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }

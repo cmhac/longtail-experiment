@@ -15,26 +15,8 @@ class DatasetObservationPoint(BaseModel):
     reported_at: str = Field(min_length=1)
     attributes: dict[str, object] = Field(default_factory=dict)
 
-
-class DatasetTrendTooltip(BaseModel):
-    """Tooltip payload for one dataset trend span."""
-
-    headline: str = Field(min_length=1)
-    detail: str = Field(min_length=1)
-
-
-class DatasetTrendSpan(BaseModel):
-    """Trend visualization span payload for dataset detail chart overlays."""
-
-    start_period: str = Field(min_length=1)
-    end_period: str = Field(min_length=1)
-    direction: str = Field(min_length=1)
-    trend_label: str = Field(min_length=1)
-    tooltip: DatasetTrendTooltip
-
-
 class CanonicalTrendDescriptor(BaseModel):
-    """Canonical trend descriptor scaffold for dataset detail responses."""
+    """Canonical trend descriptor payload for dataset detail responses."""
 
     descriptor_state: str = Field(min_length=1)
     trend_label: str | None = Field(default=None, min_length=1)
@@ -46,7 +28,7 @@ class CanonicalTrendDescriptor(BaseModel):
 
 
 class LookbackTrendSnapshot(BaseModel):
-    """Per-lookback trend snapshot scaffold for dataset detail responses."""
+    """Per-lookback trend snapshot payload for dataset detail responses."""
 
     lookback_points: int = Field(ge=1)
     applicability_state: str = Field(min_length=1)
@@ -68,8 +50,7 @@ class DatasetDetailQueryResult(BaseModel):
     topic_tags: list[str] = Field(default_factory=list)
     metadata: dict[str, object] = Field(default_factory=dict)
     observations: list[DatasetObservationPoint] = Field(default_factory=list)
-    trend_spans: list[DatasetTrendSpan] = Field(default_factory=list)
-    canonical_trend_descriptor: CanonicalTrendDescriptor | None = None
+    canonical_trend_descriptor: CanonicalTrendDescriptor
     lookback_trend_snapshots: list[LookbackTrendSnapshot] = Field(default_factory=list)
     observation_sort: str = Field(min_length=1)
 
