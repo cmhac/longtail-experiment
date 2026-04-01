@@ -33,11 +33,13 @@ class _FakeConnection:
         *,
         dataset_rows: list[dict[str, Any]],
         observation_rows: list[dict[str, Any]],
-        trend_rows: list[dict[str, Any]],
+        trend_event_rows: list[dict[str, Any]],
+        canonical_descriptor_rows: list[dict[str, Any]],
     ) -> None:
         self._dataset_rows = dataset_rows
         self._observation_rows = observation_rows
-        self._trend_rows = trend_rows
+        self._trend_event_rows = trend_event_rows
+        self._canonical_descriptor_rows = canonical_descriptor_rows
 
     def execute(self, statement: object, parameters: dict[str, Any] | None = None) -> _FakeResult:
         sql = str(statement)
@@ -65,9 +67,8 @@ class _FakeConnection:
         if "FROM trend_records tr" in sql and "LIMIT :limit" in sql:
             params = parameters or {}
             limit = int(params.get("limit", 0))
-            rows = [row for row in self._trend_rows if "start_period" in row]
             rows = sorted(
-                rows,
+                self._trend_event_rows,
                 key=lambda row: (
                     row["start_period"],
                     row["dataset_id"],
@@ -81,15 +82,19 @@ class _FakeConnection:
             dataset_id = str(params.get("dataset_id", ""))
             rows = [
                 row
-                for row in self._trend_rows
-                if str(row.get("dataset_id", "")) == dataset_id and "start_period" in row
+                for row in self._trend_event_rows
+                if str(row.get("dataset_id", "")) == dataset_id
             ]
             rows.sort(key=lambda row: (row["start_period"], row["created_at"]))
             return _FakeResult(rows)
         if "FROM trend_canonical_descriptors tcd" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
-            rows = [row for row in self._trend_rows if str(row.get("dataset_id", "")) == dataset_id]
+            rows = [
+                row
+                for row in self._canonical_descriptor_rows
+                if str(row.get("dataset_id", "")) == dataset_id
+            ]
             rows.sort(
                 key=lambda row: (
                     row["observed_on"],
@@ -141,17 +146,20 @@ class _FakeEngine:
         *,
         dataset_rows: list[dict[str, Any]],
         observation_rows: list[dict[str, Any]],
-        trend_rows: list[dict[str, Any]],
+        trend_event_rows: list[dict[str, Any]],
+        canonical_descriptor_rows: list[dict[str, Any]],
     ) -> None:
         self._dataset_rows = dataset_rows
         self._observation_rows = observation_rows
-        self._trend_rows = trend_rows
+        self._trend_event_rows = trend_event_rows
+        self._canonical_descriptor_rows = canonical_descriptor_rows
 
     def connect(self) -> _FakeConnection:
         return _FakeConnection(
             dataset_rows=self._dataset_rows,
             observation_rows=self._observation_rows,
-            trend_rows=self._trend_rows,
+            trend_event_rows=self._trend_event_rows,
+            canonical_descriptor_rows=self._canonical_descriptor_rows,
         )
 
 
@@ -202,7 +210,7 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "attributes": {"revision": 1},
         },
     ]
-    trend_rows = [
+    trend_event_rows = [
         {
             "dataset_id": "INT.US.FEDFUNDS",
             "source_key": "fred",
@@ -231,6 +239,8 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "is_ongoing": True,
             "created_at": datetime(2026, 2, 2, tzinfo=timezone.utc),
         },
+    ]
+    canonical_descriptor_rows = [
         {
             "dataset_id": "INT.US.FEDFUNDS",
             "descriptor_state": "available",
@@ -257,7 +267,8 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
     engine = _FakeEngine(
         dataset_rows=dataset_rows,
         observation_rows=observation_rows,
-        trend_rows=trend_rows,
+        trend_event_rows=trend_event_rows,
+        canonical_descriptor_rows=canonical_descriptor_rows,
     )
     return PersistedDatasetDiscoveryRepository(engine=cast(Engine, engine))
 
