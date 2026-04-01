@@ -34,3 +34,9 @@
 - Validation completed after scope revision to current-state multi-lookback snapshots.
 - Calendar-period horizon framing was removed in favor of observation-lookback framing.
 - Checklist confirms the revised spec remains high-level and implementation-agnostic.
+
+## Implementation Tracking
+
+- [x] T001 Artifact alignment validation completed across `spec.md`, `plan.md`, and `contracts/discovery-lookback-trends.openapi.yaml`.
+- [x] T002 Pre-change schema/repository seam baseline captured in `research.md`.
+- [x] T003 Feature checklist updated to track setup-phase implementation progress.

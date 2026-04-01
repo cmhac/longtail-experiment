@@ -1,5 +1,30 @@
 # Research: Current-State Multi-Lookback Trends
 
+## Phase 1 Validation Notes (2026-04-01)
+
+### T001 Artifact Alignment: spec.md, plan.md, and OpenAPI contract
+
+- Scope alignment confirmed: all three artifacts define the same feature direction from period-bound trend spans to observation-level multi-lookback current-state outputs with one canonical descriptor for dataset detail rendering.
+- Lookback catalog alignment confirmed: the fixed lookback set in `spec.md` FR-001 (`1,2,3,4,5,10,25,50,100,250,500,1000`) matches the `LookbackTrendSnapshot.lookback_points` enum in `contracts/discovery-lookback-trends.openapi.yaml`.
+- Applicability and no-signal alignment confirmed: `spec.md` FR-007/FR-008 requirements are represented in the contract via `applicability_state`, `outcome_state`, and `reason_code` fields on lookback snapshots.
+- Canonical descriptor alignment confirmed: `spec.md` FR-013/FR-015/FR-016 map to `canonical_trend_descriptor` with required `descriptor_state` and supporting fields (`trend_label`, `direction`, `strength`, `selected_lookback_points`, `observed_on`, `reason_code`).
+- UI simplification alignment confirmed: `spec.md` FR-014/FR-017/FR-018 are reflected by plan Stage E and contract readiness for direct chip rendering from canonical descriptor payload data.
+
+### T002 Pre-Change Schema and Repository Seams
+
+- Database seam baseline:
+  - Existing trend persistence is lifecycle-based through `trend_records` and `trend_transition_events` from Alembic migration `libs/db/alembic/versions/0011_trend_lifecycle_tables.py`.
+  - ORM mappings for this lifecycle model are currently defined in `libs/db/src/db/models/trends.py` (`TrendRecord`, `TrendTransitionEvent`).
+  - No observation-lookback snapshot or canonical descriptor persistence models exist yet.
+- Pipeline seam baseline:
+  - Shared repository protocol in `apps/pipeline/src/orchestration/resources/trend_repository.py` currently exposes lifecycle-span methods (`get_ongoing_trend_for_series`, `upsert_trend_record`, `close_ongoing_trend_for_series`, `append_transition`).
+  - Postgres implementation in `apps/pipeline/src/orchestration/resources/postgres_trend_repository.py` writes directly to `trend_records` and `trend_transition_events`.
+- Backend seam baseline:
+  - Dataset detail query contract in `apps/backend/src/contract/query/dataset_detail_query.py` currently defines `trend_spans`/tooltip span models and does not yet expose canonical descriptor or lookback snapshot contracts.
+- Frontend seam baseline:
+  - Dataset detail rendering still depends on overlay components in `apps/frontend/src/components/trends/TrendOverlayLayer.tsx` and `apps/frontend/src/components/trends/TrendTooltipController.tsx`.
+  - Canonical descriptor chip-only rendering path is not yet implemented.
+
 ## Decision 1: Replace period-bounded lifecycle spans with observation-lookback snapshots
 
 - Decision: Primary persistence model is per-observation, per-lookback current-state snapshots rather than start/end period lifecycle spans.

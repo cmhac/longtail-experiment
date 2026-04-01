@@ -17,9 +17,9 @@
 
 **Purpose**: Confirm baseline artifacts and quality guardrails before code changes.
 
-- [ ] T001 Validate feature artifacts are aligned in specs/044-multi-horizon-trends/spec.md, specs/044-multi-horizon-trends/plan.md, and specs/044-multi-horizon-trends/contracts/discovery-lookback-trends.openapi.yaml
-- [ ] T002 [P] Capture pre-change schema and repository seam notes in specs/044-multi-horizon-trends/research.md
-- [ ] T003 [P] Add or update implementation tracking checklist in specs/044-multi-horizon-trends/checklists/requirements.md
+- [x] T001 Validate feature artifacts are aligned in specs/044-multi-horizon-trends/spec.md, specs/044-multi-horizon-trends/plan.md, and specs/044-multi-horizon-trends/contracts/discovery-lookback-trends.openapi.yaml
+- [x] T002 [P] Capture pre-change schema and repository seam notes in specs/044-multi-horizon-trends/research.md
+- [x] T003 [P] Add or update implementation tracking checklist in specs/044-multi-horizon-trends/checklists/requirements.md
 
 ---
 
