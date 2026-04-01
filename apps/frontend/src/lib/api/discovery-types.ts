@@ -35,12 +35,28 @@ export interface PaginatedDatasetCollection extends PaginatedCollectionMeta {
 }
 
 export interface DatasetRecentItem {
+  item_type?: "dataset_update";
   dataset_id: string;
   source: SourceRef;
   title: string;
   description?: string | null;
   geographic_scope?: string | null;
   topic_tags: string[];
+  latest_update_at: string;
+  action_links: {
+    view_table_href: string;
+    download_csv_href: string;
+  };
+}
+
+export interface TrendRecentItem {
+  item_type: "trend_event";
+  dataset_id: string;
+  source: SourceRef;
+  title: string;
+  direction: "up" | "down";
+  strength: string;
+  start_period: string;
   latest_update_at: string;
   action_links: {
     view_table_href: string;
@@ -86,7 +102,21 @@ export interface DatasetDetail {
   topic_tags: string[];
   metadata: Record<string, string | null>;
   observations: ObservationPoint[];
+  trend_spans?: TrendVisualizationSpan[];
   observation_sort: string;
+}
+
+export interface TrendTooltipPayload {
+  headline: string;
+  detail: string;
+}
+
+export interface TrendVisualizationSpan {
+  start_period: string;
+  end_period: string;
+  direction: "up" | "down";
+  trend_label: string;
+  tooltip: TrendTooltipPayload;
 }
 
 export interface DatasetSearchResponse {
@@ -118,7 +148,7 @@ export interface DatasetSearchSuggestionsResponse {
 }
 
 export interface DatasetRecentUpdatesResponse {
-  items: DatasetRecentItem[];
+  items: Array<DatasetRecentItem | TrendRecentItem>;
   limit: number;
   sort: string;
 }

@@ -38,6 +38,7 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
         <ObservationsChart
           onRelativeSettingsChange={setRelativeSettings}
           observations={data.observations}
+          trendSpans={data.trend_spans ?? []}
           relativeSettings={relativeSettings}
           onRangeChange={setSelectedRange}
           selectedRange={selectedRange}

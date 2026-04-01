@@ -90,27 +90,27 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T039 [P] [US2] Add contract tests for trend feed item schema in apps/backend/tests/contract/test_recent_updates_trend_contract.py
-- [ ] T040 [P] [US2] Add contract tests for dataset detail trend span schema and no-trend baseline response compatibility in apps/backend/tests/contract/test_dataset_detail_trend_spans_contract.py
-- [ ] T041 [P] [US2] Add contract test for malformed trend payload error response in apps/backend/tests/contract/test_dataset_detail_trend_payload_error_contract.py
-- [ ] T042 [P] [US2] Add integration test for unified recent feed ordering by trend start period while preserving baseline behavior for datasets without trend records in apps/backend/tests/integration/test_recent_updates_trend_ordering.py
-- [ ] T043 [P] [US2] Add integration test for trend span non-overlap normalization output in apps/backend/tests/integration/test_dataset_detail_trend_normalization.py
+- [x] T039 [P] [US2] Add contract tests for trend feed item schema in apps/backend/tests/contract/test_recent_updates_trend_contract.py
+- [x] T040 [P] [US2] Add contract tests for dataset detail trend span schema and no-trend baseline response compatibility in apps/backend/tests/contract/test_dataset_detail_trend_spans_contract.py
+- [x] T041 [P] [US2] Add contract test for malformed trend payload error response in apps/backend/tests/contract/test_dataset_detail_trend_payload_error_contract.py
+- [x] T042 [P] [US2] Add integration test for unified recent feed ordering by trend start period while preserving baseline behavior for datasets without trend records in apps/backend/tests/integration/test_recent_updates_trend_ordering.py
+- [x] T043 [P] [US2] Add integration test for trend span non-overlap normalization output in apps/backend/tests/integration/test_dataset_detail_trend_normalization.py
 
 ### Implementation for User Story 2
 
-- [ ] T044 [US2] Implement trend feed query composition in apps/backend/src/app/discovery/repository/trend_feed_repository.py
-- [ ] T045 [US2] Implement trend span normalization mapper in apps/backend/src/app/discovery/view_models/trend_span_mapper.py
-- [ ] T046 [US2] Extend recent updates service to include trend events in apps/backend/src/app/discovery/service/recent_updates_service.py
-- [ ] T047 [US2] Extend dataset detail service to include trend spans in apps/backend/src/app/discovery/service/dataset_detail_service.py
-- [ ] T048 [US2] Implement deterministic malformed trend payload error handling in apps/backend/src/app/discovery/service/dataset_detail_service.py
-- [ ] T049 [US2] Update API contract definitions to match implemented fields in apps/backend/src/contract/discovery_trends.py
-- [ ] T050 [US2] Reconcile OpenAPI contract document with backend implementation in specs/043-implement-trend-detection/contracts/discovery-trends.openapi.yaml
+- [x] T044 [US2] Implement trend feed query composition in apps/backend/src/query/dataset_discovery_persisted_repository.py
+- [x] T045 [US2] Implement trend span normalization mapper in apps/backend/src/query/trend_span_mapper.py
+- [x] T046 [US2] Extend recent updates service to include trend events in apps/backend/src/query/dataset_discovery_service.py
+- [x] T047 [US2] Extend dataset detail service to include trend spans in apps/backend/src/query/dataset_discovery_service.py
+- [x] T048 [US2] Implement deterministic malformed trend payload error handling in apps/backend/src/query/dataset_discovery_service.py
+- [x] T049 [US2] Update API contract definitions to match implemented fields in apps/backend/src/contract/discovery_trends.py
+- [x] T050 [US2] Reconcile OpenAPI contract document with backend implementation in specs/043-implement-trend-detection/contracts/discovery-trends.openapi.yaml
 
 ### Verification and Quality Loop for User Story 2
 
-- [ ] T051 [US2] Run red/green TDD cycle checkpoints for backend contract/service tests in specs/043-implement-trend-detection/quickstart.md
-- [ ] T052 [US2] Run repeated backend quality checks and pre-commit during US2 iteration in specs/043-implement-trend-detection/quickstart.md
-- [ ] T053 [US2] Perform manual API verification for US2 via one-off local-stack requests in specs/043-implement-trend-detection/quickstart.md
+- [x] T051 [US2] Run red/green TDD cycle checkpoints for backend contract/service tests in specs/043-implement-trend-detection/quickstart.md
+- [x] T052 [US2] Run repeated backend quality checks and pre-commit during US2 iteration in specs/043-implement-trend-detection/quickstart.md
+- [x] T053 [US2] Perform manual API verification for US2 via one-off local-stack requests in specs/043-implement-trend-detection/quickstart.md
 
 **Checkpoint**: US2 independently serves trend-aware API payloads and ordering.
 
@@ -124,30 +124,30 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T054 [P] [US3] Add component tests for feed trend item rendering in apps/frontend/tests/components/TrendFeedItem.test.tsx
-- [ ] T055 [P] [US3] Add component tests for non-overlapping trend span rendering in apps/frontend/tests/components/TrendOverlayLayer.test.tsx
-- [ ] T056 [P] [US3] Add component tests for single active tooltip behavior in apps/frontend/tests/components/TrendTooltipController.test.tsx
-- [ ] T057 [P] [US3] Add component tests for desktop hover and touch tap-to-pin behavior in apps/frontend/tests/components/TrendOverlayInteractions.test.tsx
-- [ ] T058 [P] [US3] Add accessibility tests for dual direction encoding in apps/frontend/tests/components/TrendDirectionAccessibility.test.tsx
-- [ ] T059 [P] [US3] Add route tests for malformed trend-payload hard-fail and no-trend baseline non-error dataset detail behavior in apps/frontend/tests/app/dataset-detail-trend-error-state.test.tsx
+- [x] T054 [P] [US3] Add component tests for feed trend item rendering in apps/frontend/tests/components/TrendFeedItem.test.tsx
+- [x] T055 [P] [US3] Add component tests for non-overlapping trend span rendering in apps/frontend/tests/components/TrendOverlayLayer.test.tsx
+- [x] T056 [P] [US3] Add component tests for single active tooltip behavior in apps/frontend/tests/components/TrendTooltipController.test.tsx
+- [x] T057 [P] [US3] Add component tests for desktop hover and touch tap-to-pin behavior in apps/frontend/tests/components/TrendOverlayInteractions.test.tsx
+- [x] T058 [P] [US3] Add accessibility tests for dual direction encoding in apps/frontend/tests/components/TrendDirectionAccessibility.test.tsx
+- [x] T059 [P] [US3] Add route tests for malformed trend-payload hard-fail and no-trend baseline non-error dataset detail behavior in apps/frontend/tests/app/dataset-detail-trend-error-state.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T060 [US3] Implement shared trend overlay primitives in apps/frontend/src/components/trends/TrendOverlayLayer.tsx
-- [ ] T061 [US3] Implement shared trend tooltip controller with single-active policy in apps/frontend/src/components/trends/TrendTooltipController.tsx
-- [ ] T062 [US3] Implement shared trend direction visual tokens (color + pattern/icon) in apps/frontend/src/components/trends/trendDirectionTokens.ts
-- [ ] T063 [US3] Integrate trend overlays into dataset detail chart in apps/frontend/src/app/datasets/[datasetId]/DatasetDetailChart.tsx
-- [ ] T064 [US3] Implement desktop hover and touch tap-to-pin handlers in apps/frontend/src/app/datasets/[datasetId]/DatasetDetailChart.tsx
-- [ ] T065 [US3] Implement dataset detail hard-fail UI state for malformed trend payload in apps/frontend/src/app/datasets/[datasetId]/page.tsx
-- [ ] T066 [US3] Render trend events in unified recent feed items in apps/frontend/src/app/(discovery)/components/RecentUpdatesFeed.tsx
-- [ ] T067 [US3] Remove unused trends tab from navigation in apps/frontend/src/components/navigation/TopNav.tsx
-- [ ] T068 [US3] Enforce default dataset detail navigation behavior from trend feed item clicks in apps/frontend/src/app/(discovery)/components/RecentUpdatesFeed.tsx
+- [x] T060 [US3] Implement shared trend overlay primitives in apps/frontend/src/components/trends/TrendOverlayLayer.tsx
+- [x] T061 [US3] Implement shared trend tooltip controller with single-active policy in apps/frontend/src/components/trends/TrendTooltipController.tsx
+- [x] T062 [US3] Implement shared trend direction visual tokens (color + pattern/icon) in apps/frontend/src/components/trends/trendDirectionTokens.ts
+- [x] T063 [US3] Integrate trend overlays into dataset detail chart in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [x] T064 [US3] Implement desktop hover and touch tap-to-pin handlers in apps/frontend/src/components/trends/TrendTooltipController.tsx
+- [x] T065 [US3] Implement dataset detail hard-fail UI state for malformed trend payload in apps/frontend/src/app/datasets/[id]/page.tsx
+- [x] T066 [US3] Render trend events in unified recent feed items in apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx
+- [x] T067 [US3] Remove unused trends tab from navigation in apps/frontend/src/shell/navbar-config.ts
+- [x] T068 [US3] Enforce default dataset detail navigation behavior from trend feed item clicks in apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx
 
 ### Verification and Quality Loop for User Story 3
 
-- [ ] T069 [US3] Run red/green TDD cycle checkpoints for frontend tests in specs/043-implement-trend-detection/quickstart.md
-- [ ] T070 [US3] Run repeated frontend quality checks and pre-commit during US3 iteration in specs/043-implement-trend-detection/quickstart.md
-- [ ] T071 [US3] Perform manual desktop and touch-viewport UI validation for US3 in specs/043-implement-trend-detection/quickstart.md
+- [x] T069 [US3] Run red/green TDD cycle checkpoints for frontend tests in specs/043-implement-trend-detection/quickstart.md
+- [x] T070 [US3] Run repeated frontend quality checks and pre-commit during US3 iteration in specs/043-implement-trend-detection/quickstart.md
+- [x] T071 [US3] Perform manual desktop and touch-viewport UI validation for US3 in specs/043-implement-trend-detection/quickstart.md
 
 **Checkpoint**: US3 independently delivers chart and feed trend UI behavior.
 
@@ -157,14 +157,14 @@
 
 **Purpose**: End-to-end hardening, documentation alignment, and mandatory gates.
 
-- [ ] T072 [P] Reconcile feature docs with final implementation details in specs/043-implement-trend-detection/research.md
-- [ ] T073 [P] Reconcile feature docs with final implementation details in specs/043-implement-trend-detection/data-model.md
-- [ ] T074 [P] Reconcile feature docs with final implementation details in specs/043-implement-trend-detection/quickstart.md
-- [ ] T075 [P] Reconcile API contract docs with implemented endpoints in specs/043-implement-trend-detection/contracts/discovery-trends.openapi.yaml
-- [ ] T076 Run full pre-commit hooks after cross-story integration in .pre-commit-config.yaml
-- [ ] T077 Run full monorepo tests stop gate and capture results in specs/043-implement-trend-detection/quickstart.md
-- [ ] T078 Run full monorepo coverage stop gate and capture results in specs/043-implement-trend-detection/quickstart.md
-- [ ] T079 Perform end-to-end manual stack validation across ingestion->API->UI in specs/043-implement-trend-detection/quickstart.md
+- [x] T072 [P] Reconcile feature docs with final implementation details in specs/043-implement-trend-detection/research.md
+- [x] T073 [P] Reconcile feature docs with final implementation details in specs/043-implement-trend-detection/data-model.md
+- [x] T074 [P] Reconcile feature docs with final implementation details in specs/043-implement-trend-detection/quickstart.md
+- [x] T075 [P] Reconcile API contract docs with implemented endpoints in specs/043-implement-trend-detection/contracts/discovery-trends.openapi.yaml
+- [x] T076 Run full pre-commit hooks after cross-story integration in .pre-commit-config.yaml
+- [x] T077 Run full monorepo tests stop gate and capture results in specs/043-implement-trend-detection/quickstart.md
+- [x] T078 Run full monorepo coverage stop gate and capture results in specs/043-implement-trend-detection/quickstart.md
+- [x] T079 Perform end-to-end manual stack validation across ingestion->API->UI in specs/043-implement-trend-detection/quickstart.md
 
 ---
 

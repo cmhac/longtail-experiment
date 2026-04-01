@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Mapping
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import cast
 
 from sqlalchemy import Engine, text
@@ -28,6 +28,14 @@ class PersistedDatasetDiscoveryRepository:
     def _iso_datetime(value: datetime | None) -> str | None:
         if value is None:
             return None
+        return value.isoformat()
+
+    @staticmethod
+    def _iso_date(value: date | datetime | None) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, datetime):
+            return value.date().isoformat()
         return value.isoformat()
 
     @staticmethod
@@ -266,6 +274,48 @@ class PersistedDatasetDiscoveryRepository:
                     "geographic_scope": row.get("geographic_scope"),
                     "topic_tags": list(cast(list[object], row.get("topic_tags") or [])),
                     "latest_update_at": row.get("latest_update_at"),
+                }
+            )
+        return projected
+
+    def list_recent_trend_events(self, *, limit: int) -> list[dict[str, object]]:
+        """Return recent trend lifecycle events ordered by start period desc."""
+        query = text(
+            """
+            SELECT
+                ds.series_key AS dataset_id,
+                sp.source_key AS source_key,
+                sp.title AS source_title,
+                ds.title AS title,
+                tr.direction AS direction,
+                tr.strength AS strength,
+                tr.start_period AS start_period
+            FROM trend_records tr
+            JOIN data_series ds ON ds.id = tr.data_series_id
+            JOIN source_profiles sp ON sp.id = ds.source_profile_id
+            ORDER BY tr.start_period DESC, ds.series_key ASC
+            LIMIT :limit
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"limit": limit}).mappings().all()
+
+        projected: list[dict[str, object]] = []
+        for row in rows:
+            start_period = self._iso_date(cast(date | datetime | None, row["start_period"]))
+            if start_period is None:
+                continue
+            projected.append(
+                {
+                    "dataset_id": str(row["dataset_id"]),
+                    "source": {
+                        "id": str(row["source_key"]),
+                        "name": str(row["source_title"]),
+                    },
+                    "title": str(row["title"]),
+                    "direction": str(row["direction"]),
+                    "strength": str(row["strength"]),
+                    "start_period": start_period,
                 }
             )
         return projected
@@ -601,6 +651,58 @@ class PersistedDatasetDiscoveryRepository:
             if str(row.get("dataset_id", "")) == dataset_id:
                 return row
         return None
+
+    def list_dataset_trend_spans(self, *, dataset_id: str) -> list[dict[str, object]]:
+        """Return persisted trend spans projected for dataset detail rendering."""
+        query = text(
+            """
+            SELECT
+                tr.start_period AS start_period,
+                tr.end_period AS end_period,
+                tr.direction AS direction,
+                tr.trend_label AS trend_label,
+                tr.strength AS strength,
+                tr.seasonality_classification AS seasonality_classification,
+                tr.is_ongoing AS is_ongoing
+            FROM trend_records tr
+            JOIN data_series ds ON ds.id = tr.data_series_id
+            WHERE ds.series_key = :dataset_id
+            ORDER BY tr.start_period ASC, tr.created_at ASC
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"dataset_id": dataset_id}).mappings().all()
+
+        projected: list[dict[str, object]] = []
+        for row in rows:
+            start_period = self._iso_date(cast(date | datetime | None, row["start_period"]))
+            if start_period is None:
+                continue
+
+            end_period = self._iso_date(cast(date | datetime | None, row["end_period"]))
+            if bool(row["is_ongoing"]):
+                end_period = datetime.now(tz=UTC).date().isoformat()
+            if end_period is None:
+                continue
+
+            direction = str(row["direction"])
+            trend_label = str(row["trend_label"])
+            strength = str(row["strength"])
+            seasonality = str(row["seasonality_classification"])
+
+            projected.append(
+                {
+                    "start_period": start_period,
+                    "end_period": end_period,
+                    "direction": direction,
+                    "trend_label": trend_label,
+                    "tooltip": {
+                        "headline": trend_label.replace("_", " ").title(),
+                        "detail": (f"{strength} {direction} trend ({seasonality})"),
+                    },
+                }
+            )
+        return projected
 
     def list_dataset_observations(
         self,

@@ -17,6 +17,7 @@ from .dataset_discovery_validators import (
     parse_optional_date,
     validate_date_range,
 )
+from .trend_span_mapper import normalize_trend_spans
 
 DEFAULT_SUGGESTION_LIMIT = 5
 MIN_SUGGESTION_LIMIT = 1
@@ -110,6 +111,60 @@ def _build_paginated_payload(
     if extra:
         payload.update(deepcopy(dict(extra)))
     return payload
+
+
+def _project_recent_trend_items(
+    *,
+    repository: Any,
+    normalized_limit: int,
+) -> list[dict[str, Any]]:
+    if not hasattr(repository, "list_recent_trend_events"):
+        return []
+
+    trend_items = repository.list_recent_trend_events(limit=normalized_limit)
+    if not isinstance(trend_items, list):
+        raise ContractQueryError("Repository returned invalid recent trend payload")
+
+    trend_projected: list[dict[str, Any]] = []
+    for item in trend_items:
+        if not isinstance(item, dict):
+            raise ContractQueryError("Repository returned invalid recent trend item")
+
+        dataset_id = str(item.get("dataset_id", "")).strip()
+        if dataset_id == "":
+            raise ContractQueryError("Repository returned trend item without dataset_id")
+
+        source_value = item.get("source")
+        source = deepcopy(source_value) if isinstance(source_value, dict) else {}
+        source_id = str(source.get("id", "")).strip()
+        source_name = str(source.get("name", "")).strip()
+        if source_id == "" or source_name == "":
+            raise ContractQueryError("Repository returned trend item without source")
+
+        start_period = item.get("start_period")
+        if not isinstance(start_period, str) or start_period.strip() == "":
+            raise ContractQueryError("Repository returned trend item without start_period")
+
+        trend_projected.append(
+            {
+                "item_type": "trend_event",
+                "dataset_id": dataset_id,
+                "source": {
+                    "id": source_id,
+                    "name": source_name,
+                },
+                "title": str(item.get("title", "")).strip(),
+                "direction": str(item.get("direction", "")).strip().lower(),
+                "strength": str(item.get("strength", "")).strip().lower(),
+                "start_period": start_period,
+                "latest_update_at": start_period,
+                "action_links": {
+                    "view_table_href": f"/datasets/{quote(dataset_id, safe='')}",
+                    "download_csv_href": f"/api/datasets/{quote(dataset_id, safe='')}.csv",
+                },
+            }
+        )
+    return trend_projected
 
 
 class DatasetDiscoveryService:
@@ -274,6 +329,7 @@ class DatasetDiscoveryService:
 
             projected.append(
                 {
+                    "item_type": "dataset_update",
                     "dataset_id": dataset_id,
                     "source": {
                         "id": source_id,
@@ -296,10 +352,25 @@ class DatasetDiscoveryService:
                 }
             )
 
+        trend_projected = _project_recent_trend_items(
+            repository=self._repository,
+            normalized_limit=normalized_limit,
+        )
+
+        merged_items = projected + trend_projected
+        merged_items.sort(
+            key=lambda item: (
+                str(item.get("latest_update_at", "") or ""),
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            ),
+            reverse=True,
+        )
+
         return {
-            "items": projected,
+            "items": merged_items[:normalized_limit],
             "limit": normalized_limit,
-            "sort": "latest_update_at_desc,title_asc,dataset_id_asc",
+            "sort": "event_timestamp_desc,title_asc,dataset_id_asc",
         }
 
     def list_catalog(
@@ -696,8 +767,21 @@ class DatasetDiscoveryService:
             metadata_fields["unit_type"] = unit_type
         metadata_payload["metadata"] = metadata_fields
 
+        trend_spans: list[dict[str, Any]] = []
+        if hasattr(self._repository, "list_dataset_trend_spans"):
+            raw_spans = self._repository.list_dataset_trend_spans(dataset_id=normalized_dataset_id)
+            if not isinstance(raw_spans, list):
+                raise ContractQueryError("dataset_detail_trend_payload_invalid")
+            if not all(isinstance(span, dict) for span in raw_spans):
+                raise ContractQueryError("dataset_detail_trend_payload_invalid")
+            try:
+                trend_spans = normalize_trend_spans(raw_spans)
+            except ValueError as exc:
+                raise ContractQueryError("dataset_detail_trend_payload_invalid") from exc
+
         return {
             **metadata_payload,
             "observations": deepcopy(observations),
+            "trend_spans": trend_spans,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }

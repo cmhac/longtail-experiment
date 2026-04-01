@@ -62,3 +62,17 @@
 - Alternatives considered:
   - Implement-first then test: rejected because it increases rework and risk.
   - Automated-only validation with no manual checks: rejected because integration behaviors require runtime verification.
+
+## Decision 9: Reuse existing query-layer architecture for US2
+
+- Decision: Implement trend feed/span behavior in existing backend query/service modules (`dataset_discovery_service.py`, `dataset_discovery_persisted_repository.py`, `trend_span_mapper.py`) rather than introducing a new `app/discovery/*` subtree.
+- Rationale: Preserves established repository architecture and test harnesses while still meeting trend contract requirements.
+- Alternatives considered:
+  - Introduce parallel discovery service stack for trend work only: rejected due to duplicated orchestration and contracts.
+
+## Decision 10: Align local compose runtime with trend migration head
+
+- Decision: Set `DISCOVERY_EXPECTED_DB_REVISION=0011_trend_lifecycle_tables` in compose backend runtime.
+- Rationale: Trend lifecycle tables are now part of runtime behavior; backend health/readiness should match migrated schema head used in local stack.
+- Alternatives considered:
+  - Keep older expected revision in compose and downgrade runtime schema checks: rejected because trend-enabled endpoints require migrated tables.

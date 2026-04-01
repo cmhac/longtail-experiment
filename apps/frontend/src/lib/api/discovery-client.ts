@@ -136,8 +136,20 @@ export const fetchRecentDatasets = async (params?: {
     ...payload,
     items: payload.items.map((item) => {
       const encodedId = encodeURIComponent(item.dataset_id);
+      if (item.item_type === "trend_event") {
+        return {
+          ...item,
+          action_links: {
+            view_table_href: item.action_links?.view_table_href ?? `/datasets/${encodedId}`,
+            download_csv_href:
+              item.action_links?.download_csv_href ?? `/api/datasets/${encodedId}.csv`,
+          },
+        };
+      }
+
       return {
         ...item,
+        item_type: "dataset_update" as const,
         description: item.description ?? null,
         geographic_scope: item.geographic_scope ?? null,
         topic_tags: item.topic_tags ?? [],
@@ -192,7 +204,11 @@ export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDeta
     typeof window === "undefined"
       ? await fetch(createUrl(`/api/datasets/${encodeURIComponent(datasetId)}`))
       : await fetch(`/api/datasets/${encodeURIComponent(datasetId)}`);
-  return parseResponse<DatasetDetail>(response);
+  const payload = await parseResponse<DatasetDetail>(response);
+  return {
+    ...payload,
+    trend_spans: payload.trend_spans ?? [],
+  };
 };
 
 export const fetchSourceList = async (): Promise<SourceListResponse> => {

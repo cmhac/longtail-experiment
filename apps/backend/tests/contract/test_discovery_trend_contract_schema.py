@@ -19,12 +19,17 @@ from src.contract.discovery_trends import (
 def test_trend_feed_item_contract_minimal_shape() -> None:
     item: TrendFeedItemContract = {
         "item_type": "trend_event",
-        "event_timestamp": "2026-01-01T00:00:00Z",
         "dataset_id": "UNRATE",
+        "source": {"id": "bls", "name": "BLS"},
+        "title": "Unemployment trend",
         "direction": "up",
         "strength": "moderate",
-        "start_period": "2026-01-01T00:00:00Z",
-        "is_ongoing": True,
+        "start_period": "2026-01-01",
+        "latest_update_at": "2026-01-01",
+        "action_links": {
+            "view_table_href": "/datasets/UNRATE",
+            "download_csv_href": "/api/datasets/UNRATE.csv",
+        },
     }
 
     assert item["item_type"] == "trend_event"
@@ -32,20 +37,15 @@ def test_trend_feed_item_contract_minimal_shape() -> None:
 
 def test_trend_span_contract_embeds_tooltip_shape() -> None:
     tooltip: TrendTooltipContract = {
-        "title": "Emerging uptrend",
-        "start_period": "2026-01-01T00:00:00Z",
-        "direction": "up",
-        "strength": "moderate",
+        "headline": "Emerging uptrend",
+        "detail": "Moderate increase through Q1",
     }
     span: TrendSpanContract = {
-        "span_id": "trend-1",
-        "start_x": "2026-01-01T00:00:00Z",
-        "end_x": "2026-04-01T00:00:00Z",
+        "start_period": "2026-01-01",
+        "end_period": "2026-04-01",
         "direction": "up",
-        "color_token": "trend-up",
-        "pattern_token": "diagonal-up",
-        "direction_icon": "arrow-up",
+        "trend_label": "moderate_uptrend",
         "tooltip": tooltip,
     }
 
-    assert span["tooltip"]["direction"] == "up"
+    assert span["tooltip"]["headline"] == "Emerging uptrend"

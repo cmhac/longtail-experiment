@@ -7,9 +7,9 @@
   - id (uuid, PK)
   - data_series_id (uuid, FK -> data_series.id, required)
   - trend_label (enum/string, required)
-  - direction (enum: up|down|flat, required)
+  - direction (enum: up|down, required)
   - strength (enum/string, required)
-  - seasonality_classification (enum: seasonal|non_seasonal, required)
+  - seasonality_classification (enum/string, required)
   - start_period (date/timestamp, required)
   - end_period (date/timestamp, nullable)
   - is_ongoing (boolean, required)
@@ -19,7 +19,7 @@
   - start_period <= end_period when end_period is present.
   - Exactly one ongoing record per series at a time.
   - Ongoing record must have null end_period.
-  - Non-ongoing record must have non-null end_period.
+  - Non-ongoing records may include explicit end_period boundary.
 - State transitions:
   - ongoing -> ended when no significant trend or materially different signature is detected.
   - ongoing -> ongoing (no write) when signature unchanged.
@@ -72,29 +72,26 @@
 - Purpose: Unified recent updates feed item for trend events.
 - Fields:
   - item_type (literal: trend_event)
-  - data_series_id
-  - dataset_slug/dataset_id
-  - event_timestamp (trend start period per clarification)
+  - dataset_id
+  - source {id, name}
+  - title
   - direction
   - strength
   - start_period
-  - end_period (nullable)
-  - is_ongoing
+  - latest_update_at (uses start_period)
+  - action_links {view_table_href, download_csv_href}
 - Validation rules:
-  - Feed sort key uses event_timestamp consistently with dataset updates ordering model.
+  - Feed sort key uses event timestamp ordering (`event_timestamp_desc,...`) consistently across trend and dataset items.
 
 ## Entity: TrendVisualizationSpan
 
 - Purpose: Dataset detail UI contract for chart overlays.
 - Fields:
-  - span_id
-  - start_x
-  - end_x
+  - start_period
+  - end_period
   - direction
-  - color_token
-  - pattern_token
-  - direction_icon
-  - tooltip_payload
+  - trend_label
+  - tooltip {headline, detail}
 - Validation rules:
   - Spans must be non-overlapping before rendering.
   - At most one tooltip active in UI interaction state.

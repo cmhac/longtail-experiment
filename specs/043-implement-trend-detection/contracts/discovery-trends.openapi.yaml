@@ -3,9 +3,10 @@ info:
   title: Discovery API Trend Contract Additions
   version: 0.1.0
   description: |
-    Contract additions for unified trend feed items and dataset detail trend visualization payloads.
+    Contract additions for unified trend feed items and dataset detail trend
+    visualization payloads on existing discovery endpoints.
 paths:
-  /api/discovery/recent-updates:
+  /api/datasets/recent:
     get:
       summary: Get unified recent updates including trend events
       responses:
@@ -15,7 +16,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required: [items, limit, sort]
                 properties:
                   items:
                     type: array
@@ -23,7 +24,13 @@ paths:
                       oneOf:
                         - $ref: "#/components/schemas/DatasetUpdateItem"
                         - $ref: "#/components/schemas/TrendFeedItem"
-  /api/discovery/datasets/{datasetId}:
+                  limit:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                  sort:
+                    type: string
+  /api/datasets/{datasetId}:
     get:
       summary: Get dataset detail including trend visualization spans
       parameters:
@@ -39,137 +46,191 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DatasetDetailResponse"
-        "422":
-          description: Trend span payload invalid/malformed for trend-enabled response
+        "400":
+          description: Trend span payload invalid/malformed
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TrendPayloadErrorResponse"
 components:
   schemas:
+    SourceRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    DatasetRecentActionLinks:
+      type: object
+      required: [view_table_href, download_csv_href]
+      properties:
+        view_table_href:
+          type: string
+        download_csv_href:
+          type: string
+
     DatasetUpdateItem:
       type: object
-      required: [itemType, eventTimestamp, datasetId]
+      required:
+        [item_type, dataset_id, source, title, latest_update_at, action_links]
       properties:
-        itemType:
+        item_type:
           type: string
           enum: [dataset_update]
-        eventTimestamp:
+        dataset_id:
+          type: string
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        geographic_scope:
+          type: string
+          nullable: true
+        topic_tags:
+          type: array
+          items:
+            type: string
+        latest_update_at:
           type: string
           format: date-time
-        datasetId:
-          type: string
+        action_links:
+          $ref: "#/components/schemas/DatasetRecentActionLinks"
 
     TrendFeedItem:
       type: object
       required:
-        - itemType
-        - eventTimestamp
-        - datasetId
+        - item_type
+        - dataset_id
+        - source
+        - title
         - direction
         - strength
-        - startPeriod
-        - isOngoing
+        - start_period
+        - latest_update_at
+        - action_links
       properties:
-        itemType:
+        item_type:
           type: string
           enum: [trend_event]
-        eventTimestamp:
+        dataset_id:
           type: string
-          format: date-time
-          description: Uses trend start period by contract.
-        datasetId:
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
           type: string
         direction:
           type: string
-          enum: [up, down, flat]
+          enum: [up, down]
         strength:
           type: string
-        startPeriod:
+        start_period:
           type: string
-          format: date-time
-        endPeriod:
+          format: date
+        latest_update_at:
           type: string
-          format: date-time
-          nullable: true
-        isOngoing:
-          type: boolean
+          format: date
+        action_links:
+          $ref: "#/components/schemas/DatasetRecentActionLinks"
 
     DatasetDetailResponse:
       type: object
-      required: [dataset, series, trendSpans]
+      required:
+        - dataset_id
+        - source
+        - title
+        - metadata
+        - observations
+        - trend_spans
+        - observation_sort
       properties:
-        dataset:
+        dataset_id:
+          type: string
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        geographic_scope:
+          type: string
+          nullable: true
+        topic_tags:
+          type: array
+          items:
+            type: string
+        metadata:
           type: object
           additionalProperties: true
-        series:
-          type: object
-          additionalProperties: true
-        trendSpans:
+        observations:
+          type: array
+          items:
+            type: object
+            required: [observed_on, value, reported_at, attributes]
+            properties:
+              observed_on:
+                type: string
+                format: date
+              value:
+                type: number
+              reported_at:
+                type: string
+                format: date-time
+              attributes:
+                type: object
+                additionalProperties: true
+        trend_spans:
           type: array
           description: Non-overlapping display regions.
           items:
             $ref: "#/components/schemas/TrendVisualizationSpan"
+        observation_sort:
+          type: string
 
     TrendVisualizationSpan:
       type: object
       required:
-        - spanId
-        - startX
-        - endX
+        - start_period
+        - end_period
         - direction
-        - colorToken
-        - patternToken
-        - directionIcon
+        - trend_label
         - tooltip
       properties:
-        spanId:
+        start_period:
           type: string
-        startX:
+          format: date
+        end_period:
           type: string
-          format: date-time
-        endX:
-          type: string
-          format: date-time
+          format: date
         direction:
           type: string
-          enum: [up, down, flat]
-        colorToken:
-          type: string
-        patternToken:
-          type: string
-        directionIcon:
+          enum: [up, down]
+        trend_label:
           type: string
         tooltip:
           $ref: "#/components/schemas/TrendTooltipPayload"
 
     TrendTooltipPayload:
       type: object
-      required: [title, startPeriod, direction, strength]
+      required: [headline, detail]
       properties:
-        title:
+        headline:
           type: string
-        startPeriod:
-          type: string
-          format: date-time
-        endPeriod:
-          type: string
-          format: date-time
-          nullable: true
-        direction:
-          type: string
-          enum: [up, down, flat]
-        strength:
-          type: string
-        seasonalityClassification:
+        detail:
           type: string
 
     TrendPayloadErrorResponse:
       type: object
-      required: [errorCode, message]
+      required: [error_code, message]
       properties:
-        errorCode:
+        error_code:
           type: string
-          enum: [TREND_PAYLOAD_INVALID]
+          enum: [dataset_detail_trend_payload_invalid]
         message:
           type: string

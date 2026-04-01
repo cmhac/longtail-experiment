@@ -3,7 +3,8 @@
 import React from "react";
 import type { JSX } from "react";
 import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
-import type { ObservationPoint } from "../../lib/api/discovery-types";
+import type { ObservationPoint, TrendVisualizationSpan } from "../../lib/api/discovery-types";
+import { TrendTooltipController } from "../trends/TrendTooltipController";
 import { EmptyState } from "./EmptyState";
 import { ChartComboControl, type ChartComboOption } from "./chart-controls/ChartComboControl";
 import { ChartToggleGroup } from "./chart-controls/ChartToggleGroup";
@@ -28,6 +29,7 @@ import { useInfiniteScrollObserver } from "./useInfiniteScrollObserver";
 
 interface ObservationsChartProps {
   observations: ObservationPoint[];
+  trendSpans?: TrendVisualizationSpan[];
   onRelativeSettingsChange?: (settings: RelativeChangeSettings) => void;
   unitLabel?: string | null | undefined;
   unitType?: string | null | undefined;
@@ -233,6 +235,7 @@ const ObservationsChartTooltip = ({
 
 export const ObservationsChart = ({
   observations,
+  trendSpans = [],
   onRelativeSettingsChange,
   unitLabel,
   unitType,
@@ -277,6 +280,7 @@ export const ObservationsChart = ({
       ? relativeChartData
       : toChartData(filtered, unitType, unitLabel);
   const yAxisDomain = getYAxisDomain(chartData);
+  const chartDates = chartData.map((point) => point.date);
   const chartHeight = Math.max(
     CHART_MIN_HEIGHT,
     Math.min(CHART_MAX_HEIGHT, Math.round(chartWidth * CHART_ASPECT_RATIO)),
@@ -531,7 +535,7 @@ export const ObservationsChart = ({
           Chart starts at selected baseline observation.
         </p>
       ) : null}
-      <div className="w-full min-w-0 flex-1" ref={chartContainerRef}>
+      <div className="relative w-full min-w-0 flex-1" ref={chartContainerRef}>
         <LineChart
           data={chartData}
           height={chartHeight}
@@ -556,6 +560,9 @@ export const ObservationsChart = ({
             type="monotone"
           />
         </LineChart>
+        {settings.valueMode === "observed" ? (
+          <TrendTooltipController chartDates={chartDates} spans={trendSpans} />
+        ) : null}
       </div>
     </div>
   );

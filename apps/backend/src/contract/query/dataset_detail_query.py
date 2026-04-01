@@ -16,6 +16,23 @@ class DatasetObservationPoint(BaseModel):
     attributes: dict[str, object] = Field(default_factory=dict)
 
 
+class DatasetTrendTooltip(BaseModel):
+    """Tooltip payload for one dataset trend span."""
+
+    headline: str = Field(min_length=1)
+    detail: str = Field(min_length=1)
+
+
+class DatasetTrendSpan(BaseModel):
+    """Trend visualization span payload for dataset detail chart overlays."""
+
+    start_period: str = Field(min_length=1)
+    end_period: str = Field(min_length=1)
+    direction: str = Field(min_length=1)
+    trend_label: str = Field(min_length=1)
+    tooltip: DatasetTrendTooltip
+
+
 class DatasetDetailResponse(BaseModel):
     """Dataset detail payload containing metadata and observations."""
 
@@ -27,4 +44,5 @@ class DatasetDetailResponse(BaseModel):
     topic_tags: list[str] = Field(default_factory=list)
     metadata: dict[str, object] = Field(default_factory=dict)
     observations: list[DatasetObservationPoint] = Field(default_factory=list)
+    trend_spans: list[DatasetTrendSpan] = Field(default_factory=list)
     observation_sort: str = Field(min_length=1)

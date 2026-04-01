@@ -66,6 +66,7 @@ export const buildDatasetDetailFixture = (
         attributes: {},
       },
     ],
+    trend_spans: [],
     observation_sort: "observed_on_asc,reported_at_asc",
   };
 

@@ -1,13 +1,13 @@
 import React from "react";
 import type { JSX } from "react";
-import type { DatasetRecentItem } from "../../lib/api/discovery-types";
+import type { DatasetRecentUpdatesResponse } from "../../lib/api/discovery-types";
 import { DiscoveryFeedList } from "./DiscoveryFeedList";
 import { EmptyState } from "./EmptyState";
 import { UnifiedDatasetRow } from "./UnifiedDatasetRow";
-import { toUnifiedRecentUpdatesRow } from "./unified-dataset-row-mappers";
+import { toUnifiedRecentUpdatesRow, toUnifiedTrendUpdatesRow } from "./unified-dataset-row-mappers";
 
 interface RecentUpdatesFeedProps {
-  items: DatasetRecentItem[];
+  items: DatasetRecentUpdatesResponse["items"];
   unavailable?: boolean;
 }
 
@@ -34,9 +34,17 @@ export const RecentUpdatesFeed = ({
       >
         <DiscoveryFeedList.TitleRegion>Recent Updates</DiscoveryFeedList.TitleRegion>
       </header>
-      {items.slice(0, 5).map((item) => (
-        <UnifiedDatasetRow key={item.dataset_id} {...toUnifiedRecentUpdatesRow(item)} />
-      ))}
+      {items.slice(0, 5).map((item) => {
+        if (item.item_type === "trend_event") {
+          return (
+            <UnifiedDatasetRow
+              key={`trend-${item.dataset_id}-${item.start_period}`}
+              {...toUnifiedTrendUpdatesRow(item)}
+            />
+          );
+        }
+        return <UnifiedDatasetRow key={item.dataset_id} {...toUnifiedRecentUpdatesRow(item)} />;
+      })}
     </DiscoveryFeedList.Wrapper>
   );
 };

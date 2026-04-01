@@ -33,9 +33,11 @@ class _FakeConnection:
         *,
         dataset_rows: list[dict[str, Any]],
         observation_rows: list[dict[str, Any]],
+        trend_rows: list[dict[str, Any]],
     ) -> None:
         self._dataset_rows = dataset_rows
         self._observation_rows = observation_rows
+        self._trend_rows = trend_rows
 
     def execute(self, statement: object, parameters: dict[str, Any] | None = None) -> _FakeResult:
         sql = str(statement)
@@ -60,6 +62,26 @@ class _FakeConnection:
             filtered.sort(key=lambda row: (row["observed_on"], row["reported_at"]))
             return _FakeResult(filtered)
 
+        if "FROM trend_records tr" in sql and "LIMIT :limit" in sql:
+            params = parameters or {}
+            limit = int(params.get("limit", 0))
+            rows = sorted(
+                self._trend_rows,
+                key=lambda row: (
+                    row["start_period"],
+                    row["dataset_id"],
+                ),
+                reverse=True,
+            )
+            return _FakeResult(rows[:limit])
+
+        if "FROM trend_records tr" in sql and "WHERE ds.series_key = :dataset_id" in sql:
+            params = parameters or {}
+            dataset_id = str(params.get("dataset_id", ""))
+            rows = [row for row in self._trend_rows if str(row.get("dataset_id", "")) == dataset_id]
+            rows.sort(key=lambda row: (row["start_period"], row["created_at"]))
+            return _FakeResult(rows)
+
         raise AssertionError(f"Unexpected SQL executed: {sql}")
 
     def __enter__(self) -> _FakeConnection:
@@ -71,15 +93,21 @@ class _FakeConnection:
 
 class _FakeEngine:
     def __init__(
-        self, *, dataset_rows: list[dict[str, Any]], observation_rows: list[dict[str, Any]]
+        self,
+        *,
+        dataset_rows: list[dict[str, Any]],
+        observation_rows: list[dict[str, Any]],
+        trend_rows: list[dict[str, Any]],
     ) -> None:
         self._dataset_rows = dataset_rows
         self._observation_rows = observation_rows
+        self._trend_rows = trend_rows
 
     def connect(self) -> _FakeConnection:
         return _FakeConnection(
             dataset_rows=self._dataset_rows,
             observation_rows=self._observation_rows,
+            trend_rows=self._trend_rows,
         )
 
 
@@ -130,7 +158,41 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "attributes": {"revision": 1},
         },
     ]
-    engine = _FakeEngine(dataset_rows=dataset_rows, observation_rows=observation_rows)
+    trend_rows = [
+        {
+            "dataset_id": "INT.US.FEDFUNDS",
+            "source_key": "fred",
+            "source_title": "Federal Reserve Economic Data",
+            "title": "Effective Federal Funds Rate",
+            "direction": "down",
+            "strength": "mild",
+            "trend_label": "mild_sustained_downtrend",
+            "seasonality_classification": "none",
+            "start_period": datetime(2026, 1, 1, tzinfo=timezone.utc),
+            "end_period": datetime(2026, 2, 1, tzinfo=timezone.utc),
+            "is_ongoing": False,
+            "created_at": datetime(2026, 1, 2, tzinfo=timezone.utc),
+        },
+        {
+            "dataset_id": "LABOR.US.UNRATE",
+            "source_key": "bls",
+            "source_title": "Bureau of Labor Statistics",
+            "title": "Unemployment Rate",
+            "direction": "up",
+            "strength": "strong",
+            "trend_label": "strong_sustained_uptrend",
+            "seasonality_classification": "none",
+            "start_period": datetime(2026, 2, 1, tzinfo=timezone.utc),
+            "end_period": None,
+            "is_ongoing": True,
+            "created_at": datetime(2026, 2, 2, tzinfo=timezone.utc),
+        },
+    ]
+    engine = _FakeEngine(
+        dataset_rows=dataset_rows,
+        observation_rows=observation_rows,
+        trend_rows=trend_rows,
+    )
     return PersistedDatasetDiscoveryRepository(engine=cast(Engine, engine))
 
 
@@ -314,3 +376,42 @@ def test_search_matches_dataset_id_and_source_name_tokens() -> None:
     assert dataset_id_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert source_total == 1
     assert source_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
+
+
+def test_recent_trend_events_projection_uses_persisted_rows() -> None:
+    repository = _build_repository()
+
+    trend_events = repository.list_recent_trend_events(limit=1)
+
+    assert trend_events == [
+        {
+            "dataset_id": "LABOR.US.UNRATE",
+            "source": {
+                "id": "bls",
+                "name": "Bureau of Labor Statistics",
+            },
+            "title": "Unemployment Rate",
+            "direction": "up",
+            "strength": "strong",
+            "start_period": "2026-02-01",
+        }
+    ]
+
+
+def test_dataset_trend_spans_projection_includes_tooltip_fields() -> None:
+    repository = _build_repository()
+
+    spans = repository.list_dataset_trend_spans(dataset_id="INT.US.FEDFUNDS")
+
+    assert spans == [
+        {
+            "start_period": "2026-01-01",
+            "end_period": "2026-02-01",
+            "direction": "down",
+            "trend_label": "mild_sustained_downtrend",
+            "tooltip": {
+                "headline": "Mild Sustained Downtrend",
+                "detail": "mild down trend (none)",
+            },
+        }
+    ]
