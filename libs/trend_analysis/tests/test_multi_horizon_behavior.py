@@ -45,3 +45,21 @@ def test_short_horizon_with_insufficient_points_is_terminal_no_write() -> None:
 
     assert result.outcome == "insufficient_data"
     assert result.signature is None
+
+
+def test_long_series_uses_recent_window_for_direction_changes() -> None:
+    """Recent reversal should dominate classification on long histories."""
+    growth_leg = [100.0 + float(index) for index in range(100)]
+    decline_leg = [growth_leg[-1] - float((index + 1) * 2) for index in range(80)]
+    values = growth_leg + decline_leg
+    points = make_linear_series(
+        start=date(2000, 1, 1),
+        values=values,
+    )
+
+    result = analyze_series([(point.period, point.value) for point in points])
+
+    assert result.outcome == "significant_trend"
+    assert result.signature is not None
+    assert result.signature.direction == "down"
+    assert result.start_period == points[60].period

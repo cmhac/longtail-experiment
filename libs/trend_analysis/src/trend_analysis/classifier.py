@@ -14,6 +14,11 @@ SIGNIFICANT_RELATIVE_CHANGE = 0.05
 STRONG_RELATIVE_CHANGE = 0.10
 EPSILON = 1e-9
 SEASONAL_MIN_MONTHLY_OBSERVATIONS = 24
+MAX_ANALYSIS_POINTS_BY_CADENCE: dict[str, int] = {
+    "daily": 180,
+    "weekly": 156,
+    "monthly": 120,
+}
 
 
 def _relative_change(start_value: float, end_value: float) -> float:
@@ -30,6 +35,17 @@ def _seasonality_classification(
     if cadence == "monthly" and observation_count >= SEASONAL_MIN_MONTHLY_OBSERVATIONS:
         return "seasonal"
     return "non_seasonal"
+
+
+def _analysis_window(
+    observations: Sequence[tuple[date, float]],
+    *,
+    cadence: str,
+) -> Sequence[tuple[date, float]]:
+    window_size = MAX_ANALYSIS_POINTS_BY_CADENCE.get(cadence)
+    if window_size is None or len(observations) <= window_size:
+        return observations
+    return observations[-window_size:]
 
 
 def _trend_label(direction: str, strength: str) -> str:
@@ -54,8 +70,9 @@ def analyze_series(observations: Sequence[tuple[date, float]]) -> TrendAnalysisR
         )
 
     cadence = infer_cadence(observations)
-    first_period, first_value = observations[0]
-    last_period, last_value = observations[-1]
+    scoped_observations = _analysis_window(observations, cadence=cadence)
+    first_period, first_value = scoped_observations[0]
+    last_period, last_value = scoped_observations[-1]
 
     change_ratio = _relative_change(first_value, last_value)
     absolute_change_ratio = abs(change_ratio)
@@ -72,7 +89,7 @@ def analyze_series(observations: Sequence[tuple[date, float]]) -> TrendAnalysisR
     strength = "strong" if absolute_change_ratio >= STRONG_RELATIVE_CHANGE else "mild"
     seasonality = _seasonality_classification(
         cadence=cadence,
-        observation_count=len(observations),
+        observation_count=len(scoped_observations),
     )
     signature = TrendSignature(
         trend_label=_trend_label(direction, strength),
@@ -86,5 +103,8 @@ def analyze_series(observations: Sequence[tuple[date, float]]) -> TrendAnalysisR
         signature=signature,
         start_period=first_period,
         end_period=last_period,
-        reason=f"{cadence} cadence with {direction} {strength} movement",
+        reason=(
+            f"{cadence} cadence with {direction} {strength} movement "
+            f"across {len(scoped_observations)} observations"
+        ),
     )
