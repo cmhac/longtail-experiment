@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -219,3 +220,223 @@ class PostgresTrendRepository:
                 {"series_key": series_key},
             ).scalar_one()
         return int(count_value)
+
+    def upsert_lookback_applicability(self, payload: dict[str, object]) -> None:
+        """Persist one lookback applicability row keyed by series/observation/lookback."""
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO trend_lookback_evaluations (
+                        id,
+                        data_series_id,
+                        observation_id,
+                        lookback_points,
+                        applicability_state,
+                        reason_code,
+                        reason_detail,
+                        created_at
+                    ) VALUES (
+                        :id,
+                        (
+                            SELECT id FROM data_series WHERE series_key = :series_key
+                        ),
+                        COALESCE(
+                            :observation_id::uuid,
+                            (
+                                SELECT o.id
+                                FROM observations o
+                                JOIN data_series ds ON ds.id = o.series_id
+                                WHERE ds.series_key = :series_key
+                                  AND o.observed_on = :observed_on
+                                ORDER BY o.reported_at DESC
+                                LIMIT 1
+                            )
+                        ),
+                        :lookback_points,
+                        :applicability_state,
+                        :reason_code,
+                        :reason_detail,
+                        :created_at
+                    )
+                    ON CONFLICT (
+                        data_series_id,
+                        observation_id,
+                        lookback_points
+                    )
+                    DO UPDATE SET
+                        applicability_state = EXCLUDED.applicability_state,
+                        reason_code = EXCLUDED.reason_code,
+                        reason_detail = EXCLUDED.reason_detail
+                    """
+                ),
+                {
+                    "id": uuid4(),
+                    "series_key": payload["series_key"],
+                    "observed_on": payload["observed_on"],
+                    "observation_id": payload.get("observation_id"),
+                    "lookback_points": payload["lookback_points"],
+                    "applicability_state": payload["applicability_state"],
+                    "reason_code": payload["reason_code"],
+                    "reason_detail": payload["reason_detail"],
+                    "created_at": datetime.now(tz=UTC),
+                },
+            )
+
+    def upsert_lookback_snapshot(self, payload: dict[str, object]) -> None:
+        """Persist one lookback snapshot row keyed by series/observation/lookback."""
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO trend_lookback_snapshots (
+                        id,
+                        data_series_id,
+                        observation_id,
+                        observed_on,
+                        lookback_points,
+                        outcome_state,
+                        trend_label,
+                        direction,
+                        strength,
+                        seasonality_classification,
+                        analysis_version,
+                        created_at
+                    ) VALUES (
+                        :id,
+                        (
+                            SELECT id FROM data_series WHERE series_key = :series_key
+                        ),
+                        COALESCE(
+                            :observation_id::uuid,
+                            (
+                                SELECT o.id
+                                FROM observations o
+                                JOIN data_series ds ON ds.id = o.series_id
+                                WHERE ds.series_key = :series_key
+                                  AND o.observed_on = :observed_on
+                                ORDER BY o.reported_at DESC
+                                LIMIT 1
+                            )
+                        ),
+                        :observed_on,
+                        :lookback_points,
+                        :outcome_state,
+                        :trend_label,
+                        :direction,
+                        :strength,
+                        :seasonality_classification,
+                        :analysis_version,
+                        :created_at
+                    )
+                    ON CONFLICT (
+                        data_series_id,
+                        observation_id,
+                        lookback_points
+                    )
+                    DO UPDATE SET
+                        observed_on = EXCLUDED.observed_on,
+                        outcome_state = EXCLUDED.outcome_state,
+                        trend_label = EXCLUDED.trend_label,
+                        direction = EXCLUDED.direction,
+                        strength = EXCLUDED.strength,
+                        seasonality_classification = EXCLUDED.seasonality_classification,
+                        analysis_version = EXCLUDED.analysis_version
+                    """
+                ),
+                {
+                    "id": uuid4(),
+                    "series_key": payload["series_key"],
+                    "observed_on": payload["observed_on"],
+                    "observation_id": payload.get("observation_id"),
+                    "lookback_points": payload["lookback_points"],
+                    "outcome_state": payload["outcome_state"],
+                    "trend_label": payload["trend_label"],
+                    "direction": payload["direction"],
+                    "strength": payload["strength"],
+                    "seasonality_classification": payload["seasonality_classification"],
+                    "analysis_version": payload["analysis_version"],
+                    "created_at": datetime.now(tz=UTC),
+                },
+            )
+
+    def upsert_canonical_descriptor(self, payload: dict[str, object]) -> None:
+        """Persist one canonical descriptor row keyed by series/observation."""
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO trend_canonical_descriptors (
+                        id,
+                        data_series_id,
+                        observation_id,
+                        observed_on,
+                        descriptor_state,
+                        canonical_trend_label,
+                        canonical_direction,
+                        canonical_strength,
+                        selected_lookback_points,
+                        weighting_version,
+                        weighting_trace,
+                        created_at
+                    ) VALUES (
+                        :id,
+                        (
+                            SELECT id FROM data_series WHERE series_key = :series_key
+                        ),
+                        COALESCE(
+                            :observation_id::uuid,
+                            (
+                                SELECT o.id
+                                FROM observations o
+                                JOIN data_series ds ON ds.id = o.series_id
+                                WHERE ds.series_key = :series_key
+                                  AND o.observed_on = :observed_on
+                                ORDER BY o.reported_at DESC
+                                LIMIT 1
+                            )
+                        ),
+                        :observed_on,
+                        :descriptor_state,
+                        :canonical_trend_label,
+                        :canonical_direction,
+                        :canonical_strength,
+                        :selected_lookback_points,
+                        :weighting_version,
+                        CAST(:weighting_trace AS JSONB),
+                        :created_at
+                    )
+                    ON CONFLICT (
+                        data_series_id,
+                        observation_id
+                    )
+                    DO UPDATE SET
+                        observed_on = EXCLUDED.observed_on,
+                        descriptor_state = EXCLUDED.descriptor_state,
+                        canonical_trend_label = EXCLUDED.canonical_trend_label,
+                        canonical_direction = EXCLUDED.canonical_direction,
+                        canonical_strength = EXCLUDED.canonical_strength,
+                        selected_lookback_points = EXCLUDED.selected_lookback_points,
+                        weighting_version = EXCLUDED.weighting_version,
+                        weighting_trace = EXCLUDED.weighting_trace
+                    """
+                ),
+                {
+                    "id": uuid4(),
+                    "series_key": payload["series_key"],
+                    "observed_on": payload["observed_on"],
+                    "observation_id": payload.get("observation_id"),
+                    "descriptor_state": payload["descriptor_state"],
+                    "canonical_trend_label": payload["canonical_trend_label"],
+                    "canonical_direction": payload["canonical_direction"],
+                    "canonical_strength": payload["canonical_strength"],
+                    "selected_lookback_points": payload["selected_lookback_points"],
+                    "weighting_version": payload["weighting_version"],
+                    "weighting_trace": (
+                        None
+                        if payload["weighting_trace"] is None
+                        else json.dumps(payload["weighting_trace"])
+                    ),
+                    "created_at": datetime.now(tz=UTC),
+                },
+            )

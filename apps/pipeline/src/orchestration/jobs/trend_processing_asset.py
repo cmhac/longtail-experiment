@@ -3,25 +3,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date
 from typing import Protocol
 
-from .trend_lifecycle_service import PersistedTrendSnapshot, TrendLifecycleApplyResult
-from .trend_transition_logic import TrendAnalysisResultLike
+from .trend_lifecycle_service import TrendLookbackApplyResult
 
 
-class TrendLifecycleApplier(Protocol):
-    """Structural protocol for applying trend lifecycle decisions."""
+class TrendLookbackApplier(Protocol):
+    """Structural protocol for applying lookback snapshot decisions."""
 
-    def apply_analysis_result(
+    def apply_lookback_evaluation(
         self,
         *,
         series_key: str,
-        latest_observation_on: datetime,
-        analysis_result: TrendAnalysisResultLike,
-        existing_trend: PersistedTrendSnapshot | None,
-    ) -> TrendLifecycleApplyResult:
-        """Apply one analysis outcome to trend lifecycle persistence."""
+        observed_on: date,
+        observation_id: str | None,
+        evaluation_result: object,
+    ) -> TrendLookbackApplyResult:
+        """Apply one lookback evaluation outcome to persistence."""
 
 
 @dataclass(frozen=True)
@@ -33,28 +32,23 @@ class TrendProcessingMetadata:
     outcome_reason_code: str
 
 
-UpdatedSeriesInput = tuple[
-    str,
-    datetime,
-    TrendAnalysisResultLike,
-    PersistedTrendSnapshot | None,
-]
+UpdatedSeriesInput = tuple[str, date, str | None, object]
 
 
 def process_one_series(
     *,
     series_key: str,
-    latest_observation_on: datetime,
-    analysis_result: TrendAnalysisResultLike,
-    existing_trend: PersistedTrendSnapshot | None,
-    lifecycle_applier: TrendLifecycleApplier,
+    observed_on: date,
+    observation_id: str | None,
+    evaluation_result: object,
+    lookback_applier: TrendLookbackApplier,
 ) -> TrendProcessingMetadata:
-    """Process one updated series and emit explicit no-op/applied metadata."""
-    apply_result = lifecycle_applier.apply_analysis_result(
+    """Process one updated series and emit explicit metadata."""
+    apply_result = lookback_applier.apply_lookback_evaluation(
         series_key=series_key,
-        latest_observation_on=latest_observation_on,
-        analysis_result=analysis_result,
-        existing_trend=existing_trend,
+        observed_on=observed_on,
+        observation_id=observation_id,
+        evaluation_result=evaluation_result,
     )
     return TrendProcessingMetadata(
         series_key=series_key,
@@ -66,18 +60,18 @@ def process_one_series(
 def process_updated_series(
     *,
     updated_series: list[UpdatedSeriesInput],
-    lifecycle_applier: TrendLifecycleApplier,
+    lookback_applier: TrendLookbackApplier,
 ) -> list[TrendProcessingMetadata]:
     """Execute downstream trend processing per updated series in deterministic order."""
     metadata: list[TrendProcessingMetadata] = []
-    for series_key, latest_observation_on, analysis_result, existing_trend in updated_series:
+    for series_key, observed_on, observation_id, evaluation_result in updated_series:
         metadata.append(
             process_one_series(
                 series_key=series_key,
-                latest_observation_on=latest_observation_on,
-                analysis_result=analysis_result,
-                existing_trend=existing_trend,
-                lifecycle_applier=lifecycle_applier,
+                observed_on=observed_on,
+                observation_id=observation_id,
+                evaluation_result=evaluation_result,
+                lookback_applier=lookback_applier,
             )
         )
     return metadata

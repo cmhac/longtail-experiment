@@ -7,7 +7,17 @@ from datetime import date
 from typing import Literal
 
 from .cadence import infer_cadence
-from .models import TrendAnalysisResult, TrendSignature, build_result
+from .models import (
+    CanonicalTrendDescriptorResult,
+    LookbackTrendSnapshotResult,
+    MultiLookbackEvaluationResult,
+    TrendAnalysisResult,
+    TrendSignature,
+    build_canonical_descriptor,
+    build_lookback_applicability_result,
+    build_lookback_snapshot_result,
+    build_result,
+)
 
 MIN_REQUIRED_OBSERVATIONS = 6
 SIGNIFICANT_RELATIVE_CHANGE = 0.05
@@ -19,6 +29,14 @@ MAX_ANALYSIS_POINTS_BY_CADENCE: dict[str, int] = {
     "weekly": 156,
     "monthly": 120,
 }
+LOOKBACK_CATALOG: tuple[int, ...] = (1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000)
+MAX_LOOKBACK_BY_CADENCE: dict[str, int] = {
+    "daily": 1000,
+    "weekly": 500,
+    "monthly": 250,
+}
+STRENGTH_WEIGHT_MULTIPLIER: dict[str, float] = {"mild": 1.0, "strong": 2.0}
+MIN_LOOKBACK_OBSERVATION_COUNT = 2
 
 
 def _relative_change(start_value: float, end_value: float) -> float:
@@ -107,4 +125,203 @@ def analyze_series(observations: Sequence[tuple[date, float]]) -> TrendAnalysisR
             f"{cadence} cadence with {direction} {strength} movement "
             f"across {len(scoped_observations)} observations"
         ),
+    )
+
+
+def _lookback_relative_change(
+    observations: Sequence[tuple[date, float]],
+    *,
+    lookback_points: int,
+) -> float:
+    reference_value = observations[-(lookback_points + 1)][1]
+    latest_value = observations[-1][1]
+    return _relative_change(reference_value, latest_value)
+
+
+def _evaluate_lookback(
+    observations: Sequence[tuple[date, float]],
+    *,
+    cadence: str,
+    lookback_points: int,
+) -> tuple[object, object | None]:
+    if lookback_points >= len(observations):
+        return (
+            build_lookback_applicability_result(
+                lookback_points=lookback_points,
+                applicability_state="inapplicable",
+                reason_code="insufficient_history",
+                reason_detail=f"requires at least {lookback_points + 1} observations",
+            ),
+            None,
+        )
+
+    max_supported = MAX_LOOKBACK_BY_CADENCE[cadence]
+    if lookback_points > max_supported:
+        return (
+            build_lookback_applicability_result(
+                lookback_points=lookback_points,
+                applicability_state="inapplicable",
+                reason_code="cadence_lookback_not_supported",
+                reason_detail=(
+                    f"{cadence} cadence supports lookbacks up to {max_supported} observations"
+                ),
+            ),
+            None,
+        )
+
+    change_ratio = _lookback_relative_change(observations, lookback_points=lookback_points)
+    absolute_change_ratio = abs(change_ratio)
+    if absolute_change_ratio < SIGNIFICANT_RELATIVE_CHANGE:
+        snapshot = build_lookback_snapshot_result(
+            lookback_points=lookback_points,
+            outcome_state="no_significant_trend",
+            trend_label=None,
+            direction=None,
+            strength=None,
+            seasonality_classification=None,
+            reason="change remains below significant threshold",
+        )
+    else:
+        direction = "up" if change_ratio > 0 else "down"
+        strength = "strong" if absolute_change_ratio >= STRONG_RELATIVE_CHANGE else "mild"
+        seasonality = _seasonality_classification(
+            cadence=cadence,
+            observation_count=lookback_points + 1,
+        )
+        snapshot = build_lookback_snapshot_result(
+            lookback_points=lookback_points,
+            outcome_state="significant_trend",
+            trend_label=_trend_label(direction, strength),
+            direction=direction,
+            strength=strength,
+            seasonality_classification=seasonality,
+            reason=f"{cadence} cadence evaluation over {lookback_points + 1} points",
+        )
+
+    return (
+        build_lookback_applicability_result(
+            lookback_points=lookback_points,
+            applicability_state="applicable",
+            reason_code="applicable",
+            reason_detail=None,
+        ),
+        snapshot,
+    )
+
+
+def compute_canonical_descriptor(
+    snapshots: Sequence[LookbackTrendSnapshotResult],
+) -> CanonicalTrendDescriptorResult:
+    """Compute deterministic canonical descriptor from lookback snapshot results."""
+    significant_candidates: list[LookbackTrendSnapshotResult] = [
+        snapshot for snapshot in snapshots if snapshot.outcome_state == "significant_trend"
+    ]
+    if not significant_candidates:
+        return build_canonical_descriptor(
+            descriptor_state="unavailable",
+            trend_label=None,
+            direction=None,
+            strength=None,
+            selected_lookback_points=None,
+            reason_code="no_significant_trend",
+            weighting_trace={"selected": None, "candidates": {}},
+        )
+
+    scored: list[tuple[float, int, LookbackTrendSnapshotResult]] = []
+    for candidate in significant_candidates:
+        lookback_points = candidate.lookback_points
+        strength = candidate.strength or "mild"
+        score = (1.0 / float(lookback_points)) * STRENGTH_WEIGHT_MULTIPLIER.get(strength, 1.0)
+        scored.append((score, lookback_points, candidate))
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    _, selected_lookback, selected = scored[0]
+
+    return build_canonical_descriptor(
+        descriptor_state="available",
+        trend_label=selected.trend_label,
+        direction=selected.direction,
+        strength=selected.strength,
+        selected_lookback_points=selected_lookback,
+        reason_code=None,
+        weighting_trace={
+            "selected": selected_lookback,
+            "candidates": {str(lookback): score for score, lookback, _candidate in scored},
+        },
+    )
+
+
+def evaluate_multi_lookbacks(
+    observations: Sequence[tuple[date, float]],
+    *,
+    lookback_catalog: Sequence[int] = LOOKBACK_CATALOG,
+) -> MultiLookbackEvaluationResult:
+    """Evaluate all lookbacks with applicability and canonical descriptor results."""
+    if len(observations) < MIN_LOOKBACK_OBSERVATION_COUNT:
+        empty_applicability = tuple(
+            build_lookback_applicability_result(
+                lookback_points=lookback,
+                applicability_state="inapplicable",
+                reason_code="insufficient_history",
+                reason_detail=(f"requires at least {MIN_LOOKBACK_OBSERVATION_COUNT} observations"),
+            )
+            for lookback in lookback_catalog
+        )
+        return MultiLookbackEvaluationResult(
+            analysis_version=build_result(
+                outcome="insufficient_data",
+                signature=None,
+                start_period=None,
+                end_period=None,
+                reason=(f"requires at least {MIN_LOOKBACK_OBSERVATION_COUNT} observations"),
+            ).analysis_version,
+            weighting_version=build_canonical_descriptor(
+                descriptor_state="unavailable",
+                trend_label=None,
+                direction=None,
+                strength=None,
+                selected_lookback_points=None,
+                reason_code="insufficient_history",
+                weighting_trace={"selected": None, "candidates": {}},
+            ).weighting_version,
+            evaluated_observation_count=len(observations),
+            applicability=empty_applicability,
+            lookback_snapshots=(),
+            canonical_descriptor=build_canonical_descriptor(
+                descriptor_state="unavailable",
+                trend_label=None,
+                direction=None,
+                strength=None,
+                selected_lookback_points=None,
+                reason_code="insufficient_history",
+                weighting_trace={"selected": None, "candidates": {}},
+            ),
+        )
+
+    cadence = infer_cadence(observations)
+    applicability_results = []
+    snapshots = []
+    for lookback in lookback_catalog:
+        applicability, snapshot = _evaluate_lookback(
+            observations,
+            cadence=cadence,
+            lookback_points=lookback,
+        )
+        applicability_results.append(applicability)
+        if snapshot is not None:
+            snapshots.append(snapshot)
+
+    canonical = compute_canonical_descriptor(snapshots)
+    return MultiLookbackEvaluationResult(
+        analysis_version=build_result(
+            outcome="insufficient_data",
+            signature=None,
+            start_period=None,
+            end_period=None,
+            reason="extracting_analysis_version",
+        ).analysis_version,
+        weighting_version=canonical.weighting_version,
+        evaluated_observation_count=len(observations),
+        applicability=tuple(applicability_results),
+        lookback_snapshots=tuple(snapshots),
+        canonical_descriptor=canonical,
     )

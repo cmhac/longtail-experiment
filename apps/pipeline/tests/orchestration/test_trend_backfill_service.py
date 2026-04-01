@@ -9,8 +9,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_backfill_service import (
     DEFAULT_ANALYSIS_VERSION,
+    LOOKBACK_RECLASSIFICATION_REASON,
     decide_backfill_scope,
     requires_global_rerun_for_library_release,
+    requires_lookback_reclassification_for_library_release,
 )
 
 
@@ -43,6 +45,19 @@ def test_library_release_change_requires_global_rerun() -> None:
         current_library_version=DEFAULT_ANALYSIS_VERSION,
     )
     assert not requires_global_rerun_for_library_release(
+        persisted_analysis_version=DEFAULT_ANALYSIS_VERSION,
+        current_library_version=DEFAULT_ANALYSIS_VERSION,
+    )
+
+
+def test_lookback_reclassification_follows_analysis_version_drift() -> None:
+    """Lookback snapshot reclassification should mirror release drift behavior."""
+    assert LOOKBACK_RECLASSIFICATION_REASON == "lookback_snapshot_reclassification"
+    assert requires_lookback_reclassification_for_library_release(
+        persisted_analysis_version="0.0.1",
+        current_library_version=DEFAULT_ANALYSIS_VERSION,
+    )
+    assert not requires_lookback_reclassification_for_library_release(
         persisted_analysis_version=DEFAULT_ANALYSIS_VERSION,
         current_library_version=DEFAULT_ANALYSIS_VERSION,
     )

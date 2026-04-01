@@ -1,92 +1,189 @@
-"""US1 integration-like tests for trend no-op lifecycle outcomes."""
+"""US1 integration-like tests for lookback no-op and partial outcomes."""
 
 from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import date
 from pathlib import Path
-from typing import Literal, cast
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_lifecycle_service import TrendLifecycleService
-from src.orchestration.jobs.trend_transition_logic import TrendAnalysisResultLike
 from src.orchestration.resources.trend_repository import TrendRepository
 
 
 @dataclass(frozen=True)
-class FakeAnalysisResult:
-    """Minimal trend-analysis result shape used by lifecycle service tests."""
+class FakeLookbackApplicability:
+    """Minimal applicability row fixture."""
 
-    outcome: Literal["significant_trend", "no_significant_trend", "insufficient_data"]
+    lookback_points: int
+    applicability_state: str
+    reason_code: str
+    reason_detail: str | None
+
+
+@dataclass(frozen=True)
+class FakeLookbackSnapshot:
+    """Minimal lookback snapshot fixture."""
+
+    lookback_points: int
+    outcome_state: str
+    trend_label: str | None
+    direction: str | None
+    strength: str | None
+    seasonality_classification: str | None
     analysis_version: str
-    signature: dict[str, str] | None
+
+
+@dataclass(frozen=True)
+class FakeCanonicalResult:
+    """Minimal canonical descriptor fixture."""
+
+    descriptor_state: str
+    weighting_version: str
+    trend_label: str | None
+    direction: str | None
+    strength: str | None
+    selected_lookback_points: int | None
+    weighting_trace: dict[str, object] | None
+
+
+@dataclass(frozen=True)
+class FakeLookbackEvaluation:
+    """Minimal lookback evaluation payload fixture."""
+
+    applicability: tuple[object, ...]
+    lookback_snapshots: tuple[object, ...]
+    canonical_descriptor: object
 
 
 class FakeTrendRepository(TrendRepository):
     """Collect repository writes for assertion-friendly lifecycle tests."""
 
-    def __init__(self) -> None:
-        """Initialize empty write-collection buffers for assertions."""
-        self.record_writes: list[dict[str, object]] = []
-        self.transition_writes: list[dict[str, object]] = []
+    def __init__(self, *, fail_snapshot_writes: bool = False) -> None:
+        """Initialize write buffers and optional snapshot failure mode."""
+        self.fail_snapshot_writes = fail_snapshot_writes
+        self.applicability_writes: list[dict[str, object]] = []
+        self.snapshot_writes: list[dict[str, object]] = []
+        self.canonical_writes: list[dict[str, object]] = []
 
     def upsert_trend_record(self, payload):
-        """Collect one trend record write and return a stable fake id."""
-        self.record_writes.append(dict(payload))
-        return "trend-record-id"
+        """Legacy lifecycle method is intentionally unused for lookback tests."""
+        raise NotImplementedError
 
     def append_transition(self, payload):
-        """Collect one transition write for downstream assertions."""
-        self.transition_writes.append(dict(payload))
+        """Legacy lifecycle method is intentionally unused for lookback tests."""
+        raise NotImplementedError
+
+    def upsert_lookback_applicability(self, payload):
+        """Collect one lookback applicability write."""
+        self.applicability_writes.append(dict(payload))
+
+    def upsert_lookback_snapshot(self, payload):
+        """Collect one lookback snapshot write or simulate failure."""
+        if self.fail_snapshot_writes:
+            raise RuntimeError("snapshot failed")
+        self.snapshot_writes.append(dict(payload))
+
+    def upsert_canonical_descriptor(self, payload):
+        """Collect one canonical descriptor write."""
+        self.canonical_writes.append(dict(payload))
 
 
-def test_no_significant_without_existing_trend_writes_no_lifecycle_rows() -> None:
-    """No-significant trend outcome should emit explicit no-op metadata only."""
+def test_no_significant_lookbacks_still_persist_with_unavailable_canonical() -> None:
+    """No-significant lookback state should persist and return applied metadata."""
     repository = FakeTrendRepository()
     service = TrendLifecycleService(repository=repository)
-
-    result = service.apply_analysis_result(
-        series_key="SERIES.X",
-        latest_observation_on=datetime(2026, 3, 1, tzinfo=UTC),
-        analysis_result=cast(
-            TrendAnalysisResultLike,
-            FakeAnalysisResult(
-                outcome="no_significant_trend",
-                analysis_version="0.1.0",
-                signature=None,
+    evaluation = FakeLookbackEvaluation(
+        applicability=(
+            FakeLookbackApplicability(
+                lookback_points=1,
+                applicability_state="applicable",
+                reason_code="applicable",
+                reason_detail=None,
             ),
         ),
-        existing_trend=None,
+        lookback_snapshots=(
+            FakeLookbackSnapshot(
+                lookback_points=1,
+                outcome_state="no_significant_trend",
+                trend_label=None,
+                direction=None,
+                strength=None,
+                seasonality_classification=None,
+                analysis_version="0.1.0",
+            ),
+        ),
+        canonical_descriptor=FakeCanonicalResult(
+            descriptor_state="unavailable",
+            weighting_version="1.0.0",
+            trend_label=None,
+            direction=None,
+            strength=None,
+            selected_lookback_points=None,
+            weighting_trace={"selected": None},
+        ),
     )
 
-    assert result.outcome_state == "no_op"
-    assert result.outcome_reason_code == "no_significant_trend"
-    assert repository.record_writes == []
-    assert repository.transition_writes == []
+    result = service.apply_lookback_evaluation(
+        series_key="SERIES.X",
+        observed_on=date(2026, 3, 1),
+        observation_id=None,
+        evaluation_result=cast(object, evaluation),
+    )
+
+    assert result.outcome_state == "applied"
+    assert result.outcome_reason_code == "lookback_snapshots_persisted"
+    assert len(repository.applicability_writes) == 1
+    assert len(repository.snapshot_writes) == 1
+    assert len(repository.canonical_writes) == 1
 
 
-def test_insufficient_data_writes_no_lifecycle_rows() -> None:
-    """Insufficient-data outcome should be a successful no-op with no writes."""
-    repository = FakeTrendRepository()
+def test_snapshot_write_failure_returns_partial_applied() -> None:
+    """Snapshot write errors should not block canonical writes for same observation."""
+    repository = FakeTrendRepository(fail_snapshot_writes=True)
     service = TrendLifecycleService(repository=repository)
-
-    result = service.apply_analysis_result(
-        series_key="SERIES.X",
-        latest_observation_on=datetime(2026, 3, 1, tzinfo=UTC),
-        analysis_result=cast(
-            TrendAnalysisResultLike,
-            FakeAnalysisResult(
-                outcome="insufficient_data",
-                analysis_version="0.1.0",
-                signature=None,
+    evaluation = FakeLookbackEvaluation(
+        applicability=(
+            FakeLookbackApplicability(
+                lookback_points=1,
+                applicability_state="applicable",
+                reason_code="applicable",
+                reason_detail=None,
             ),
         ),
-        existing_trend=None,
+        lookback_snapshots=(
+            FakeLookbackSnapshot(
+                lookback_points=1,
+                outcome_state="significant_trend",
+                trend_label="mild_sustained_uptrend",
+                direction="up",
+                strength="mild",
+                seasonality_classification="non_seasonal",
+                analysis_version="0.1.0",
+            ),
+        ),
+        canonical_descriptor=FakeCanonicalResult(
+            descriptor_state="available",
+            weighting_version="1.0.0",
+            trend_label="mild_sustained_uptrend",
+            direction="up",
+            strength="mild",
+            selected_lookback_points=1,
+            weighting_trace={"selected": 1},
+        ),
     )
 
-    assert result.outcome_state == "no_op"
-    assert result.outcome_reason_code == "insufficient_data"
-    assert repository.record_writes == []
-    assert repository.transition_writes == []
+    result = service.apply_lookback_evaluation(
+        series_key="SERIES.X",
+        observed_on=date(2026, 3, 1),
+        observation_id=None,
+        evaluation_result=cast(object, evaluation),
+    )
+
+    assert result.outcome_state == "partial_applied"
+    assert result.outcome_reason_code == "partial_lookback_write_failure"
+    assert len(repository.applicability_writes) == 1
+    assert len(repository.canonical_writes) == 1
