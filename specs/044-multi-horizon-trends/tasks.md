@@ -102,19 +102,19 @@
 
 ### Tests for User Story 3
 
-- [ ] T034 [P] [US3] Add dataset detail chip rendering tests in apps/frontend/tests/components/DatasetTrendChip.test.tsx
-- [ ] T035 [P] [US3] Add dataset detail no-overlay regression tests in apps/frontend/tests/components/DatasetDetailNoOverlay.test.tsx
-- [ ] T036 [P] [US3] Add discovery client canonical payload mapping tests in apps/frontend/tests/discovery-client-canonical-trend.test.ts
+- [x] T034 [P] [US3] Add dataset detail chip rendering tests in apps/frontend/tests/components/DatasetTrendChip.test.tsx
+- [x] T035 [P] [US3] Add dataset detail no-overlay regression tests in apps/frontend/tests/components/DatasetDetailNoOverlay.test.tsx
+- [x] T036 [P] [US3] Add discovery client canonical payload mapping tests in apps/frontend/tests/discovery-client-canonical-trend.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Add reusable canonical trend chip component in apps/frontend/src/components/discovery/DatasetTrendChip.tsx
-- [ ] T038 [US3] Update dataset detail analysis composition to use DatasetTrendChip in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
-- [ ] T039 [US3] Remove trend overlay controller usage from chart composition in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T040 [US3] Remove obsolete overlay implementation in apps/frontend/src/components/trends/TrendOverlayLayer.tsx
-- [ ] T041 [US3] Remove obsolete tooltip controller implementation in apps/frontend/src/components/trends/TrendTooltipController.tsx
-- [ ] T042 [US3] Update frontend API response mapping for canonical descriptor fields in apps/frontend/src/lib/api/discovery-client.ts
-- [ ] T043 [US3] Update frontend discovery trend type definitions for canonical descriptor in apps/frontend/src/lib/api/discovery-trend-types.ts and apps/frontend/src/lib/api/discovery-types.ts
+- [x] T037 [US3] Add reusable canonical trend chip component in apps/frontend/src/components/discovery/DatasetTrendChip.tsx
+- [x] T038 [US3] Update dataset detail analysis composition to use DatasetTrendChip in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
+- [x] T039 [US3] Remove trend overlay controller usage from chart composition in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [x] T040 [US3] Remove obsolete overlay implementation in apps/frontend/src/components/trends/TrendOverlayLayer.tsx
+- [x] T041 [US3] Remove obsolete tooltip controller implementation in apps/frontend/src/components/trends/TrendTooltipController.tsx
+- [x] T042 [US3] Update frontend API response mapping for canonical descriptor fields in apps/frontend/src/lib/api/discovery-client.ts
+- [x] T043 [US3] Update frontend discovery trend type definitions for canonical descriptor in apps/frontend/src/lib/api/discovery-trend-types.ts and apps/frontend/src/lib/api/discovery-types.ts
 
 **Checkpoint**: US3 UI is simplified to a single API-driven chip and independently testable.
 

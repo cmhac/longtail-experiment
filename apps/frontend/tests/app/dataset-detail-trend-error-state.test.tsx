@@ -19,9 +19,19 @@ describe("dataset detail trend payload error state", () => {
     expect(markup).toContain("Unable to load data. Please try again.");
   });
 
-  it("keeps baseline rendering when no trend spans are present", async () => {
+  it("keeps baseline rendering when canonical trend data is unavailable", async () => {
     vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue(
-      buildDatasetDetailFixture({ trend_spans: [] }),
+      buildDatasetDetailFixture({
+        canonical_trend_descriptor: {
+          descriptor_state: "unavailable",
+          trend_label: null,
+          direction: null,
+          strength: null,
+          selected_lookback_points: null,
+          observed_on: null,
+          reason_code: "no_applicable_lookbacks",
+        },
+      }),
     );
 
     const element = await DatasetDetailPage({ params: Promise.resolve({ id: "UNRATE" }) });
@@ -29,5 +39,6 @@ describe("dataset detail trend payload error state", () => {
 
     expect(markup).toContain('data-testid="dataset-detail-trend-section"');
     expect(markup).toContain('data-testid="observations-chart"');
+    expect(markup).toContain('data-testid="dataset-trend-chip"');
   });
 });

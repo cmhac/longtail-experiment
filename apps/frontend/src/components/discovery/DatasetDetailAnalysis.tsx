@@ -4,6 +4,7 @@ import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
 import { DatasetDetailInsights } from "./DatasetDetailInsights";
+import { DatasetTrendChip } from "./DatasetTrendChip";
 import { ObservationsChart } from "./ObservationsChart";
 import { ChartSurfaceCard } from "./chart-controls/ChartSurfaceCard";
 import {
@@ -24,6 +25,7 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
 
   return (
     <>
+      <DatasetTrendChip canonicalTrendDescriptor={data.canonical_trend_descriptor} />
       <DatasetDetailInsights
         data={data}
         relativeSettings={relativeSettings}
@@ -38,7 +40,6 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
         <ObservationsChart
           onRelativeSettingsChange={setRelativeSettings}
           observations={data.observations}
-          trendSpans={data.trend_spans ?? []}
           relativeSettings={relativeSettings}
           onRangeChange={setSelectedRange}
           selectedRange={selectedRange}
