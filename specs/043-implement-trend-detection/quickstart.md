@@ -73,3 +73,35 @@
 3. `pnpm exec nx run-many -t coverage --all`
 
 All three must pass with no exceptions.
+
+## 7. US1 Validation Log (2026-03-31)
+
+### T036 Red/Green checkpoints
+
+- Red (expected failing import/module stage):
+   - `PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend pytest libs/trend_analysis/tests/test_deterministic_outputs.py libs/trend_analysis/tests/test_terminal_outcomes.py libs/trend_analysis/tests/test_cadence_and_failures.py`
+   - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration/test_trend_transition_logic.py`
+- Green (after implementation):
+   - `PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend pytest -q libs/trend_analysis/tests/test_deterministic_outputs.py libs/trend_analysis/tests/test_terminal_outcomes.py libs/trend_analysis/tests/test_cadence_and_failures.py libs/trend_analysis/tests/test_real_series_behavior.py libs/trend_analysis/tests/test_multi_horizon_behavior.py`
+   - `uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests/orchestration/test_trend_transition_logic.py apps/pipeline/tests/orchestration/test_trend_asset_noop_outcomes.py apps/pipeline/tests/orchestration/test_trend_asset_retry_idempotency.py apps/pipeline/tests/orchestration/test_trend_asset_failure_scope.py apps/pipeline/tests/orchestration/test_trend_signature.py apps/pipeline/tests/orchestration/test_trend_backfill_service.py apps/pipeline/tests/orchestration/test_trend_processing_asset.py`
+
+### T037 Repeated quality checks
+
+- Focused iterations:
+   - `uv run --project apps/backend ruff check ...`
+   - `uv run --project apps/pipeline ruff check ...`
+   - `PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend ty check libs/trend_analysis`
+   - `uv run --project apps/pipeline ty check ...`
+- Mandatory full gate:
+   - `pre-commit run --all-files`
+   - Result: pass for lint, format, typecheck, test, coverage, duplication, suppression checks.
+
+### T038 Manual local-stack validation
+
+- Clean restart:
+   - `docker compose down`
+   - `docker compose up -d`
+   - `docker compose ps`
+- One-off runtime validation:
+   - `PYTHONPATH=apps/pipeline uv run --project apps/pipeline python -c "...TrendProcessingError..."`
+   - Observed output: `failure trend_processing_failed` (confirms branch-scoped trend failure mapping).

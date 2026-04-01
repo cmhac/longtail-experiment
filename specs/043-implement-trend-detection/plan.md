@@ -95,7 +95,7 @@ apps/frontend/
 3. Implement cadence inference + seasonality handling behavior aligned with clarified failure semantics.
 4. Enforce hardcoded in-library thresholds/cadence defaults only, with no external runtime configuration overrides.
 5. Couple analysis-version identity directly to released library version and validate deterministic repeatability under that version identity.
-4. Use these prototype files as implementation and test-guidance references for scenario coverage shape and edge-case sampling:
+6. Use these prototype files as implementation and test-guidance references for scenario coverage shape and edge-case sampling:
    - `specs/043-implement-trend-detection/prototype/spike_real_series_seasonality.py`
    - `specs/043-implement-trend-detection/prototype/spike_multi_horizon.py`
 

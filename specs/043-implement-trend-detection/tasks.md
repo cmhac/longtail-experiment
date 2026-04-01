@@ -11,12 +11,12 @@
 
 **Purpose**: Establish feature scaffolding, shared fixtures, and quality workflow anchors.
 
-- [X] T001 Create trend-analysis library package scaffold in libs/trend_analysis/pyproject.toml
-- [X] T002 [P] Create trend-analysis source package init in libs/trend_analysis/src/trend_analysis/__init__.py
-- [X] T003 [P] Create trend-analysis test package init in libs/trend_analysis/tests/__init__.py
-- [X] T004 [P] Add feature-local test fixtures for trend scenarios in libs/trend_analysis/tests/fixtures/trend_series_fixtures.py
-- [X] T005 [P] Add feature-level quality command section for developers in specs/043-implement-trend-detection/quickstart.md
-- [X] T006 Add monorepo execution wiring for the new trend library targets in libs/trend_analysis/project.json
+- [x] T001 Create trend-analysis library package scaffold in libs/trend_analysis/pyproject.toml
+- [x] T002 [P] Create trend-analysis source package init in libs/trend_analysis/src/trend_analysis/**init**.py
+- [x] T003 [P] Create trend-analysis test package init in libs/trend_analysis/tests/**init**.py
+- [x] T004 [P] Add feature-local test fixtures for trend scenarios in libs/trend_analysis/tests/fixtures/trend_series_fixtures.py
+- [x] T005 [P] Add feature-level quality command section for developers in specs/043-implement-trend-detection/quickstart.md
+- [x] T006 Add monorepo execution wiring for the new trend library targets in libs/trend_analysis/project.json
 
 ---
 
@@ -26,15 +26,15 @@
 
 **CRITICAL**: Complete this phase before user story work.
 
-- [X] T007 Add trend lifecycle table migration script in libs/db/alembic/versions/0011_trend_lifecycle_tables.py
-- [X] T008 [P] Add SQLAlchemy models for trend persistence in libs/db/src/db/models/trends.py
-- [X] T009 [P] Add DB repository interface for trend lifecycle operations in apps/pipeline/src/orchestration/resources/trend_repository.py
-- [X] T010 [P] Add backend contract types for trend payloads in apps/backend/src/contract/discovery_trends.py
-- [X] T011 [P] Add shared frontend trend payload types in apps/frontend/src/lib/api/discovery-trend-types.ts
-- [X] T012 Define/verify Dagster asset dependency entry point for trend stage in apps/pipeline/src/orchestration/definitions.py
-- [X] T013 Add trend feature toggles/required env validation guardrails in apps/pipeline/src/orchestration/runtime.py
-- [X] T014 Add foundational regression test for trend table schema invariants in libs/db/tests/test_trend_schema_invariants.py
-- [X] T015 Add foundational contract smoke test for discovery trend schemas in apps/backend/tests/contract/test_discovery_trend_contract_schema.py
+- [x] T007 Add trend lifecycle table migration script in libs/db/alembic/versions/0011_trend_lifecycle_tables.py
+- [x] T008 [P] Add SQLAlchemy models for trend persistence in libs/db/src/db/models/trends.py
+- [x] T009 [P] Add DB repository interface for trend lifecycle operations in apps/pipeline/src/orchestration/resources/trend_repository.py
+- [x] T010 [P] Add backend contract types for trend payloads in apps/backend/src/contract/discovery_trends.py
+- [x] T011 [P] Add shared frontend trend payload types in apps/frontend/src/lib/api/discovery-trend-types.ts
+- [x] T012 Define/verify Dagster asset dependency entry point for trend stage in apps/pipeline/src/orchestration/definitions.py
+- [x] T013 Add trend feature toggles/required env validation guardrails in apps/pipeline/src/orchestration/runtime.py
+- [x] T014 Add foundational regression test for trend table schema invariants in libs/db/tests/test_trend_schema_invariants.py
+- [x] T015 Add foundational contract smoke test for discovery trend schemas in apps/backend/tests/contract/test_discovery_trend_contract_schema.py
 
 **Checkpoint**: DB, contract, and orchestration foundations are ready.
 
@@ -48,35 +48,35 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [X] T016 [P] [US1] Add library unit tests for deterministic outcomes in libs/trend_analysis/tests/test_deterministic_outputs.py
-- [X] T017 [P] [US1] Add library unit tests for insufficient_data/no_significant_trend outcomes and hardcoded-defaults-only behavior (no runtime config overrides) in libs/trend_analysis/tests/test_terminal_outcomes.py
-- [X] T018 [P] [US1] Add library unit tests for cadence inference and explicit failure cases in libs/trend_analysis/tests/test_cadence_and_failures.py
-- [X] T019 [P] [US1] Add pipeline unit tests for signature change transitions and analysis-version identity coupled to library version in apps/pipeline/tests/orchestration/test_trend_transition_logic.py
-- [X] T020 [P] [US1] Add pipeline integration tests for branch-scoped failure handling in apps/pipeline/tests/orchestration/test_trend_asset_failure_scope.py
-- [X] T021 [P] [US1] Add pipeline integration tests for state-based idempotent retries in apps/pipeline/tests/orchestration/test_trend_asset_retry_idempotency.py
-- [X] T022 [P] [US1] Add pipeline integration tests for no-op successful outcomes in apps/pipeline/tests/orchestration/test_trend_asset_noop_outcomes.py
+- [x] T016 [P] [US1] Add library unit tests for deterministic outcomes in libs/trend_analysis/tests/test_deterministic_outputs.py
+- [x] T017 [P] [US1] Add library unit tests for insufficient_data/no_significant_trend outcomes and hardcoded-defaults-only behavior (no runtime config overrides) in libs/trend_analysis/tests/test_terminal_outcomes.py
+- [x] T018 [P] [US1] Add library unit tests for cadence inference and explicit failure cases in libs/trend_analysis/tests/test_cadence_and_failures.py
+- [x] T019 [P] [US1] Add pipeline unit tests for signature change transitions and analysis-version identity coupled to library version in apps/pipeline/tests/orchestration/test_trend_transition_logic.py
+- [x] T020 [P] [US1] Add pipeline integration tests for branch-scoped failure handling in apps/pipeline/tests/orchestration/test_trend_asset_failure_scope.py
+- [x] T021 [P] [US1] Add pipeline integration tests for state-based idempotent retries in apps/pipeline/tests/orchestration/test_trend_asset_retry_idempotency.py
+- [x] T022 [P] [US1] Add pipeline integration tests for no-op successful outcomes in apps/pipeline/tests/orchestration/test_trend_asset_noop_outcomes.py
 
 ### Implementation for User Story 1
 
-- [X] T023 [US1] Implement trend analysis result models with analysis-version identity derived from released library version in libs/trend_analysis/src/trend_analysis/models.py
-- [X] T024 [US1] Implement trend classification core algorithm in libs/trend_analysis/src/trend_analysis/classifier.py
-- [X] T025 [US1] Implement cadence inference and seasonality validation helpers in libs/trend_analysis/src/trend_analysis/cadence.py
-- [ ] T026 [US1] Implement trend signature comparison logic in apps/pipeline/src/pipeline/services/trend_signature.py
-- [X] T027 [US1] Implement trend lifecycle persistence service in apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py
-- [ ] T028 [US1] Implement per-series downstream trend asset execution in apps/pipeline/src/pipeline/orchestration/assets/trend_processing_asset.py
-- [ ] T029 [US1] Wire fetch/update to trend downstream asset dependency in apps/pipeline/src/pipeline/orchestration/definitions.py
-- [X] T030 [US1] Implement branch-scoped failure mapping in apps/pipeline/src/orchestration/jobs/parallel_source_executor.py
-- [ ] T031 [US1] Implement first-run historical backfill decision path and library-release-change full rerun/re-backfill trigger flow in apps/pipeline/src/pipeline/services/trend_backfill_service.py
-- [ ] T032 [US1] Implement trend repository SQL operations in libs/db/src/db/repository/postgres_trend_repository.py
-- [ ] T033 [US1] Add explicit no-op outcome metadata emission in apps/pipeline/src/pipeline/orchestration/assets/trend_processing_asset.py
-- [ ] T034 [US1] Add prototype-guided regression scenarios derived from real-data spike in libs/trend_analysis/tests/test_real_series_behavior.py
-- [ ] T035 [US1] Add prototype-guided multi-horizon regression scenarios in libs/trend_analysis/tests/test_multi_horizon_behavior.py
+- [x] T023 [US1] Implement trend analysis result models with analysis-version identity derived from released library version in libs/trend_analysis/src/trend_analysis/models.py
+- [x] T024 [US1] Implement trend classification core algorithm in libs/trend_analysis/src/trend_analysis/classifier.py
+- [x] T025 [US1] Implement cadence inference and seasonality validation helpers in libs/trend_analysis/src/trend_analysis/cadence.py
+- [x] T026 [US1] Implement trend signature comparison logic in apps/pipeline/src/orchestration/jobs/trend_signature.py
+- [x] T027 [US1] Implement trend lifecycle persistence service in apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py
+- [x] T028 [US1] Implement per-series downstream trend asset execution in apps/pipeline/src/orchestration/jobs/trend_processing_asset.py
+- [x] T029 [US1] Wire fetch/update to trend downstream asset dependency in apps/pipeline/src/orchestration/definitions.py
+- [x] T030 [US1] Implement branch-scoped failure mapping in apps/pipeline/src/orchestration/jobs/parallel_source_executor.py
+- [x] T031 [US1] Implement first-run historical backfill decision path and library-release-change full rerun/re-backfill trigger flow in apps/pipeline/src/orchestration/jobs/trend_backfill_service.py
+- [x] T032 [US1] Implement trend repository SQL operations in libs/db/src/db/repositories/postgres_trend_repository.py
+- [x] T033 [US1] Add explicit no-op outcome metadata emission in apps/pipeline/src/orchestration/jobs/trend_processing_asset.py
+- [x] T034 [US1] Add prototype-guided regression scenarios derived from real-data spike in libs/trend_analysis/tests/test_real_series_behavior.py
+- [x] T035 [US1] Add prototype-guided multi-horizon regression scenarios in libs/trend_analysis/tests/test_multi_horizon_behavior.py
 
 ### Verification and Quality Loop for User Story 1
 
-- [ ] T036 [US1] Run red/green TDD cycle checkpoints for library and pipeline tests in specs/043-implement-trend-detection/quickstart.md
-- [ ] T037 [US1] Run repeated project quality checks during US1 iteration in specs/043-implement-trend-detection/quickstart.md
-- [ ] T038 [US1] Perform manual local-stack validation for US1 using one-off ingest commands in specs/043-implement-trend-detection/quickstart.md
+- [x] T036 [US1] Run red/green TDD cycle checkpoints for library and pipeline tests in specs/043-implement-trend-detection/quickstart.md
+- [x] T037 [US1] Run repeated project quality checks during US1 iteration in specs/043-implement-trend-detection/quickstart.md
+- [x] T038 [US1] Perform manual local-stack validation for US1 using one-off ingest commands in specs/043-implement-trend-detection/quickstart.md
 
 **Checkpoint**: US1 provides full trend persistence and lifecycle behavior independently.
 

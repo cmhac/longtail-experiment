@@ -7,7 +7,9 @@ from .interfaces import (
     HierarchyRepository,
     ObservationRepository,
     ProvenanceRepository,
+    TrendLifecycleRepository,
 )
+from .postgres_trend_repository import PostgresTrendRepository
 from .run_repository import InMemoryRunRepository, StoredRunOutcome
 
 __all__ = [
@@ -17,7 +19,9 @@ __all__ = [
     "InMemoryDatasetDiscoveryRepository",
     "InMemoryRunRepository",
     "ObservationRepository",
+    "PostgresTrendRepository",
     "ProvenanceRepository",
     "StoredConflict",
     "StoredRunOutcome",
+    "TrendLifecycleRepository",
 ]
