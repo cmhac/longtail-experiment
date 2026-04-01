@@ -1,0 +1,284 @@
+openapi: "3.1.0"
+info:
+  title: Discovery Lookback Trends Contract
+  version: "1.0.0"
+  description: >
+    Defines the canonical trend descriptor and lookback snapshot payload shapes
+    embedded in the dataset detail response for the multi-horizon trends feature
+    (spec 044). These models extend the existing DatasetDetailResponse with an
+    optional `trend` field containing a weighted canonical direction and per-window
+    lookback snapshots pre-computed by the ingest pipeline.
+
+paths:
+  /datasets/{dataset_id}:
+    get:
+      summary: Dataset detail with canonical trend descriptor
+      description: >
+        Returns the dataset detail payload. When lookback snapshots have been
+        computed by the pipeline, the response includes a `trend` field containing
+        a `canonical` weighted descriptor and an array of `lookbacks` per window.
+        When no snapshots exist the `trend.canonical` value is null and
+        `trend.lookbacks` is an empty array.
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: from_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            description: Inclusive start date filter (ISO 8601 date string)
+        - name: to_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            description: Inclusive end date filter (ISO 8601 date string)
+      responses:
+        "200":
+          description: Dataset detail payload including optional trend data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetDetailResponse"
+        "404":
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+
+    # ── Trend Payload ────────────────────────────────────────────────────────
+
+    TrendDirection:
+      type: string
+      enum:
+        - rising
+        - falling
+        - stable
+        - insufficient_data
+      description: >
+        Trend classification direction for a given computation window.
+        `insufficient_data` indicates that the window contained too few
+        observations to produce a reliable signal; these snapshots are excluded
+        from canonical weighting.
+
+    LookbackWindow:
+      type: string
+      enum:
+        - 1M
+        - 6M
+        - 1Y
+        - 5Y
+      description: >
+        Fixed lookback window identifier. Corresponds to the existing
+        TrendRangeKey values used in the frontend range filter. The ALL window
+        is excluded from snapshot computation because its horizon is
+        dataset-age-dependent.
+
+    LookbackSnapshotPayload:
+      type: object
+      required:
+        - window
+        - direction
+        - computed_at
+      properties:
+        window:
+          $ref: "#/components/schemas/LookbackWindow"
+        direction:
+          $ref: "#/components/schemas/TrendDirection"
+        confidence:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          nullable: true
+          description: >
+            Confidence score in [0, 1]. Null when direction is
+            `insufficient_data`.
+        computed_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when this snapshot was computed.
+      description: >
+        Trend result for one fixed lookback window. Written by the ingest
+        pipeline backfill service and read by the backend API layer.
+
+    CanonicalTrendDescriptorPayload:
+      type: object
+      required:
+        - direction
+        - weighting_version
+        - computed_at
+      properties:
+        direction:
+          allOf:
+            - $ref: "#/components/schemas/TrendDirection"
+          nullable: true
+          description: >
+            Authoritative weighted direction across all qualifying lookback
+            windows. Null when all windows are `insufficient_data`.
+        confidence:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          nullable: true
+          description: >
+            Weighted confidence in [0, 1]. Null when no qualifying snapshots
+            contribute to the canonical computation.
+        weighting_version:
+          type: string
+          minLength: 1
+          description: >
+            Version string identifying the weighting algorithm used to produce
+            this descriptor. Changes whenever the computation logic changes so
+            consumers can detect stale cached values.
+        computed_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when this descriptor was computed.
+      description: >
+        Authoritative multi-horizon trend descriptor for a dataset. Produced by
+        applying a deterministic, versioned weighting formula across all
+        qualifying lookback snapshots (those not classified as
+        `insufficient_data`). Longer windows receive higher weight.
+
+    TrendPayload:
+      type: object
+      required:
+        - lookbacks
+      properties:
+        canonical:
+          allOf:
+            - $ref: "#/components/schemas/CanonicalTrendDescriptorPayload"
+          nullable: true
+          description: >
+            Weighted canonical descriptor. Null when no qualifying lookback
+            snapshots exist for this dataset.
+        lookbacks:
+          type: array
+          items:
+            $ref: "#/components/schemas/LookbackSnapshotPayload"
+          description: >
+            One entry per computed lookback window. Empty array when no
+            snapshots have been computed for this dataset.
+      description: >
+        Complete trend payload embedded in DatasetDetailResponse. Always present
+        in responses (never omitted); `canonical` may be null and `lookbacks`
+        may be empty for datasets without computed snapshots.
+
+    # ── Dataset Detail Response (with trend extension) ───────────────────────
+
+    DatasetObservationPoint:
+      type: object
+      required:
+        - observed_on
+        - value
+        - reported_at
+      properties:
+        observed_on:
+          type: string
+          format: date
+          description: ISO 8601 date string for the observation date.
+        value:
+          type: number
+          format: float
+          description: Observed numeric value.
+        reported_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when this observation was reported.
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Optional provider-specific attributes.
+
+    SourceRef:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+
+    DatasetDetailResponse:
+      type: object
+      required:
+        - dataset_id
+        - source
+        - title
+        - observations
+        - observation_sort
+      properties:
+        dataset_id:
+          type: string
+          minLength: 1
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          nullable: true
+        geographic_scope:
+          type: string
+          nullable: true
+        topic_tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        observations:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetObservationPoint"
+        observation_sort:
+          type: string
+          minLength: 1
+        trend:
+          allOf:
+            - $ref: "#/components/schemas/TrendPayload"
+          nullable: true
+          description: >
+            Pre-computed multi-horizon trend payload. Present when the pipeline
+            has computed snapshots for this dataset; null when no snapshot data
+            exists.
+      description: >
+        Dataset detail payload. The `trend` field extends the existing response
+        shape without breaking backward compatibility: existing consumers that
+        do not read `trend` are unaffected.
+
+    # ── Error ─────────────────────────────────────────────────────────────────
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          minLength: 1
+          description: Machine-readable error code (e.g. `not_found`).
+        message:
+          type: string
+          minLength: 1
+          description: Human-readable error description.
