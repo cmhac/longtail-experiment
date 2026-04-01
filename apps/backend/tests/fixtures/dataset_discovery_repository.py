@@ -16,13 +16,15 @@ class InMemoryDatasetDiscoveryRepository:
         datasets: list[dict[str, Any]] | None = None,
         observations: list[dict[str, Any]] | None = None,
         trend_events: list[dict[str, Any]] | None = None,
-        trend_spans_by_dataset: dict[str, list[dict[str, Any]]] | None = None,
+        canonical_trends_by_dataset: dict[str, dict[str, Any]] | None = None,
+        lookback_snapshots_by_dataset: dict[str, list[dict[str, Any]]] | None = None,
     ) -> None:
         """Initialize fixture rows for datasets and observations."""
         self._datasets = list(datasets or [])
         self._observations = list(observations or [])
         self._trend_events = list(trend_events or [])
-        self._trend_spans_by_dataset = dict(trend_spans_by_dataset or {})
+        self._canonical_trends_by_dataset = dict(canonical_trends_by_dataset or {})
+        self._lookback_snapshots_by_dataset = dict(lookback_snapshots_by_dataset or {})
 
     @staticmethod
     def _normalized_text(row: dict[str, Any]) -> str:
@@ -260,9 +262,16 @@ class InMemoryDatasetDiscoveryRepository:
                 return dict(row)
         return None
 
-    def list_dataset_trend_spans(self, *, dataset_id: str) -> list[dict[str, Any]]:
-        """Return pre-seeded trend spans for one dataset identifier."""
-        return list(self._trend_spans_by_dataset.get(dataset_id, []))
+    def get_latest_dataset_canonical_trend_descriptor(
+        self, *, dataset_id: str
+    ) -> dict[str, Any] | None:
+        """Return pre-seeded canonical trend descriptor for one dataset."""
+        payload = self._canonical_trends_by_dataset.get(dataset_id)
+        return dict(payload) if isinstance(payload, dict) else None
+
+    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, Any]]:
+        """Return pre-seeded lookback snapshots for one dataset identifier."""
+        return list(self._lookback_snapshots_by_dataset.get(dataset_id, []))
 
     def list_sources(self) -> list[dict[str, Any]]:
         """Return unique sources with dataset counts."""

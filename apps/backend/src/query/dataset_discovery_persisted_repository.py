@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Mapping
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from typing import cast
 
 from sqlalchemy import Engine, text
@@ -652,57 +652,109 @@ class PersistedDatasetDiscoveryRepository:
                 return row
         return None
 
-    def list_dataset_trend_spans(self, *, dataset_id: str) -> list[dict[str, object]]:
-        """Return persisted trend spans projected for dataset detail rendering."""
+    def get_latest_dataset_canonical_trend_descriptor(
+        self, *, dataset_id: str
+    ) -> dict[str, object] | None:
+        """Return latest canonical descriptor projected for dataset detail rendering."""
         query = text(
             """
             SELECT
-                tr.start_period AS start_period,
-                tr.end_period AS end_period,
-                tr.direction AS direction,
-                tr.trend_label AS trend_label,
-                tr.strength AS strength,
-                tr.seasonality_classification AS seasonality_classification,
-                tr.is_ongoing AS is_ongoing
-            FROM trend_records tr
-            JOIN data_series ds ON ds.id = tr.data_series_id
+                tcd.descriptor_state AS descriptor_state,
+                tcd.canonical_trend_label AS trend_label,
+                tcd.canonical_direction AS direction,
+                tcd.canonical_strength AS strength,
+                tcd.selected_lookback_points AS selected_lookback_points,
+                tcd.observed_on AS observed_on,
+                tcd.weighting_trace ->> 'reason_code' AS reason_code
+            FROM trend_canonical_descriptors tcd
+            JOIN data_series ds ON ds.id = tcd.data_series_id
             WHERE ds.series_key = :dataset_id
-            ORDER BY tr.start_period ASC, tr.created_at ASC
+            ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+            LIMIT 1
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"dataset_id": dataset_id}).mappings().all()
+        if not rows:
+            return None
+        row = rows[0]
+        observed_on = row["observed_on"]
+        if isinstance(observed_on, (date, datetime)):
+            observed_on_value = self._iso_date(cast(date | datetime | None, observed_on))
+        else:
+            observed_on_value = str(observed_on) if observed_on is not None else None
+        return {
+            "descriptor_state": str(row["descriptor_state"]),
+            "trend_label": (
+                str(row["trend_label"]) if row["trend_label"] is not None else None
+            ),
+            "direction": str(row["direction"]) if row["direction"] is not None else None,
+            "strength": str(row["strength"]) if row["strength"] is not None else None,
+            "selected_lookback_points": (
+                int(row["selected_lookback_points"])
+                if row["selected_lookback_points"] is not None
+                else None
+            ),
+            "observed_on": observed_on_value,
+            "reason_code": (
+                str(row["reason_code"]) if row["reason_code"] is not None else None
+            ),
+        }
+
+    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, object]]:
+        """Return latest lookback evaluations and snapshots for dataset detail rendering."""
+        query = text(
+            """
+            WITH latest_observation AS (
+                SELECT
+                    tcd.data_series_id,
+                    tcd.observation_id
+                FROM trend_canonical_descriptors tcd
+                JOIN data_series ds ON ds.id = tcd.data_series_id
+                WHERE ds.series_key = :dataset_id
+                ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+                LIMIT 1
+            )
+            SELECT
+                tle.lookback_points AS lookback_points,
+                tle.applicability_state AS applicability_state,
+                tls.outcome_state AS outcome_state,
+                tls.trend_label AS trend_label,
+                tls.direction AS direction,
+                tls.strength AS strength,
+                tle.reason_code AS reason_code
+            FROM trend_lookback_evaluations tle
+            JOIN latest_observation lo
+                ON lo.data_series_id = tle.data_series_id
+                AND lo.observation_id = tle.observation_id
+            LEFT JOIN trend_lookback_snapshots tls
+                ON tls.data_series_id = tle.data_series_id
+                AND tls.observation_id = tle.observation_id
+                AND tls.lookback_points = tle.lookback_points
+            ORDER BY tle.lookback_points ASC
             """
         )
         with self._engine.connect() as connection:
             rows = connection.execute(query, {"dataset_id": dataset_id}).mappings().all()
 
-        projected: list[dict[str, object]] = []
-        for row in rows:
-            start_period = self._iso_date(cast(date | datetime | None, row["start_period"]))
-            if start_period is None:
-                continue
-
-            end_period = self._iso_date(cast(date | datetime | None, row["end_period"]))
-            if bool(row["is_ongoing"]):
-                end_period = datetime.now(tz=UTC).date().isoformat()
-            if end_period is None:
-                continue
-
-            direction = str(row["direction"])
-            trend_label = str(row["trend_label"])
-            strength = str(row["strength"])
-            seasonality = str(row["seasonality_classification"])
-
-            projected.append(
-                {
-                    "start_period": start_period,
-                    "end_period": end_period,
-                    "direction": direction,
-                    "trend_label": trend_label,
-                    "tooltip": {
-                        "headline": trend_label.replace("_", " ").title(),
-                        "detail": (f"{strength} {direction} trend ({seasonality})"),
-                    },
-                }
-            )
-        return projected
+        return [
+            {
+                "lookback_points": int(row["lookback_points"]),
+                "applicability_state": str(row["applicability_state"]),
+                "outcome_state": (
+                    str(row["outcome_state"]) if row["outcome_state"] is not None else None
+                ),
+                "trend_label": (
+                    str(row["trend_label"]) if row["trend_label"] is not None else None
+                ),
+                "direction": str(row["direction"]) if row["direction"] is not None else None,
+                "strength": str(row["strength"]) if row["strength"] is not None else None,
+                "reason_code": (
+                    str(row["reason_code"]) if row["reason_code"] is not None else None
+                ),
+            }
+            for row in rows
+        ]
 
     def list_dataset_observations(
         self,

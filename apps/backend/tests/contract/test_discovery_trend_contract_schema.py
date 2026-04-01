@@ -10,9 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.contract.discovery_trends import (
+    CanonicalTrendDescriptorContract,
+    LookbackTrendSnapshotContract,
     TrendFeedItemContract,
-    TrendSpanContract,
-    TrendTooltipContract,
 )
 
 
@@ -35,17 +35,27 @@ def test_trend_feed_item_contract_minimal_shape() -> None:
     assert item["item_type"] == "trend_event"
 
 
-def test_trend_span_contract_embeds_tooltip_shape() -> None:
-    tooltip: TrendTooltipContract = {
-        "headline": "Emerging uptrend",
-        "detail": "Moderate increase through Q1",
-    }
-    span: TrendSpanContract = {
-        "start_period": "2026-01-01",
-        "end_period": "2026-04-01",
-        "direction": "up",
+def test_canonical_descriptor_contract_shape() -> None:
+    descriptor: CanonicalTrendDescriptorContract = {
+        "descriptor_state": "available",
         "trend_label": "moderate_uptrend",
-        "tooltip": tooltip,
+        "direction": "up",
+        "strength": "moderate",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-01-01",
+        "reason_code": None,
     }
+    assert descriptor["descriptor_state"] == "available"
 
-    assert span["tooltip"]["headline"] == "Emerging uptrend"
+
+def test_lookback_snapshot_contract_shape() -> None:
+    snapshot: LookbackTrendSnapshotContract = {
+        "lookback_points": 25,
+        "applicability_state": "applicable",
+        "outcome_state": "significant_trend",
+        "trend_label": "moderate_uptrend",
+        "direction": "up",
+        "strength": "moderate",
+        "reason_code": None,
+    }
+    assert snapshot["lookback_points"] == 25

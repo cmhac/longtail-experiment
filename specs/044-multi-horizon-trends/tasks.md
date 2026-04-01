@@ -76,19 +76,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] Add dataset detail canonical descriptor contract tests in apps/backend/tests/contract/test_dataset_detail_canonical_trend_contract.py
-- [ ] T025 [P] [US2] Add lookback snapshot response validation tests in apps/backend/tests/contract/test_dataset_detail_lookback_snapshot_contract.py
-- [ ] T026 [P] [US2] Add repository query integration tests for latest canonical descriptor reads in apps/backend/tests/integration/test_dataset_detail_canonical_trend_query.py
-- [ ] T027 [P] [US2] Add error contract tests for invalid/missing canonical payloads in apps/backend/tests/contract/test_dataset_detail_canonical_trend_error_contract.py
+- [x] T024 [P] [US2] Add dataset detail canonical descriptor contract tests in apps/backend/tests/contract/test_dataset_detail_canonical_trend_contract.py
+- [x] T025 [P] [US2] Add lookback snapshot response validation tests in apps/backend/tests/contract/test_dataset_detail_lookback_snapshot_contract.py
+- [x] T026 [P] [US2] Add repository query integration tests for latest canonical descriptor reads in apps/backend/tests/integration/test_dataset_detail_canonical_trend_query.py
+- [x] T027 [P] [US2] Add error contract tests for invalid/missing canonical payloads in apps/backend/tests/contract/test_dataset_detail_canonical_trend_error_contract.py
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Replace trend span contracts with canonical descriptor and lookback snapshot contracts in apps/backend/src/contract/discovery_trends.py
-- [ ] T029 [US2] Replace dataset detail trend models with canonical payload models in apps/backend/src/contract/query/dataset_detail_query.py
-- [ ] T030 [US2] Implement repository reads for canonical descriptor and lookback snapshots in apps/backend/src/query/dataset_discovery_persisted_repository.py
-- [ ] T031 [US2] Replace service-level trend span projection with canonical descriptor projection in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T032 [US2] Remove or deprecate span normalization path no longer required in apps/backend/src/query/trend_span_mapper.py
-- [ ] T033 [US2] Ensure API server contract wiring includes new canonical fields in apps/backend/src/http_api_server.py
+- [x] T028 [US2] Replace trend span contracts with canonical descriptor and lookback snapshot contracts in apps/backend/src/contract/discovery_trends.py
+- [x] T029 [US2] Replace dataset detail trend models with canonical payload models in apps/backend/src/contract/query/dataset_detail_query.py
+- [x] T030 [US2] Implement repository reads for canonical descriptor and lookback snapshots in apps/backend/src/query/dataset_discovery_persisted_repository.py
+- [x] T031 [US2] Replace service-level trend span projection with canonical descriptor projection in apps/backend/src/query/dataset_discovery_service.py
+- [x] T032 [US2] Remove or deprecate span normalization path no longer required in apps/backend/src/query/trend_span_mapper.py
+- [x] T033 [US2] Ensure API server contract wiring includes new canonical fields in apps/backend/src/http_api_server.py
 
 **Checkpoint**: US2 serves canonical trend descriptor payloads and remains independently testable.
 

@@ -19,18 +19,25 @@ class TrendFeedItemContract(TypedDict):
     action_links: dict[str, str]
 
 
-class TrendTooltipContract(TypedDict):
-    """Tooltip payload rendered for one trend span."""
+class CanonicalTrendDescriptorContract(TypedDict):
+    """Dataset detail canonical trend descriptor payload."""
 
-    headline: str
-    detail: str
+    descriptor_state: Literal["available", "unavailable"]
+    trend_label: str | None
+    direction: Literal["up", "down"] | None
+    strength: str | None
+    selected_lookback_points: int | None
+    observed_on: str | None
+    reason_code: str | None
 
 
-class TrendSpanContract(TypedDict):
-    """Dataset detail trend span payload."""
+class LookbackTrendSnapshotContract(TypedDict):
+    """Dataset detail per-lookback trend snapshot payload."""
 
-    start_period: str
-    end_period: str
-    direction: Literal["up", "down"]
-    trend_label: str
-    tooltip: TrendTooltipContract
+    lookback_points: int
+    applicability_state: Literal["applicable", "inapplicable"]
+    outcome_state: Literal["significant_trend", "no_significant_trend"] | None
+    trend_label: str | None
+    direction: Literal["up", "down"] | None
+    strength: str | None
+    reason_code: str | None
