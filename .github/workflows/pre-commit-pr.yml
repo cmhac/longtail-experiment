@@ -1,0 +1,94 @@
+name: Monorepo Pre-Commit
+
+on:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+concurrency:
+  group: pre-commit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up pnpm 9
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Set up Java for PMD
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install system dependencies for tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            unzip \
+            wget
+
+      - name: Install PMD 7.22.0
+        run: |
+          PMD_VERSION="7.22.0"
+          PMD_DIR="${HOME}/pmd-bin-${PMD_VERSION}"
+
+          if [ ! -x "${PMD_DIR}/bin/pmd" ]; then
+            wget -q "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" -O /tmp/pmd.zip
+            unzip -q /tmp/pmd.zip -d "${HOME}"
+          fi
+
+          echo "${PMD_DIR}/bin" >> "${GITHUB_PATH}"
+          "${PMD_DIR}/bin/pmd" --version
+
+      - name: Install repository JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Python dependencies via uv
+        run: |
+          uv sync --project apps/backend --frozen
+          uv sync --project apps/pipeline --frozen
+
+      - name: Install pre-commit
+        run: |
+          uv tool install pre-commit
+          echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+          export PATH="${HOME}/.local/bin:${PATH}"
+          pre-commit --version
+
+      - name: Ensure compose secret env file exists for local stack commands
+        run: |
+          if [ ! -f docker/compose/local.secrets.env ]; then
+            printf "FRED_API_KEY=%s\nDAGSTER_METADATA_DB_PASSWORD=%s\n" "${FRED_API_KEY:-dummy}" "${DAGSTER_METADATA_DB_PASSWORD:-longtail}" > docker/compose/local.secrets.env
+          fi
+
+      - name: Run monorepo pre-commit hooks
+        run: |
+          export PATH="${HOME}/.local/bin:${PATH}"
+          pre-commit run --all-files --show-diff-on-failure --color=always
