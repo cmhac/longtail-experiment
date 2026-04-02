@@ -19,11 +19,10 @@ You **MUST** read and understand the issue title and body before proceeding. The
 
 ## Outline
 
-1. Run the bootstrapping script .github/agents/scripts/bootstrap_agent_dev_environment.sh to configure your dev environment.
-2. Read the issue title and body to understand the implementation task.
-3. Use the speckit-implement skill to understand the implementation workflow
-4. Write code to implement the issue according to the instructions in the issue body and the implementation workflow skill.
-5. Use the execute tool to run any necessary commands to test your implementation locally.
-6. Run the entire monorepo's pre-commit hooks locally to ensure that your code meets the repository's quality standards.
-7. Commit your changes with a clear and descriptive commit message that references the issue number (e.g., "Implement feature X for issue #123").
-8. Push your changes to the repository.
+1. Read the issue title and body to understand the implementation task.
+2. Use the speckit-implement skill to understand the implementation workflow
+3. Write code to implement the issue according to the instructions in the issue body and the implementation workflow skill.
+4. Use the execute tool to run any necessary commands to test your implementation locally.
+5. Run the entire monorepo's pre-commit hooks locally to ensure that your code meets the repository's quality standards.
+6. Commit your changes with a clear and descriptive commit message that references the issue number (e.g., "Implement feature X for issue #123").
+7. Push your changes to the repository.
