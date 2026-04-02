@@ -9,27 +9,27 @@ repos:
         pass_filenames: false
       - id: monorepo-lint-all
         name: monorepo-lint-all
-        entry: pnpm exec nx run-many -t lint --all
+        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t lint --all
         language: system
         pass_filenames: false
       - id: monorepo-format-all
         name: monorepo-format-all
-        entry: pnpm exec nx run-many -t format --all
+        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t format --all
         language: system
         pass_filenames: false
       - id: monorepo-typecheck-all
         name: monorepo-typecheck-all
-        entry: pnpm exec nx run-many -t typecheck --all
+        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t typecheck --all
         language: system
         pass_filenames: false
       - id: monorepo-test-all
         name: monorepo-test-all
-        entry: pnpm exec nx run-many -t test --all
+        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t test --all
         language: system
         pass_filenames: false
       - id: monorepo-coverage-all
         name: monorepo-coverage-all
-        entry: pnpm exec nx run-many -t coverage --all
+        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t coverage --all
         language: system
         pass_filenames: false
       - id: duplication-check

@@ -11,7 +11,9 @@ def test_backend_compose_runner_uses_non_destructive_upgrade_head() -> None:
     assert "downgrade" not in compose
 
 
-def test_revision_check_guidance_is_deterministic() -> None:
+def test_revision_check_guidance_uses_dynamic_alembic_head() -> None:
     agents_md = Path("AGENTS.md").read_text(encoding="utf-8")
-    assert "0010_source_profile_metadata" in agents_md
+    assert "current Alembic head" in agents_md
+    assert "libs/db/alembic.ini" in agents_md
+    assert "do not pin a fixed revision in compose" in agents_md
     assert "SELECT version_num FROM alembic_version;" in agents_md

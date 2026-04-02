@@ -21,6 +21,14 @@
     "pythonAppConfig": [
       "{workspaceRoot}/apps/backend/pyproject.toml",
       "{workspaceRoot}/apps/pipeline/pyproject.toml"
+    ],
+    "repoContractFiles": [
+      "{workspaceRoot}/AGENTS.md",
+      "{workspaceRoot}/docker-compose.yml",
+      "{workspaceRoot}/docker/compose/**/*",
+      "{workspaceRoot}/docs/**/*",
+      "{workspaceRoot}/specs/**/*",
+      "{workspaceRoot}/.agents/**/*.md"
     ]
   },
   "targetDefaults": {
@@ -42,6 +50,7 @@
     },
     "coverage": {
       "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
+      "parallelism": false,
       "cache": true
     },
     "duplication": {

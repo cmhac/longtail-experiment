@@ -89,6 +89,8 @@ jobs:
           fi
 
       - name: Run monorepo pre-commit hooks
+        env:
+          NX_NATIVE_COMMAND_RUNNER: "false"
         run: |
           export PATH="${HOME}/.local/bin:${PATH}"
           pre-commit run --all-files --show-diff-on-failure --color=always
