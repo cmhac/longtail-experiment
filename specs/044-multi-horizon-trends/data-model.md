@@ -153,3 +153,9 @@
 - Dataset-summary contracts must expand to include the canonical current-trend descriptor without forcing endpoint-specific alternative schemas.
 - Dataset-detail product behavior remains based on the canonical descriptor payload and no longer depends on trend-overlay interval semantics.
 - Reclassification jobs must continue recomputing both lookback snapshots and canonical descriptor snapshots for historical observations when analysis behavior changes.
+
+## Scope Revision Notes
+
+- `CanonicalTrendDescriptorPayload` is the shared current-trend contract for both dataset summaries and dataset detail rendering.
+- Dataset-list indicator placement and dataset-detail heading indicator placement consume the same canonical descriptor semantics.
+- Unavailable descriptor states remain first-class and must be preserved in both summary and detail projections.

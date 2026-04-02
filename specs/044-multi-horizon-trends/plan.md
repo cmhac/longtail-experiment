@@ -158,3 +158,9 @@ apps/frontend/
 ## Complexity Tracking
 
 No constitution violations requiring justification.
+
+## Scope Revision Completion Targets
+
+- Dataset-summary contracts expose canonical descriptors across catalog, search, and recent dataset update surfaces for shared row rendering.
+- Dataset-detail continues exposing canonical descriptor plus lookback snapshots, with current-trend emphasis at the `Historical Trend` heading indicator.
+- Shared frontend indicator mapping covers directional and unavailable states from API fields only.

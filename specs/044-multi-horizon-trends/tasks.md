@@ -162,13 +162,13 @@
 - [x] T048 Run full repository stop gate `pnpm exec nx run-many -t test --all` from repository root
 - [x] T049 Run full repository coverage gate `pnpm exec nx run-many -t coverage --all` from repository root
 - [x] T050 Run end-to-end manual verification from clean stack using commands in specs/044-multi-horizon-trends/quickstart.md
-- [ ] T070 [P] Update revised feature documentation and execution notes for list/detail indicator behavior in specs/044-multi-horizon-trends/quickstart.md and specs/044-multi-horizon-trends/research.md
-- [ ] T071 [P] Update contract and planning artifacts to reflect completed scope revision in specs/044-multi-horizon-trends/contracts/discovery-lookback-trends.openapi.yaml, specs/044-multi-horizon-trends/plan.md, and specs/044-multi-horizon-trends/data-model.md
-- [ ] T072 Run focused backend verification for revised list/detail trend payload paths via apps/backend/tests and apps/backend/tests/contract
-- [ ] T073 Run focused frontend verification for shared indicator rendering via apps/frontend/tests, `pnpm --dir apps/frontend typecheck`, and `pnpm --dir apps/frontend exec biome check .`
-- [ ] T074 Run full repository stop gate `pnpm exec nx run-many -t test --all` from repository root after revised list/detail indicator changes
-- [ ] T075 Run full repository coverage gate `pnpm exec nx run-many -t coverage --all` from repository root after revised list/detail indicator changes
-- [ ] T076 Run end-to-end manual verification from clean stack for dataset lists + dataset detail indicator behavior using commands in specs/044-multi-horizon-trends/quickstart.md
+- [x] T070 [P] Update revised feature documentation and execution notes for list/detail indicator behavior in specs/044-multi-horizon-trends/quickstart.md and specs/044-multi-horizon-trends/research.md
+- [x] T071 [P] Update contract and planning artifacts to reflect completed scope revision in specs/044-multi-horizon-trends/contracts/discovery-lookback-trends.openapi.yaml, specs/044-multi-horizon-trends/plan.md, and specs/044-multi-horizon-trends/data-model.md
+- [x] T072 Run focused backend verification for revised list/detail trend payload paths via apps/backend/tests and apps/backend/tests/contract
+- [x] T073 Run focused frontend verification for shared indicator rendering via apps/frontend/tests, `pnpm --dir apps/frontend typecheck`, and `pnpm --dir apps/frontend exec biome check .`
+- [x] T074 Run full repository stop gate `pnpm exec nx run-many -t test --all` from repository root after revised list/detail indicator changes
+- [x] T075 Run full repository coverage gate `pnpm exec nx run-many -t coverage --all` from repository root after revised list/detail indicator changes
+- [x] T076 Run end-to-end manual verification from clean stack for dataset lists + dataset detail indicator behavior using commands in specs/044-multi-horizon-trends/quickstart.md
 
 ---
 

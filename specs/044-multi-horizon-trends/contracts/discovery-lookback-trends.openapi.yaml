@@ -1,11 +1,12 @@
 openapi: 3.1.0
 info:
   title: Discovery Lookback Trend Contract
-  version: 0.2.0
+  version: 0.2.1
   description: >
     Contract additions for current-state multi-lookback trend snapshots and
     API-provided canonical trend descriptor rendering on dataset list and
-    dataset detail surfaces.
+    dataset detail surfaces, including shared row-level and detail-heading
+    trend-indicator support.
 paths:
   /api/datasets:
     get:

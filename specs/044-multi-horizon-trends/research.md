@@ -70,3 +70,9 @@
 - All previously unresolved technical questions for this revision are closed.
 - No `NEEDS CLARIFICATION` markers remain for planning.
 - The implementation plan can proceed directly to data-model, contract, and task breakdown updates for summary payload expansion and shared arrow-indicator rendering.
+
+## Phase 6 Revision Execution Notes
+
+- Revised scope confirmation: dataset-summary payloads and dataset-detail payloads both expose canonical trend descriptor fields required for direct rendering.
+- Shared indicator confirmation: one directional indicator primitive is the only current-trend UI state shown in dataset rows and by the `Historical Trend` heading.
+- Client responsibility confirmation: frontend only maps API descriptor fields into visual indicator states; no client-side weighting or lookback ranking is permitted.

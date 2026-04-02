@@ -73,3 +73,17 @@
 3. `pnpm exec nx run-many -t coverage --all`
 
 All commands above must pass with no exceptions.
+
+## 7. Revised List + Detail Indicator Verification Notes
+
+Use these checks to confirm the revised shared-indicator scope is fully exercised:
+
+1. API contract consistency
+   - Every dataset-summary row returned from `/api/datasets`, `/api/datasets/search`, and `/api/datasets/recent` includes `canonical_trend_descriptor`.
+   - Dataset detail responses from `/api/datasets/<DATASET_ID>` include both `canonical_trend_descriptor` and `lookback_trend_snapshots`.
+2. Shared UI placement
+   - Dataset list surfaces render one shared trend indicator at the far right of each dataset row.
+   - Dataset detail renders the same indicator adjacent to `Historical Trend`.
+3. State behavior
+   - Strong up, mild up, mild down, strong down, and unavailable states render from API-provided canonical descriptor fields only.
+   - No list/detail path computes trend weighting or lookback ranking on the client.
