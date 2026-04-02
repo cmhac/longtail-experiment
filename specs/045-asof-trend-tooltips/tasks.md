@@ -69,16 +69,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T017 [P] [US2] Add dataset detail contract coverage for observation-level as-of descriptor fields in apps/backend/tests/contract/test_dataset_detail_asof_descriptor_shape.py
-- [ ] T018 [P] [US2] Add malformed payload validation failure test in apps/backend/tests/contract/test_dataset_detail_asof_validation_errors.py
-- [ ] T019 [P] [US2] Add API route regression test for detail contract serialization in apps/backend/tests/contract/test_http_dataset_detail_asof_contract.py
+- [x] T017 [P] [US2] Add dataset detail contract coverage for observation-level as-of descriptor fields in apps/backend/tests/contract/test_dataset_detail_asof_descriptor_shape.py
+- [x] T018 [P] [US2] Add malformed payload validation failure test in apps/backend/tests/contract/test_dataset_detail_asof_validation_errors.py
+- [x] T019 [P] [US2] Add API route regression test for detail contract serialization in apps/backend/tests/contract/test_http_dataset_detail_asof_contract.py
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Extend detail contract response model to require observation-level as-of descriptor in apps/backend/src/contract/query/dataset_detail_query.py
-- [ ] T021 [US2] Update dataset detail response assembly to keep top-level canonical and lookback fields unchanged in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T022 [US2] Ensure HTTP API detail response wiring validates updated contract in apps/backend/src/http_api_server.py
-- [ ] T023 [US2] Update contract documentation for observation-level as-of fields in specs/045-asof-trend-tooltips/contracts/discovery-asof-trend-tooltips.openapi.yaml
+- [x] T020 [US2] Extend detail contract response model to require observation-level as-of descriptor in apps/backend/src/contract/query/dataset_detail_query.py
+- [x] T021 [US2] Update dataset detail response assembly to keep top-level canonical and lookback fields unchanged in apps/backend/src/query/dataset_discovery_service.py
+- [x] T022 [US2] Ensure HTTP API detail response wiring validates updated contract in apps/backend/src/http_api_server.py
+- [x] T023 [US2] Update contract documentation for observation-level as-of fields in specs/045-asof-trend-tooltips/contracts/discovery-asof-trend-tooltips.openapi.yaml
 
 **Checkpoint**: US2 exposes a stable, validated observation-level as-of contract and remains independently testable.
 
