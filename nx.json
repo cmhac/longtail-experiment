@@ -57,5 +57,6 @@
       "inputs": ["default", "workspaceConfig"],
       "cache": false
     }
-  }
+  },
+  "analytics": true
 }

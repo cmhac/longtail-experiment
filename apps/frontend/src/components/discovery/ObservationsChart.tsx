@@ -3,7 +3,8 @@
 import React from "react";
 import type { JSX } from "react";
 import { Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
-import type { ObservationPoint } from "../../lib/api/discovery-types";
+import type { CanonicalTrendDescriptor, ObservationPoint } from "../../lib/api/discovery-types";
+import { DatasetTrendIndicator } from "./DatasetTrendIndicator";
 import { EmptyState } from "./EmptyState";
 import { ChartComboControl, type ChartComboOption } from "./chart-controls/ChartComboControl";
 import { ChartToggleGroup } from "./chart-controls/ChartToggleGroup";
@@ -37,6 +38,7 @@ interface ObservationsChartProps {
 }
 
 interface ObservationChartPoint {
+  asOfTrendDescriptor: CanonicalTrendDescriptor | undefined;
   baselineObservedOn?: string | null;
   changePercent: number | null;
   changeValue: number | null;
@@ -128,6 +130,7 @@ const toChartData = (
         : null;
 
     return {
+      asOfTrendDescriptor: observation.as_of_trend_descriptor,
       changePercent,
       changeValue,
       computability: "computable",
@@ -158,13 +161,16 @@ const toRelativeChartData = (
       : -1;
   const projectedPoints =
     baselineStartIndex >= 0 ? projection.points.slice(baselineStartIndex) : projection.points;
+  const projectedObservations =
+    baselineStartIndex >= 0 ? observations.slice(baselineStartIndex) : observations;
 
   return {
     availableDates: projection.availableDates,
-    chartData: projectedPoints.map((point) => {
+    chartData: projectedPoints.map((point, index) => {
       const valueLabel = point.value === null ? "Unavailable" : formatPercentValue(point.value);
 
       return {
+        asOfTrendDescriptor: projectedObservations[index]?.as_of_trend_descriptor,
         baselineObservedOn: point.baselineObservedOn,
         changePercent: null,
         changeValue: point.value,
@@ -199,7 +205,7 @@ const getYAxisDomain = (chartData: ObservationChartPoint[]): [number, number] =>
   return [minValue - padding, maxValue + padding];
 };
 
-const ObservationsChartTooltip = ({
+export const ObservationsChartTooltip = ({
   active,
   payload,
 }: ObservationTooltipContentProps): JSX.Element | null => {
@@ -243,6 +249,11 @@ const ObservationsChartTooltip = ({
       ) : (
         <ChartTooltipText>No prior observation</ChartTooltipText>
       )}
+      <DatasetTrendIndicator
+        className="mt-3 self-start"
+        testId="observation-as-of-trend-indicator"
+        {...(point.asOfTrendDescriptor ? { descriptor: point.asOfTrendDescriptor } : {})}
+      />
     </ChartTooltipRoot>
   );
 };

@@ -93,6 +93,7 @@ export interface ObservationPoint {
   value: number;
   reported_at: string;
   attributes: Record<string, unknown>;
+  as_of_trend_descriptor?: CanonicalTrendDescriptor;
 }
 
 export interface DatasetDetail {

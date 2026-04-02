@@ -92,17 +92,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T024 [P] [US3] Add tooltip unit tests for observation-specific trend chip rendering in apps/frontend/tests/components/ObservationsChartAsOfTrendTooltip.test.tsx
-- [ ] T025 [P] [US3] Add unavailable tooltip chip regression tests in apps/frontend/tests/components/ObservationsChartAsOfTrendUnavailable.test.tsx
-- [ ] T026 [P] [US3] Add discovery client mapping tests for observation-level as-of descriptor parsing in apps/frontend/tests/discovery-client-dataset-detail-asof.test.ts
+- [x] T024 [P] [US3] Add tooltip unit tests for observation-specific trend chip rendering in apps/frontend/tests/components/ObservationsChartAsOfTrendTooltip.test.tsx
+- [x] T025 [P] [US3] Add unavailable tooltip chip regression tests in apps/frontend/tests/components/ObservationsChartAsOfTrendUnavailable.test.tsx
+- [x] T026 [P] [US3] Add discovery client mapping tests for observation-level as-of descriptor parsing in apps/frontend/tests/discovery-client-dataset-detail-asof.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Extend dataset detail API type definitions to include `observations[].as_of_trend_descriptor` in apps/frontend/src/lib/api/discovery-types.ts
-- [ ] T028 [US3] Update dataset detail API client normalization for observation-level as-of descriptors in apps/frontend/src/lib/api/discovery-client.ts
-- [ ] T029 [US3] Extend chart tooltip point model to carry as-of descriptor per observation in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T030 [US3] Render shared DatasetTrendIndicator at tooltip bottom using hovered observation descriptor in apps/frontend/src/components/discovery/ObservationsChart.tsx
-- [ ] T031 [US3] Ensure unavailable descriptor maps to explicit unavailable chip state in apps/frontend/src/components/discovery/DatasetTrendIndicator.tsx
+- [x] T027 [US3] Extend dataset detail API type definitions to include `observations[].as_of_trend_descriptor` in apps/frontend/src/lib/api/discovery-types.ts
+- [x] T028 [US3] Update dataset detail API client normalization for observation-level as-of descriptors in apps/frontend/src/lib/api/discovery-client.ts
+- [x] T029 [US3] Extend chart tooltip point model to carry as-of descriptor per observation in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [x] T030 [US3] Render shared DatasetTrendIndicator at tooltip bottom using hovered observation descriptor in apps/frontend/src/components/discovery/ObservationsChart.tsx
+- [x] T031 [US3] Ensure unavailable descriptor maps to explicit unavailable chip state in apps/frontend/src/components/discovery/DatasetTrendIndicator.tsx
 
 **Checkpoint**: US3 renders an observation-specific tooltip chip with no regression to existing chart behavior.
 
