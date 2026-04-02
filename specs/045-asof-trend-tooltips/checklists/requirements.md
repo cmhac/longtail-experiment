@@ -33,3 +33,9 @@
 
 - Validation completed in one pass.
 - No clarification markers were required for this feature scope.
+
+## Implementation Baseline (Phase 1)
+
+- [x] Spec, plan, data model, and contract artifact names are aligned to feature 045 scope.
+- [x] Repository seam notes exist for backend and frontend implementation paths.
+- [x] Phase 1 setup issue tasks (T001-T003) are represented and tracked in tasks.md.

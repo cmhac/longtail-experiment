@@ -60,6 +60,17 @@
 - Frontend tooltip rendering seam: `apps/frontend/src/components/discovery/ObservationsChart.tsx`
 - Shared indicator component: `apps/frontend/src/components/discovery/DatasetTrendIndicator.tsx`
 
+## Phase 1 Setup Validation
+
+- Artifact alignment validation completed across:
+  - `specs/045-asof-trend-tooltips/spec.md`
+  - `specs/045-asof-trend-tooltips/plan.md`
+  - `specs/045-asof-trend-tooltips/data-model.md`
+  - `specs/045-asof-trend-tooltips/contracts/discovery-asof-trend-tooltips.openapi.yaml`
+- Validation result: all four artifacts use the same feature scope (dataset-detail as-of trend descriptors and tooltip chip rendering), contract naming (`as_of_trend_descriptor`), and deterministic as-of selection assumptions.
+- Backend implementation seams confirmed for Phase 2+: `apps/backend/src/contract/query/dataset_detail_query.py`, `apps/backend/src/query/dataset_discovery_service.py`, and `apps/backend/src/query/dataset_discovery_persisted_repository.py`.
+- Frontend implementation seams confirmed for Phase 2+: `apps/frontend/src/lib/api/discovery-types.ts`, `apps/frontend/src/lib/api/discovery-client.ts`, and `apps/frontend/src/components/discovery/ObservationsChart.tsx`.
+
 ## Planning Outcome
 
 - All technical unknowns for this feature are resolved.

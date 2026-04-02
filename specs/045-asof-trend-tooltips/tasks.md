@@ -17,9 +17,9 @@
 
 **Purpose**: Align implementation artifacts, contracts, and quality workflow before code changes.
 
-- [ ] T001 Validate feature artifact alignment in specs/045-asof-trend-tooltips/spec.md, specs/045-asof-trend-tooltips/plan.md, specs/045-asof-trend-tooltips/data-model.md, and specs/045-asof-trend-tooltips/contracts/discovery-asof-trend-tooltips.openapi.yaml
-- [ ] T002 [P] Capture backend and frontend implementation seam notes in specs/045-asof-trend-tooltips/research.md
-- [ ] T003 [P] Create implementation checklist baseline in specs/045-asof-trend-tooltips/checklists/requirements.md
+- [x] T001 Validate feature artifact alignment in specs/045-asof-trend-tooltips/spec.md, specs/045-asof-trend-tooltips/plan.md, specs/045-asof-trend-tooltips/data-model.md, and specs/045-asof-trend-tooltips/contracts/discovery-asof-trend-tooltips.openapi.yaml
+- [x] T002 [P] Capture backend and frontend implementation seam notes in specs/045-asof-trend-tooltips/research.md
+- [x] T003 [P] Create implementation checklist baseline in specs/045-asof-trend-tooltips/checklists/requirements.md
 
 ---
 
