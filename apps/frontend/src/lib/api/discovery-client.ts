@@ -104,11 +104,41 @@ const defaultCanonicalTrendDescriptor = (): CanonicalTrendDescriptor => ({
   reason_code: "missing_canonical_descriptor",
 });
 
+const defaultObservationAsOfTrendDescriptor = (): CanonicalTrendDescriptor => ({
+  descriptor_state: "unavailable" as const,
+  trend_label: null,
+  direction: null,
+  strength: null,
+  selected_lookback_points: null,
+  observed_on: null,
+  reason_code: "missing_observation_asof_descriptor",
+});
+
 const normalizeSummaryCanonicalTrendDescriptor = (
   descriptor: unknown,
 ): CanonicalTrendDescriptor => {
   if (!descriptor || typeof descriptor !== "object") {
     return defaultCanonicalTrendDescriptor();
+  }
+  const payload = descriptor as Record<string, unknown>;
+  const state = payload.descriptor_state;
+  return {
+    descriptor_state: state === "available" || state === "unavailable" ? state : "unavailable",
+    trend_label: typeof payload.trend_label === "string" ? payload.trend_label : null,
+    direction:
+      payload.direction === "up" || payload.direction === "down" ? payload.direction : null,
+    strength: typeof payload.strength === "string" ? payload.strength : null,
+    selected_lookback_points: isLookbackPoints(payload.selected_lookback_points)
+      ? payload.selected_lookback_points
+      : null,
+    observed_on: typeof payload.observed_on === "string" ? payload.observed_on : null,
+    reason_code: typeof payload.reason_code === "string" ? payload.reason_code : null,
+  };
+};
+
+const normalizeObservationAsOfTrendDescriptor = (descriptor: unknown): CanonicalTrendDescriptor => {
+  if (!descriptor || typeof descriptor !== "object") {
+    return defaultObservationAsOfTrendDescriptor();
   }
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
@@ -269,6 +299,12 @@ export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDeta
   const payload = await parseResponse<DatasetDetail>(response);
   return {
     ...payload,
+    observations: payload.observations.map((observation) => ({
+      ...observation,
+      as_of_trend_descriptor: normalizeObservationAsOfTrendDescriptor(
+        observation.as_of_trend_descriptor,
+      ),
+    })),
     lookback_trend_snapshots: payload.lookback_trend_snapshots ?? [],
   };
 };
