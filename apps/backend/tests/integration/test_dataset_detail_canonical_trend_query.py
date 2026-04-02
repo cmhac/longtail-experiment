@@ -27,22 +27,6 @@ class _FakeConnection:
         params = parameters or {}
         dataset_id = str(params.get("dataset_id", ""))
         sql = str(statement)
-        if "FROM trend_canonical_descriptors tcd" in sql:
-            if dataset_id != "UNRATE":
-                return _FakeResult([])
-            return _FakeResult(
-                [
-                    {
-                        "descriptor_state": "available",
-                        "trend_label": "mild_sustained_downtrend",
-                        "direction": "down",
-                        "strength": "mild",
-                        "selected_lookback_points": 25,
-                        "observed_on": "2026-03-01",
-                        "reason_code": None,
-                    }
-                ]
-            )
         if "FROM trend_lookback_evaluations tle" in sql:
             if dataset_id != "UNRATE":
                 return _FakeResult([])
@@ -66,6 +50,22 @@ class _FakeConnection:
                         "strength": None,
                         "reason_code": "insufficient_history",
                     },
+                ]
+            )
+        if "FROM trend_canonical_descriptors tcd" in sql:
+            if dataset_id != "UNRATE":
+                return _FakeResult([])
+            return _FakeResult(
+                [
+                    {
+                        "descriptor_state": "available",
+                        "trend_label": "mild_sustained_downtrend",
+                        "direction": "down",
+                        "strength": "mild",
+                        "selected_lookback_points": 25,
+                        "observed_on": "2026-03-01",
+                        "reason_code": None,
+                    }
                 ]
             )
         raise AssertionError(f"Unexpected SQL executed: {sql}")
