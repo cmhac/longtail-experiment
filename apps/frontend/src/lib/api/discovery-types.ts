@@ -104,21 +104,7 @@ export interface DatasetDetail {
   observations: ObservationPoint[];
   canonical_trend_descriptor?: CanonicalTrendDescriptor;
   lookback_trend_snapshots?: LookbackTrendSnapshot[];
-  trend_spans?: TrendVisualizationSpan[];
   observation_sort: string;
-}
-
-export interface TrendTooltipPayload {
-  headline: string;
-  detail: string;
-}
-
-export interface TrendVisualizationSpan {
-  start_period: string;
-  end_period: string;
-  direction: "up" | "down";
-  trend_label: string;
-  tooltip: TrendTooltipPayload;
 }
 
 export type LookbackPoints = 1 | 2 | 3 | 4 | 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;

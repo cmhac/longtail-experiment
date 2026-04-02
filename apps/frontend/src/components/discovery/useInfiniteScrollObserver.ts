@@ -23,6 +23,9 @@ export const useInfiniteScrollObserver = ({
     if (!enabled) {
       return;
     }
+    if (typeof IntersectionObserver === "undefined") {
+      return;
+    }
 
     const sentinel = sentinelRef.current;
     if (!sentinel) {

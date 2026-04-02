@@ -1,15 +1,7 @@
-export interface TrendTooltipPayload {
-  headline: string;
-  detail: string;
-}
+import type { CanonicalTrendDescriptor, LookbackTrendSnapshot } from "./discovery-types";
 
-export interface TrendVisualizationSpan {
-  start_period: string;
-  end_period: string;
-  direction: "up" | "down";
-  trend_label: string;
-  tooltip: TrendTooltipPayload;
-}
+export type DatasetDetailTrendDescriptor = CanonicalTrendDescriptor;
+export type DatasetDetailLookbackSnapshot = LookbackTrendSnapshot;
 
 export interface TrendFeedItem {
   item_type: "trend_event";

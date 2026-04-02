@@ -207,7 +207,7 @@ export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDeta
   const payload = await parseResponse<DatasetDetail>(response);
   return {
     ...payload,
-    trend_spans: payload.trend_spans ?? [],
+    lookback_trend_snapshots: payload.lookback_trend_snapshots ?? [],
   };
 };
 
