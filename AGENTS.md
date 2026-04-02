@@ -284,4 +284,9 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 
 structure, toolchain, or canonical developer commands change.
 
+- Canonical trend descriptor guidance (spec 044):
+  - Dataset detail trend presentation is chip-only and API-driven.
+  - Frontend consumers must render from API-provided canonical descriptor payloads and must not perform client-side lookback weighting/ranking.
+  - Observation-lookback snapshots and canonical descriptors are the primary trend contract; period span overlays are deprecated for product behavior.
+
 <!-- MANUAL ADDITIONS END -->

@@ -67,3 +67,18 @@
 3. `pnpm exec nx run-many -t coverage --all`
 
 All commands above must pass with no exceptions.
+
+## 7. Phase 6 execution notes (2026-04-02)
+
+- Documentation and agent guidance updates completed for canonical descriptor behavior.
+- Task tracking updated in `tasks.md` for completed documentation/guidance items.
+- In this runtime, `pnpm` is not currently available on `PATH`; run full Nx and frontend pnpm gates in the standard project runtime before merge:
+  - `pnpm --dir apps/frontend test`
+  - `pnpm --dir apps/frontend typecheck`
+  - `pnpm --dir apps/frontend exec biome check .`
+  - `pnpm exec nx run-many -t test --all`
+  - `pnpm exec nx run-many -t coverage --all`
+- Manual verification from a clean stack remains required before merge:
+  - `docker compose down`
+  - `docker compose up -d`
+  - validate ingest → pipeline persistence → backend dataset detail payload → frontend chip-only rendering.

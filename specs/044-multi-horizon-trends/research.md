@@ -92,3 +92,14 @@
 - Rationale: Reduces migration risk by modifying established paths rather than creating a parallel trend stack.
 - Alternatives considered:
   - Introduce new sidecar trend modules in each layer: rejected due to duplication and rollout complexity.
+
+## Phase 6 Implementation Notes (2026-04-02)
+
+- Documentation hardening completed for spec 044 Phase 6:
+  - `quickstart.md` now includes a dedicated phase-6 execution notes section.
+  - `AGENTS.md` guidance has been aligned to emphasize canonical descriptor ownership for dataset-detail trend rendering.
+- Branch/commit context observed during phase-6 handoff:
+  - Current integration branch for this workstream: `copilot/implement-spec-044-phase`
+  - Recent progress includes completion of Phase 5 implementation (chip-only UI and overlay removal) via merge commit `d1cdd8c`.
+- Environment caveat recorded for verification reproducibility:
+  - Current sandbox did not expose `pnpm` on `PATH`, so full pnpm/Nx gates must be executed in the standard project runtime before merge finalization.

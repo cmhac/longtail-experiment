@@ -124,8 +124,8 @@
 
 **Purpose**: Hardening, docs, and mandatory quality gates across all stories.
 
-- [ ] T044 [P] Update feature documentation and execution notes in specs/044-multi-horizon-trends/quickstart.md and specs/044-multi-horizon-trends/research.md
-- [ ] T045 [P] Update AGENTS guidance for canonical trend descriptor behavior in AGENTS.md
+- [x] T044 [P] Update feature documentation and execution notes in specs/044-multi-horizon-trends/quickstart.md and specs/044-multi-horizon-trends/research.md
+- [x] T045 [P] Update AGENTS guidance for canonical trend descriptor behavior in AGENTS.md
 - [ ] T046 Run focused backend/pipeline/library tests for modified files via apps/backend/tests, apps/pipeline/tests/orchestration, and libs/trend_analysis/tests
 - [ ] T047 Run focused frontend checks via apps/frontend/tests, `pnpm --dir apps/frontend typecheck`, and `pnpm --dir apps/frontend exec biome check .`
 - [ ] T048 Run full repository stop gate `pnpm exec nx run-many -t test --all` from repository root
