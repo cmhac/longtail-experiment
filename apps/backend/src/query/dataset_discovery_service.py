@@ -8,6 +8,7 @@ from typing import Any
 from urllib.parse import quote
 
 from pydantic import ValidationError
+
 from src.contract.errors import ContractQueryError
 from src.contract.query.dataset_detail_query import (
     CanonicalTrendDescriptor,
@@ -771,49 +772,8 @@ class DatasetDiscoveryService:
             metadata_fields["unit_type"] = unit_type
         metadata_payload["metadata"] = metadata_fields
 
-        canonical_descriptor = CanonicalTrendDescriptor(
-            descriptor_state="unavailable",
-            trend_label=None,
-            direction=None,
-            strength=None,
-            selected_lookback_points=None,
-            observed_on=None,
-            reason_code="missing_canonical_descriptor",
-        ).model_dump()
-        if hasattr(self._repository, "get_latest_dataset_canonical_trend_descriptor"):
-            raw_canonical = self._repository.get_latest_dataset_canonical_trend_descriptor(
-                dataset_id=normalized_dataset_id
-            )
-            if raw_canonical is not None:
-                if not isinstance(raw_canonical, dict):
-                    raise ContractQueryError("dataset_detail_canonical_payload_invalid")
-                try:
-                    canonical_descriptor = CanonicalTrendDescriptor.model_validate(
-                        raw_canonical
-                    ).model_dump()
-                except ValidationError as exc:
-                    raise ContractQueryError("dataset_detail_canonical_payload_invalid")
-                except (TypeError, ValueError) as exc:
-                    raise ContractQueryError("dataset_detail_canonical_payload_invalid") from exc
-
-        lookback_snapshots: list[dict[str, Any]] = []
-        if hasattr(self._repository, "list_dataset_lookback_trend_snapshots"):
-            raw_lookbacks = self._repository.list_dataset_lookback_trend_snapshots(
-                dataset_id=normalized_dataset_id
-            )
-            if not isinstance(raw_lookbacks, list):
-                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
-            if not all(isinstance(snapshot, dict) for snapshot in raw_lookbacks):
-                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
-            try:
-                lookback_snapshots = [
-                    LookbackTrendSnapshot.model_validate(snapshot).model_dump()
-                    for snapshot in raw_lookbacks
-                ]
-            except ValidationError as exc:
-                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid") from exc
-            except (TypeError, ValueError) as exc:
-                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid") from exc
+        canonical_descriptor = self._resolve_canonical_descriptor(dataset_id=normalized_dataset_id)
+        lookback_snapshots = self._resolve_lookback_snapshots(dataset_id=normalized_dataset_id)
 
         return {
             **metadata_payload,
@@ -822,3 +782,49 @@ class DatasetDiscoveryService:
             "lookback_trend_snapshots": lookback_snapshots,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }
+
+    def _resolve_canonical_descriptor(self, *, dataset_id: str) -> dict[str, Any]:
+        descriptor = CanonicalTrendDescriptor(
+            descriptor_state="unavailable",
+            trend_label=None,
+            direction=None,
+            strength=None,
+            selected_lookback_points=None,
+            observed_on=None,
+            reason_code="missing_canonical_descriptor",
+        ).model_dump()
+        if not hasattr(self._repository, "get_latest_dataset_canonical_trend_descriptor"):
+            return descriptor
+
+        raw_canonical = self._repository.get_latest_dataset_canonical_trend_descriptor(
+            dataset_id=dataset_id
+        )
+        if raw_canonical is None:
+            return descriptor
+        if not isinstance(raw_canonical, dict):
+            raise ContractQueryError("dataset_detail_canonical_payload_invalid")
+
+        try:
+            return CanonicalTrendDescriptor.model_validate(raw_canonical).model_dump()
+        except (ValidationError, TypeError, ValueError) as exc:
+            raise ContractQueryError("dataset_detail_canonical_payload_invalid") from exc
+
+    def _resolve_lookback_snapshots(self, *, dataset_id: str) -> list[dict[str, Any]]:
+        if not hasattr(self._repository, "list_dataset_lookback_trend_snapshots"):
+            return []
+
+        raw_lookbacks = self._repository.list_dataset_lookback_trend_snapshots(
+            dataset_id=dataset_id
+        )
+        if not isinstance(raw_lookbacks, list):
+            raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+        if not all(isinstance(snapshot, dict) for snapshot in raw_lookbacks):
+            raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+
+        try:
+            return [
+                LookbackTrendSnapshot.model_validate(snapshot).model_dump()
+                for snapshot in raw_lookbacks
+            ]
+        except (ValidationError, TypeError, ValueError) as exc:
+            raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid") from exc

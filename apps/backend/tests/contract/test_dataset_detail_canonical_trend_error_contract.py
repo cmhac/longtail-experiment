@@ -32,7 +32,10 @@ def test_dataset_detail_invalid_canonical_payload_raises_contract_error() -> Non
     )
     service = DatasetDiscoveryService(repository)
 
-    with pytest.raises(ContractQueryError, match="dataset_detail_canonical_payload_invalid"):
+    with pytest.raises(
+        ContractQueryError,
+        match="dataset_detail_canonical_payload_invalid",
+    ):
         execute_dataset_detail(
             service,
             dataset_id="UNRATE",
@@ -52,7 +55,9 @@ def test_dataset_detail_invalid_lookback_snapshot_payload_raises_contract_error(
     )
     service = DatasetDiscoveryService(repository)
 
-    with pytest.raises(ContractQueryError, match="dataset_detail_lookback_snapshot_payload_invalid"):
+    with pytest.raises(
+        ContractQueryError, match="dataset_detail_lookback_snapshot_payload_invalid"
+    ):
         execute_dataset_detail(
             service,
             dataset_id="UNRATE",

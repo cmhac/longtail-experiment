@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import os
 import socket
 import sys
 import threading
@@ -25,6 +26,7 @@ from src.http_api_server import (
     _env_value,
     _make_service,
     _require_schema_readiness,
+    _resolve_expected_revision,
     main,
 )
 from src.query.dataset_discovery_service import DatasetDiscoveryService
@@ -90,6 +92,30 @@ def test_schema_readiness_wraps_sqlalchemy_errors() -> None:
         _require_schema_readiness(
             engine=_BoomEngine(), expected_revision="0010_source_profile_metadata"
         )
+
+
+def test_resolve_expected_revision_prefers_env_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DISCOVERY_EXPECTED_DB_REVISION", "override_head")
+
+    assert _resolve_expected_revision(environment=os.environ) == "override_head"
+
+
+def test_resolve_expected_revision_uses_alembic_head_when_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakeScriptDirectory:
+        def get_current_head(self) -> str:
+            return "derived_head"
+
+    monkeypatch.delenv("DISCOVERY_EXPECTED_DB_REVISION", raising=False)
+    monkeypatch.setattr(
+        "src.http_api_server.ScriptDirectory.from_config",
+        lambda _config: _FakeScriptDirectory(),
+    )
+
+    assert _resolve_expected_revision(environment={}) == "derived_head"
 
 
 def test_make_service_builds_persisted_runtime_service(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -28,7 +28,7 @@ class CanonicalTrendDescriptor(BaseModel):
     reason_code: str | None = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
-    def validate_available_descriptor_fields(self) -> "CanonicalTrendDescriptor":
+    def validate_available_descriptor_fields(self) -> CanonicalTrendDescriptor:
         """Require full descriptor fields when canonical state is available."""
         if self.descriptor_state == "available":
             required_values = (
@@ -55,7 +55,7 @@ class LookbackTrendSnapshot(BaseModel):
     reason_code: str | None = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
-    def validate_lookback_applicability_fields(self) -> "LookbackTrendSnapshot":
+    def validate_lookback_applicability_fields(self) -> LookbackTrendSnapshot:
         """Require outcome fields for applicable lookbacks."""
         if self.applicability_state == "applicable":
             if self.outcome_state is None:

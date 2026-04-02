@@ -19,4 +19,3 @@ def test_legacy_sources_package_reexports_fred_workflow_symbols() -> None:
         "FRED_FEDFUNDS_SOURCE_KEY",
         "build_fred_fedfunds_source_workflow",
     }
-

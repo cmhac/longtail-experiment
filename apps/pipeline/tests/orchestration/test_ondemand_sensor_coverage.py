@@ -51,4 +51,3 @@ def test_ondemand_sensor_run_request_path_with_token_cursor() -> None:
         "requested_by": "ondemand_sensor",
         "source_selection_mode": "operator_requested",
     }
-

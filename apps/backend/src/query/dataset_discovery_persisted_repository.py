@@ -685,9 +685,7 @@ class PersistedDatasetDiscoveryRepository:
             observed_on_value = str(observed_on) if observed_on is not None else None
         return {
             "descriptor_state": str(row["descriptor_state"]),
-            "trend_label": (
-                str(row["trend_label"]) if row["trend_label"] is not None else None
-            ),
+            "trend_label": (str(row["trend_label"]) if row["trend_label"] is not None else None),
             "direction": str(row["direction"]) if row["direction"] is not None else None,
             "strength": str(row["strength"]) if row["strength"] is not None else None,
             "selected_lookback_points": (
@@ -696,9 +694,7 @@ class PersistedDatasetDiscoveryRepository:
                 else None
             ),
             "observed_on": observed_on_value,
-            "reason_code": (
-                str(row["reason_code"]) if row["reason_code"] is not None else None
-            ),
+            "reason_code": (str(row["reason_code"]) if row["reason_code"] is not None else None),
         }
 
     def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, object]]:

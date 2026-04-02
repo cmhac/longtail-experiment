@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.ingest_job import execute_ingest_run
 from src.orchestration.jobs.source_assets.authority_state import SchedulingAuthorityState
 from src.orchestration.jobs.source_assets.series_catalog import SeriesCatalogEntry
+
+INVALID_SOURCE_FAILURE_COUNT = 2
 
 
 class _Coordinator:
@@ -74,8 +77,14 @@ def _authority() -> SchedulingAuthorityState:
         authority_mode="dagster_only",
         legacy_paths_disabled=True,
         partial_failure_mode=False,
-        cutover_completed_at=datetime.now(),
+        cutover_completed_at=datetime.now(tz=UTC),
     )
+
+
+def _invoke_execute_ingest_run(context: _Context) -> dict[str, object]:
+    compute_fn = cast(Any, execute_ingest_run.compute_fn)
+    decorated_fn = cast(Any, getattr(compute_fn, "decorated_fn", compute_fn))
+    return cast(dict[str, object], decorated_fn(context))
 
 
 def test_execute_ingest_run_rejects_invalid_requested_keys() -> None:
@@ -95,10 +104,10 @@ def test_execute_ingest_run_rejects_invalid_requested_keys() -> None:
         },
     )
 
-    result = execute_ingest_run.compute_fn.decorated_fn(context)
+    result = _invoke_execute_ingest_run(context)
 
     assert result["outcome_state"] == "failure"
-    assert result["failed_source_count"] == 2
+    assert result["failed_source_count"] == INVALID_SOURCE_FAILURE_COUNT
     assert coordinator.calls == []
 
 
@@ -129,13 +138,13 @@ def test_execute_ingest_run_includes_recovery_plan_on_failed_sources() -> None:
         tags={"trigger_type": "scheduled", "requested_by": "unit-test"},
     )
 
-    result = execute_ingest_run.compute_fn.decorated_fn(context)
+    result = _invoke_execute_ingest_run(context)
 
     assert result["run_id"] == "run-2"
     assert result["failed_source_count"] == 1
     assert "recovery_plan" in result
-    recovery = result["recovery_plan"]
-    assert isinstance(recovery, dict)
+    assert isinstance(result["recovery_plan"], dict)
+    recovery = cast(dict[str, object], result["recovery_plan"])
     assert recovery["authority_mode"] == "dagster_only"
     assert recovery["failed_sources"] == ["bls"]
 
@@ -164,7 +173,7 @@ def test_execute_ingest_run_logs_warning_when_deferred_sources_present() -> None
         tags={"trigger_type": "scheduled", "requested_by": "unit-test"},
     )
 
-    result = execute_ingest_run.compute_fn.decorated_fn(context)
+    result = _invoke_execute_ingest_run(context)
 
     assert result["deferred_source_count"] == 1
     warning_messages = [entry for entry in context.log.messages if entry[0] == "warning"]

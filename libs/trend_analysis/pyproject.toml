@@ -29,6 +29,9 @@ select = [
 ]
 ignore = ["D212", "D203"]
 
+[tool.ruff.lint.per-file-ignores]
+"src/trend_analysis/models.py" = ["PLR0913"]
+
 [tool.pytest.ini_options]
 addopts = "-q --maxfail=1 --cov=libs/trend_analysis/src --cov-report=term-missing --cov-fail-under=90"
 testpaths = ["libs/trend_analysis/tests"]

@@ -125,7 +125,7 @@ def build_lookback_applicability_result(
     )
 
 
-def build_lookback_snapshot_result(  # noqa: PLR0913
+def build_lookback_snapshot_result(
     *,
     lookback_points: int,
     outcome_state: LookbackOutcomeState,
@@ -148,7 +148,7 @@ def build_lookback_snapshot_result(  # noqa: PLR0913
     )
 
 
-def build_canonical_descriptor(  # noqa: PLR0913
+def build_canonical_descriptor(
     *,
     descriptor_state: CanonicalDescriptorState,
     trend_label: str | None,

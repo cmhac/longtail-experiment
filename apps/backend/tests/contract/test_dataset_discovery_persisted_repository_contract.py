@@ -64,29 +64,30 @@ class _FakeConnection:
             filtered.sort(key=lambda row: (row["observed_on"], row["reported_at"]))
             return _FakeResult(filtered)
 
-        if "FROM trend_records tr" in sql and "LIMIT :limit" in sql:
-            params = parameters or {}
-            limit = int(params.get("limit", 0))
-            rows = sorted(
-                self._trend_event_rows,
-                key=lambda row: (
-                    row["start_period"],
-                    row["dataset_id"],
-                ),
-                reverse=True,
-            )
-            return _FakeResult(rows[:limit])
+        if "FROM trend_records tr" in sql:
+            if "LIMIT :limit" in sql:
+                params = parameters or {}
+                limit = int(params.get("limit", 0))
+                rows = sorted(
+                    self._trend_event_rows,
+                    key=lambda row: (
+                        row["start_period"],
+                        row["dataset_id"],
+                    ),
+                    reverse=True,
+                )
+                return _FakeResult(rows[:limit])
 
-        if "FROM trend_records tr" in sql and "WHERE ds.series_key = :dataset_id" in sql:
-            params = parameters or {}
-            dataset_id = str(params.get("dataset_id", ""))
-            rows = [
-                row
-                for row in self._trend_event_rows
-                if str(row.get("dataset_id", "")) == dataset_id
-            ]
-            rows.sort(key=lambda row: (row["start_period"], row["created_at"]))
-            return _FakeResult(rows)
+            if "WHERE ds.series_key = :dataset_id" in sql:
+                params = parameters or {}
+                dataset_id = str(params.get("dataset_id", ""))
+                rows = [
+                    row
+                    for row in self._trend_event_rows
+                    if str(row.get("dataset_id", "")) == dataset_id
+                ]
+                rows.sort(key=lambda row: (row["start_period"], row["created_at"]))
+                return _FakeResult(rows)
         if "FROM trend_canonical_descriptors tcd" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
@@ -106,10 +107,9 @@ class _FakeConnection:
         if "FROM trend_lookback_evaluations tle" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
-            if dataset_id != "INT.US.FEDFUNDS":
-                return _FakeResult([])
-            return _FakeResult(
-                [
+            rows: list[dict[str, Any]] = []
+            if dataset_id == "INT.US.FEDFUNDS":
+                rows = [
                     {
                         "lookback_points": 10,
                         "applicability_state": "applicable",
@@ -129,7 +129,7 @@ class _FakeConnection:
                         "reason_code": "insufficient_history",
                     },
                 ]
-            )
+            return _FakeResult(rows)
 
         raise AssertionError(f"Unexpected SQL executed: {sql}")
 

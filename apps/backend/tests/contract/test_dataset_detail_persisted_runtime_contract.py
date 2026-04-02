@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.query.dataset_discovery_service import DatasetDiscoveryService
 
+EXPECTED_LOOKBACK_POINTS = 25
+
 
 class _PersistedDetailRepoStub:
     def search_datasets(self, *, query_text: str | None, page: int, page_size: int):
@@ -108,5 +110,5 @@ def test_detail_contract_uses_persisted_observations_and_sort_metadata() -> None
     ]
     assert payload["metadata"]["unit_type"] == "percent"
     assert payload["canonical_trend_descriptor"]["descriptor_state"] == "available"
-    assert payload["lookback_trend_snapshots"][0]["lookback_points"] == 25
+    assert payload["lookback_trend_snapshots"][0]["lookback_points"] == EXPECTED_LOOKBACK_POINTS
     assert payload["observation_sort"] == "observed_on_asc,reported_at_asc"

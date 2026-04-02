@@ -74,7 +74,6 @@ services:
       LOCAL_DB_USER: ${LOCAL_DB_USER:-longtail}
       LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
       DATABASE_URL: postgresql+psycopg://${LOCAL_DB_USER:-longtail}:${LOCAL_DB_PASSWORD:-longtail}@db:5432/${LOCAL_DB_NAME:-longtail_local}
-      DISCOVERY_EXPECTED_DB_REVISION: 0011_trend_lifecycle_tables
     working_dir: /workspace
     command:
       [

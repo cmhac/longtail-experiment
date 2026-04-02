@@ -13,4 +13,3 @@ from src.orchestration.schedules import ingest_schedule
 def test_shared_ingest_schedule_is_marked_retired() -> None:
     """Shared schedule module should expose an explicit retirement marker."""
     assert ingest_schedule.SHARED_SCHEDULE_RETIRED is True
-

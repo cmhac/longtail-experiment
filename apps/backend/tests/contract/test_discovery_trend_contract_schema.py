@@ -15,6 +15,8 @@ from src.contract.discovery_trends import (
     TrendFeedItemContract,
 )
 
+EXPECTED_LOOKBACK_POINTS = 25
+
 
 def test_trend_feed_item_contract_minimal_shape() -> None:
     item: TrendFeedItemContract = {
@@ -58,4 +60,4 @@ def test_lookback_snapshot_contract_shape() -> None:
         "strength": "moderate",
         "reason_code": None,
     }
-    assert snapshot["lookback_points"] == 25
+    assert snapshot["lookback_points"] == EXPECTED_LOOKBACK_POINTS

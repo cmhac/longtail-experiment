@@ -23,7 +23,11 @@ class _FakeResult:
 
 
 class _FakeConnection:
-    def execute(self, statement: object, parameters: dict[str, object] | None = None) -> _FakeResult:
+    def execute(
+        self,
+        statement: object,
+        parameters: dict[str, object] | None = None,
+    ) -> _FakeResult:
         params = parameters or {}
         dataset_id = str(params.get("dataset_id", ""))
         sql = str(statement)
@@ -83,6 +87,7 @@ class _FakeEngine:
 
 
 def test_repository_reads_latest_canonical_descriptor_projection() -> None:
+    """Repository should return canonical descriptor for the requested dataset."""
     repository = PersistedDatasetDiscoveryRepository(engine=_FakeEngine())  # type: ignore[arg-type]
 
     payload = repository.get_latest_dataset_canonical_trend_descriptor(dataset_id="UNRATE")
@@ -99,6 +104,8 @@ def test_repository_reads_latest_canonical_descriptor_projection() -> None:
 
 
 def test_repository_returns_none_when_no_canonical_descriptor_exists() -> None:
+    """Repository should return None when no canonical descriptor row exists."""
+
     class _NoRowsConnection(_FakeConnection):
         def execute(
             self, statement: object, parameters: dict[str, object] | None = None
@@ -121,6 +128,7 @@ def test_repository_returns_none_when_no_canonical_descriptor_exists() -> None:
 
 
 def test_repository_reads_lookback_snapshot_projection_for_latest_observation() -> None:
+    """Repository should return lookback snapshots for latest evaluated observation."""
     repository = PersistedDatasetDiscoveryRepository(engine=_FakeEngine())  # type: ignore[arg-type]
 
     payload = repository.list_dataset_lookback_trend_snapshots(dataset_id="UNRATE")
