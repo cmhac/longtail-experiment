@@ -90,3 +90,44 @@ def test_dataset_detail_returns_empty_lookback_snapshot_list_when_absent() -> No
     ).model_dump()
 
     assert response["lookback_trend_snapshots"] == []
+
+
+def test_dataset_detail_allows_applicable_no_significant_trend_snapshot_shape() -> None:
+    datasets, observations = build_discovery_rows()
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=observations,
+        lookback_snapshots_by_dataset={
+            "UNRATE": [
+                {
+                    "lookback_points": 2,
+                    "applicability_state": "applicable",
+                    "outcome_state": "no_significant_trend",
+                    "trend_label": None,
+                    "direction": None,
+                    "strength": None,
+                    "reason_code": "applicable",
+                }
+            ]
+        },
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = execute_dataset_detail(
+        service,
+        dataset_id="UNRATE",
+        from_date=None,
+        to_date=None,
+    ).model_dump()
+
+    assert response["lookback_trend_snapshots"] == [
+        {
+            "lookback_points": 2,
+            "applicability_state": "applicable",
+            "outcome_state": "no_significant_trend",
+            "trend_label": None,
+            "direction": None,
+            "strength": None,
+            "reason_code": "applicable",
+        }
+    ]

@@ -242,7 +242,7 @@ class PostgresTrendRepository:
                             SELECT id FROM data_series WHERE series_key = :series_key
                         ),
                         COALESCE(
-                            :observation_id::uuid,
+                            CAST(:observation_id AS UUID),
                             (
                                 SELECT o.id
                                 FROM observations o
@@ -308,7 +308,7 @@ class PostgresTrendRepository:
                             SELECT id FROM data_series WHERE series_key = :series_key
                         ),
                         COALESCE(
-                            :observation_id::uuid,
+                            CAST(:observation_id AS UUID),
                             (
                                 SELECT o.id
                                 FROM observations o
@@ -385,7 +385,7 @@ class PostgresTrendRepository:
                             SELECT id FROM data_series WHERE series_key = :series_key
                         ),
                         COALESCE(
-                            :observation_id::uuid,
+                            CAST(:observation_id AS UUID),
                             (
                                 SELECT o.id
                                 FROM observations o

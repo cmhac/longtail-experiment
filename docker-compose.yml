@@ -80,7 +80,7 @@ services:
       [
         "sh",
         "-c",
-        "uv sync --project apps/backend --frozen && uv run --project apps/backend alembic -c libs/db/alembic.ini upgrade head && uv run --project apps/backend python -m src.http_api_server --host 0.0.0.0 --port 8080",
+        "if [ ! -x apps/backend/.venv/bin/alembic ]; then uv sync --project apps/backend --frozen; fi && uv run --project apps/backend --no-sync alembic -c libs/db/alembic.ini upgrade head && uv run --project apps/backend --no-sync python -m src.http_api_server --host 0.0.0.0 --port 8080",
       ]
     volumes:
       - ./:/workspace
@@ -149,7 +149,7 @@ services:
       [
         "sh",
         "-c",
-        'mkdir -p "$${DAGSTER_HOME}" && cp apps/pipeline/dagster.yaml "$${DAGSTER_HOME}/dagster.yaml" && uv sync --project apps/pipeline --frozen && uv run --project apps/pipeline dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
+        'mkdir -p "$${DAGSTER_HOME}" && cp apps/pipeline/dagster.yaml "$${DAGSTER_HOME}/dagster.yaml" && if [ ! -x apps/pipeline/.venv/bin/dagster ]; then uv sync --project apps/pipeline --frozen; fi && uv run --project apps/pipeline --no-sync dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
       ]
     volumes:
       - ./:/workspace

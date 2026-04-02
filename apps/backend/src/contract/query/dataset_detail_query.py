@@ -15,6 +15,7 @@ class DatasetObservationPoint(BaseModel):
     reported_at: str = Field(min_length=1)
     attributes: dict[str, object] = Field(default_factory=dict)
 
+
 class CanonicalTrendDescriptor(BaseModel):
     """Canonical trend descriptor payload for dataset detail responses."""
 
@@ -57,14 +58,16 @@ class LookbackTrendSnapshot(BaseModel):
     def validate_lookback_applicability_fields(self) -> "LookbackTrendSnapshot":
         """Require outcome fields for applicable lookbacks."""
         if self.applicability_state == "applicable":
-            required_values = (
-                self.outcome_state,
-                self.trend_label,
-                self.direction,
-                self.strength,
-            )
-            if any(value is None for value in required_values):
+            if self.outcome_state is None:
                 raise ValueError("applicable lookback snapshots must include outcome fields")
+            if self.outcome_state == "significant_trend":
+                required_values = (
+                    self.trend_label,
+                    self.direction,
+                    self.strength,
+                )
+                if any(value is None for value in required_values):
+                    raise ValueError("significant lookback snapshots must include trend fields")
         return self
 
 
