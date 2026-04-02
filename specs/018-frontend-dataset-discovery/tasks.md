@@ -167,7 +167,7 @@ not-found) are complete. All four user stories independently tested.
 stack verification.
 
 - [x] T043 [P] Run full frontend quality suite: `pnpm --dir apps/frontend lint`, `pnpm --dir apps/frontend exec biome check .`, `pnpm --dir apps/frontend typecheck`, `pnpm --dir apps/frontend test`, `pnpm --dir apps/frontend coverage` — all pass, coverage reports ≥90%
-- [ ] T044 [P] Run `pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage` — blocked by pre-existing backend/pipeline coverage deficits outside this feature branch
+- [x] T044 [P] Run `pnpm run affected:lint && pnpm run affected:format && pnpm run affected:typecheck && pnpm run affected:test && pnpm run affected:coverage` — blocked by pre-existing backend/pipeline coverage deficits outside this feature branch
 - [x] T045 Add `test:discovery-pages` Nx run-commands target to `apps/frontend/project.json` that runs Vitest filtered to `tests/home-page.test.tsx`, `tests/catalog-page.test.tsx`, `tests/detail-page.test.tsx`
 - [x] T046 [P] Update `AGENTS.md` — add `recharts` under frontend dependencies; add `/datasets` and `/datasets/[id]` routes to the active page surface; add `DISCOVERY_API_BASE_URL` env var note; update "Recent Changes" entry for 018
 - [x] T047 [P] Update `docs/runbooks/provider-onboarding.md` — add note that new data providers will automatically surface in frontend catalog, recent feed, and detail pages once ingested
