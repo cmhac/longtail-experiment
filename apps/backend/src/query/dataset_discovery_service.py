@@ -142,9 +142,7 @@ def _resolve_summary_canonical_descriptor(
     try:
         return SummaryCanonicalTrendDescriptor.model_validate(payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
-        raise ContractQueryError(
-            f"dataset_summary_canonical_payload_invalid:{dataset_id}"
-        ) from exc
+        raise ContractQueryError(f"dataset_summary_canonical_payload_invalid:{dataset_id}") from exc
 
 
 def _project_dataset_summary_item(item: dict[str, Any]) -> dict[str, Any]:
@@ -279,9 +277,7 @@ class DatasetDiscoveryService:
             if not isinstance(items, list) or not isinstance(total_items, int):
                 raise ContractQueryError("Repository returned invalid search payload")
         projected = [
-            _project_dataset_summary_item(item)
-            for item in items
-            if isinstance(item, dict)
+            _project_dataset_summary_item(item) for item in items if isinstance(item, dict)
         ]
         if len(projected) != len(items):
             raise ContractQueryError("Repository returned invalid search item")
@@ -501,9 +497,7 @@ class DatasetDiscoveryService:
             if not isinstance(items, list) or not isinstance(total_items, int):
                 raise ContractQueryError("Repository returned invalid catalog payload")
         projected = [
-            _project_dataset_summary_item(item)
-            for item in items
-            if isinstance(item, dict)
+            _project_dataset_summary_item(item) for item in items if isinstance(item, dict)
         ]
         if len(projected) != len(items):
             raise ContractQueryError("Repository returned invalid catalog item")
@@ -631,9 +625,7 @@ class DatasetDiscoveryService:
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid source dataset_count")
         projected = [
-            _project_dataset_summary_item(item)
-            for item in items
-            if isinstance(item, dict)
+            _project_dataset_summary_item(item) for item in items if isinstance(item, dict)
         ]
         if len(projected) != len(items):
             raise ContractQueryError("Repository returned invalid source detail item")
@@ -716,9 +708,7 @@ class DatasetDiscoveryService:
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid topic dataset_count")
         projected = [
-            _project_dataset_summary_item(item)
-            for item in items
-            if isinstance(item, dict)
+            _project_dataset_summary_item(item) for item in items if isinstance(item, dict)
         ]
         if len(projected) != len(items):
             raise ContractQueryError("Repository returned invalid topic detail item")
@@ -795,9 +785,7 @@ class DatasetDiscoveryService:
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid geography dataset_count")
         projected = [
-            _project_dataset_summary_item(item)
-            for item in items
-            if isinstance(item, dict)
+            _project_dataset_summary_item(item) for item in items if isinstance(item, dict)
         ]
         if len(projected) != len(items):
             raise ContractQueryError("Repository returned invalid geography detail item")

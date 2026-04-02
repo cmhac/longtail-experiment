@@ -127,4 +127,7 @@ def test_source_topic_and_geography_summary_items_include_canonical_trend_descri
     assert geography_items["UNRATE"]["canonical_trend_descriptor"] == expected_unrate_descriptor
 
     for item in source_payload["items"] + topic_payload["items"] + geography_payload["items"]:
-        assert item["canonical_trend_descriptor"]["descriptor_state"] in {"available", "unavailable"}
+        assert item["canonical_trend_descriptor"]["descriptor_state"] in {
+            "available",
+            "unavailable",
+        }

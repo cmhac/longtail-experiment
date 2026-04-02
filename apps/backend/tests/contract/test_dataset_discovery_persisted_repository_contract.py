@@ -41,7 +41,11 @@ class _FakeConnection:
         self._trend_event_rows = trend_event_rows
         self._canonical_descriptor_rows = canonical_descriptor_rows
 
-    def execute(self, statement: object, parameters: dict[str, Any] | None = None) -> _FakeResult:
+    def execute(  # noqa: PLR0911, PLR0912
+        self,
+        statement: object,
+        parameters: dict[str, Any] | None = None,
+    ) -> _FakeResult:
         sql = str(statement)
         if "FROM data_series ds" in sql and "MAX(o.reported_at)" in sql:
             return _FakeResult(self._dataset_rows)

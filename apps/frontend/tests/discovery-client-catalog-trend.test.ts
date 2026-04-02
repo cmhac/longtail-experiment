@@ -26,64 +26,61 @@ describe("discovery client summary canonical descriptor mapping", () => {
     process.env.DISCOVERY_API_BASE_URL = originalEnv;
   });
 
-  it(
-    "normalizes missing canonical descriptor to unavailable on search and catalog rows",
-    async () => {
-      vi.spyOn(globalThis, "fetch")
-        .mockResolvedValueOnce(
-          mockJsonResponse({
-            items: [
-              {
-                dataset_id: "UNRATE",
-                source: { id: "fred", name: "FRED" },
-                title: "Unemployment Rate",
-                description: null,
-                geographic_scope: "US",
-                topic_tags: ["labor"],
-                latest_update_at: "2026-03-24T00:00:00Z",
-              },
-            ],
-            page: 1,
-            page_size: 20,
-            total_items: 1,
-            total_pages: 1,
-            sort: "latest_update_at_desc,title_asc,dataset_id_asc",
-          }),
-        )
-        .mockResolvedValueOnce(
-          mockJsonResponse({
-            items: [
-              {
-                dataset_id: "UNRATE",
-                source: { id: "fred", name: "FRED" },
-                title: "Unemployment Rate",
-                description: null,
-                geographic_scope: "US",
-                topic_tags: ["labor"],
-                latest_update_at: "2026-03-24T00:00:00Z",
-              },
-            ],
-            groups: [],
-            aggregations: {
-              total_dataset_count: 1,
-              sources: [],
-              categories: [],
+  it("normalizes missing canonical descriptor to unavailable on search and catalog rows", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          items: [
+            {
+              dataset_id: "UNRATE",
+              source: { id: "fred", name: "FRED" },
+              title: "Unemployment Rate",
+              description: null,
+              geographic_scope: "US",
+              topic_tags: ["labor"],
+              latest_update_at: "2026-03-24T00:00:00Z",
             },
-            page: 1,
-            page_size: 20,
-            total_items: 1,
-            total_pages: 1,
-            sort: "latest_update_at_desc,title_asc,dataset_id_asc",
-          }),
-        );
+          ],
+          page: 1,
+          page_size: 20,
+          total_items: 1,
+          total_pages: 1,
+          sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          items: [
+            {
+              dataset_id: "UNRATE",
+              source: { id: "fred", name: "FRED" },
+              title: "Unemployment Rate",
+              description: null,
+              geographic_scope: "US",
+              topic_tags: ["labor"],
+              latest_update_at: "2026-03-24T00:00:00Z",
+            },
+          ],
+          groups: [],
+          aggregations: {
+            total_dataset_count: 1,
+            sources: [],
+            categories: [],
+          },
+          page: 1,
+          page_size: 20,
+          total_items: 1,
+          total_pages: 1,
+          sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+        }),
+      );
 
-      const search = await fetchDatasetSearch({ q: "rate" });
-      const catalog = await fetchDatasetCatalog({});
+    const search = await fetchDatasetSearch({ q: "rate" });
+    const catalog = await fetchDatasetCatalog({});
 
-      expect(search.items[0]?.canonical_trend_descriptor?.descriptor_state).toBe("unavailable");
-      expect(catalog.items[0]?.canonical_trend_descriptor?.descriptor_state).toBe("unavailable");
-    },
-  );
+    expect(search.items[0]?.canonical_trend_descriptor?.descriptor_state).toBe("unavailable");
+    expect(catalog.items[0]?.canonical_trend_descriptor?.descriptor_state).toBe("unavailable");
+  });
 
   it("preserves provided canonical descriptor for recent dataset_update items", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
