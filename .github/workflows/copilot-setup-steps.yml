@@ -1,0 +1,108 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 59
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Enable Corepack and pnpm 9
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.0.0 --activate
+          node --version
+          pnpm --version
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Set up Java for PMD
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install system dependencies for local tooling scripts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            curl \
+            jq \
+            unzip \
+            wget \
+            docker-compose-plugin
+
+      - name: Verify docker and docker compose
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Install PMD 7.22.0
+        run: |
+          PMD_VERSION="7.22.0"
+          PMD_DIR="${HOME}/pmd-bin-${PMD_VERSION}"
+
+          if [ ! -x "${PMD_DIR}/bin/pmd" ]; then
+            wget -q "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" -O /tmp/pmd.zip
+            unzip -q /tmp/pmd.zip -d "${HOME}"
+          fi
+
+          echo "${PMD_DIR}/bin" >> "${GITHUB_PATH}"
+          "${PMD_DIR}/bin/pmd" --version
+
+      - name: Install repository JavaScript dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Python dependencies via uv
+        run: |
+          uv --version
+          uv sync --project apps/backend --frozen
+          uv sync --project apps/pipeline --frozen
+
+      - name: Install pre-commit and prepare hooks
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pre-commit
+          pre-commit --version
+          pre-commit install-hooks
+
+      - name: Ensure compose secret env file exists for local stack commands
+        run: |
+          if [ ! -f docker/compose/local.secrets.env ]; then
+            printf "FRED_API_KEY=%s\nDAGSTER_METADATA_DB_PASSWORD=%s\n" "${FRED_API_KEY:-dummy}" "${DAGSTER_METADATA_DB_PASSWORD:-longtail}" > docker/compose/local.secrets.env
+          fi
+
+      - name: Verify Nx, uv, and compose configuration
+        run: |
+          pnpm exec nx --version
+          pnpm exec nx show projects >/dev/null
+          uv run --project apps/backend python -V
+          uv run --project apps/pipeline python -V
+          docker compose config -q
