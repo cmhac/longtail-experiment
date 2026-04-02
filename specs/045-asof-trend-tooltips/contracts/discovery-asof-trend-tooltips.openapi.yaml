@@ -1,0 +1,186 @@
+openapi: 3.1.0
+info:
+  title: Discovery Dataset Detail As-Of Trend Tooltip Contract
+  version: 0.1.0
+  description: >
+    Contract update for observation-level historical as-of trend descriptors in
+    dataset-detail payloads so frontend tooltips can render one trend indicator
+    chip per hovered observation.
+paths:
+  /api/datasets/{datasetId}:
+    get:
+      summary: Get dataset detail with per-observation as-of trend descriptors
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dataset detail response with observation-level as-of trend state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetDetailResponse"
+        "500":
+          description: Contract validation failure for malformed as-of trend payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+components:
+  schemas:
+    ApiErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [dataset_detail_contract_error]
+            message:
+              type: string
+
+    SourceRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    CanonicalTrendDescriptor:
+      type: object
+      required: [descriptor_state]
+      properties:
+        descriptor_state:
+          type: string
+          enum: [available, unavailable]
+        trend_label:
+          type: string
+          nullable: true
+        direction:
+          type: string
+          enum: [up, down]
+          nullable: true
+        strength:
+          type: string
+          nullable: true
+        selected_lookback_points:
+          type: integer
+          nullable: true
+        observed_on:
+          type: string
+          format: date
+          nullable: true
+        reason_code:
+          type: string
+          nullable: true
+
+    ObservationAsOfTrendDescriptor:
+      allOf:
+        - $ref: "#/components/schemas/CanonicalTrendDescriptor"
+      description: >
+        Observation-scoped as-of trend descriptor used by chart tooltip rendering.
+
+    LookbackTrendSnapshot:
+      type: object
+      required:
+        - lookback_points
+        - applicability_state
+      properties:
+        lookback_points:
+          type: integer
+          enum: [1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000]
+        applicability_state:
+          type: string
+          enum: [applicable, inapplicable]
+        outcome_state:
+          type: string
+          enum: [significant_trend, no_significant_trend]
+          nullable: true
+        trend_label:
+          type: string
+          nullable: true
+        direction:
+          type: string
+          enum: [up, down]
+          nullable: true
+        strength:
+          type: string
+          nullable: true
+        reason_code:
+          type: string
+          nullable: true
+
+    ObservationPoint:
+      type: object
+      required:
+        - observed_on
+        - value
+        - reported_at
+        - attributes
+        - as_of_trend_descriptor
+      properties:
+        observed_on:
+          type: string
+          format: date
+        value:
+          type: number
+        reported_at:
+          type: string
+          format: date-time
+        attributes:
+          type: object
+          additionalProperties: true
+        as_of_trend_descriptor:
+          $ref: "#/components/schemas/ObservationAsOfTrendDescriptor"
+
+    DatasetDetailResponse:
+      type: object
+      required:
+        - dataset_id
+        - source
+        - title
+        - metadata
+        - observations
+        - observation_sort
+        - canonical_trend_descriptor
+      properties:
+        dataset_id:
+          type: string
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        geographic_scope:
+          type: string
+          nullable: true
+        topic_tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        observations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ObservationPoint"
+        canonical_trend_descriptor:
+          $ref: "#/components/schemas/CanonicalTrendDescriptor"
+        lookback_trend_snapshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/LookbackTrendSnapshot"
+        observation_sort:
+          type: string
