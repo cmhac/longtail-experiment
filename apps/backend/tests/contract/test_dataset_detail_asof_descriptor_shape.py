@@ -1,0 +1,85 @@
+"""US2 contract coverage for observation-level as-of descriptor shape."""
+
+# ruff: noqa: D103
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from src.query.dataset_detail_query import execute_dataset_detail
+from src.query.dataset_discovery_service import DatasetDiscoveryService
+from tests.contract.fixtures.dataset_detail_asof_trend_fixtures import (
+    build_observation_asof_available_descriptor,
+)
+from tests.fixtures.dataset_discovery_factory import build_discovery_rows
+from tests.fixtures.dataset_discovery_repository import InMemoryDatasetDiscoveryRepository
+
+
+def test_dataset_detail_includes_observation_asof_descriptor_fields_per_observation() -> None:
+    lookback_points = 25
+    datasets, observations = build_discovery_rows()
+    seeded_observations = [dict(observation) for observation in observations]
+    seeded_observations[0]["as_of_trend_descriptor"] = build_observation_asof_available_descriptor(
+        observed_on="2026-01-01",
+        selected_lookback_points=50,
+    )
+    repository = InMemoryDatasetDiscoveryRepository(
+        datasets=datasets,
+        observations=seeded_observations,
+        canonical_trends_by_dataset={
+            "UNRATE": {
+                "descriptor_state": "available",
+                "trend_label": "mild_sustained_downtrend",
+                "direction": "down",
+                "strength": "mild",
+                "selected_lookback_points": lookback_points,
+                "observed_on": "2026-02-01",
+                "reason_code": None,
+            }
+        },
+        lookback_snapshots_by_dataset={
+            "UNRATE": [
+                {
+                    "lookback_points": lookback_points,
+                    "applicability_state": "applicable",
+                    "outcome_state": "significant_trend",
+                    "trend_label": "mild_sustained_downtrend",
+                    "direction": "down",
+                    "strength": "mild",
+                    "reason_code": None,
+                }
+            ]
+        },
+    )
+    service = DatasetDiscoveryService(repository)
+
+    response = execute_dataset_detail(
+        service,
+        dataset_id="UNRATE",
+        from_date=None,
+        to_date=None,
+    ).model_dump()
+
+    asof_keys = {
+        "descriptor_state",
+        "trend_label",
+        "direction",
+        "strength",
+        "selected_lookback_points",
+        "observed_on",
+        "reason_code",
+    }
+    assert all("as_of_trend_descriptor" in observation for observation in response["observations"])
+    assert all(
+        set(observation["as_of_trend_descriptor"].keys()) == asof_keys
+        for observation in response["observations"]
+    )
+    assert response["observations"][0]["as_of_trend_descriptor"]["descriptor_state"] == "available"
+    assert (
+        response["observations"][1]["as_of_trend_descriptor"]["descriptor_state"] == "unavailable"
+    )
+    assert response["canonical_trend_descriptor"]["descriptor_state"] == "available"
+    assert response["lookback_trend_snapshots"][0]["lookback_points"] == lookback_points

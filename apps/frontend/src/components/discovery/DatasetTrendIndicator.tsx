@@ -31,6 +31,16 @@ const getIndicatorContent = (descriptor?: CanonicalTrendDescriptor): IndicatorCo
     return null;
   }
 
+  if (descriptor.descriptor_state === "unavailable") {
+    return {
+      glyph: "–",
+      label: "Trend unavailable",
+      state: "unavailable",
+      chipColor: "default",
+      accentClassName: "text-(--shell-muted)",
+    };
+  }
+
   if (
     descriptor.descriptor_state === "available" &&
     (descriptor.direction === "up" || descriptor.direction === "down")

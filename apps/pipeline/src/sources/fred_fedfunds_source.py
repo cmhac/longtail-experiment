@@ -249,6 +249,7 @@ def build_fred_fedfunds_source_workflow(
                     rows=raw_rows,
                     series_config=series_config,
                 ),
+                fallback_series_keys=[canonical_series_key],
             )
             accepted_count += series_result.accepted_count
             quarantined_count += series_result.quarantined_count

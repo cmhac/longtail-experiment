@@ -54,6 +54,8 @@ class SourceIngestRunner:
         self,
         request: SourceWorkflowRequest,
         records: list[dict[str, object]],
+        *,
+        fallback_series_keys: list[str] | None = None,
     ) -> SourceWorkflowResult:
         """Ingest source records and emit workflow-level counters."""
         accepted_count = 0
@@ -75,8 +77,14 @@ class SourceIngestRunner:
                 else:
                     failed_count += 1
 
+        series_keys_to_process = set(accepted_series_keys)
+        if fallback_series_keys is not None:
+            series_keys_to_process.update(
+                key.strip() for key in fallback_series_keys if key.strip() != ""
+            )
+
         if self._trend_runtime_processor is not None:
-            for series_key in sorted(accepted_series_keys):
+            for series_key in sorted(series_keys_to_process):
                 try:
                     self._trend_runtime_processor.process_series(series_key=series_key)
                 except Exception as exc:  # pragma: no cover

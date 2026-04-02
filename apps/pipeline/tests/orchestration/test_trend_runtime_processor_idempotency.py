@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.orchestration.jobs.trend_runtime_processor import TrendRuntimeProcessor
 
 EXPECTED_LOOKBACK_COUNT = 12
+ELIGIBLE_BACKFILL_OBSERVATION_COUNT = 6
 
 
 class _FakeObservationRepository:
@@ -48,6 +49,13 @@ class _IdempotentTrendRepository:
         key = (str(payload["series_key"]), cast(date, payload["observed_on"]))
         self.canonical_by_key[key] = dict(payload)
 
+    def count_trend_records_for_series(self, *, series_key: str) -> int:
+        del series_key
+        return 0
+
+    def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
+        return len([key for key in self.canonical_by_key if key[0] == series_key])
+
 
 def _build_rows() -> list[dict[str, object]]:
     return [
@@ -70,9 +78,12 @@ def test_retry_processing_is_idempotent_for_lookback_and_canonical_writes() -> N
 
     assert first["execution_state"] == "applied"
     assert second["execution_state"] == "applied"
-    assert len(trend_repository.applicability_by_key) == EXPECTED_LOOKBACK_COUNT
+    assert (
+        len(trend_repository.applicability_by_key)
+        == EXPECTED_LOOKBACK_COUNT * ELIGIBLE_BACKFILL_OBSERVATION_COUNT
+    )
     assert len(trend_repository.snapshots_by_key) > 0
-    assert len(trend_repository.canonical_by_key) == 1
+    assert len(trend_repository.canonical_by_key) == ELIGIBLE_BACKFILL_OBSERVATION_COUNT
 
 
 def test_partial_failure_in_one_lookback_does_not_block_other_writes() -> None:
@@ -87,6 +98,9 @@ def test_partial_failure_in_one_lookback_does_not_block_other_writes() -> None:
     result = processor.process_series(series_key=series_key)
 
     assert result["execution_state"] == "partial_applied"
-    assert len(trend_repository.applicability_by_key) == EXPECTED_LOOKBACK_COUNT
+    assert (
+        len(trend_repository.applicability_by_key)
+        == EXPECTED_LOOKBACK_COUNT * ELIGIBLE_BACKFILL_OBSERVATION_COUNT
+    )
     persisted_lookbacks = {key[2] for key in trend_repository.snapshots_by_key}
     assert 1 in persisted_lookbacks

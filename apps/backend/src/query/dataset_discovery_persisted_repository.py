@@ -852,7 +852,7 @@ class PersistedDatasetDiscoveryRepository:
         where_clause = " AND ".join(conditions)
         query = text(
             f"""
-            SELECT o.observed_on, o.value, o.reported_at, o.attributes
+            SELECT o.id, o.observed_on, o.value, o.reported_at, o.attributes
             FROM observations o
             JOIN data_series ds ON ds.id = o.series_id
             WHERE {where_clause}
@@ -862,14 +862,147 @@ class PersistedDatasetDiscoveryRepository:
         with self._engine.connect() as connection:
             rows = connection.execute(query, query_params).mappings().all()
 
+        candidate_query = text(
+            """
+            SELECT
+                tcd.observed_on AS candidate_observed_on,
+                candidate_observation.reported_at AS candidate_reported_at,
+                tcd.created_at AS candidate_created_at,
+                tcd.descriptor_state AS descriptor_state,
+                tcd.canonical_trend_label AS trend_label,
+                tcd.canonical_direction AS direction,
+                tcd.canonical_strength AS strength,
+                tcd.selected_lookback_points AS selected_lookback_points,
+                tcd.weighting_trace ->> 'reason_code' AS reason_code
+            FROM trend_canonical_descriptors tcd
+            JOIN data_series ds ON ds.id = tcd.data_series_id
+                        LEFT JOIN observations candidate_observation
+                                ON candidate_observation.id = tcd.observation_id
+            WHERE ds.series_key = :dataset_id
+                            AND (
+                                CAST(:from_date AS date) IS NULL
+                                OR tcd.observed_on >= CAST(:from_date AS date)
+                            )
+                            AND (
+                                CAST(:to_date AS date) IS NULL
+                                OR tcd.observed_on <= CAST(:to_date AS date)
+                            )
+            ORDER BY
+                tcd.observed_on ASC,
+                candidate_observation.reported_at DESC NULLS LAST,
+                tcd.created_at DESC
+            """
+        )
+        with self._engine.connect() as connection:
+            candidate_rows = (
+                connection.execute(
+                    candidate_query,
+                    {
+                        "dataset_id": dataset_id,
+                        "from_date": from_date,
+                        "to_date": to_date,
+                    },
+                )
+                .mappings()
+                .all()
+            )
+
+        candidates_by_observed_on: dict[str, list[dict[str, object]]] = defaultdict(list)
+        for candidate_row in candidate_rows:
+            candidate_observed_on = candidate_row["candidate_observed_on"]
+            if isinstance(candidate_observed_on, (date, datetime)):
+                observed_on_value = self._iso_date(
+                    cast(date | datetime | None, candidate_observed_on)
+                )
+            else:
+                observed_on_value = (
+                    str(candidate_observed_on) if candidate_observed_on is not None else None
+                )
+            if observed_on_value is None:
+                continue
+
+            candidates_by_observed_on[observed_on_value].append(
+                {
+                    "descriptor_state": str(candidate_row["descriptor_state"]),
+                    "trend_label": (
+                        str(candidate_row["trend_label"])
+                        if candidate_row["trend_label"] is not None
+                        else None
+                    ),
+                    "direction": (
+                        str(candidate_row["direction"])
+                        if candidate_row["direction"] is not None
+                        else None
+                    ),
+                    "strength": (
+                        str(candidate_row["strength"])
+                        if candidate_row["strength"] is not None
+                        else None
+                    ),
+                    "selected_lookback_points": (
+                        int(candidate_row["selected_lookback_points"])
+                        if candidate_row["selected_lookback_points"] is not None
+                        else None
+                    ),
+                    "observed_on": observed_on_value,
+                    "reason_code": (
+                        str(candidate_row["reason_code"])
+                        if candidate_row["reason_code"] is not None
+                        else None
+                    ),
+                    "_candidate_reported_at": self._iso_datetime(
+                        cast(datetime | None, candidate_row["candidate_reported_at"])
+                    )
+                    if isinstance(candidate_row["candidate_reported_at"], datetime)
+                    else (
+                        str(candidate_row["candidate_reported_at"])
+                        if candidate_row["candidate_reported_at"] is not None
+                        else None
+                    ),
+                    "_candidate_created_at": self._iso_datetime(
+                        cast(datetime | None, candidate_row["candidate_created_at"])
+                    )
+                    if isinstance(candidate_row["candidate_created_at"], datetime)
+                    else (
+                        str(candidate_row["candidate_created_at"])
+                        if candidate_row["candidate_created_at"] is not None
+                        else None
+                    ),
+                }
+            )
+
         projected: list[dict[str, object]] = []
         for row in rows:
+            observed_on = row["observed_on"]
+            observed_on_value = (
+                observed_on.isoformat()
+                if isinstance(observed_on, (date, datetime))
+                else str(observed_on)
+            )
+            reported_at_value = row["reported_at"]
+            observation_reported_at = (
+                self._iso_datetime(cast(datetime | None, reported_at_value))
+                if isinstance(reported_at_value, datetime)
+                else str(reported_at_value)
+            )
+            observation_reported_at_key = str(observation_reported_at or "")
+            candidate_pool = candidates_by_observed_on.get(observed_on_value, [])
+            observation_candidates = [
+                candidate
+                for candidate in candidate_pool
+                if (
+                    candidate.get("_candidate_reported_at") is None
+                    or str(candidate.get("_candidate_reported_at") or "")
+                    <= observation_reported_at_key
+                )
+            ]
             projected.append(
                 {
-                    "observed_on": row["observed_on"].isoformat(),
+                    "observed_on": observed_on_value,
                     "value": float(row["value"]),
-                    "reported_at": self._iso_datetime(row["reported_at"]),
+                    "reported_at": observation_reported_at,
                     "attributes": dict(row["attributes"] or {}),
+                    "as_of_trend_candidates": observation_candidates,
                 }
             )
         return projected
