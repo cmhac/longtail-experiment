@@ -59,8 +59,7 @@ jobs:
             curl \
             jq \
             unzip \
-            wget \
-            docker-compose-plugin
+            wget
 
       - name: Verify docker and docker compose
         run: |
