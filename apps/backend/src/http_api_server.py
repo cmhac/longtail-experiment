@@ -90,7 +90,7 @@ def _optional_int_query_param(query: dict[str, list[str]], key: str) -> int | No
 def _make_service() -> DatasetDiscoveryService:
     expected_revision = os.environ.get(
         "DISCOVERY_EXPECTED_DB_REVISION",
-        "0010_source_profile_metadata",
+        "0012_lookback_trend_snapshots",
     )
     database_url = _resolve_database_url(environment=os.environ)
     engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)

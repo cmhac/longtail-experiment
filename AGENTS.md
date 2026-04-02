@@ -207,7 +207,7 @@ Local stack and duplication:
 - docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:-longtail_local}" -c "SELECT version_num FROM alembic_version;"
 - docker compose down
 
-Current migration head expected by local revision checks: `0010_source_profile_metadata`.
+Current migration head expected by local revision checks: `0012_lookback_trend_snapshots`.
 
 Docker Compose policy:
 

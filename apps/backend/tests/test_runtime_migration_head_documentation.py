@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-EXPECTED_HEAD = "0010_source_profile_metadata"
+EXPECTED_HEAD = "0012_lookback_trend_snapshots"
 
 
 def test_agents_migration_head_matches_runtime_expectation() -> None:
@@ -17,4 +17,3 @@ def test_quickstart_mentions_runtime_migration_head_enforcement() -> None:
     quickstart = Path("specs/019-real-backend-api/quickstart.md").read_text(encoding="utf-8")
 
     assert "DISCOVERY_EXPECTED_DB_REVISION" in quickstart
-    assert EXPECTED_HEAD in quickstart

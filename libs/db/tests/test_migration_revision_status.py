@@ -8,7 +8,7 @@ from pathlib import Path
 def test_revision_check_uses_expected_baseline_default() -> None:
     agents_md = Path("AGENTS.md").read_text(encoding="utf-8")
     assert "Current migration head expected by local revision checks" in agents_md
-    assert "0010_source_profile_metadata" in agents_md
+    assert "0012_lookback_trend_snapshots" in agents_md
 
 
 def test_revision_check_uses_compose_db_query() -> None:
