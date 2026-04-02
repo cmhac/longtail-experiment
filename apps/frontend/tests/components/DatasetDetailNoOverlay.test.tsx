@@ -6,7 +6,7 @@ import { buildDatasetDetailFixture } from "../fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "../test-utils";
 
 describe("DatasetDetail no overlay regression", () => {
-  it("renders trend chip and chart without overlay artifacts", () => {
+  it("renders chart without overlay artifacts", () => {
     const markup = renderMarkup(
       <DatasetDetailAnalysis
         data={buildDatasetDetailFixture({
@@ -23,7 +23,7 @@ describe("DatasetDetail no overlay regression", () => {
       />,
     );
 
-    expect(markup).toContain('data-testid="dataset-trend-chip"');
+    expect(markup).not.toContain('data-testid="dataset-trend-chip"');
     expect(markup).toContain('data-testid="observations-chart"');
     expect(markup).not.toContain("trend-overlay-layer");
     expect(markup).not.toContain("trend-overlay-tooltip");
