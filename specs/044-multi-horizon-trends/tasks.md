@@ -94,18 +94,18 @@
 
 ### Additional Tests for User Story 2 Scope Revision
 
-- [ ] T051 [P] [US2] Add dataset summary contract tests for canonical trend descriptors in apps/backend/tests/contract/test_dataset_summary_canonical_trend_contract.py
-- [ ] T052 [P] [US2] Add recent dataset updates contract tests for summary-level canonical trends in apps/backend/tests/contract/test_dataset_recent_updates_canonical_trend_contract.py
-- [ ] T053 [P] [US2] Add persisted repository integration tests for list-surface canonical descriptor projection in apps/backend/tests/contract/test_dataset_discovery_persisted_repository_contract.py
-- [ ] T054 [P] [US2] Add discovery client mapping tests for summary-level canonical descriptors in apps/frontend/tests/discovery-client-catalog-trend.test.ts
+- [x] T051 [P] [US2] Add dataset summary contract tests for canonical trend descriptors in apps/backend/tests/contract/test_dataset_summary_canonical_trend_contract.py
+- [x] T052 [P] [US2] Add recent dataset updates contract tests for summary-level canonical trends in apps/backend/tests/contract/test_dataset_recent_updates_canonical_trend_contract.py
+- [x] T053 [P] [US2] Add persisted repository integration tests for list-surface canonical descriptor projection in apps/backend/tests/contract/test_dataset_discovery_persisted_repository_contract.py
+- [x] T054 [P] [US2] Add discovery client mapping tests for summary-level canonical descriptors in apps/frontend/tests/discovery-client-catalog-trend.test.ts
 
 ### Additional Implementation for User Story 2 Scope Revision
 
-- [ ] T055 [US2] Extend shared dataset summary contracts to require canonical trend descriptors in apps/backend/src/contract/query/dataset_search_query.py and apps/backend/src/contract/query/dataset_recent_updates_query.py
-- [ ] T056 [US2] Add summary-level canonical trend projection helpers to persisted discovery queries in apps/backend/src/query/dataset_discovery_persisted_repository.py
-- [ ] T057 [US2] Update discovery service list/search/recent response assembly to include canonical trend descriptors in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T058 [US2] Extend frontend dataset summary and recent-update types for canonical descriptors in apps/frontend/src/lib/api/discovery-types.ts
-- [ ] T059 [US2] Update frontend discovery client normalization for dataset list and recent dataset payloads in apps/frontend/src/lib/api/discovery-client.ts
+- [x] T055 [US2] Extend shared dataset summary contracts to require canonical trend descriptors in apps/backend/src/contract/query/dataset_search_query.py and apps/backend/src/contract/query/dataset_recent_updates_query.py
+- [x] T056 [US2] Add summary-level canonical trend projection helpers to persisted discovery queries in apps/backend/src/query/dataset_discovery_persisted_repository.py
+- [x] T057 [US2] Update discovery service list/search/recent response assembly to include canonical trend descriptors in apps/backend/src/query/dataset_discovery_service.py
+- [x] T058 [US2] Extend frontend dataset summary and recent-update types for canonical descriptors in apps/frontend/src/lib/api/discovery-types.ts
+- [x] T059 [US2] Update frontend discovery client normalization for dataset list and recent dataset payloads in apps/frontend/src/lib/api/discovery-client.ts
 
 ---
 

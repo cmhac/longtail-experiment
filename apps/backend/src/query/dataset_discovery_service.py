@@ -14,6 +14,7 @@ from src.contract.query.dataset_detail_query import (
     CanonicalTrendDescriptor,
     LookbackTrendSnapshot,
 )
+from src.contract.query.dataset_search_query import SummaryCanonicalTrendDescriptor
 
 from .dataset_discovery_validators import (
     normalize_page,
@@ -116,6 +117,49 @@ def _build_paginated_payload(
     if extra:
         payload.update(deepcopy(dict(extra)))
     return payload
+
+
+def _default_summary_canonical_descriptor() -> dict[str, Any]:
+    return {
+        "descriptor_state": "unavailable",
+        "trend_label": None,
+        "direction": None,
+        "strength": None,
+        "selected_lookback_points": None,
+        "observed_on": None,
+        "reason_code": "missing_canonical_descriptor",
+    }
+
+
+def _resolve_summary_canonical_descriptor(raw_descriptor: object) -> dict[str, Any]:
+    payload = (
+        raw_descriptor
+        if isinstance(raw_descriptor, dict)
+        else _default_summary_canonical_descriptor()
+    )
+    try:
+        return SummaryCanonicalTrendDescriptor.model_validate(payload).model_dump()
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise ContractQueryError("dataset_summary_canonical_payload_invalid") from exc
+
+
+def _project_dataset_summary_item(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "dataset_id": str(item.get("dataset_id", "")).strip(),
+        "source": deepcopy(item.get("source", {})),
+        "title": str(item.get("title", "")).strip(),
+        "description": item.get("description")
+        if isinstance(item.get("description"), str) or item.get("description") is None
+        else str(item.get("description")),
+        "geographic_scope": item.get("geographic_scope")
+        if isinstance(item.get("geographic_scope"), str) or item.get("geographic_scope") is None
+        else str(item.get("geographic_scope")),
+        "topic_tags": [str(tag) for tag in list(item.get("topic_tags") or [])],
+        "latest_update_at": item.get("latest_update_at"),
+        "canonical_trend_descriptor": _resolve_summary_canonical_descriptor(
+            item.get("canonical_trend_descriptor")
+        ),
+    }
 
 
 def _project_recent_trend_items(
@@ -228,8 +272,15 @@ class DatasetDiscoveryService:
             )
             if not isinstance(items, list) or not isinstance(total_items, int):
                 raise ContractQueryError("Repository returned invalid search payload")
+        projected = [
+            _project_dataset_summary_item(item)
+            for item in items
+            if isinstance(item, dict)
+        ]
+        if len(projected) != len(items):
+            raise ContractQueryError("Repository returned invalid search item")
         return _build_paginated_payload(
-            items=items,
+            items=projected,
             page=normalized_page,
             page_size=normalized_page_size,
             total_items=total_items,
@@ -332,6 +383,9 @@ class DatasetDiscoveryService:
             if source_id == "" or source_name == "":
                 raise ContractQueryError("Repository returned recent item without source")
 
+            canonical_trend_descriptor = _resolve_summary_canonical_descriptor(
+                item.get("canonical_trend_descriptor")
+            )
             projected.append(
                 {
                     "item_type": "dataset_update",
@@ -350,6 +404,7 @@ class DatasetDiscoveryService:
                     else str(item.get("geographic_scope")),
                     "topic_tags": [str(tag) for tag in list(item.get("topic_tags") or [])],
                     "latest_update_at": item.get("latest_update_at"),
+                    "canonical_trend_descriptor": canonical_trend_descriptor,
                     "action_links": {
                         "view_table_href": f"/datasets/{quote(dataset_id, safe='')}",
                         "download_csv_href": f"/api/datasets/{quote(dataset_id, safe='')}.csv",
@@ -438,18 +493,25 @@ class DatasetDiscoveryService:
             )
             if not isinstance(items, list) or not isinstance(total_items, int):
                 raise ContractQueryError("Repository returned invalid catalog payload")
+        projected = [
+            _project_dataset_summary_item(item)
+            for item in items
+            if isinstance(item, dict)
+        ]
+        if len(projected) != len(items):
+            raise ContractQueryError("Repository returned invalid catalog item")
         aggregations = self._repository.list_catalog_aggregations(query_text=normalized_query)
         if not isinstance(aggregations, dict):
             raise ContractQueryError("Repository returned invalid catalog aggregations payload")
 
         groups: list[dict[str, Any]] = []
         if group_by_source and hasattr(self._repository, "group_catalog_by_source"):
-            groups = self._repository.group_catalog_by_source(items)
+            groups = self._repository.group_catalog_by_source(projected)
             if not isinstance(groups, list):
                 raise ContractQueryError("Repository returned invalid source grouping payload")
 
         return _build_paginated_payload(
-            items=items,
+            items=projected,
             page=normalized_page,
             page_size=normalized_page_size,
             total_items=total_items,
@@ -561,9 +623,16 @@ class DatasetDiscoveryService:
         dataset_count = source.get("dataset_count")
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid source dataset_count")
+        projected = [
+            _project_dataset_summary_item(item)
+            for item in items
+            if isinstance(item, dict)
+        ]
+        if len(projected) != len(items):
+            raise ContractQueryError("Repository returned invalid source detail item")
 
         return _build_paginated_payload(
-            items=items,
+            items=projected,
             page=normalized_page,
             page_size=normalized_page_size,
             total_items=total_items,
@@ -639,9 +708,16 @@ class DatasetDiscoveryService:
         dataset_count = topic.get("dataset_count")
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid topic dataset_count")
+        projected = [
+            _project_dataset_summary_item(item)
+            for item in items
+            if isinstance(item, dict)
+        ]
+        if len(projected) != len(items):
+            raise ContractQueryError("Repository returned invalid topic detail item")
 
         return _build_paginated_payload(
-            items=items,
+            items=projected,
             page=normalized_page,
             page_size=normalized_page_size,
             total_items=total_items,
@@ -711,9 +787,16 @@ class DatasetDiscoveryService:
         dataset_count = geography.get("dataset_count")
         if not isinstance(dataset_count, int) or dataset_count < 0:
             raise ContractQueryError("Repository returned invalid geography dataset_count")
+        projected = [
+            _project_dataset_summary_item(item)
+            for item in items
+            if isinstance(item, dict)
+        ]
+        if len(projected) != len(items):
+            raise ContractQueryError("Repository returned invalid geography detail item")
 
         return _build_paginated_payload(
-            items=items,
+            items=projected,
             page=normalized_page,
             page_size=normalized_page_size,
             total_items=total_items,

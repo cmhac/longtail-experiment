@@ -38,6 +38,59 @@ class PersistedDatasetDiscoveryRepository:
             return value.date().isoformat()
         return value.isoformat()
 
+    def _load_latest_summary_canonical_descriptors(self) -> dict[str, dict[str, object]]:
+        """Return latest canonical descriptor projection keyed by dataset id."""
+        query = text(
+            """
+            SELECT
+                ds.series_key AS dataset_id,
+                tcd.descriptor_state AS descriptor_state,
+                tcd.canonical_trend_label AS trend_label,
+                tcd.canonical_direction AS direction,
+                tcd.canonical_strength AS strength,
+                tcd.selected_lookback_points AS selected_lookback_points,
+                tcd.observed_on AS observed_on,
+                tcd.weighting_trace ->> 'reason_code' AS reason_code,
+                ROW_NUMBER() OVER (
+                    PARTITION BY ds.series_key
+                    ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+                ) AS descriptor_rank
+            FROM trend_canonical_descriptors tcd
+            JOIN data_series ds ON ds.id = tcd.data_series_id
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query).mappings().all()
+
+        descriptors: dict[str, dict[str, object]] = {}
+        for row in rows:
+            if int(row["descriptor_rank"]) != 1:
+                continue
+            dataset_id = str(row["dataset_id"])
+            observed_on = row["observed_on"]
+            if isinstance(observed_on, (date, datetime)):
+                observed_on_value = self._iso_date(cast(date | datetime | None, observed_on))
+            else:
+                observed_on_value = str(observed_on) if observed_on is not None else None
+            descriptors[dataset_id] = {
+                "descriptor_state": str(row["descriptor_state"]),
+                "trend_label": (
+                    str(row["trend_label"]) if row["trend_label"] is not None else None
+                ),
+                "direction": str(row["direction"]) if row["direction"] is not None else None,
+                "strength": str(row["strength"]) if row["strength"] is not None else None,
+                "selected_lookback_points": (
+                    int(row["selected_lookback_points"])
+                    if row["selected_lookback_points"] is not None
+                    else None
+                ),
+                "observed_on": observed_on_value,
+                "reason_code": (
+                    str(row["reason_code"]) if row["reason_code"] is not None else None
+                ),
+            }
+        return descriptors
+
     @staticmethod
     def _normalize_text(row: dict[str, object]) -> str:
         tags = cast(list[object], row.get("topic_tags") or [])
@@ -58,6 +111,7 @@ class PersistedDatasetDiscoveryRepository:
         ).lower()
 
     def _load_dataset_rows(self) -> list[dict[str, object]]:
+        summary_descriptors = self._load_latest_summary_canonical_descriptors()
         query = text(
             """
             SELECT
@@ -121,6 +175,18 @@ class PersistedDatasetDiscoveryRepository:
                     ),
                     "topic_tags": [str(tag) for tag in (row["topic_tags"] or [])],
                     "latest_update_at": self._iso_datetime(row["latest_update_at"]),
+                    "canonical_trend_descriptor": summary_descriptors.get(
+                        str(row["dataset_id"]),
+                        {
+                            "descriptor_state": "unavailable",
+                            "trend_label": None,
+                            "direction": None,
+                            "strength": None,
+                            "selected_lookback_points": None,
+                            "observed_on": None,
+                            "reason_code": "missing_canonical_descriptor",
+                        },
+                    ),
                     "metadata": {
                         "metric_name": str(row["metric_name"]),
                         "source_key": source_key,

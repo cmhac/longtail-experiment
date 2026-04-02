@@ -82,6 +82,46 @@ const appendPaginationQueryParams = (
   }
 };
 
+const defaultCanonicalTrendDescriptor = () => ({
+  descriptor_state: "unavailable" as const,
+  trend_label: null,
+  direction: null,
+  strength: null,
+  selected_lookback_points: null,
+  observed_on: null,
+  reason_code: "missing_canonical_descriptor",
+});
+
+const normalizeSummaryCanonicalTrendDescriptor = (
+  descriptor: unknown,
+): ReturnType<typeof defaultCanonicalTrendDescriptor> => {
+  if (!descriptor || typeof descriptor !== "object") {
+    return defaultCanonicalTrendDescriptor();
+  }
+  const payload = descriptor as Record<string, unknown>;
+  const state = payload.descriptor_state;
+  return {
+    descriptor_state: state === "available" || state === "unavailable" ? state : "unavailable",
+    trend_label: typeof payload.trend_label === "string" ? payload.trend_label : null,
+    direction:
+      payload.direction === "up" || payload.direction === "down" ? payload.direction : null,
+    strength: typeof payload.strength === "string" ? payload.strength : null,
+    selected_lookback_points:
+      typeof payload.selected_lookback_points === "number"
+        ? payload.selected_lookback_points
+        : null,
+    observed_on: typeof payload.observed_on === "string" ? payload.observed_on : null,
+    reason_code: typeof payload.reason_code === "string" ? payload.reason_code : null,
+  };
+};
+
+const normalizeDatasetSummary = <T extends { canonical_trend_descriptor?: unknown }>(item: T) => ({
+  ...item,
+  canonical_trend_descriptor: normalizeSummaryCanonicalTrendDescriptor(
+    item.canonical_trend_descriptor,
+  ),
+});
+
 export const fetchDatasetSearch = async (params: {
   q?: string;
   page?: number;
@@ -95,7 +135,11 @@ export const fetchDatasetSearch = async (params: {
   appendPaginationQueryParams(query, params);
 
   const response = await fetch(createUrl("/api/datasets/search", query));
-  return parseResponse<DatasetSearchResponse>(response);
+  const payload = await parseResponse<DatasetSearchResponse>(response);
+  return {
+    ...payload,
+    items: payload.items.map((item) => normalizeDatasetSummary(item)),
+  };
 };
 
 export const fetchSearchSummary = async (): Promise<SearchScopeSummaryResponse> => {
@@ -153,6 +197,9 @@ export const fetchRecentDatasets = async (params?: {
         description: item.description ?? null,
         geographic_scope: item.geographic_scope ?? null,
         topic_tags: item.topic_tags ?? [],
+        canonical_trend_descriptor: normalizeSummaryCanonicalTrendDescriptor(
+          item.canonical_trend_descriptor,
+        ),
         action_links: {
           view_table_href: item.action_links?.view_table_href ?? `/datasets/${encodedId}`,
           download_csv_href:
@@ -196,7 +243,11 @@ export const fetchDatasetCatalog = async (params: {
   appendPaginationQueryParams(query, params);
 
   const response = await fetch(createUrl("/api/datasets", query));
-  return parseResponse<DatasetCatalogResponse>(response);
+  const payload = await parseResponse<DatasetCatalogResponse>(response);
+  return {
+    ...payload,
+    items: payload.items.map((item) => normalizeDatasetSummary(item)),
+  };
 };
 
 export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDetail> => {

@@ -20,6 +20,7 @@ export interface DatasetSummary {
   geographic_scope: string | null;
   topic_tags: string[];
   latest_update_at: string;
+  canonical_trend_descriptor?: CanonicalTrendDescriptor;
 }
 
 export interface PaginatedCollectionMeta {
@@ -43,6 +44,7 @@ export interface DatasetRecentItem {
   geographic_scope?: string | null;
   topic_tags: string[];
   latest_update_at: string;
+  canonical_trend_descriptor?: CanonicalTrendDescriptor;
   action_links: {
     view_table_href: string;
     download_csv_href: string;

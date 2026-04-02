@@ -55,3 +55,8 @@ def test_recent_updates_include_action_links_per_item() -> None:
     first_item = response["items"][0]
     assert first_item["action_links"]["view_table_href"].startswith("/datasets/")
     assert first_item["action_links"]["download_csv_href"].startswith("/api/datasets/")
+    if first_item.get("item_type", "dataset_update") == "dataset_update":
+        assert first_item["canonical_trend_descriptor"]["descriptor_state"] in {
+            "available",
+            "unavailable",
+        }

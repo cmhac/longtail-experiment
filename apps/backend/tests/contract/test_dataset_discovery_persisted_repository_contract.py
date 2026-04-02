@@ -89,6 +89,22 @@ class _FakeConnection:
                 rows.sort(key=lambda row: (row["start_period"], row["created_at"]))
                 return _FakeResult(rows)
         if "FROM trend_canonical_descriptors tcd" in sql:
+            if "ROW_NUMBER() OVER" in sql:
+                rows = [
+                    {
+                        "dataset_id": row["dataset_id"],
+                        "descriptor_state": row["descriptor_state"],
+                        "trend_label": row["trend_label"],
+                        "direction": row["direction"],
+                        "strength": row["strength"],
+                        "selected_lookback_points": row["selected_lookback_points"],
+                        "observed_on": row["observed_on"],
+                        "reason_code": row["reason_code"],
+                        "descriptor_rank": 1,
+                    }
+                    for row in self._canonical_descriptor_rows
+                ]
+                return _FakeResult(rows)
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
             rows = [
@@ -287,7 +303,25 @@ def test_search_and_recent_are_persisted_and_sorted() -> None:
     }
     metadata = cast(dict[str, Any], rows[0]["metadata"])
     assert metadata["source_type"] == "external"
+    assert rows[0]["canonical_trend_descriptor"] == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }
     assert recent[0]["dataset_id"] == "INT.US.FEDFUNDS"
+    assert recent[0]["canonical_trend_descriptor"] == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }
 
 
 def test_catalog_detail_and_grouping_support_source_filtering() -> None:
@@ -309,6 +343,15 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
 
     assert total_items == 1
     assert catalog_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
+    assert catalog_rows[0]["canonical_trend_descriptor"] == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }
     assert groups == [
         {
             "source": {"id": "fred", "name": "Federal Reserve Economic Data"},
@@ -355,6 +398,16 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
     assert [item["dataset_id"] for item in cast(list[dict[str, Any]], source_detail["items"])] == [
         "INT.US.FEDFUNDS"
     ]
+    source_item = cast(list[dict[str, Any]], source_detail["items"])[0]
+    assert source_item["canonical_trend_descriptor"] == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }
     assert source_detail["total_items"] == 1
     assert missing_source_detail is None
 
@@ -380,6 +433,16 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
     assert [item["dataset_id"] for item in cast(list[dict[str, Any]], topic_detail["items"])] == [
         "INT.US.FEDFUNDS"
     ]
+    topic_item = cast(list[dict[str, Any]], topic_detail["items"])[0]
+    assert topic_item["canonical_trend_descriptor"] == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }
     assert topic_detail["total_items"] == 1
     assert missing_topic_detail is None
 
@@ -392,6 +455,16 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
     assert [
         item["dataset_id"] for item in cast(list[dict[str, Any]], geography_detail["items"])
     ] == ["INT.US.FEDFUNDS"]
+    geography_item = cast(list[dict[str, Any]], geography_detail["items"])[0]
+    assert geography_item["canonical_trend_descriptor"] == {
+        "descriptor_state": "available",
+        "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "strength": "mild",
+        "selected_lookback_points": 25,
+        "observed_on": "2026-02-01",
+        "reason_code": None,
+    }
     assert geography_detail["total_items"] == 1
     assert missing_geography_detail is None
 
