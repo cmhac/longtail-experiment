@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .dataset_search_query import SourceRef
 
@@ -26,6 +26,21 @@ class CanonicalTrendDescriptor(BaseModel):
     observed_on: str | None = Field(default=None, min_length=1)
     reason_code: str | None = Field(default=None, min_length=1)
 
+    @model_validator(mode="after")
+    def validate_available_descriptor_fields(self) -> "CanonicalTrendDescriptor":
+        """Require full descriptor fields when canonical state is available."""
+        if self.descriptor_state == "available":
+            required_values = (
+                self.trend_label,
+                self.direction,
+                self.strength,
+                self.selected_lookback_points,
+                self.observed_on,
+            )
+            if any(value is None for value in required_values):
+                raise ValueError("available canonical descriptors must include trend fields")
+        return self
+
 
 class LookbackTrendSnapshot(BaseModel):
     """Per-lookback trend snapshot payload for dataset detail responses."""
@@ -37,6 +52,20 @@ class LookbackTrendSnapshot(BaseModel):
     direction: str | None = Field(default=None, min_length=1)
     strength: str | None = Field(default=None, min_length=1)
     reason_code: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def validate_lookback_applicability_fields(self) -> "LookbackTrendSnapshot":
+        """Require outcome fields for applicable lookbacks."""
+        if self.applicability_state == "applicable":
+            required_values = (
+                self.outcome_state,
+                self.trend_label,
+                self.direction,
+                self.strength,
+            )
+            if any(value is None for value in required_values):
+                raise ValueError("applicable lookback snapshots must include outcome fields")
+        return self
 
 
 class DatasetDetailQueryResult(BaseModel):

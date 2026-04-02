@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, cast
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_transition_logic import (
@@ -184,3 +186,93 @@ def test_replace_transition_when_analysis_version_changes() -> None:
 
     assert decision.transition_type == "replaced"
     assert decision.reason == "analysis_version_changed"
+
+
+def test_no_op_transition_when_analysis_reports_insufficient_data() -> None:
+    """Insufficient data should produce a no-op decision."""
+    result = FakeAnalysisResult(
+        outcome="insufficient_data",
+        analysis_version=LIBRARY_VERSION,
+        signature=None,
+    )
+
+    decision = classify_trend_transition(
+        existing=None,
+        analysis_result=cast(TrendAnalysisResultLike, result),
+    )
+
+    assert decision.transition_type == "no_op"
+    assert decision.reason == "insufficient_data"
+
+
+def test_significant_trend_without_signature_raises_value_error() -> None:
+    """A significant-trend result must include signature payload."""
+    result = FakeAnalysisResult(
+        outcome="significant_trend",
+        analysis_version=LIBRARY_VERSION,
+        signature=None,
+    )
+
+    with pytest.raises(ValueError, match="non-null signature"):
+        classify_trend_transition(
+            existing=None,
+            analysis_result=cast(TrendAnalysisResultLike, result),
+        )
+
+
+def test_signature_object_attributes_are_supported_for_comparison() -> None:
+    """Object signatures should be read via attributes when mapping lookup is unavailable."""
+    existing = PersistedTrendSignature(
+        trend_label="mild_sustained_uptrend",
+        direction="up",
+        strength="mild",
+        seasonality_classification="non_seasonal",
+        analysis_version=LIBRARY_VERSION,
+    )
+
+    class _SignatureObject:
+        trend_label = "mild_sustained_uptrend"
+        direction = "up"
+        strength = "mild"
+        seasonality_classification = "non_seasonal"
+
+    result = FakeAnalysisResult(
+        outcome="significant_trend",
+        analysis_version=LIBRARY_VERSION,
+        signature=cast(dict[str, str] | None, _SignatureObject()),
+    )
+
+    decision = classify_trend_transition(
+        existing=existing,
+        analysis_result=cast(TrendAnalysisResultLike, result),
+    )
+    assert decision.transition_type == "continued"
+
+
+def test_signature_object_with_blank_required_field_raises_value_error() -> None:
+    """Blank signature attributes should fail required-field validation."""
+    existing = PersistedTrendSignature(
+        trend_label="mild_sustained_uptrend",
+        direction="up",
+        strength="mild",
+        seasonality_classification="non_seasonal",
+        analysis_version=LIBRARY_VERSION,
+    )
+
+    class _IncompleteSignatureObject:
+        trend_label = "mild_sustained_uptrend"
+        direction = "up"
+        strength = ""
+        seasonality_classification = "non_seasonal"
+
+    result = FakeAnalysisResult(
+        outcome="significant_trend",
+        analysis_version=LIBRARY_VERSION,
+        signature=cast(dict[str, str] | None, _IncompleteSignatureObject()),
+    )
+
+    with pytest.raises(ValueError, match="signature missing required field: strength"):
+        classify_trend_transition(
+            existing=existing,
+            analysis_result=cast(TrendAnalysisResultLike, result),
+        )
