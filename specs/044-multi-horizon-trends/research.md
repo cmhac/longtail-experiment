@@ -103,3 +103,15 @@
   - Recent progress includes completion of Phase 5 implementation (chip-only UI and overlay removal) via merge commit `d1cdd8c`.
 - Environment caveat recorded for verification reproducibility:
   - Current sandbox did not expose `pnpm` on `PATH`, so full pnpm/Nx gates must be executed in the standard project runtime before merge finalization.
+
+## Phase 6 Completion Record (2026-04-02)
+
+- Validation and hardening tasks completed for T046–T050.
+- Additional test coverage was added to satisfy mandatory full-suite stop gates:
+  - backend canonical/detail contract validation invariants and integration-fixture query matching
+  - pipeline helper/unit coverage for ingest op branches, retired schedule module marker, legacy export compatibility, sensor logic, source/series selection helper normalization, and trend transition edge branches
+- Monorepo quality gates were executed with cache bypass to verify real command execution in this session:
+  - `pnpm exec nx run-many -t test --all --skip-nx-cache`
+  - `pnpm exec nx run-many -t coverage --all --skip-nx-cache`
+- Manual clean-stack restart was executed (`docker compose down && docker compose up -d && docker compose ps`).
+- Containerized backend/dagit runtime validation in this sandbox was partially constrained by external package DNS resolution failures inside containers; this is an environment/network limitation, not a contract/test gate failure in repository-local checks.
