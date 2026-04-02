@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any
+from datetime import UTC, datetime
+from typing import Any, cast
 from urllib.parse import quote
 
 from pydantic import ValidationError
@@ -29,6 +30,7 @@ from .dataset_discovery_validators import (
 DEFAULT_SUGGESTION_LIMIT = 5
 MIN_SUGGESTION_LIMIT = 1
 MAX_SUGGESTION_LIMIT = 10
+_MIN_DATETIME = datetime.min.replace(tzinfo=UTC)
 SUPPORTED_UNIT_TYPES = {"usd", "percent", "number"}
 CATALOG_SORT_KEYS = {
     "recency": "latest_update_at_desc,title_asc,dataset_id_asc",
@@ -132,7 +134,10 @@ def _default_summary_canonical_descriptor() -> dict[str, Any]:
     }
 
 
-def _default_observation_asof_descriptor() -> dict[str, Any]:
+def _default_observation_asof_descriptor(
+    *,
+    reason_code: str = "missing_observation_asof_descriptor",
+) -> dict[str, Any]:
     return {
         "descriptor_state": "unavailable",
         "trend_label": None,
@@ -140,21 +145,114 @@ def _default_observation_asof_descriptor() -> dict[str, Any]:
         "strength": None,
         "selected_lookback_points": None,
         "observed_on": None,
-        "reason_code": "missing_observation_asof_descriptor",
+        "reason_code": reason_code,
     }
+
+
+def _parse_iso_datetime(value: object) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    if normalized == "":
+        return None
+    try:
+        return datetime.fromisoformat(normalized.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _normalize_observation_asof_candidates(
+    *,
+    raw_candidates: object,
+    observation_observed_on: object,
+    observation_reported_at: object,
+) -> list[dict[str, Any]]:
+    if not isinstance(raw_candidates, list):
+        return []
+
+    observed_on_value = str(observation_observed_on or "").strip()
+    observation_reported_at_value = _parse_iso_datetime(observation_reported_at)
+    normalized: list[dict[str, Any]] = []
+    for candidate_obj in raw_candidates:
+        if not isinstance(candidate_obj, dict):
+            continue
+        candidate = cast(dict[str, Any], candidate_obj)
+        if str(candidate.get("observed_on") or "") != observed_on_value:
+            continue
+        candidate_reported_at = _parse_iso_datetime(candidate.get("_candidate_reported_at"))
+        if (
+            candidate_reported_at is not None
+            and observation_reported_at_value is not None
+            and candidate_reported_at > observation_reported_at_value
+        ):
+            continue
+        normalized.append(dict(candidate))
+
+    normalized.sort(
+        key=lambda candidate: (
+            _parse_iso_datetime(candidate.get("_candidate_reported_at")) or _MIN_DATETIME,
+            _parse_iso_datetime(candidate.get("_candidate_created_at")) or _MIN_DATETIME,
+        ),
+        reverse=True,
+    )
+    return normalized
+
+
+def _resolve_unavailable_observation_asof_reason(
+    *,
+    raw_descriptor: object,
+    raw_candidates: object,
+    observation_reported_at: object,
+) -> str:
+    if isinstance(raw_descriptor, dict):
+        return "missing_observation_asof_descriptor"
+    if not isinstance(raw_candidates, list) or len(raw_candidates) == 0:
+        return "missing_observation_asof_descriptor"
+
+    observation_reported_at_value = _parse_iso_datetime(observation_reported_at)
+    if observation_reported_at_value is None:
+        return "missing_observation_asof_descriptor"
+
+    if any(
+        (
+            _parse_iso_datetime(cast(dict[str, Any], candidate).get("_candidate_reported_at"))
+            or _MIN_DATETIME
+        )
+        > observation_reported_at_value
+        for candidate in raw_candidates
+        if isinstance(candidate, dict)
+    ):
+        return "observation_reported_before_candidate"
+
+    return "missing_observation_asof_descriptor"
 
 
 def _resolve_observation_asof_descriptor(
     *,
     raw_descriptor: object,
+    raw_candidates: object,
     dataset_id: str,
     observation_observed_on: object,
+    observation_reported_at: object,
 ) -> dict[str, Any]:
-    payload = (
-        raw_descriptor
-        if isinstance(raw_descriptor, dict)
-        else _default_observation_asof_descriptor()
+    normalized_candidates = _normalize_observation_asof_candidates(
+        raw_candidates=raw_candidates,
+        observation_observed_on=observation_observed_on,
+        observation_reported_at=observation_reported_at,
     )
+    payload: dict[str, Any]
+    if normalized_candidates:
+        payload = normalized_candidates[0]
+    elif isinstance(raw_descriptor, dict):
+        payload = cast(dict[str, Any], raw_descriptor)
+    else:
+        payload = _default_observation_asof_descriptor(
+            reason_code=_resolve_unavailable_observation_asof_reason(
+                raw_descriptor=raw_descriptor,
+                raw_candidates=raw_candidates,
+                observation_reported_at=observation_reported_at,
+            )
+        )
     try:
         return ObservationAsOfTrendDescriptor.model_validate(payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
@@ -176,8 +274,10 @@ def _map_detail_observations_with_asof_descriptors(
         mapped_observation = dict(observation)
         mapped_observation["as_of_trend_descriptor"] = _resolve_observation_asof_descriptor(
             raw_descriptor=observation.get("as_of_trend_descriptor"),
+            raw_candidates=observation.get("as_of_trend_candidates"),
             dataset_id=dataset_id,
             observation_observed_on=observation.get("observed_on"),
+            observation_reported_at=observation.get("reported_at"),
         )
         mapped.append(mapped_observation)
     return mapped
