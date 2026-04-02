@@ -83,6 +83,15 @@ describe("discovery client", () => {
             geographic_scope: "US",
             topic_tags: ["energy", "gasoline"],
             latest_update_at: "2026-03-24T00:00:00Z",
+            canonical_trend_descriptor: {
+              descriptor_state: "available",
+              trend_label: "strong_sustained_uptrend",
+              direction: "up",
+              strength: "strong",
+              selected_lookback_points: 100,
+              observed_on: "2026-03-24",
+              reason_code: null,
+            },
             action_links: {
               view_table_href: "/datasets/ENERGY.US.GASREGW",
               download_csv_href: "/api/datasets/ENERGY.US.GASREGW.csv",
@@ -100,6 +109,10 @@ describe("discovery client", () => {
     expect(calledUrl).toContain("/api/datasets/recent");
     expect(calledUrl).toContain("limit=5");
     expect(response.items[0]?.action_links.download_csv_href).toContain(".csv");
+    const datasetItem = response.items[0];
+    if (datasetItem?.item_type !== "trend_event") {
+      expect(datasetItem?.canonical_trend_descriptor?.descriptor_state).toBe("available");
+    }
   });
 
   it("calls recent endpoint without limit when params are omitted", async () => {
@@ -131,13 +144,52 @@ describe("discovery client", () => {
     );
 
     const response = await fetchRecentDatasets({ limit: 5 });
+    const item = response.items[0];
+    if (!item || item.item_type === "trend_event") {
+      throw new Error("Expected dataset_update item");
+    }
 
-    expect(response.items[0]?.description).toBeNull();
-    expect(response.items[0]?.geographic_scope).toBeNull();
-    expect(response.items[0]?.topic_tags).toEqual([]);
-    expect(response.items[0]?.action_links.view_table_href).toBe("/datasets/ID%20WITH%20SPACE");
-    expect(response.items[0]?.action_links.download_csv_href).toBe(
-      "/api/datasets/ID%20WITH%20SPACE.csv",
+    expect(item.description).toBeNull();
+    expect(item.geographic_scope).toBeNull();
+    expect(item.topic_tags).toEqual([]);
+    expect(item.canonical_trend_descriptor?.descriptor_state).toBe("unavailable");
+    expect(item.canonical_trend_descriptor?.reason_code).toBe("missing_canonical_descriptor");
+    expect(item.action_links.view_table_href).toBe("/datasets/ID%20WITH%20SPACE");
+    expect(item.action_links.download_csv_href).toBe("/api/datasets/ID%20WITH%20SPACE.csv");
+  });
+
+  it("normalizes canonical trend descriptor on catalog items", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockJsonResponse({
+        items: [
+          {
+            dataset_id: "UNRATE",
+            source: { id: "fred", name: "FRED" },
+            title: "Unemployment Rate",
+            description: null,
+            geographic_scope: "US",
+            topic_tags: ["labor"],
+            latest_update_at: "2026-03-24T00:00:00Z",
+          },
+        ],
+        groups: [],
+        aggregations: {
+          total_dataset_count: 1,
+          sources: [],
+          categories: [],
+        },
+        page: 1,
+        page_size: 20,
+        total_items: 1,
+        total_pages: 1,
+        sort: "latest_update_at_desc,title_asc,dataset_id_asc",
+      }),
+    );
+
+    const response = await fetchDatasetCatalog({});
+    expect(response.items[0]?.canonical_trend_descriptor?.descriptor_state).toBe("unavailable");
+    expect(response.items[0]?.canonical_trend_descriptor?.reason_code).toBe(
+      "missing_canonical_descriptor",
     );
   });
 

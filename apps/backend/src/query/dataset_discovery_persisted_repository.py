@@ -31,6 +31,78 @@ class PersistedDatasetDiscoveryRepository:
         return value.isoformat()
 
     @staticmethod
+    def _iso_date(value: date | datetime | None) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, datetime):
+            return value.date().isoformat()
+        return value.isoformat()
+
+    def _load_latest_summary_canonical_descriptors(self) -> dict[str, dict[str, object]]:
+        """Return latest canonical descriptor projection keyed by dataset id."""
+        query = text(
+            """
+            WITH ranked_descriptors AS (
+                SELECT
+                    ds.series_key AS dataset_id,
+                    tcd.descriptor_state AS descriptor_state,
+                    tcd.canonical_trend_label AS trend_label,
+                    tcd.canonical_direction AS direction,
+                    tcd.canonical_strength AS strength,
+                    tcd.selected_lookback_points AS selected_lookback_points,
+                    tcd.observed_on AS observed_on,
+                    tcd.weighting_trace ->> 'reason_code' AS reason_code,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY ds.series_key
+                        ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+                    ) AS descriptor_rank
+                FROM trend_canonical_descriptors tcd
+                JOIN data_series ds ON ds.id = tcd.data_series_id
+            )
+            SELECT
+                dataset_id,
+                descriptor_state,
+                trend_label,
+                direction,
+                strength,
+                selected_lookback_points,
+                observed_on,
+                reason_code
+            FROM ranked_descriptors
+            WHERE descriptor_rank = 1
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query).mappings().all()
+
+        descriptors: dict[str, dict[str, object]] = {}
+        for row in rows:
+            dataset_id = str(row["dataset_id"])
+            observed_on = row["observed_on"]
+            if isinstance(observed_on, (date, datetime)):
+                observed_on_value = self._iso_date(cast(date | datetime | None, observed_on))
+            else:
+                observed_on_value = str(observed_on) if observed_on is not None else None
+            descriptors[dataset_id] = {
+                "descriptor_state": str(row["descriptor_state"]),
+                "trend_label": (
+                    str(row["trend_label"]) if row["trend_label"] is not None else None
+                ),
+                "direction": str(row["direction"]) if row["direction"] is not None else None,
+                "strength": str(row["strength"]) if row["strength"] is not None else None,
+                "selected_lookback_points": (
+                    int(row["selected_lookback_points"])
+                    if row["selected_lookback_points"] is not None
+                    else None
+                ),
+                "observed_on": observed_on_value,
+                "reason_code": (
+                    str(row["reason_code"]) if row["reason_code"] is not None else None
+                ),
+            }
+        return descriptors
+
+    @staticmethod
     def _normalize_text(row: dict[str, object]) -> str:
         tags = cast(list[object], row.get("topic_tags") or [])
         tags_text = " ".join(str(tag) for tag in tags)
@@ -50,6 +122,7 @@ class PersistedDatasetDiscoveryRepository:
         ).lower()
 
     def _load_dataset_rows(self) -> list[dict[str, object]]:
+        summary_descriptors = self._load_latest_summary_canonical_descriptors()
         query = text(
             """
             SELECT
@@ -113,6 +186,18 @@ class PersistedDatasetDiscoveryRepository:
                     ),
                     "topic_tags": [str(tag) for tag in (row["topic_tags"] or [])],
                     "latest_update_at": self._iso_datetime(row["latest_update_at"]),
+                    "canonical_trend_descriptor": summary_descriptors.get(
+                        str(row["dataset_id"]),
+                        {
+                            "descriptor_state": "unavailable",
+                            "trend_label": None,
+                            "direction": None,
+                            "strength": None,
+                            "selected_lookback_points": None,
+                            "observed_on": None,
+                            "reason_code": "missing_canonical_descriptor",
+                        },
+                    ),
                     "metadata": {
                         "metric_name": str(row["metric_name"]),
                         "source_key": source_key,
@@ -266,6 +351,51 @@ class PersistedDatasetDiscoveryRepository:
                     "geographic_scope": row.get("geographic_scope"),
                     "topic_tags": list(cast(list[object], row.get("topic_tags") or [])),
                     "latest_update_at": row.get("latest_update_at"),
+                    "canonical_trend_descriptor": dict(
+                        cast(dict[str, object], row.get("canonical_trend_descriptor") or {})
+                    ),
+                }
+            )
+        return projected
+
+    def list_recent_trend_events(self, *, limit: int) -> list[dict[str, object]]:
+        """Return recent trend lifecycle events ordered by start period desc."""
+        query = text(
+            """
+            SELECT
+                ds.series_key AS dataset_id,
+                sp.source_key AS source_key,
+                sp.title AS source_title,
+                ds.title AS title,
+                tr.direction AS direction,
+                tr.strength AS strength,
+                tr.start_period AS start_period
+            FROM trend_records tr
+            JOIN data_series ds ON ds.id = tr.data_series_id
+            JOIN source_profiles sp ON sp.id = ds.source_profile_id
+            ORDER BY tr.start_period DESC, ds.series_key ASC
+            LIMIT :limit
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"limit": limit}).mappings().all()
+
+        projected: list[dict[str, object]] = []
+        for row in rows:
+            start_period = self._iso_date(cast(date | datetime | None, row["start_period"]))
+            if start_period is None:
+                continue
+            projected.append(
+                {
+                    "dataset_id": str(row["dataset_id"]),
+                    "source": {
+                        "id": str(row["source_key"]),
+                        "name": str(row["source_title"]),
+                    },
+                    "title": str(row["title"]),
+                    "direction": str(row["direction"]),
+                    "strength": str(row["strength"]),
+                    "start_period": start_period,
                 }
             )
         return projected
@@ -601,6 +731,106 @@ class PersistedDatasetDiscoveryRepository:
             if str(row.get("dataset_id", "")) == dataset_id:
                 return row
         return None
+
+    def get_latest_dataset_canonical_trend_descriptor(
+        self, *, dataset_id: str
+    ) -> dict[str, object] | None:
+        """Return latest canonical descriptor projected for dataset detail rendering."""
+        query = text(
+            """
+            SELECT
+                tcd.descriptor_state AS descriptor_state,
+                tcd.canonical_trend_label AS trend_label,
+                tcd.canonical_direction AS direction,
+                tcd.canonical_strength AS strength,
+                tcd.selected_lookback_points AS selected_lookback_points,
+                tcd.observed_on AS observed_on,
+                tcd.weighting_trace ->> 'reason_code' AS reason_code
+            FROM trend_canonical_descriptors tcd
+            JOIN data_series ds ON ds.id = tcd.data_series_id
+            WHERE ds.series_key = :dataset_id
+            ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+            LIMIT 1
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"dataset_id": dataset_id}).mappings().all()
+        if not rows:
+            return None
+        row = rows[0]
+        observed_on = row["observed_on"]
+        if isinstance(observed_on, (date, datetime)):
+            observed_on_value = self._iso_date(cast(date | datetime | None, observed_on))
+        else:
+            observed_on_value = str(observed_on) if observed_on is not None else None
+        return {
+            "descriptor_state": str(row["descriptor_state"]),
+            "trend_label": (str(row["trend_label"]) if row["trend_label"] is not None else None),
+            "direction": str(row["direction"]) if row["direction"] is not None else None,
+            "strength": str(row["strength"]) if row["strength"] is not None else None,
+            "selected_lookback_points": (
+                int(row["selected_lookback_points"])
+                if row["selected_lookback_points"] is not None
+                else None
+            ),
+            "observed_on": observed_on_value,
+            "reason_code": (str(row["reason_code"]) if row["reason_code"] is not None else None),
+        }
+
+    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, object]]:
+        """Return latest lookback evaluations and snapshots for dataset detail rendering."""
+        query = text(
+            """
+            WITH latest_observation AS (
+                SELECT
+                    tcd.data_series_id,
+                    tcd.observation_id
+                FROM trend_canonical_descriptors tcd
+                JOIN data_series ds ON ds.id = tcd.data_series_id
+                WHERE ds.series_key = :dataset_id
+                ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+                LIMIT 1
+            )
+            SELECT
+                tle.lookback_points AS lookback_points,
+                tle.applicability_state AS applicability_state,
+                tls.outcome_state AS outcome_state,
+                tls.trend_label AS trend_label,
+                tls.direction AS direction,
+                tls.strength AS strength,
+                tle.reason_code AS reason_code
+            FROM trend_lookback_evaluations tle
+            JOIN latest_observation lo
+                ON lo.data_series_id = tle.data_series_id
+                AND lo.observation_id = tle.observation_id
+            LEFT JOIN trend_lookback_snapshots tls
+                ON tls.data_series_id = tle.data_series_id
+                AND tls.observation_id = tle.observation_id
+                AND tls.lookback_points = tle.lookback_points
+            ORDER BY tle.lookback_points ASC
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"dataset_id": dataset_id}).mappings().all()
+
+        return [
+            {
+                "lookback_points": int(row["lookback_points"]),
+                "applicability_state": str(row["applicability_state"]),
+                "outcome_state": (
+                    str(row["outcome_state"]) if row["outcome_state"] is not None else None
+                ),
+                "trend_label": (
+                    str(row["trend_label"]) if row["trend_label"] is not None else None
+                ),
+                "direction": str(row["direction"]) if row["direction"] is not None else None,
+                "strength": str(row["strength"]) if row["strength"] is not None else None,
+                "reason_code": (
+                    str(row["reason_code"]) if row["reason_code"] is not None else None
+                ),
+            }
+            for row in rows
+        ]
 
     def list_dataset_observations(
         self,

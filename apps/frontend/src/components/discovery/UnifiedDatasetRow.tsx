@@ -1,6 +1,8 @@
 import Link from "next/link";
 import React from "react";
 import type { JSX } from "react";
+import type { CanonicalTrendDescriptor } from "../../lib/api/discovery-types";
+import { DatasetTrendIndicator } from "./DatasetTrendIndicator";
 import { DiscoveryFeedList } from "./DiscoveryFeedList";
 import { TagPillGroup } from "./TagPill";
 
@@ -14,6 +16,7 @@ export interface UnifiedDatasetRowProps {
   tagPills: string[];
   emphasizedPills?: string[];
   interactionMode: "row_link" | "title_link";
+  trendDescriptor?: CanonicalTrendDescriptor | undefined;
 }
 
 export const UnifiedDatasetRow = ({
@@ -25,6 +28,7 @@ export const UnifiedDatasetRow = ({
   summaryText,
   tagPills,
   title,
+  trendDescriptor,
   updatedLabel,
 }: UnifiedDatasetRowProps): JSX.Element => {
   void datasetId;
@@ -40,11 +44,20 @@ export const UnifiedDatasetRow = ({
         <DiscoveryFeedList.UpdateDate>{updatedLabel}</DiscoveryFeedList.UpdateDate>
       </DiscoveryFeedList.MetadataRail>
       <DiscoveryFeedList.Body>
-        <DiscoveryFeedList.Title testId="unified-dataset-row-title">
-          <Link className="text-inherit no-underline" href={destinationHref}>
-            {title}
-          </Link>
-        </DiscoveryFeedList.Title>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1.5 max-[720px]:grid-cols-1">
+          <DiscoveryFeedList.Title testId="unified-dataset-row-title">
+            <Link className="text-inherit no-underline" href={destinationHref}>
+              {title}
+            </Link>
+          </DiscoveryFeedList.Title>
+          {trendDescriptor ? (
+            <DatasetTrendIndicator
+              className="justify-self-end pt-1 max-[720px]:justify-self-start max-[720px]:pt-0"
+              descriptor={trendDescriptor}
+              testId="unified-dataset-row-trend-indicator"
+            />
+          ) : null}
+        </div>
         {summaryText ? (
           <DiscoveryFeedList.Subtitle>{summaryText}</DiscoveryFeedList.Subtitle>
         ) : null}

@@ -1,0 +1,28 @@
+hooks:
+  after_implement:
+    - id: manual-runtime-validation-loop
+      enabled: true
+      optional: false
+      command: manual-testing
+      description: "Run task-specific manual runtime testing in the real local dev environment before quality gates."
+      prompt: >
+        Run the manual-testing skill now and complete its runtime validation loop using
+        real commands and realistic data for all impacted areas. If changes touch libs,
+        execute direct scripts for edge cases. If changes touch pipeline, restart local
+        docker compose stack from clean state, run real materialization/ingest flow,
+        inspect Dagster/service logs, and verify persisted records in PostgreSQL. If
+        changes touch backend, populate data through pipeline flow and verify real API
+        responses from local backend. If changes touch frontend, prepare real data,
+        exercise pages with browser tools, check console errors, and capture screenshots.
+        Fix any issue found and repeat manual checks until behavior is correct.
+
+    - id: monorepo-precommit-stop-gate
+      enabled: true
+      optional: false
+      command: speckit-issue-implementer
+      description: "Run full monorepo pre-commit hooks and resolve any failures before handoff."
+      prompt: >
+        Follow .github/agents/speckit-issue-implementer.agent.md and run
+        pre-commit run --all-files now. If any hook fails, fix every reported issue,
+        rerun pre-commit run --all-files, and repeat until all hooks pass. Do not stop,
+        hand off, or claim completion until the full monorepo pre-commit gate is green.

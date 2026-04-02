@@ -23,7 +23,7 @@ docker compose exec db psql -U "${LOCAL_DB_USER:-longtail}" -d "${LOCAL_DB_NAME:
 Migration-head runtime enforcement reference:
 
 ```bash
-DISCOVERY_EXPECTED_DB_REVISION=0010_source_profile_metadata
+uv run --project apps/backend --no-sync alembic -c libs/db/alembic.ini heads
 ```
 
 Expected:
@@ -150,7 +150,7 @@ DISCOVERY_API_BASE_URL=http://127.0.0.1:8080 DISCOVERY_PARITY_REQUIRE_DELTA=0 \
 
 Observed outcome:
 
-- Migration head check passed: `Revision OK: 0010_source_profile_metadata`.
+- Migration head check passed against the current Alembic head from `libs/db/alembic.ini`.
 - Parity script passed and auto-selected a persisted dataset id from `/api/datasets/recent`.
 
 ### Manual endpoint verification against Postgres

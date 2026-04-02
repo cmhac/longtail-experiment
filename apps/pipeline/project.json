@@ -25,6 +25,13 @@
     },
     "test": {
       "executor": "nx:run-commands",
+      "inputs": [
+        "default",
+        "^default",
+        "workspaceConfig",
+        "pythonAppConfig",
+        "repoContractFiles"
+      ],
       "options": {
         "command": "uv run --project apps/pipeline pytest apps/pipeline/tests"
       }
@@ -100,6 +107,13 @@
     },
     "coverage": {
       "executor": "nx:run-commands",
+      "inputs": [
+        "default",
+        "^default",
+        "workspaceConfig",
+        "pythonAppConfig",
+        "repoContractFiles"
+      ],
       "options": {
         "command": "uv run --project apps/pipeline pytest apps/pipeline/tests --cov=apps/pipeline/src --cov-fail-under=90"
       }

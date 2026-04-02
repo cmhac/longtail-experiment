@@ -42,6 +42,7 @@ interface ObservationChartPoint {
   changeValue: number | null;
   computability?: string;
   date: string;
+  dateMs: number;
   dateLabel: string;
   value: number;
   valueLabel: string;
@@ -100,6 +101,19 @@ const sortObservationDatesDesc = (dates: string[]): string[] => {
   });
 };
 
+const toUtcDateMs = (dateValue: string): number => {
+  return Date.parse(`${dateValue}T00:00:00Z`);
+};
+
+const formatXAxisDate = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  const isoDate = new Date(value).toISOString().slice(0, 10);
+  return formatObservedOn(isoDate);
+};
+
 const toChartData = (
   observations: ObservationPoint[],
   unitType?: string | null,
@@ -118,6 +132,7 @@ const toChartData = (
       changeValue,
       computability: "computable",
       date: observation.observed_on,
+      dateMs: toUtcDateMs(observation.observed_on),
       dateLabel: formatObservedOn(observation.observed_on),
       value: observation.value,
       valueLabel: formatValue(observation.value, unitType, unitLabel),
@@ -155,6 +170,7 @@ const toRelativeChartData = (
         changeValue: point.value,
         computability: point.computability,
         date: point.observed_on,
+        dateMs: toUtcDateMs(point.observed_on),
         dateLabel: formatObservedOn(point.observed_on),
         value: point.value ?? Number.NaN,
         valueLabel,
@@ -531,14 +547,22 @@ export const ObservationsChart = ({
           Chart starts at selected baseline observation.
         </p>
       ) : null}
-      <div className="w-full min-w-0 flex-1" ref={chartContainerRef}>
+      <div className="relative w-full min-w-0 flex-1" ref={chartContainerRef}>
         <LineChart
           data={chartData}
           height={chartHeight}
           margin={{ bottom: 18, left: 8, right: 8, top: 8 }}
           width={chartWidth}
         >
-          <XAxis dataKey="date" minTickGap={32} tickMargin={14} />
+          <XAxis
+            dataKey="dateMs"
+            domain={["dataMin", "dataMax"]}
+            minTickGap={32}
+            scale="time"
+            tickFormatter={formatXAxisDate}
+            tickMargin={14}
+            type="number"
+          />
           <YAxis
             domain={yAxisDomain}
             tickFormatter={(value: number) =>

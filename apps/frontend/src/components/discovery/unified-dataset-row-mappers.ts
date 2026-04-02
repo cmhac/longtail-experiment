@@ -1,4 +1,8 @@
-import type { DatasetRecentItem, DatasetSummary } from "../../lib/api/discovery-types";
+import type {
+  DatasetRecentItem,
+  DatasetSummary,
+  TrendRecentItem,
+} from "../../lib/api/discovery-types";
 import type { UnifiedDatasetRowProps } from "./UnifiedDatasetRow";
 
 const formatDate = (value: string): string => {
@@ -44,7 +48,24 @@ export const toUnifiedRecentUpdatesRow = (item: DatasetRecentItem): UnifiedDatas
     tagPills: normalizeTags(item.topic_tags),
     title: item.title,
     updatedLabel: formatDate(item.latest_update_at),
+    ...(item.canonical_trend_descriptor
+      ? { trendDescriptor: item.canonical_trend_descriptor }
+      : {}),
     ...(summaryText ? { summaryText } : {}),
+  };
+};
+
+export const toUnifiedTrendUpdatesRow = (item: TrendRecentItem): UnifiedDatasetRowProps => {
+  return {
+    datasetId: item.dataset_id,
+    destinationHref: `/datasets/${encodeURIComponent(item.dataset_id)}`,
+    emphasizedPills: [item.direction.toUpperCase()],
+    interactionMode: "row_link",
+    sourceLabel: "TREND EVENT",
+    summaryText: item.strength,
+    tagPills: [item.source.name, `Start ${item.start_period}`],
+    title: item.title,
+    updatedLabel: formatDate(item.latest_update_at),
   };
 };
 
@@ -64,5 +85,8 @@ export const toUnifiedCatalogRow = (item: DatasetSummary): UnifiedDatasetRowProp
     tagPills: normalizeTags(item.topic_tags),
     title: item.title,
     updatedLabel: formatDate(item.latest_update_at),
+    ...(item.canonical_trend_descriptor
+      ? { trendDescriptor: item.canonical_trend_descriptor }
+      : {}),
   };
 };

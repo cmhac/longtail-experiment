@@ -13,6 +13,15 @@ const items: DatasetSummary[] = [
     geographic_scope: "US",
     topic_tags: [],
     latest_update_at: "2026-02-01T00:00:00Z",
+    canonical_trend_descriptor: {
+      descriptor_state: "available",
+      trend_label: "sustained_downtrend",
+      direction: "down",
+      strength: "moderate",
+      selected_lookback_points: 25,
+      observed_on: "2026-02-01",
+      reason_code: null,
+    },
   },
   {
     dataset_id: "CPIAUCSL",
@@ -22,6 +31,15 @@ const items: DatasetSummary[] = [
     geographic_scope: "US",
     topic_tags: [],
     latest_update_at: "2026-02-01T00:00:00Z",
+    canonical_trend_descriptor: {
+      descriptor_state: "unavailable",
+      trend_label: null,
+      direction: null,
+      strength: null,
+      selected_lookback_points: null,
+      observed_on: null,
+      reason_code: "no_applicable_lookbacks",
+    },
   },
 ];
 
@@ -33,6 +51,15 @@ const primaryItem: DatasetSummary = {
   geographic_scope: "US",
   topic_tags: [],
   latest_update_at: "2026-02-01T00:00:00Z",
+  canonical_trend_descriptor: {
+    descriptor_state: "available",
+    trend_label: "sustained_downtrend",
+    direction: "down",
+    strength: "moderate",
+    selected_lookback_points: 25,
+    observed_on: "2026-02-01",
+    reason_code: null,
+  },
 };
 
 const secondaryItem: DatasetSummary = {
@@ -43,6 +70,15 @@ const secondaryItem: DatasetSummary = {
   geographic_scope: "US",
   topic_tags: [],
   latest_update_at: "2026-02-01T00:00:00Z",
+  canonical_trend_descriptor: {
+    descriptor_state: "unavailable",
+    trend_label: null,
+    direction: null,
+    strength: null,
+    selected_lookback_points: null,
+    observed_on: null,
+    reason_code: "no_applicable_lookbacks",
+  },
 };
 
 describe("DatasetCatalogList", () => {
@@ -54,6 +90,7 @@ describe("DatasetCatalogList", () => {
     expect(markup).not.toContain('data-testid="discovery-feed-list-title-region"');
     expect(markup).toContain("Unemployment Rate");
     expect(markup).toContain("Consumer Price Index");
+    expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
   });
 
   it("deduplicates repeated datasets", () => {

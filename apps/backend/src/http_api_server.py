@@ -10,9 +10,12 @@ from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from alembic.config import Config as AlembicConfig
+from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import NullPool
@@ -80,6 +83,36 @@ def _require_schema_readiness(*, engine: Any, expected_revision: str) -> None:
         )
 
 
+def _resolve_expected_revision(*, environment: Mapping[str, str]) -> str:
+    configured_revision = environment.get("DISCOVERY_EXPECTED_DB_REVISION")
+    if configured_revision:
+        return configured_revision
+
+    alembic_config_candidates = (
+        Path("libs/db/alembic.ini"),
+        Path(__file__).resolve().parents[3] / "libs/db/alembic.ini",
+    )
+    alembic_config_path = next(
+        (candidate for candidate in alembic_config_candidates if candidate.exists()),
+        None,
+    )
+    if alembic_config_path is None:
+        raise RuntimeError(
+            "Unable to resolve expected schema revision: libs/db/alembic.ini was not found"
+        )
+
+    try:
+        script_directory = ScriptDirectory.from_config(AlembicConfig(str(alembic_config_path)))
+        head_revision = script_directory.get_current_head()
+    except Exception as exc:  # pragma: no cover - defensive guard around Alembic internals
+        raise RuntimeError("Unable to resolve expected schema revision from Alembic head") from exc
+
+    if head_revision is None:
+        raise RuntimeError("Unable to resolve expected schema revision: Alembic head is undefined")
+
+    return str(head_revision)
+
+
 def _optional_int_query_param(query: dict[str, list[str]], key: str) -> int | None:
     value = query.get(key, [None])[0]
     if value is None:
@@ -88,10 +121,7 @@ def _optional_int_query_param(query: dict[str, list[str]], key: str) -> int | No
 
 
 def _make_service() -> DatasetDiscoveryService:
-    expected_revision = os.environ.get(
-        "DISCOVERY_EXPECTED_DB_REVISION",
-        "0010_source_profile_metadata",
-    )
+    expected_revision = _resolve_expected_revision(environment=os.environ)
     database_url = _resolve_database_url(environment=os.environ)
     engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
     _require_schema_readiness(engine=engine, expected_revision=expected_revision)

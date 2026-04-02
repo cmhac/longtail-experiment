@@ -25,12 +25,26 @@
     },
     "test": {
       "executor": "nx:run-commands",
+      "inputs": [
+        "default",
+        "^default",
+        "workspaceConfig",
+        "pythonAppConfig",
+        "repoContractFiles"
+      ],
       "options": {
         "command": "uv run --project apps/backend pytest libs/db/tests"
       }
     },
     "coverage": {
       "executor": "nx:run-commands",
+      "inputs": [
+        "default",
+        "^default",
+        "workspaceConfig",
+        "pythonAppConfig",
+        "repoContractFiles"
+      ],
       "options": {
         "command": "uv run --project apps/backend pytest libs/db/tests --cov=libs/db/src --cov-fail-under=90"
       }

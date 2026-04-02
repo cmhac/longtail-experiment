@@ -6,6 +6,7 @@ from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from typing import Protocol
 
+from .trend_errors import TrendProcessingError
 from .workflow_result import SourceWorkflowResult
 
 
@@ -105,6 +106,14 @@ class ParallelSourceExecutor:
             return handler(source_key)
         except OSError:  # pragma: no cover - hard fail-fast: missing credentials/config
             raise
+        except TrendProcessingError as exc:
+            return SourceWorkflowResult(
+                source_key=source_key,
+                status="failure",
+                failed_count=1,
+                outcome_reason_code="trend_processing_failed",
+                message=str(exc),
+            )
         except Exception as exc:  # pragma: no cover - runtime protection path
             return SourceWorkflowResult(
                 source_key=source_key,

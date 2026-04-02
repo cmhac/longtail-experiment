@@ -33,7 +33,6 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
       <ChartSurfaceCard
         className="grid h-full min-h-96 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
         testId="dataset-detail-trend-section"
-        title="Historical Trend"
       >
         <ObservationsChart
           onRelativeSettingsChange={setRelativeSettings}

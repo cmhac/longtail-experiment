@@ -2,19 +2,18 @@
 
 from pathlib import Path
 
-EXPECTED_HEAD = "0010_source_profile_metadata"
 
-
-def test_agents_migration_head_matches_runtime_expectation() -> None:
-    """Ensure AGENTS guidance reflects the enforced runtime migration head."""
+def test_agents_migration_head_documents_dynamic_runtime_expectation() -> None:
+    """Ensure AGENTS guidance documents dynamic Alembic-head runtime checks."""
     agents = Path("AGENTS.md").read_text(encoding="utf-8")
 
-    assert EXPECTED_HEAD in agents
+    assert "current Alembic head" in agents
+    assert "do not pin a fixed revision in compose" in agents
 
 
-def test_quickstart_mentions_runtime_migration_head_enforcement() -> None:
-    """Ensure quickstart documents migration-head runtime enforcement."""
+def test_quickstart_mentions_dynamic_migration_head_enforcement() -> None:
+    """Ensure quickstart documents migration-head enforcement without fixed revision pins."""
     quickstart = Path("specs/019-real-backend-api/quickstart.md").read_text(encoding="utf-8")
 
-    assert "DISCOVERY_EXPECTED_DB_REVISION" in quickstart
-    assert EXPECTED_HEAD in quickstart
+    assert "alembic -c libs/db/alembic.ini heads" in quickstart
+    assert "current Alembic head" in quickstart

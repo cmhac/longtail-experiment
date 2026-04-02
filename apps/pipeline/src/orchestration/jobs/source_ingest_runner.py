@@ -6,6 +6,7 @@ from typing import Any
 
 from src.contract.errors import ContractValidationError
 
+from .trend_errors import TrendProcessingError
 from .workflow_request import SourceWorkflowRequest
 from .workflow_result import SourceWorkflowResult
 
@@ -20,9 +21,15 @@ def quarantine_reason(error: Exception) -> str:
 class SourceIngestRunner:
     """Execute source records through canonical validation and persistence."""
 
-    def __init__(self, canonical_ingest_service: Any) -> None:
+    def __init__(
+        self,
+        canonical_ingest_service: Any,
+        *,
+        trend_runtime_processor: Any | None = None,
+    ) -> None:
         """Initialize runner with canonical ingest service dependency."""
         self._canonical_ingest_service = canonical_ingest_service
+        self._trend_runtime_processor = trend_runtime_processor
 
     def sync_source_metadata(
         self,
@@ -52,17 +59,30 @@ class SourceIngestRunner:
         accepted_count = 0
         quarantined_count = 0
         failed_count = 0
+        accepted_series_keys: set[str] = set()
 
         for payload in records:
             try:
                 self._canonical_ingest_service.ingest_payload(payload)
                 accepted_count += 1
+                series_key = payload.get("series_key")
+                if isinstance(series_key, str) and series_key.strip() != "":
+                    accepted_series_keys.add(series_key)
             except Exception as exc:  # pragma: no cover - explicit boundary for runner behavior
                 reason_code = quarantine_reason(exc)
                 if reason_code == "contract_validation_failed":
                     quarantined_count += 1
                 else:
                     failed_count += 1
+
+        if self._trend_runtime_processor is not None:
+            for series_key in sorted(accepted_series_keys):
+                try:
+                    self._trend_runtime_processor.process_series(series_key=series_key)
+                except Exception as exc:  # pragma: no cover
+                    raise TrendProcessingError(
+                        f"trend processing failed for series={series_key}: {exc}"
+                    ) from exc
 
         if failed_count > 0 and accepted_count == 0:
             status = "failure"

@@ -1,0 +1,39 @@
+{
+  "name": "trend-analysis",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/trend_analysis/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:library"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend ruff check libs/trend_analysis"
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "uv run --project apps/backend ruff format --check libs/trend_analysis"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend ty check libs/trend_analysis"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend pytest libs/trend_analysis/tests"
+      }
+    },
+    "coverage": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend pytest libs/trend_analysis/tests --cov=libs/trend_analysis/src --cov-fail-under=90"
+      }
+    }
+  }
+}

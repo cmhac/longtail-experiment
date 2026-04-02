@@ -109,7 +109,8 @@ Execution steps:
           - Common patterns in similar implementations
           - Risk reduction (security, performance, maintainability)
           - Alignment with any explicit project goals or constraints visible in the spec
-       - Present your **recommended option prominently** at the top with clear reasoning (1-2 sentences explaining why this is the best choice).
+       - **Clearly re-state the question** for the user, then list the options in a Markdown table format. Include a recommended option with brief reasoning if one stands out.
+       - Then, AFTER restating the question, present your **recommended option prominently** at the top with clear reasoning (1-2 sentences explaining why this is the best choice).
        - Format as: `**Recommended:** Option [X] - <reasoning>`
        - Then render all options as a Markdown table:
 

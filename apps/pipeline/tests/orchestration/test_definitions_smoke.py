@@ -13,6 +13,7 @@ from src.orchestration.definitions import (
     defs,
     get_recovery_plan_for_source_results,
     get_scheduling_authority_mode,
+    get_trend_stage_dependencies,
     get_workspace_definition_catalog,
 )
 from src.orchestration.jobs.source_assets.discovery import scan_adapter_modules
@@ -134,6 +135,11 @@ def test_definitions_recovery_plan_keeps_legacy_paths_disabled() -> None:
     assert plan["authority_mode"] == "dagster_only"
     assert plan["legacy_paths_disabled"] is True
     assert plan["failed_sources"] == [first_source_key]
+
+
+def test_definitions_expose_trend_stage_dependency_surface() -> None:
+    """Trend stage metadata should expose its fetch/update dependency surface."""
+    assert get_trend_stage_dependencies() == ("per_series_source_asset_outputs",)
 
 
 def test_compose_dagit_healthcheck_queries_workspace_graphql() -> None:
