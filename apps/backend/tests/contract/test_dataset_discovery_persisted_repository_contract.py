@@ -41,7 +41,7 @@ class _FakeConnection:
         self._trend_event_rows = trend_event_rows
         self._canonical_descriptor_rows = canonical_descriptor_rows
 
-    def execute(  # noqa: PLR0911, PLR0912
+    def execute(  # noqa: PLR0911, PLR0912, PLR0915
         self,
         statement: object,
         parameters: dict[str, Any] | None = None,
@@ -107,6 +107,43 @@ class _FakeConnection:
                     }
                     for row in self._canonical_descriptor_rows
                 ]
+                return _FakeResult(rows)
+            if "candidate_observation.reported_at AS candidate_reported_at" in sql:
+                params = parameters or {}
+                dataset_id = str(params.get("dataset_id", ""))
+                from_date = params.get("from_date")
+                to_date = params.get("to_date")
+
+                rows: list[dict[str, Any]] = []
+                for row in self._canonical_descriptor_rows:
+                    if str(row.get("dataset_id", "")) != dataset_id:
+                        continue
+                    observed_on = row["observed_on"]
+                    if from_date is not None and observed_on < from_date:
+                        continue
+                    if to_date is not None and observed_on > to_date:
+                        continue
+                    rows.append(
+                        {
+                            "candidate_observed_on": observed_on,
+                            "candidate_reported_at": datetime(2026, 2, 4, tzinfo=timezone.utc),
+                            "candidate_created_at": row["created_at"],
+                            "descriptor_state": row["descriptor_state"],
+                            "trend_label": row["trend_label"],
+                            "direction": row["direction"],
+                            "strength": row["strength"],
+                            "selected_lookback_points": row["selected_lookback_points"],
+                            "reason_code": row["reason_code"],
+                        }
+                    )
+                rows.sort(
+                    key=lambda row: (
+                        row["candidate_observed_on"],
+                        row["candidate_reported_at"],
+                        row["candidate_created_at"],
+                    ),
+                    reverse=True,
+                )
                 return _FakeResult(rows)
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
@@ -507,6 +544,7 @@ def test_observations_apply_date_filters_and_shape() -> None:
             "value": 4.35,
             "reported_at": "2026-02-04T00:00:00+00:00",
             "attributes": {"revision": 1},
+            "as_of_trend_candidates": [],
         }
     ]
 

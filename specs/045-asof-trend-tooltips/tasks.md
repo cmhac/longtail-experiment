@@ -45,17 +45,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Add service-layer deterministic as-of resolution tests in apps/backend/tests/contract/test_dataset_detail_asof_resolution_contract.py
-- [ ] T010 [P] [US1] Add repository-level candidate ordering tests for same-date multi-report observations in apps/backend/tests/integration/test_dataset_asof_trend_candidate_ordering.py
-- [ ] T011 [P] [US1] Add mixed-availability resolution tests in apps/backend/tests/contract/test_dataset_detail_asof_mixed_availability.py
+- [x] T009 [P] [US1] Add service-layer deterministic as-of resolution tests in apps/backend/tests/contract/test_dataset_detail_asof_resolution_contract.py
+- [x] T010 [P] [US1] Add repository-level candidate ordering tests for same-date multi-report observations in apps/backend/tests/integration/test_dataset_asof_trend_candidate_ordering.py
+- [x] T011 [P] [US1] Add mixed-availability resolution tests in apps/backend/tests/contract/test_dataset_detail_asof_mixed_availability.py
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Implement observation-context as-of candidate retrieval in apps/backend/src/query/dataset_discovery_persisted_repository.py
-- [ ] T013 [US1] Implement deterministic tie-break logic for as-of descriptor selection in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T014 [US1] Implement explicit unavailable descriptor fallback generation in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T015 [US1] Wire per-observation as-of descriptor assembly into detail payload construction in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T016 [US1] Add reason-code mapping for unavailable as-of states in apps/backend/src/query/dataset_discovery_service.py
+- [x] T012 [US1] Implement observation-context as-of candidate retrieval in apps/backend/src/query/dataset_discovery_persisted_repository.py
+- [x] T013 [US1] Implement deterministic tie-break logic for as-of descriptor selection in apps/backend/src/query/dataset_discovery_service.py
+- [x] T014 [US1] Implement explicit unavailable descriptor fallback generation in apps/backend/src/query/dataset_discovery_service.py
+- [x] T015 [US1] Wire per-observation as-of descriptor assembly into detail payload construction in apps/backend/src/query/dataset_discovery_service.py
+- [x] T016 [US1] Add reason-code mapping for unavailable as-of states in apps/backend/src/query/dataset_discovery_service.py
 
 **Checkpoint**: US1 resolves observation-level as-of trend states deterministically and is independently testable.
 

@@ -8,6 +8,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, cast
 
+from .trend_backfill_service import decide_backfill_scope
 from .trend_lifecycle_service import TrendLifecycleService
 
 
@@ -28,6 +29,7 @@ def _load_trend_library_symbols() -> Any:
 
 
 _EVALUATE_MULTI_LOOKBACKS = _load_trend_library_symbols()
+MIN_POINTS_FOR_CADENCE_INFERENCE = 3
 
 
 class TrendRuntimeProcessor:
@@ -54,6 +56,28 @@ class TrendRuntimeProcessor:
                 "outcome_reason_code": "no_observations",
             }
 
+        existing_trend_record_count = 0
+        if hasattr(self._trend_repository, "count_trend_records_for_series"):
+            existing_trend_record_count = int(
+                self._trend_repository.count_trend_records_for_series(series_key=series_key)
+            )
+        existing_canonical_count: int | None = None
+        if hasattr(self._trend_repository, "count_canonical_descriptors_for_series"):
+            existing_canonical_count = int(
+                self._trend_repository.count_canonical_descriptors_for_series(series_key=series_key)
+            )
+
+        eligible_observation_count = max(len(rows) - (MIN_POINTS_FOR_CADENCE_INFERENCE - 1), 0)
+        backfill_decision = decide_backfill_scope(
+            existing_trend_record_count=existing_trend_record_count,
+            has_sufficient_history=len(rows) >= MIN_POINTS_FOR_CADENCE_INFERENCE,
+        )
+        requires_historical_backfill = (
+            existing_canonical_count is not None
+            and existing_canonical_count < eligible_observation_count
+        )
+        run_full_backfill = backfill_decision.run_full_backfill or requires_historical_backfill
+
         points = [
             (
                 cast(date, row["observed_on"]),
@@ -61,18 +85,32 @@ class TrendRuntimeProcessor:
             )
             for row in rows
         ]
-        latest_observed_on = points[-1][0]
-        latest_observation_id = rows[-1].get("observation_id")
-        observation_id = str(latest_observation_id) if latest_observation_id is not None else None
+        rows_to_process = [rows[-1]]
+        if run_full_backfill:
+            rows_to_process = rows[MIN_POINTS_FOR_CADENCE_INFERENCE - 1 :]
 
-        evaluation = _EVALUATE_MULTI_LOOKBACKS(points)
+        apply_results = []
+        for row in rows_to_process:
+            observed_on = cast(date, row["observed_on"])
+            observation_id_value = row.get("observation_id")
+            observation_id = str(observation_id_value) if observation_id_value is not None else None
 
-        apply_result = self._lifecycle_service.apply_lookback_evaluation(
-            series_key=series_key,
-            observed_on=latest_observed_on,
-            observation_id=observation_id,
-            evaluation_result=evaluation,
-        )
+            history_points = [
+                (candidate_observed_on, candidate_value)
+                for candidate_observed_on, candidate_value in points
+                if candidate_observed_on <= observed_on
+            ]
+            evaluation = _EVALUATE_MULTI_LOOKBACKS(history_points)
+            apply_results.append(
+                self._lifecycle_service.apply_lookback_evaluation(
+                    series_key=series_key,
+                    observed_on=observed_on,
+                    observation_id=observation_id,
+                    evaluation_result=evaluation,
+                )
+            )
+
+        apply_result = apply_results[-1]
         return {
             "series_key": series_key,
             "execution_state": apply_result.outcome_state,

@@ -444,6 +444,7 @@ def build_eia_retail_fuel_prices_source_workflow(
             result = runner.run_records(
                 request=request,
                 records=_map_records(rows=raw_rows, series_config=series_config),
+                fallback_series_keys=[series_config["canonical_series_key"]],
             )
             accepted_count += result.accepted_count
             quarantined_count += result.quarantined_count
