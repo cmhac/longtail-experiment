@@ -221,6 +221,22 @@ class PostgresTrendRepository:
             ).scalar_one()
         return int(count_value)
 
+    def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
+        """Return persisted canonical descriptor count for one canonical series key."""
+        with self._engine.begin() as connection:
+            count_value = connection.execute(
+                text(
+                    """
+                    SELECT COUNT(*)
+                    FROM trend_canonical_descriptors tcd
+                    JOIN data_series ds ON ds.id = tcd.data_series_id
+                    WHERE ds.series_key = :series_key
+                    """
+                ),
+                {"series_key": series_key},
+            ).scalar_one()
+        return int(count_value)
+
     def upsert_lookback_applicability(self, payload: dict[str, object]) -> None:
         """Persist one lookback applicability row keyed by series/observation/lookback."""
         with self._engine.begin() as connection:

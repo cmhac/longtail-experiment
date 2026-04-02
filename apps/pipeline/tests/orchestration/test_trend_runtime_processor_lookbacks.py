@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.orchestration.jobs.trend_runtime_processor import TrendRuntimeProcessor
 
 EXPECTED_LOOKBACK_COUNT = 12
+ELIGIBLE_BACKFILL_OBSERVATION_COUNT = 6
 
 
 class _FakeObservationRepository:
@@ -37,6 +38,14 @@ class _FakeTrendRepository:
     def upsert_canonical_descriptor(self, payload: dict[str, object]) -> None:
         self.canonical_writes.append(dict(payload))
 
+    def count_trend_records_for_series(self, *, series_key: str) -> int:
+        del series_key
+        return 0
+
+    def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
+        del series_key
+        return 0
+
 
 def test_runtime_persists_applicability_for_supported_and_unsupported_lookbacks() -> None:
     """Processor should persist explicit applicability decisions for the full catalog."""
@@ -55,7 +64,10 @@ def test_runtime_persists_applicability_for_supported_and_unsupported_lookbacks(
     result = processor.process_series(series_key=series_key)
 
     assert result["execution_state"] == "applied"
-    assert len(trend_repository.applicability_writes) == EXPECTED_LOOKBACK_COUNT
+    assert (
+        len(trend_repository.applicability_writes)
+        == EXPECTED_LOOKBACK_COUNT * ELIGIBLE_BACKFILL_OBSERVATION_COUNT
+    )
     by_lookback = {
         int(cast(int, row["lookback_points"])): row for row in trend_repository.applicability_writes
     }
@@ -92,4 +104,5 @@ def test_runtime_persists_no_signal_snapshot_and_unavailable_canonical() -> None
     assert all(
         row["outcome_state"] == "no_significant_trend" for row in trend_repository.snapshot_writes
     )
+    assert len(trend_repository.canonical_writes) == ELIGIBLE_BACKFILL_OBSERVATION_COUNT
     assert trend_repository.canonical_writes[-1]["descriptor_state"] == "unavailable"

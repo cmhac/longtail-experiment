@@ -95,6 +95,9 @@ class TrendRepository(Protocol):
     def count_trend_records_for_series(self, *, series_key: str) -> int:
         """Return persisted trend record count for one canonical series key."""
 
+    def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
+        """Return persisted canonical descriptor count for one canonical series key."""
+
     def upsert_lookback_applicability(self, payload: LookbackApplicabilityInsert) -> None:
         """Persist one applicability decision for a series at one observation lookback."""
 
