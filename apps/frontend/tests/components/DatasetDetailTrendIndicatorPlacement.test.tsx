@@ -5,8 +5,8 @@ import { DatasetDetailAnalysis } from "../../src/components/discovery/DatasetDet
 import { buildDatasetDetailFixture } from "../fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "../test-utils";
 
-describe("DatasetDetail no overlay regression", () => {
-  it("renders chart without overlay artifacts", () => {
+describe("DatasetDetail trend indicator placement", () => {
+  it("renders indicator adjacent to Historical Trend heading", () => {
     const markup = renderMarkup(
       <DatasetDetailAnalysis
         data={buildDatasetDetailFixture({
@@ -23,9 +23,8 @@ describe("DatasetDetail no overlay regression", () => {
       />,
     );
 
+    expect(markup).toContain("Historical Trend");
     expect(markup).toContain('data-testid="dataset-detail-trend-indicator"');
-    expect(markup).toContain('data-testid="observations-chart"');
-    expect(markup).not.toContain("trend-overlay-layer");
-    expect(markup).not.toContain("trend-overlay-tooltip");
+    expect(markup).toContain('data-state="down"');
   });
 });

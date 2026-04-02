@@ -23,6 +23,7 @@ describe("RecentUpdatesFeed", () => {
 
     expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).toContain('data-testid="unified-dataset-row-title"');
+    expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
     expect(markup).toContain("EIA");
     expect(markup).toContain("Weekly update summary for editorial dataset 1.");
     expect(markup).toContain('data-testid="unified-dataset-row-pills"');
@@ -71,6 +72,7 @@ describe("RecentUpdatesFeed", () => {
     expect(markup).toContain("not-a-date");
     expect(markup).not.toContain("Geography:");
     expect(markup).not.toContain("Weekly update summary");
+    expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
   });
 
   it("does not duplicate geography when description already contains it", () => {

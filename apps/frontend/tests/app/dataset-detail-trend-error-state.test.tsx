@@ -39,6 +39,7 @@ describe("dataset detail trend payload error state", () => {
 
     expect(markup).toContain('data-testid="dataset-detail-trend-section"');
     expect(markup).toContain('data-testid="observations-chart"');
-    expect(markup).not.toContain('data-testid="dataset-trend-chip"');
+    expect(markup).toContain('data-testid="dataset-detail-trend-indicator"');
+    expect(markup).toContain('data-state="unavailable"');
   });
 });

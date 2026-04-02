@@ -15,6 +15,15 @@ describe("UnifiedDatasetRow", () => {
         summaryText="Weekly update summary for editorial dataset 1."
         tagPills={["energy", "retail fuel prices"]}
         title="Editorial Dataset 1"
+        trendDescriptor={{
+          descriptor_state: "available",
+          trend_label: "sustained_uptrend",
+          direction: "up",
+          strength: "moderate",
+          selected_lookback_points: 10,
+          observed_on: "2026-03-25",
+          reason_code: null,
+        }}
         updatedLabel="Mar 25, 2026"
       />,
     );
@@ -35,6 +44,8 @@ describe("UnifiedDatasetRow", () => {
     expect(markup).toContain('data-testid="discovery-feed-list-update-date"');
     expect(markup).toContain('data-testid="discovery-feed-list-title-text"');
     expect(markup).toContain('data-testid="discovery-feed-list-subtitle"');
+    expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
+    expect(markup).toContain('data-state="up"');
     expect(markup).toContain('href="/geographies/us"');
     expect(markup).toContain('href="/topics/energy"');
     expect(markup).toContain('href="/topics/retail-fuel-prices"');
@@ -63,6 +74,7 @@ describe("UnifiedDatasetRow", () => {
     expect(markup).toContain('data-testid="discovery-feed-list-display-category"');
     expect(markup).toContain('data-testid="discovery-feed-list-update-date"');
     expect(markup).toContain('href="/topics/labor"');
+    expect(markup).not.toContain('data-testid="unified-dataset-row-trend-indicator"');
     expect(markup).not.toContain(
       'class="recent-updates-row unified-dataset-row" data-testid="unified-dataset-row" href="/datasets/UNRATE"',
     );

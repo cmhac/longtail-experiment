@@ -5,7 +5,7 @@ import type { JSX, ReactNode } from "react";
 interface ChartSurfaceCardProps {
   children: ReactNode;
   className?: string;
-  title?: string;
+  title?: ReactNode;
   titleClassName?: string;
   testId?: string;
 }
