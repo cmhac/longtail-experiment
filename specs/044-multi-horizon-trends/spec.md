@@ -3,7 +3,7 @@
 **Feature Branch**: `[044-multi-horizon-trends]`  
 **Created**: 2026-04-01  
 **Status**: Draft  
-**Input**: User description: "Classify current trend state across fixed observation lookbacks. Run all applicable lookbacks in parallel per new observation, gate by dataset frequency and history depth, and remove detail-page trend overlay in favor of one trend chip selected from the most informative recent applicable lookback."
+**Input**: User description: "Classify current trend state across fixed observation lookbacks. Run all applicable lookbacks in parallel per new observation, gate by dataset frequency and history depth, and replace the removed detail-page trend chip with a directional arrow indicator. Show that same indicator at the right edge of all dataset list rows, and ensure dataset-list and dataset-detail responses both include the current trend needed for direct rendering."
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -36,36 +36,40 @@ As a platform operator, I need each new observation to produce independent trend
 
 ---
 
-### User Story 2 - Serve Current Trend by Lookback (Priority: P2)
+### User Story 2 - Serve Current Trend Across List and Detail Responses (Priority: P2)
 
-As an application consumer, I need lookback-scoped current trend snapshots so clients can show recent trend state and understand which lookbacks are available, applicable, or unavailable.
+As an application consumer, I need current trend data in both dataset-list and dataset-detail responses so clients can show the current trend consistently wherever a dataset appears.
 
-**Why this priority**: Parallel snapshot persistence only creates value when APIs expose clear current-state outputs and lookback applicability context.
+**Why this priority**: Parallel snapshot persistence only creates value when response payloads expose both summary-level current trend state for list surfaces and detailed lookback context for detail surfaces.
 
-**Independent Test**: Can be tested by requesting dataset detail and validating that current trend snapshots are returned by lookback, including applicability and missing-state handling.
+**Independent Test**: Can be tested by requesting dataset list and dataset detail payloads and validating that each dataset includes deterministic current trend state for direct rendering, plus lookback snapshot detail where required.
 
 **Acceptance Scenarios**:
 
-1. **Given** a dataset with multiple applicable lookbacks, **When** detail data is requested, **Then** the response includes current trend snapshots for each lookback in a deterministic structure.
-2. **Given** some lookbacks are not applicable for a dataset, **When** detail data is requested, **Then** the response includes explicit lookback availability state instead of failing the request.
-3. **Given** a client requests unsupported lookback identifiers, **When** the request is processed, **Then** the system returns explicit validation errors.
+1. **Given** a dataset appears in any dataset-list response, **When** that response is requested, **Then** the response includes one canonical current trend descriptor for that dataset suitable for direct list-row rendering.
+2. **Given** a dataset detail page is requested, **When** detail data is returned, **Then** the response includes the canonical current trend descriptor and lookback snapshots in deterministic structures.
+3. **Given** some lookbacks are not applicable for a dataset, **When** detail data is requested, **Then** the response includes explicit lookback availability state instead of failing the request.
+4. **Given** no applicable or available current trend exists for a dataset, **When** list or detail data is requested, **Then** the response includes an explicit unavailable current-trend state instead of omitting the field.
+5. **Given** a client requests unsupported lookback identifiers, **When** the request is processed, **Then** the system returns explicit validation errors.
 
 ---
 
-### User Story 3 - Show a Single Informative Trend Chip (Priority: P3)
+### User Story 3 - Show a Single Informative Trend Indicator (Priority: P3)
 
-As an end user, I want a simple trend chip beneath the dataset title that shows the most informative recent applicable lookback for that dataset so I can quickly understand the current trend without complex overlays.
+As an end user, I want a simple arrow-based trend indicator that appears at the right edge of dataset rows and beside the Historical Trend heading so I can quickly understand the current trend without reading a chip label or parsing chart overlays.
 
-**Why this priority**: The current overlay approach is being intentionally removed for simplicity and clarity, and canonical trend labeling must be consistent across clients.
+**Why this priority**: The current overlay approach is being intentionally removed for simplicity and clarity, and trend signaling must remain compact and consistent across discovery surfaces.
 
-**Independent Test**: Can be tested by opening dataset detail pages and verifying the overlay no longer appears and the chip renders the selected lookback and current trend state.
+**Independent Test**: Can be tested by opening list and detail pages and verifying the overlay no longer appears, the directional indicator renders in the expected positions, and the same current-trend state is represented consistently across surfaces.
 
 **Acceptance Scenarios**:
 
-1. **Given** a dataset detail page loads, **When** trend data is available, **Then** the page shows one trend chip below the dataset title using the most informative recent applicable lookback.
-2. **Given** trend overlay visualization existed previously, **When** the updated page loads, **Then** no trend overlay is rendered.
-3. **Given** canonical trend descriptor data is provided by the API, **When** the page loads, **Then** the chip renders that descriptor without performing client-side trend weighting or lookback ranking logic.
-4. **Given** no applicable or available current trend exists, **When** the page loads, **Then** the chip area communicates unavailable trend status clearly.
+1. **Given** a dataset list row renders for a dataset with an available canonical trend descriptor, **When** the row is displayed, **Then** one directional arrow indicator appears at the far right of that row.
+2. **Given** a dataset detail page loads for a dataset with an available canonical trend descriptor, **When** the page is displayed, **Then** the same directional arrow indicator appears adjacent to the Historical Trend heading above the chart.
+3. **Given** canonical trend descriptor data is provided by the API, **When** list or detail pages render, **Then** the indicator renders that descriptor without performing client-side trend weighting or lookback ranking logic.
+4. **Given** the canonical descriptor represents a strong uptrend, mild uptrend, mild downtrend, or strong downtrend, **When** the indicator renders, **Then** the arrow orientation and color match the corresponding state consistently.
+5. **Given** trend overlay visualization existed previously, **When** the updated detail page loads, **Then** no trend overlay is rendered.
+6. **Given** no applicable or available current trend exists, **When** a list row or detail page renders, **Then** the indicator area communicates unavailable trend status clearly.
 
 ---
 
@@ -76,7 +80,10 @@ As an end user, I want a simple trend chip beneath the dataset title that shows 
 - What happens when one or more lookbacks fail during processing while others succeed for the same observation?
 - What happens when a dataset’s update behavior changes over time and lookback applicability changes?
 - What happens when clients request unsupported or duplicate lookback identifiers?
-- What happens when no lookback is applicable, leaving the UI chip without a trend to display?
+- What happens when no lookback is applicable, leaving list and detail indicator placements without a trend to display?
+- What happens when a dataset list mixes datasets with available and unavailable current-trend states in the same response?
+- What happens when a canonical descriptor direction is available but strength is missing or unsupported for arrow-state mapping?
+- What happens when row density or narrow viewports reduce the space available for the right-aligned list indicator?
 
 ## Requirements _(mandatory)_
 
@@ -97,13 +104,16 @@ As an end user, I want a simple trend chip beneath the dataset title that shows 
 - **FR-013**: System MUST compute a deterministic weighted heuristic across applicable lookbacks to produce one canonical current trend descriptor per observation context.
 - **FR-014**: System MUST remove the dataset-detail trend overlay visualization and its related response dependencies.
 - **FR-015**: System MUST persist the canonical weighted-heuristic trend descriptor in backend storage so it is available without client recomputation.
-- **FR-016**: System MUST expose the canonical weighted-heuristic trend descriptor in API responses for direct client rendering.
-- **FR-017**: System MUST render a single trend chip below the dataset title on dataset detail pages using the API-provided canonical descriptor.
-- **FR-018**: System MUST render a clear unavailable state for the chip when no applicable or available current trend snapshot exists.
-- **FR-019**: System MUST preserve auditability by recording lookback attribution and decision status for each per-observation trend evaluation.
-- **FR-020**: System MUST support controlled reclassification workflows that recompute current-state lookback snapshots and canonical weighted descriptors across historical observations when needed.
-- **FR-021**: System MUST deprecate reliance on canonical trend start/end period records for primary product behavior in this feature scope.
-- **FR-022**: System MUST produce deterministic lookback snapshot outputs and canonical weighted descriptors for identical observation inputs, frequency interpretation, and lookback applicability configuration.
+- **FR-016**: System MUST expose the canonical weighted-heuristic trend descriptor in dataset-detail API responses for direct client rendering.
+- **FR-017**: System MUST expose the canonical weighted-heuristic trend descriptor in every dataset-list API response that returns dataset summary rows, so list surfaces can render the current trend without additional trend-specific fetches.
+- **FR-018**: System MUST render one directional current-trend indicator at the far right of each dataset row using the API-provided canonical descriptor.
+- **FR-019**: System MUST render the same directional current-trend indicator adjacent to the Historical Trend heading on dataset detail pages using the API-provided canonical descriptor.
+- **FR-020**: System MUST map canonical current-trend states to four visual indicator states: straight-up green for strong uptrend, up-right green for mild uptrend, down-right red for mild downtrend, and straight-down red for strong downtrend.
+- **FR-021**: System MUST render a clear unavailable state for list and detail indicators when no applicable or available current trend snapshot exists.
+- **FR-022**: System MUST preserve auditability by recording lookback attribution and decision status for each per-observation trend evaluation.
+- **FR-023**: System MUST support controlled reclassification workflows that recompute current-state lookback snapshots and canonical weighted descriptors across historical observations when needed.
+- **FR-024**: System MUST deprecate reliance on canonical trend start/end period records for primary product behavior in this feature scope.
+- **FR-025**: System MUST produce deterministic lookback snapshot outputs and canonical weighted descriptors for identical observation inputs, frequency interpretation, and lookback applicability configuration.
 
 ### Key Entities _(include if feature involves data)_
 
@@ -112,7 +122,7 @@ As an end user, I want a simple trend chip beneath the dataset title that shows 
 - **Observation Lookback Snapshot**: A per-observation, per-lookback current trend result including trend state and evaluation timestamp.
 - **Observation Lookback Evaluation Outcome**: A per-run result for each lookback (applied, inapplicable, no-significant-trend, error) with traceable reason context.
 - **Canonical Trend Descriptor**: A weighted-heuristic aggregate derived from applicable lookback snapshots, persisted for API delivery and direct client rendering.
-- **Dataset Detail Trend Chip Model**: A client-facing projection of the API-provided canonical trend descriptor for primary recent trend display.
+- **Dataset Trend Indicator Model**: A client-facing projection of the API-provided canonical trend descriptor for row-level and detail-heading recent trend display.
 
 ## Success Criteria _(mandatory)_
 
@@ -120,11 +130,12 @@ As an end user, I want a simple trend chip beneath the dataset title that shows 
 
 - **SC-001**: 100% of newly ingested observations for applicable datasets produce current-state snapshots for all lookbacks that pass applicability rules.
 - **SC-002**: 100% of inapplicable lookbacks produce explicit inapplicability outcomes with reason attribution rather than silent omission.
-- **SC-003**: 100% of audited dataset detail responses provide structurally valid lookback snapshot data and canonical weighted descriptor payloads for direct rendering.
-- **SC-004**: Dataset detail pages show no trend overlay visualization and show exactly one trend chip (or explicit unavailable state) in 100% of UI regression checks.
+- **SC-003**: 100% of audited dataset-detail responses and dataset-list responses provide structurally valid canonical current-trend descriptor payloads for direct rendering.
+- **SC-004**: Dataset detail pages show no trend overlay visualization and show exactly one directional trend indicator (or explicit unavailable state) adjacent to the Historical Trend heading in 100% of UI regression checks.
 - **SC-005**: Reprocessing unchanged observations results in zero duplicate per-observation lookback snapshots in 100% of idempotency verification cases.
 - **SC-006**: In simulated partial-failure runs, unaffected applicable lookbacks still persist successfully for the same observation in 100% of test cases.
-- **SC-007**: 100% of audited dataset-detail chip renders use API-provided canonical descriptors with no client-side lookback weighting or ranking execution.
+- **SC-007**: 100% of audited dataset-row and dataset-detail indicator renders use API-provided canonical descriptors with no client-side lookback weighting or ranking execution.
+- **SC-008**: 100% of visual-regression checks for the four supported current-trend states render the correct arrow orientation and red/green direction encoding across dataset-list and dataset-detail surfaces.
 
 ## Assumptions
 
@@ -132,7 +143,8 @@ As an end user, I want a simple trend chip beneath the dataset title that shows 
 - Applicability rules will be centrally defined and versioned so frequency/depth gating is deterministic across pipeline and API behavior.
 - Current-state per-observation snapshots are the primary trend product output for this feature; historical canonical start/end segmentation is not.
 - Weighted-heuristic canonical descriptor computation occurs upstream and is persisted; clients consume the resulting descriptor and do not reproduce weighting logic.
-- The dataset-detail UI in this feature scope only needs one primary trend chip derived from the API-provided canonical descriptor.
+- The dataset-detail UI in this feature scope only needs one primary trend indicator adjacent to the Historical Trend heading, derived from the API-provided canonical descriptor.
+- Dataset-list surfaces in scope reuse shared dataset-row behavior and each require the same API-provided current-trend indicator state without extra per-row requests.
 - Specific statistical or machine-learning classification methods are intentionally out of scope for this specification revision.
 
 ## Constitution Alignment _(mandatory)_

@@ -1,8 +1,10 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-01
+Auto-generated from all feature plans. Last updated: 2026-04-02
 
 ## Active Technologies
+- Python 3.12 (backend/pipeline/libs), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Pydantic 2.x, Dagster 1.x, existing discovery query/service contracts, existing trend-analysis library and canonical descriptor persistence, HeroUI 3, Tailwind utilities, Vitest, pytest, Ruff, Ty, Biome (044-multi-horizon-trends)
+- PostgreSQL 16 existing trend tables plus already-added `trend_lookback_evaluations`, `trend_lookback_snapshots`, and `trend_canonical_descriptors` (044-multi-horizon-trends)
 
 - TypeScript 5.x + React 19 (Next.js 15 App Router), Python 3.12 backend query layer, existing pipeline contracts/persistence semantics + Existing discovery API client/types, Next.js routing primitives, existing shell/layout tokens, backend dataset discovery service/repository surfaces (032-source-pages)
 - Existing PostgreSQL 16 discovery metadata in `source_profiles`, `data_series`, `topic_tags`, and `observations`; no new datastore expected (032-source-pages)
@@ -266,10 +268,10 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 044-multi-horizon-trends: Added Python 3.12 (backend/pipeline/libs), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Pydantic 2.x, Dagster 1.x, existing discovery query/service contracts, existing trend-analysis library and canonical descriptor persistence, HeroUI 3, Tailwind utilities, Vitest, pytest, Ruff, Ty, Biome
 
 - 044-multi-horizon-trends: Added Python 3.12 (libs/backend/pipeline), TypeScript 5.x + React 19 + Next.js 15 (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster 1.x, pytest, Ruff, Ty, HeroUI 3, Tailwind, Biome, Vites
 - 043-implement-trend-detection: Added Python 3.12 (library/backend/pipeline), TypeScript 5.x + React 19 + Next.js 15 (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster 1.x, pytest, Ruff, Ty, HeroUI 3, Recharts, Vitest, Biome
-- 042-dataset-comparison-overlay: Added TypeScript 5.x + React 19 (Next.js 15 App Router), Python 3.12 contracts/runtime context unchanged + HeroUI 3 components (`@heroui/react`), Recharts charting, existing discovery client/types/view-model utilities, Next.js routing primitives
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
   in `apps/backend/src/contract`.
@@ -285,7 +287,6 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 
 structure, toolchain, or canonical developer commands change.
 
-- Canonical trend descriptor guidance (spec 044):
   - Dataset detail trend presentation is chip-only and API-driven.
   - Frontend consumers must render from API-provided canonical descriptor payloads and must not perform client-side lookback weighting/ranking.
   - Observation-lookback snapshots and canonical descriptors are the primary trend contract; period span overlays are deprecated for product behavior.

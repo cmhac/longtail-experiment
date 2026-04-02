@@ -12,53 +12,59 @@
 2. `docker compose up -d`
 3. `docker compose ps`
 
-## 2. Library-first iteration (multi-lookback classification)
+## 2. Backend contract and query refinement
 
-1. Red: add failing tests in `libs/trend_analysis/tests/` for lookback applicability and weighted canonical descriptor determinism.
-2. Green: implement minimal classifier/model changes in `libs/trend_analysis/src/trend_analysis/`.
-3. Refactor while preserving deterministic behavior.
+1. Red: add failing backend tests for dataset-summary responses carrying `canonical_trend_descriptor`.
+2. Green: update shared summary contracts and persisted-query/service projections so catalog/search/metadata/recent dataset updates all return the latest canonical descriptor.
+3. Refactor while preserving deterministic unavailable-state behavior.
 4. Repeat checks:
-   - `uv run --project apps/backend ruff check libs/trend_analysis`
-   - `PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend ty check libs/trend_analysis`
-   - `PYTHONPATH=libs/trend_analysis/src uv run --project apps/backend pytest libs/trend_analysis/tests`
-
-## 3. Database and pipeline integration
-
-1. Add and apply migration for lookback snapshots + canonical descriptor persistence.
-2. Update pipeline runtime/repository writes and idempotency behavior.
-3. Repeat checks:
-   - `uv run --project apps/pipeline ruff check apps/pipeline`
-   - `uv run --project apps/pipeline ty check apps/pipeline`
-   - `uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration`
-4. Manual validation:
-   - trigger one ingest path that creates a fresh observation
-   - verify per-lookback outcomes and canonical descriptor rows are persisted
-   - rerun same observation path and confirm no duplicates
-
-## 4. Backend contract/query integration
-
-1. Update discovery dataset detail contracts for canonical descriptor payload.
-2. Replace span-read logic with lookback snapshot + canonical descriptor reads.
-3. Repeat checks:
    - `uv run --project apps/backend ruff check apps/backend`
    - `uv run --project apps/backend ty check apps/backend`
    - `uv run --project apps/backend pytest apps/backend/tests`
+5. Manual validation:
+   - `curl -sS http://127.0.0.1:8090/api/datasets?page=1&page_size=5`
+   - `curl -sS "http://127.0.0.1:8090/api/datasets/search?q=gasoline"`
+   - `curl -sS http://127.0.0.1:8090/api/datasets/recent`
+   - confirm each dataset-summary item includes `canonical_trend_descriptor`, including explicit unavailable states where applicable
+
+## 3. Dataset detail payload verification
+
+1. Red: add or update backend tests that lock the detail payload shape for the shared canonical descriptor and lookback snapshots.
+2. Green: keep dataset-detail assembly aligned with the shared canonical descriptor contract.
+3. Repeat checks:
+   - `uv run --project apps/backend pytest apps/backend/tests/contract`
 4. Manual validation:
    - `curl -sS http://127.0.0.1:8090/api/datasets/<DATASET_ID>`
-   - confirm payload contains canonical descriptor fields for chip rendering and no required client ranking inputs
+   - confirm the response still includes `canonical_trend_descriptor` plus `lookback_trend_snapshots`
 
-## 5. Frontend simplification and chip rendering
+## 4. Frontend shared indicator integration
 
-1. Remove overlay components from dataset detail render path.
-2. Add canonical trend chip under dataset title, driven by API payload only.
-3. Repeat checks:
+1. Red: add failing frontend tests for:
+   - strong up
+   - mild up
+   - mild down
+   - strong down
+   - unavailable state
+   - row placement
+   - detail-heading placement
+2. Green: implement one shared trend-indicator component and wire it into shared dataset rows plus the dataset-detail `Historical Trend` heading.
+3. Refactor duplicated mapper/view-model logic into shared component helpers only if tests remain green.
+4. Repeat checks:
    - `pnpm --dir apps/frontend exec biome check .`
    - `pnpm --dir apps/frontend typecheck`
    - `pnpm --dir apps/frontend test`
-4. Manual validation:
-   - open dataset detail page
-   - confirm no overlay appears
-   - confirm chip renders canonical descriptor when available and unavailable state when absent
+5. Manual validation:
+   - open homepage recent updates
+   - open dataset catalog/search-style list surfaces
+   - open one dataset detail page
+   - confirm the arrow indicator appears at the far right of dataset rows and adjacent to `Historical Trend`
+   - confirm the detail page still shows no overlay
+
+## 5. Responsive and unavailable-state checks
+
+1. Resize to narrow/mobile widths and verify the list-row indicator remains visible and aligned without breaking row content.
+2. Verify datasets with unavailable canonical descriptors render a consistent unavailable indicator state on list and detail surfaces.
+3. Verify no list or detail rendering path computes trend strength/direction from lookback snapshots on the client.
 
 ## 6. Full quality gates (mandatory before commit/handoff)
 
@@ -67,37 +73,3 @@
 3. `pnpm exec nx run-many -t coverage --all`
 
 All commands above must pass with no exceptions.
-
-## 7. Phase 6 execution notes (2026-04-02)
-
-- Documentation and agent guidance updates completed for canonical descriptor behavior.
-- Task tracking updated in `tasks.md` for completed documentation/guidance items.
-- In this runtime, `pnpm` is not currently available on `PATH`; run full Nx and frontend pnpm gates in the standard project runtime before merge:
-  - `pnpm --dir apps/frontend test`
-  - `pnpm --dir apps/frontend typecheck`
-  - `pnpm --dir apps/frontend exec biome check .`
-  - `pnpm exec nx run-many -t test --all`
-  - `pnpm exec nx run-many -t coverage --all`
-- Manual verification from a clean stack remains required before merge:
-  - `docker compose down`
-  - `docker compose up -d`
-  - validate ingest → pipeline persistence → backend dataset detail payload → frontend chip-only rendering.
-
-## 8. Phase 6 verification outcomes (2026-04-02)
-
-- Focused checks completed:
-  - `~/.local/bin/uv run --project apps/backend pytest apps/backend/tests --no-cov`
-  - `~/.local/bin/uv run --project apps/pipeline pytest apps/pipeline/tests/orchestration --no-cov`
-  - `PYTHONPATH=libs/trend_analysis/src ~/.local/bin/uv run --project apps/backend pytest libs/trend_analysis/tests --no-cov`
-  - `corepack pnpm --dir apps/frontend test`
-  - `corepack pnpm --dir apps/frontend typecheck`
-  - `corepack pnpm --dir apps/frontend exec biome check .`
-- Full gates completed successfully (without Nx cache):
-  - `pnpm exec nx run-many -t test --all --skip-nx-cache`
-  - `pnpm exec nx run-many -t coverage --all --skip-nx-cache`
-- Clean-stack manual restart completed:
-  - `docker compose down`
-  - `docker compose up -d`
-  - `docker compose ps`
-- Runtime caveat observed in this sandbox:
-  - `backend` and `dagit` containers failed dependency sync due to blocked DNS/package-host access in container network, while `db`, `dagster_db`, and `pipeline` reached healthy state.

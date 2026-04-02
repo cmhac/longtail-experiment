@@ -1,117 +1,72 @@
 # Research: Current-State Multi-Lookback Trends
 
-## Phase 1 Validation Notes (2026-04-01)
+## Decision 1: Treat this revision as a read-model and UI refinement, not a new trend-processing redesign
 
-### T001 Artifact Alignment: spec.md, plan.md, and OpenAPI contract
-
-- Scope alignment confirmed: all three artifacts define the same feature direction from period-bound trend spans to observation-level multi-lookback current-state outputs with one canonical descriptor for dataset detail rendering.
-- Lookback catalog alignment confirmed: the fixed lookback set in `spec.md` FR-001 (`1,2,3,4,5,10,25,50,100,250,500,1000`) matches the `LookbackTrendSnapshot.lookback_points` enum in `contracts/discovery-lookback-trends.openapi.yaml`.
-- Applicability and no-signal alignment confirmed: `spec.md` FR-007/FR-008 requirements are represented in the contract via `applicability_state`, `outcome_state`, and `reason_code` fields on lookback snapshots.
-- Canonical descriptor alignment confirmed: `spec.md` FR-013/FR-015/FR-016 map to `canonical_trend_descriptor` with required `descriptor_state` and supporting fields (`trend_label`, `direction`, `strength`, `selected_lookback_points`, `observed_on`, `reason_code`).
-- UI simplification alignment confirmed: `spec.md` FR-014/FR-017/FR-018 are reflected by plan Stage E and contract readiness for direct chip rendering from canonical descriptor payload data.
-
-### T002 Pre-Change Schema and Repository Seams
-
-- Database seam baseline:
-  - Existing trend persistence is lifecycle-based through `trend_records` and `trend_transition_events` from Alembic migration `libs/db/alembic/versions/0011_trend_lifecycle_tables.py`.
-  - ORM mappings for this lifecycle model are currently defined in `libs/db/src/db/models/trends.py` (`TrendRecord`, `TrendTransitionEvent`).
-  - No observation-lookback snapshot or canonical descriptor persistence models exist yet.
-- Pipeline seam baseline:
-  - Shared repository protocol in `apps/pipeline/src/orchestration/resources/trend_repository.py` currently exposes lifecycle-span methods (`get_ongoing_trend_for_series`, `upsert_trend_record`, `close_ongoing_trend_for_series`, `append_transition`).
-  - Postgres implementation in `apps/pipeline/src/orchestration/resources/postgres_trend_repository.py` writes directly to `trend_records` and `trend_transition_events`.
-- Backend seam baseline:
-  - Dataset detail query contract in `apps/backend/src/contract/query/dataset_detail_query.py` currently defines `trend_spans`/tooltip span models and does not yet expose canonical descriptor or lookback snapshot contracts.
-- Frontend seam baseline:
-  - Dataset detail rendering still depends on overlay components in `apps/frontend/src/components/trends/TrendOverlayLayer.tsx` and `apps/frontend/src/components/trends/TrendTooltipController.tsx`.
-  - Canonical descriptor chip-only rendering path is not yet implemented.
-
-## Decision 1: Replace period-bounded lifecycle spans with observation-lookback snapshots
-
-- Decision: Primary persistence model is per-observation, per-lookback current-state snapshots rather than start/end period lifecycle spans.
-- Rationale: The product requirement is "what is the trend now" across fixed lookback depths, and this avoids fragile historical segmentation assumptions.
+- Decision: Keep the existing multi-lookback persistence and canonical descriptor computation model as the implementation baseline, and plan only the incremental work needed to expose and render that descriptor on list surfaces plus the revised detail heading.
+- Rationale: The repository already contains canonical descriptor persistence, dataset-detail descriptor reads, and frontend detail/chart simplification work. The changed scope is now about propagating the current-trend descriptor to dataset-summary responses and replacing the removed chip with a shared arrow indicator.
 - Alternatives considered:
-  - Keep span lifecycle model and derive lookbacks indirectly: rejected because it preserves the same segmentation ambiguity.
-  - Compute lookbacks only in API query-time: rejected due to repeatability risk and elevated read-path compute cost.
+  - Re-plan the entire feature from raw pipeline persistence through UI again: rejected because it no longer matches repository reality and would create stale planning guidance.
+  - Reintroduce lifecycle-span or overlay behavior as part of this revision: rejected because the updated spec explicitly keeps overlay removal and canonical current-state rendering.
 
-## Decision 2: Fixed lookback catalog with applicability gating
+## Decision 2: Use one shared canonical descriptor shape for both dataset-summary and dataset-detail rendering
 
-- Decision: Use fixed lookback depths `{1,2,3,4,5,10,25,50,100,250,500,1000}` and evaluate applicability per series using update behavior + available observation depth.
-- Rationale: Catalog consistency simplifies persistence/query contracts while applicability avoids false precision on sparse or short histories.
+- Decision: Reuse the canonical descriptor as the single render-ready trend payload for both dataset-summary rows and dataset-detail rendering, with no separate lightweight list-only trend schema.
+- Rationale: One shared shape keeps client rendering simple, preserves deterministic server ownership, and avoids drift between list/detail interpretations of the same current-trend state.
 - Alternatives considered:
-  - Dynamic per-series lookback selection: rejected because contracts/UI become unstable across datasets.
-  - Depth-only gating with no frequency context: rejected because very low-update series can produce misleading short-lookback descriptors.
+  - Add a separate list-only trend enum or display token: rejected because it duplicates semantics already present in the canonical descriptor.
+  - Compute list display state client-side from lookback snapshots: rejected because the spec forbids client-side weighting or ranking logic.
 
-## Decision 3: Weighted canonical trend descriptor computed in pipeline and persisted
+## Decision 3: Extend `DatasetSummary`-based contracts rather than inventing list-specific endpoint variants
 
-- Decision: Compute one deterministic weighted canonical descriptor upstream (pipeline) from applicable lookback snapshots, persist it, and serve it via API.
-- Rationale: Ensures one canonical answer across clients and keeps frontend purely presentational.
+- Decision: Add canonical current-trend descriptor data to the common dataset-summary contract used by catalog, search, source, topic, geography, and recent dataset update surfaces.
+- Rationale: The backend and frontend already centralize dataset-row behavior around `DatasetSummary` and `UnifiedDatasetRow`. Updating the shared contract keeps every dataset-list surface aligned and avoids one-off endpoint behavior.
 - Alternatives considered:
-  - Compute weighted descriptor in frontend: rejected by requirement for cross-client consistency and auditability.
-  - Compute weighted descriptor in backend query layer only: rejected because it duplicates runtime logic and weakens replay determinism.
+  - Patch only homepage recent updates: rejected because the spec requires all dataset list components.
+  - Introduce dedicated list endpoint variants for trend-enabled rows: rejected because it fragments the read model and duplicates integration work.
 
-## Decision 4: Keep snapshot history plus latest projection
+## Decision 4: The frontend should render one shared arrow indicator primitive in both list and detail contexts
 
-- Decision: Persist descriptor snapshots at observation granularity and expose latest canonical descriptor in dataset detail response.
-- Rationale: Supports replay/audit while keeping read contract simple for the UI chip.
+- Decision: Build one shared trend-indicator component in `apps/frontend/src/components` and consume it from the dataset-row and dataset-detail heading seams.
+- Rationale: The updated UX uses the same semantic mapping in two places. A shared primitive satisfies the constitution requirement to extend reusable abstractions for repeated UI patterns.
 - Alternatives considered:
-  - Persist latest descriptor only: rejected because it loses historical traceability for reclassification verification.
+  - Inline separate SVG/class logic in dataset rows and detail heading: rejected because it duplicates visual mapping and increases drift risk.
+  - Keep a text chip on detail while adding arrows to lists: rejected because the spec now standardizes on the arrow indicator.
 
-## Decision 5: Pipeline failure isolation and idempotency remain mandatory
+## Decision 5: Map arrow state directly from canonical descriptor direction and strength
 
-- Decision: Continue branch-scoped failure handling and state-based idempotency for lookback writes.
-- Rationale: Existing trend runtime has proven semantics for failure isolation and retry safety and should be preserved through the model change.
+- Decision: Use canonical `direction` plus `strength` to derive exactly four render states: straight-up green, up-right green, down-right red, and straight-down red; descriptors without a usable render state fall into an explicit unavailable state.
+- Rationale: This preserves server-side trend selection while keeping the view model deterministic and minimal.
 - Alternatives considered:
-  - Fail entire run on any lookback failure: rejected due to unacceptable blast radius.
-  - Run-id idempotency only: rejected because unchanged data retries can still duplicate writes.
+  - Introduce a new persisted icon state in storage: rejected because the canonical descriptor already carries the required semantic dimensions.
+  - Infer strong vs mild from `trend_label` text parsing only: rejected because `strength` exists as the cleaner, more stable signal.
 
-## Decision 6: Dataset detail contract migrates from `trend_spans` to canonical chip payload
+## Decision 6: Query-time summary projection should join the latest canonical descriptor once per dataset row
 
-- Decision: Replace overlay span payload reliance with API-provided canonical descriptor (plus optional lookback snapshot payload for diagnostics).
-- Rationale: Product direction removes overlays and requires render-ready chip data with no client ranking logic.
+- Decision: Backend dataset-summary queries should project the latest canonical descriptor as part of their existing summary row assembly, rather than requiring a secondary fetch per row.
+- Rationale: The spec requires list surfaces to render current trend directly, and per-row follow-up queries would add avoidable complexity and latency.
 - Alternatives considered:
-  - Continue returning `trend_spans` and infer chip client-side: rejected because it preserves client computation and old abstraction.
+  - Fetch detail payloads per list row: rejected because it is heavier, duplicates data, and breaks the shared summary contract shape.
+  - Omit unavailable descriptors from summaries: rejected because the spec requires explicit unavailable states instead of omission.
 
-## Decision 7: Decommission frontend trend overlay components in this feature
+## Decision 7: Preserve dataset-detail lookback snapshots as diagnostics while shifting primary UI emphasis to the heading indicator
 
-- Decision: Remove overlay rendering paths and introduce a compact dataset detail trend chip under the title.
-- Rationale: Simplifies UX and aligns with canonical descriptor ownership in pipeline/backend.
+- Decision: Keep the dataset-detail response contract exposing both canonical descriptor and lookback snapshots, while the visible primary current-trend UI becomes the arrow indicator next to `Historical Trend`.
+- Rationale: The lookback data remains useful for auditability and diagnostics, but the user-facing current trend should now be expressed through the simpler indicator.
 - Alternatives considered:
-  - Keep overlay behind feature flag while adding chip: rejected for scope complexity and split UX semantics.
+  - Remove lookback snapshots from detail responses: rejected because the broader feature still requires explicit lookback-state exposure.
+  - Move the indicator back under the page title: rejected because the revised spec and provided screenshot place it by the chart heading.
 
-## Decision 8: Grounding from repository history and active seams
+## Repository Seams Confirmed For This Revision
 
-- Decision: Use existing trend vertical seams as migration anchors, based on recent commits (`2e2f890`, `65af051`, `6cd2f09`, `da067b7`) and live code in:
-  - `libs/trend_analysis/src/trend_analysis/classifier.py`
-  - `apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
-  - `apps/pipeline/src/orchestration/resources/postgres_trend_repository.py`
-  - `libs/db/alembic/versions/0011_trend_lifecycle_tables.py`
-  - `apps/backend/src/query/dataset_discovery_service.py`
-  - `apps/backend/src/query/dataset_discovery_persisted_repository.py`
-  - `apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`
-  - `apps/frontend/src/components/trends/TrendOverlayLayer.tsx`
-- Rationale: Reduces migration risk by modifying established paths rather than creating a parallel trend stack.
-- Alternatives considered:
-  - Introduce new sidecar trend modules in each layer: rejected due to duplication and rollout complexity.
+- Backend shared summary contract currently lives in `apps/backend/src/contract/query/dataset_search_query.py` and is reused by catalog, search, and metadata-discovery responses.
+- Recent dataset updates extend that same summary shape in `apps/backend/src/contract/query/dataset_recent_updates_query.py`.
+- Dataset-detail canonical descriptor validation already exists in `apps/backend/src/contract/query/dataset_detail_query.py`.
+- Persisted canonical descriptor reads already exist in `apps/backend/src/query/dataset_discovery_persisted_repository.py` and are wired into detail assembly in `apps/backend/src/query/dataset_discovery_service.py`.
+- Shared dataset-row rendering currently centers on `apps/frontend/src/components/discovery/UnifiedDatasetRow.tsx` and mapper helpers in `apps/frontend/src/components/discovery/unified-dataset-row-mappers.ts`.
+- The detail heading seam currently lives in `apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx`.
 
-## Phase 6 Implementation Notes (2026-04-02)
+## Planning Outcome
 
-- Documentation hardening completed for spec 044 Phase 6:
-  - `quickstart.md` now includes a dedicated phase-6 execution notes section.
-  - `AGENTS.md` guidance has been aligned to emphasize canonical descriptor ownership for dataset-detail trend rendering.
-- Branch/commit context observed during phase-6 handoff:
-  - Current integration branch for this workstream: `copilot/implement-spec-044-phase`
-  - Recent progress includes completion of Phase 5 implementation (chip-only UI and overlay removal) via merge commit `d1cdd8c`.
-- Environment caveat recorded for verification reproducibility:
-  - Current sandbox did not expose `pnpm` on `PATH`, so full pnpm/Nx gates must be executed in the standard project runtime before merge finalization.
-
-## Phase 6 Completion Record (2026-04-02)
-
-- Validation and hardening tasks completed for T046–T050.
-- Additional test coverage was added to satisfy mandatory full-suite stop gates:
-  - backend canonical/detail contract validation invariants and integration-fixture query matching
-  - pipeline helper/unit coverage for ingest op branches, retired schedule module marker, legacy export compatibility, sensor logic, source/series selection helper normalization, and trend transition edge branches
-- Monorepo quality gates were executed with cache bypass to verify real command execution in this session:
-  - `pnpm exec nx run-many -t test --all --skip-nx-cache`
-  - `pnpm exec nx run-many -t coverage --all --skip-nx-cache`
-- Manual clean-stack restart was executed (`docker compose down && docker compose up -d && docker compose ps`).
-- Containerized backend/dagit runtime validation in this sandbox was partially constrained by external package DNS resolution failures inside containers; this is an environment/network limitation, not a contract/test gate failure in repository-local checks.
+- All previously unresolved technical questions for this revision are closed.
+- No `NEEDS CLARIFICATION` markers remain for planning.
+- The implementation plan can proceed directly to data-model, contract, and task breakdown updates for summary payload expansion and shared arrow-indicator rendering.

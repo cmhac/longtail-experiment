@@ -1,11 +1,45 @@
 openapi: 3.1.0
 info:
   title: Discovery Lookback Trend Contract
-  version: 0.1.0
+  version: 0.2.0
   description: >
     Contract additions for current-state multi-lookback trend snapshots and
-    API-provided canonical trend descriptor rendering on dataset detail.
+    API-provided canonical trend descriptor rendering on dataset list and
+    dataset detail surfaces.
 paths:
+  /api/datasets:
+    get:
+      summary: Get dataset catalog with canonical current-trend summaries
+      responses:
+        "200":
+          description: Dataset catalog response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetCatalogResponse"
+
+  /api/datasets/search:
+    get:
+      summary: Search datasets with canonical current-trend summaries
+      responses:
+        "200":
+          description: Dataset search response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetSearchResponse"
+
+  /api/datasets/recent:
+    get:
+      summary: Get recent dataset updates with canonical current-trend summaries
+      responses:
+        "200":
+          description: Recent updates response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetRecentUpdatesResponse"
+
   /api/datasets/{datasetId}:
     get:
       summary: Get dataset detail with canonical trend descriptor
@@ -22,6 +56,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DatasetDetailResponse"
+
 components:
   schemas:
     CanonicalTrendDescriptor:
@@ -83,6 +118,163 @@ components:
           type: string
           nullable: true
 
+    SourceRef:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+
+    DatasetSummary:
+      type: object
+      required:
+        - dataset_id
+        - source
+        - title
+        - topic_tags
+        - canonical_trend_descriptor
+      properties:
+        dataset_id:
+          type: string
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        geographic_scope:
+          type: string
+          nullable: true
+        topic_tags:
+          type: array
+          items:
+            type: string
+        latest_update_at:
+          type: string
+          format: date-time
+          nullable: true
+        canonical_trend_descriptor:
+          $ref: "#/components/schemas/CanonicalTrendDescriptor"
+
+    DatasetSearchResponse:
+      type: object
+      required: [items, page, page_size, total_items, total_pages, sort]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetSummary"
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_items:
+          type: integer
+        total_pages:
+          type: integer
+        sort:
+          type: string
+
+    DatasetCatalogResponse:
+      type: object
+      required: [items, page, page_size, total_items, total_pages, sort]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetSummary"
+        groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        aggregations:
+          type: object
+          additionalProperties: true
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_items:
+          type: integer
+        total_pages:
+          type: integer
+        sort:
+          type: string
+
+    DatasetRecentActionLinks:
+      type: object
+      required: [view_table_href, download_csv_href]
+      properties:
+        view_table_href:
+          type: string
+        download_csv_href:
+          type: string
+
+    DatasetRecentItem:
+      allOf:
+        - $ref: "#/components/schemas/DatasetSummary"
+        - type: object
+          required: [item_type, action_links]
+          properties:
+            item_type:
+              type: string
+              enum: [dataset_update]
+            action_links:
+              $ref: "#/components/schemas/DatasetRecentActionLinks"
+
+    TrendRecentItem:
+      type: object
+      required:
+        - item_type
+        - dataset_id
+        - source
+        - title
+        - direction
+        - strength
+        - start_period
+        - latest_update_at
+        - action_links
+      properties:
+        item_type:
+          type: string
+          enum: [trend_event]
+        dataset_id:
+          type: string
+        source:
+          $ref: "#/components/schemas/SourceRef"
+        title:
+          type: string
+        direction:
+          type: string
+          enum: [up, down]
+        strength:
+          type: string
+        start_period:
+          type: string
+        latest_update_at:
+          type: string
+        action_links:
+          $ref: "#/components/schemas/DatasetRecentActionLinks"
+
+    DatasetRecentUpdatesResponse:
+      type: object
+      required: [items, limit, sort]
+      properties:
+        items:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/DatasetRecentItem"
+              - $ref: "#/components/schemas/TrendRecentItem"
+        limit:
+          type: integer
+        sort:
+          type: string
+
     ObservationPoint:
       type: object
       required: [observed_on, value, reported_at, attributes]
@@ -98,15 +290,6 @@ components:
         attributes:
           type: object
           additionalProperties: true
-
-    SourceRef:
-      type: object
-      required: [id, name]
-      properties:
-        id:
-          type: string
-        name:
-          type: string
 
     DatasetDetailResponse:
       type: object

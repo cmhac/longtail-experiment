@@ -34,6 +34,8 @@
 - Validation completed after scope revision to current-state multi-lookback snapshots.
 - Calendar-period horizon framing was removed in favor of observation-lookback framing.
 - Checklist confirms the revised spec remains high-level and implementation-agnostic.
+- Validation refreshed after replacing detail-chip language with shared directional trend indicators for dataset rows and the detail heading.
+- Checklist confirms the revised scope now requires canonical current-trend descriptor availability on both dataset-list and dataset-detail payloads.
 
 ## Implementation Tracking
 

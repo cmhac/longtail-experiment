@@ -68,11 +68,11 @@
 
 ---
 
-## Phase 4: User Story 2 - Serve Current Trend by Lookback (Priority: P2)
+## Phase 4: User Story 2 - Serve Current Trend Across List and Detail Responses (Priority: P2)
 
-**Goal**: Expose canonical descriptor and optional lookback snapshots via backend dataset-detail contract.
+**Goal**: Expose canonical descriptor on all dataset-summary responses and preserve dataset-detail canonical + lookback snapshot responses for direct client rendering.
 
-**Independent Test**: Request dataset detail API and validate canonical descriptor payload shape, applicability states, and unsupported lookback handling.
+**Independent Test**: Request dataset list and dataset detail APIs and validate every dataset row includes canonical descriptor data for direct rendering, while detail responses still include lookback applicability context.
 
 ### Tests for User Story 2
 
@@ -92,13 +92,28 @@
 
 **Checkpoint**: US2 serves canonical trend descriptor payloads and remains independently testable.
 
+### Additional Tests for User Story 2 Scope Revision
+
+- [ ] T051 [P] [US2] Add dataset summary contract tests for canonical trend descriptors in apps/backend/tests/contract/test_dataset_summary_canonical_trend_contract.py
+- [ ] T052 [P] [US2] Add recent dataset updates contract tests for summary-level canonical trends in apps/backend/tests/contract/test_dataset_recent_updates_canonical_trend_contract.py
+- [ ] T053 [P] [US2] Add persisted repository integration tests for list-surface canonical descriptor projection in apps/backend/tests/contract/test_dataset_discovery_persisted_repository_contract.py
+- [ ] T054 [P] [US2] Add discovery client mapping tests for summary-level canonical descriptors in apps/frontend/tests/discovery-client-catalog-trend.test.ts
+
+### Additional Implementation for User Story 2 Scope Revision
+
+- [ ] T055 [US2] Extend shared dataset summary contracts to require canonical trend descriptors in apps/backend/src/contract/query/dataset_search_query.py and apps/backend/src/contract/query/dataset_recent_updates_query.py
+- [ ] T056 [US2] Add summary-level canonical trend projection helpers to persisted discovery queries in apps/backend/src/query/dataset_discovery_persisted_repository.py
+- [ ] T057 [US2] Update discovery service list/search/recent response assembly to include canonical trend descriptors in apps/backend/src/query/dataset_discovery_service.py
+- [ ] T058 [US2] Extend frontend dataset summary and recent-update types for canonical descriptors in apps/frontend/src/lib/api/discovery-types.ts
+- [ ] T059 [US2] Update frontend discovery client normalization for dataset list and recent dataset payloads in apps/frontend/src/lib/api/discovery-client.ts
+
 ---
 
-## Phase 5: User Story 3 - Show a Single Informative Trend Chip (Priority: P3)
+## Phase 5: User Story 3 - Show a Single Informative Trend Indicator (Priority: P3)
 
-**Goal**: Remove overlay UI and render one dataset-detail chip from API-provided canonical descriptor only.
+**Goal**: Render one shared arrow-based trend indicator at the far right of dataset rows and adjacent to the `Historical Trend` heading from API-provided canonical descriptor data only.
 
-**Independent Test**: Open dataset detail page and verify no overlay components render and chip displays canonical descriptor or unavailable state without client-side weighting logic.
+**Independent Test**: Open dataset list and detail pages and verify the arrow indicator renders the correct directional state or unavailable state in the required positions, with no overlay components and no client-side weighting logic.
 
 ### Tests for User Story 3
 
@@ -118,6 +133,22 @@
 
 **Checkpoint**: US3 UI is simplified to a single API-driven chip and independently testable.
 
+### Additional Tests for User Story 3 Scope Revision
+
+- [ ] T060 [P] [US3] Add shared trend indicator state-mapping tests in apps/frontend/tests/components/DatasetTrendIndicator.test.tsx
+- [ ] T061 [P] [US3] Add shared dataset-row indicator placement tests in apps/frontend/tests/components/UnifiedDatasetRowTrendIndicator.test.tsx
+- [ ] T062 [P] [US3] Add dataset-detail heading indicator placement tests in apps/frontend/tests/components/DatasetDetailTrendIndicatorPlacement.test.tsx
+- [ ] T063 [P] [US3] Add responsive/unavailable indicator regression tests in apps/frontend/tests/components/DatasetTrendIndicatorResponsive.test.tsx
+
+### Additional Implementation for User Story 3 Scope Revision
+
+- [ ] T064 [US3] Add shared directional trend indicator component in apps/frontend/src/components/discovery/DatasetTrendIndicator.tsx
+- [ ] T065 [US3] Update shared dataset-row props and layout to render the right-aligned trend indicator in apps/frontend/src/components/discovery/UnifiedDatasetRow.tsx and apps/frontend/src/components/discovery/DiscoveryFeedList.tsx
+- [ ] T066 [US3] Update unified row mappers to pass canonical trend descriptor data into shared row rendering in apps/frontend/src/components/discovery/unified-dataset-row-mappers.ts
+- [ ] T067 [US3] Update dataset detail analysis heading composition to render DatasetTrendIndicator beside `Historical Trend` in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
+- [ ] T068 [US3] Remove or deprecate obsolete chip-only detail rendering in apps/frontend/src/components/discovery/DatasetTrendChip.tsx and related imports under apps/frontend/src/components/discovery/
+- [ ] T069 [US3] Update recent updates and catalog list consumers to rely on shared row-level trend indicator rendering in apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx and apps/frontend/src/components/discovery/DatasetCatalogList.tsx
+
 ---
 
 ## Phase 6: Polish & Cross-Cutting Concerns
@@ -131,6 +162,13 @@
 - [x] T048 Run full repository stop gate `pnpm exec nx run-many -t test --all` from repository root
 - [x] T049 Run full repository coverage gate `pnpm exec nx run-many -t coverage --all` from repository root
 - [x] T050 Run end-to-end manual verification from clean stack using commands in specs/044-multi-horizon-trends/quickstart.md
+- [ ] T070 [P] Update revised feature documentation and execution notes for list/detail indicator behavior in specs/044-multi-horizon-trends/quickstart.md and specs/044-multi-horizon-trends/research.md
+- [ ] T071 [P] Update contract and planning artifacts to reflect completed scope revision in specs/044-multi-horizon-trends/contracts/discovery-lookback-trends.openapi.yaml, specs/044-multi-horizon-trends/plan.md, and specs/044-multi-horizon-trends/data-model.md
+- [ ] T072 Run focused backend verification for revised list/detail trend payload paths via apps/backend/tests and apps/backend/tests/contract
+- [ ] T073 Run focused frontend verification for shared indicator rendering via apps/frontend/tests, `pnpm --dir apps/frontend typecheck`, and `pnpm --dir apps/frontend exec biome check .`
+- [ ] T074 Run full repository stop gate `pnpm exec nx run-many -t test --all` from repository root after revised list/detail indicator changes
+- [ ] T075 Run full repository coverage gate `pnpm exec nx run-many -t coverage --all` from repository root after revised list/detail indicator changes
+- [ ] T076 Run end-to-end manual verification from clean stack for dataset lists + dataset detail indicator behavior using commands in specs/044-multi-horizon-trends/quickstart.md
 
 ---
 
@@ -162,8 +200,8 @@
 - Phase 1: T002 and T003 can run in parallel.
 - Phase 2: T005, T006, T007, and T008 can run in parallel after T004 starts.
 - US1: T010-T013 can run in parallel; T014-T017 can be split between library model and weighting logic.
-- US2: T024-T027 can run in parallel; T028/T029 can run in parallel before T030/T031.
-- US3: T034-T036 can run in parallel; T042 and T043 can run in parallel while UI component work progresses.
+- US2: T024-T027 and T051-T054 can run in parallel; T028/T029 and T055 can run in parallel before T056/T057.
+- US3: T034-T036 and T060-T063 can run in parallel; T064 and T066 can progress in parallel before T065/T067 integration.
 
 ### Parallel Example: User Story 1
 
@@ -182,6 +220,9 @@ Task: "T013 [US1] apps/pipeline/tests/orchestration/test_trend_runtime_processor
 Task: "T024 [US2] apps/backend/tests/contract/test_dataset_detail_canonical_trend_contract.py"
 Task: "T025 [US2] apps/backend/tests/contract/test_dataset_detail_lookback_snapshot_contract.py"
 Task: "T026 [US2] apps/backend/tests/integration/test_dataset_detail_canonical_trend_query.py"
+Task: "T051 [US2] apps/backend/tests/contract/test_dataset_summary_canonical_trend_contract.py"
+Task: "T052 [US2] apps/backend/tests/contract/test_dataset_recent_updates_canonical_trend_contract.py"
+Task: "T053 [US2] apps/backend/tests/contract/test_dataset_discovery_persisted_repository_contract.py"
 ```
 
 ### Parallel Example: User Story 3
@@ -191,6 +232,9 @@ Task: "T026 [US2] apps/backend/tests/integration/test_dataset_detail_canonical_t
 Task: "T034 [US3] apps/frontend/tests/components/DatasetTrendChip.test.tsx"
 Task: "T035 [US3] apps/frontend/tests/components/DatasetDetailNoOverlay.test.tsx"
 Task: "T036 [US3] apps/frontend/tests/discovery-client-canonical-trend.test.ts"
+Task: "T060 [US3] apps/frontend/tests/components/DatasetTrendIndicator.test.tsx"
+Task: "T061 [US3] apps/frontend/tests/components/UnifiedDatasetRowTrendIndicator.test.tsx"
+Task: "T062 [US3] apps/frontend/tests/components/DatasetDetailTrendIndicatorPlacement.test.tsx"
 ```
 
 ---
@@ -207,8 +251,8 @@ Task: "T036 [US3] apps/frontend/tests/discovery-client-canonical-trend.test.ts"
 ### Incremental Delivery
 
 1. Deliver US1 persistence model (MVP).
-2. Deliver US2 API and contract migration.
-3. Deliver US3 UI simplification to chip-only rendering.
+2. Deliver US2 API and contract migration for list + detail canonical descriptor payloads.
+3. Deliver US3 shared arrow-indicator rendering across dataset rows and dataset detail.
 4. Finish with polish, docs, and full monorepo gates.
 
 ### Format Validation
