@@ -21,7 +21,7 @@ from tests.fixtures.dataset_discovery_factory import build_discovery_rows
 from tests.fixtures.dataset_discovery_repository import InMemoryDatasetDiscoveryRepository
 
 
-def test_dataset_detail_observations_require_asof_descriptor_field() -> None:
+def test_dataset_detail_observations_default_unavailable_asof_descriptor_when_missing() -> None:
     datasets, observations = build_discovery_rows()
     seeded_observations = [dict(observation) for observation in observations]
     seeded_observations[0]["as_of_trend_descriptor"] = build_observation_asof_available_descriptor(
@@ -68,7 +68,7 @@ def test_dataset_detail_invalid_observation_asof_payload_raises_contract_error()
 
     with pytest.raises(
         ContractQueryError,
-        match="dataset_detail_observation_asof_payload_invalid:UNRATE",
+        match="dataset_detail_observation_asof_payload_invalid:UNRATE:2026-01-01",
     ):
         execute_dataset_detail(
             service,

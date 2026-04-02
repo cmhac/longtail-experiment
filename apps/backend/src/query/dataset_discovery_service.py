@@ -148,6 +148,7 @@ def _resolve_observation_asof_descriptor(
     *,
     raw_descriptor: object,
     dataset_id: str,
+    observation_observed_on: object,
 ) -> dict[str, Any]:
     payload = (
         raw_descriptor
@@ -158,7 +159,8 @@ def _resolve_observation_asof_descriptor(
         return ObservationAsOfTrendDescriptor.model_validate(payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
         raise ContractQueryError(
-            f"dataset_detail_observation_asof_payload_invalid:{dataset_id}"
+            "dataset_detail_observation_asof_payload_invalid:"
+            f"{dataset_id}:{observation_observed_on}"
         ) from exc
 
 
@@ -171,10 +173,11 @@ def _map_detail_observations_with_asof_descriptors(
     for observation in observations:
         if not isinstance(observation, dict):
             raise ContractQueryError("Repository returned invalid observations payload")
-        mapped_observation = deepcopy(observation)
+        mapped_observation = dict(observation)
         mapped_observation["as_of_trend_descriptor"] = _resolve_observation_asof_descriptor(
             raw_descriptor=observation.get("as_of_trend_descriptor"),
             dataset_id=dataset_id,
+            observation_observed_on=observation.get("observed_on"),
         )
         mapped.append(mapped_observation)
     return mapped
