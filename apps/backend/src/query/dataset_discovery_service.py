@@ -131,7 +131,9 @@ def _default_summary_canonical_descriptor() -> dict[str, Any]:
     }
 
 
-def _resolve_summary_canonical_descriptor(raw_descriptor: object) -> dict[str, Any]:
+def _resolve_summary_canonical_descriptor(
+    *, raw_descriptor: object, dataset_id: str
+) -> dict[str, Any]:
     payload = (
         raw_descriptor
         if isinstance(raw_descriptor, dict)
@@ -140,12 +142,15 @@ def _resolve_summary_canonical_descriptor(raw_descriptor: object) -> dict[str, A
     try:
         return SummaryCanonicalTrendDescriptor.model_validate(payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
-        raise ContractQueryError("dataset_summary_canonical_payload_invalid") from exc
+        raise ContractQueryError(
+            f"dataset_summary_canonical_payload_invalid:{dataset_id}"
+        ) from exc
 
 
 def _project_dataset_summary_item(item: dict[str, Any]) -> dict[str, Any]:
+    dataset_id = str(item.get("dataset_id", "")).strip()
     return {
-        "dataset_id": str(item.get("dataset_id", "")).strip(),
+        "dataset_id": dataset_id,
         "source": deepcopy(item.get("source", {})),
         "title": str(item.get("title", "")).strip(),
         "description": item.get("description")
@@ -157,7 +162,8 @@ def _project_dataset_summary_item(item: dict[str, Any]) -> dict[str, Any]:
         "topic_tags": [str(tag) for tag in list(item.get("topic_tags") or [])],
         "latest_update_at": item.get("latest_update_at"),
         "canonical_trend_descriptor": _resolve_summary_canonical_descriptor(
-            item.get("canonical_trend_descriptor")
+            raw_descriptor=item.get("canonical_trend_descriptor"),
+            dataset_id=dataset_id,
         ),
     }
 
@@ -384,7 +390,8 @@ class DatasetDiscoveryService:
                 raise ContractQueryError("Repository returned recent item without source")
 
             canonical_trend_descriptor = _resolve_summary_canonical_descriptor(
-                item.get("canonical_trend_descriptor")
+                raw_descriptor=item.get("canonical_trend_descriptor"),
+                dataset_id=dataset_id,
             )
             projected.append(
                 {

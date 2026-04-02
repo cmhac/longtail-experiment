@@ -42,21 +42,34 @@ class PersistedDatasetDiscoveryRepository:
         """Return latest canonical descriptor projection keyed by dataset id."""
         query = text(
             """
+            WITH ranked_descriptors AS (
+                SELECT
+                    ds.series_key AS dataset_id,
+                    tcd.descriptor_state AS descriptor_state,
+                    tcd.canonical_trend_label AS trend_label,
+                    tcd.canonical_direction AS direction,
+                    tcd.canonical_strength AS strength,
+                    tcd.selected_lookback_points AS selected_lookback_points,
+                    tcd.observed_on AS observed_on,
+                    tcd.weighting_trace ->> 'reason_code' AS reason_code,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY ds.series_key
+                        ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+                    ) AS descriptor_rank
+                FROM trend_canonical_descriptors tcd
+                JOIN data_series ds ON ds.id = tcd.data_series_id
+            )
             SELECT
-                ds.series_key AS dataset_id,
-                tcd.descriptor_state AS descriptor_state,
-                tcd.canonical_trend_label AS trend_label,
-                tcd.canonical_direction AS direction,
-                tcd.canonical_strength AS strength,
-                tcd.selected_lookback_points AS selected_lookback_points,
-                tcd.observed_on AS observed_on,
-                tcd.weighting_trace ->> 'reason_code' AS reason_code,
-                ROW_NUMBER() OVER (
-                    PARTITION BY ds.series_key
-                    ORDER BY tcd.observed_on DESC, tcd.created_at DESC
-                ) AS descriptor_rank
-            FROM trend_canonical_descriptors tcd
-            JOIN data_series ds ON ds.id = tcd.data_series_id
+                dataset_id,
+                descriptor_state,
+                trend_label,
+                direction,
+                strength,
+                selected_lookback_points,
+                observed_on,
+                reason_code
+            FROM ranked_descriptors
+            WHERE descriptor_rank = 1
             """
         )
         with self._engine.connect() as connection:
@@ -64,8 +77,6 @@ class PersistedDatasetDiscoveryRepository:
 
         descriptors: dict[str, dict[str, object]] = {}
         for row in rows:
-            if int(row["descriptor_rank"]) != 1:
-                continue
             dataset_id = str(row["dataset_id"])
             observed_on = row["observed_on"]
             if isinstance(observed_on, (date, datetime)):

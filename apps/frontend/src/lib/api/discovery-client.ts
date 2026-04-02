@@ -83,10 +83,14 @@ const appendPaginationQueryParams = (
   }
 };
 
+const VALID_LOOKBACK_POINTS = [1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000] as const;
+
 const isLookbackPoints = (value: unknown): value is CanonicalTrendDescriptor["selected_lookback_points"] => {
   return (
     typeof value === "number" &&
-    [1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000].includes(value)
+    VALID_LOOKBACK_POINTS.includes(
+      value as (typeof VALID_LOOKBACK_POINTS)[number],
+    )
   );
 };
 

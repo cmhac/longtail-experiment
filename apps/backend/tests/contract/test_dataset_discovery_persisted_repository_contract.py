@@ -100,7 +100,6 @@ class _FakeConnection:
                         "selected_lookback_points": row["selected_lookback_points"],
                         "observed_on": row["observed_on"],
                         "reason_code": row["reason_code"],
-                        "descriptor_rank": 1,
                     }
                     for row in self._canonical_descriptor_rows
                 ]
