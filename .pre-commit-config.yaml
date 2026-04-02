@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: frontend-tailwind-upgrade
         name: frontend-tailwind-upgrade
-        entry: bash -c "cd apps/frontend && pnpx @tailwindcss/upgrade"
+        entry: bash -c "cd apps/frontend && pnpx @tailwindcss/upgrade --force"
         language: system
         files: ^apps/frontend/
         pass_filenames: false

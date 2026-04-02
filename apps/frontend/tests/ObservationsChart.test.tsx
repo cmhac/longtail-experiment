@@ -209,6 +209,7 @@ vi.mock("recharts", () => {
   return {
     Line: passThrough("Line"),
     LineChart: passThrough("LineChart"),
+    ReferenceArea: passThrough("ReferenceArea"),
     Tooltip: passThrough("Tooltip"),
     XAxis: passThrough("XAxis"),
     YAxis: passThrough("YAxis"),

@@ -70,3 +70,17 @@ class DatasetDiscoveryReadRepository(Protocol):
         to_date: date | None,
     ) -> list[dict[str, object]]:
         """Return one dataset's observations in ascending observed date order."""
+
+
+@runtime_checkable
+class TrendLifecycleRepository(Protocol):
+    """Contract for trend lifecycle persistence and summary reads."""
+
+    def upsert_trend_record(self, payload: dict[str, object]) -> str:
+        """Insert one trend lifecycle record and return canonical id."""
+
+    def append_transition(self, payload: dict[str, object]) -> None:
+        """Persist one immutable trend lifecycle transition event."""
+
+    def count_trend_records_for_series(self, *, series_key: str) -> int:
+        """Return persisted trend record count for one series."""

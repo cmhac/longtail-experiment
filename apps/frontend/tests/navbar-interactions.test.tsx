@@ -37,16 +37,15 @@ afterEach(() => {
 });
 
 describe("navbar limited-scope interactions", () => {
-  it("keeps Home and Datasets routable while Trends remains disabled", () => {
+  it("keeps Home and Datasets routable without a trends tab", () => {
     render(<SiteHeader />);
 
     const homeLink = screen.getByTestId("navbar-tab-home");
     const datasetsLink = screen.getByTestId("navbar-tab-datasets");
-    const trendsButton = screen.getByTestId("navbar-tab-trends");
 
     expect(homeLink.getAttribute("href")).toBe("/");
     expect(datasetsLink.getAttribute("href")).toBe("/datasets");
-    expect(trendsButton.getAttribute("disabled")).not.toBeNull();
+    expect(screen.queryByTestId("navbar-tab-trends")).toBeNull();
   });
 
   it("expands search control and closes it on outside click", () => {

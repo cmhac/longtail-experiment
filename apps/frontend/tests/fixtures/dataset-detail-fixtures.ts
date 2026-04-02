@@ -66,6 +66,26 @@ export const buildDatasetDetailFixture = (
         attributes: {},
       },
     ],
+    canonical_trend_descriptor: {
+      descriptor_state: "available",
+      trend_label: "moderate_uptrend",
+      direction: "up",
+      strength: "moderate",
+      selected_lookback_points: 10,
+      observed_on: "2024-01-15",
+      reason_code: null,
+    },
+    lookback_trend_snapshots: [
+      {
+        lookback_points: 10,
+        applicability_state: "applicable",
+        outcome_state: "significant_trend",
+        trend_label: "moderate_uptrend",
+        direction: "up",
+        strength: "moderate",
+        reason_code: null,
+      },
+    ],
     observation_sort: "observed_on_asc,reported_at_asc",
   };
 

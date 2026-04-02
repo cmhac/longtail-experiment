@@ -35,12 +35,28 @@ export interface PaginatedDatasetCollection extends PaginatedCollectionMeta {
 }
 
 export interface DatasetRecentItem {
+  item_type?: "dataset_update";
   dataset_id: string;
   source: SourceRef;
   title: string;
   description?: string | null;
   geographic_scope?: string | null;
   topic_tags: string[];
+  latest_update_at: string;
+  action_links: {
+    view_table_href: string;
+    download_csv_href: string;
+  };
+}
+
+export interface TrendRecentItem {
+  item_type: "trend_event";
+  dataset_id: string;
+  source: SourceRef;
+  title: string;
+  direction: "up" | "down";
+  strength: string;
+  start_period: string;
   latest_update_at: string;
   action_links: {
     view_table_href: string;
@@ -86,7 +102,31 @@ export interface DatasetDetail {
   topic_tags: string[];
   metadata: Record<string, string | null>;
   observations: ObservationPoint[];
+  canonical_trend_descriptor?: CanonicalTrendDescriptor;
+  lookback_trend_snapshots?: LookbackTrendSnapshot[];
   observation_sort: string;
+}
+
+export type LookbackPoints = 1 | 2 | 3 | 4 | 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
+
+export interface CanonicalTrendDescriptor {
+  descriptor_state: "available" | "unavailable";
+  trend_label: string | null;
+  direction: "up" | "down" | null;
+  strength: string | null;
+  selected_lookback_points: LookbackPoints | null;
+  observed_on: string | null;
+  reason_code: string | null;
+}
+
+export interface LookbackTrendSnapshot {
+  lookback_points: LookbackPoints;
+  applicability_state: "applicable" | "inapplicable";
+  outcome_state: "significant_trend" | "no_significant_trend" | null;
+  trend_label: string | null;
+  direction: "up" | "down" | null;
+  strength: string | null;
+  reason_code: string | null;
 }
 
 export interface DatasetSearchResponse {
@@ -118,7 +158,7 @@ export interface DatasetSearchSuggestionsResponse {
 }
 
 export interface DatasetRecentUpdatesResponse {
-  items: DatasetRecentItem[];
+  items: Array<DatasetRecentItem | TrendRecentItem>;
   limit: number;
   sort: string;
 }

@@ -7,7 +7,12 @@ from copy import deepcopy
 from typing import Any
 from urllib.parse import quote
 
+from pydantic import ValidationError
 from src.contract.errors import ContractQueryError
+from src.contract.query.dataset_detail_query import (
+    CanonicalTrendDescriptor,
+    LookbackTrendSnapshot,
+)
 
 from .dataset_discovery_validators import (
     normalize_page,
@@ -110,6 +115,60 @@ def _build_paginated_payload(
     if extra:
         payload.update(deepcopy(dict(extra)))
     return payload
+
+
+def _project_recent_trend_items(
+    *,
+    repository: Any,
+    normalized_limit: int,
+) -> list[dict[str, Any]]:
+    if not hasattr(repository, "list_recent_trend_events"):
+        return []
+
+    trend_items = repository.list_recent_trend_events(limit=normalized_limit)
+    if not isinstance(trend_items, list):
+        raise ContractQueryError("Repository returned invalid recent trend payload")
+
+    trend_projected: list[dict[str, Any]] = []
+    for item in trend_items:
+        if not isinstance(item, dict):
+            raise ContractQueryError("Repository returned invalid recent trend item")
+
+        dataset_id = str(item.get("dataset_id", "")).strip()
+        if dataset_id == "":
+            raise ContractQueryError("Repository returned trend item without dataset_id")
+
+        source_value = item.get("source")
+        source = deepcopy(source_value) if isinstance(source_value, dict) else {}
+        source_id = str(source.get("id", "")).strip()
+        source_name = str(source.get("name", "")).strip()
+        if source_id == "" or source_name == "":
+            raise ContractQueryError("Repository returned trend item without source")
+
+        start_period = item.get("start_period")
+        if not isinstance(start_period, str) or start_period.strip() == "":
+            raise ContractQueryError("Repository returned trend item without start_period")
+
+        trend_projected.append(
+            {
+                "item_type": "trend_event",
+                "dataset_id": dataset_id,
+                "source": {
+                    "id": source_id,
+                    "name": source_name,
+                },
+                "title": str(item.get("title", "")).strip(),
+                "direction": str(item.get("direction", "")).strip().lower(),
+                "strength": str(item.get("strength", "")).strip().lower(),
+                "start_period": start_period,
+                "latest_update_at": start_period,
+                "action_links": {
+                    "view_table_href": f"/datasets/{quote(dataset_id, safe='')}",
+                    "download_csv_href": f"/api/datasets/{quote(dataset_id, safe='')}.csv",
+                },
+            }
+        )
+    return trend_projected
 
 
 class DatasetDiscoveryService:
@@ -274,6 +333,7 @@ class DatasetDiscoveryService:
 
             projected.append(
                 {
+                    "item_type": "dataset_update",
                     "dataset_id": dataset_id,
                     "source": {
                         "id": source_id,
@@ -296,10 +356,25 @@ class DatasetDiscoveryService:
                 }
             )
 
+        trend_projected = _project_recent_trend_items(
+            repository=self._repository,
+            normalized_limit=normalized_limit,
+        )
+
+        merged_items = projected + trend_projected
+        merged_items.sort(
+            key=lambda item: (
+                str(item.get("latest_update_at", "") or ""),
+                str(item.get("title", "")),
+                str(item.get("dataset_id", "")),
+            ),
+            reverse=True,
+        )
+
         return {
-            "items": projected,
+            "items": merged_items[:normalized_limit],
             "limit": normalized_limit,
-            "sort": "latest_update_at_desc,title_asc,dataset_id_asc",
+            "sort": "event_timestamp_desc,title_asc,dataset_id_asc",
         }
 
     def list_catalog(
@@ -696,8 +771,54 @@ class DatasetDiscoveryService:
             metadata_fields["unit_type"] = unit_type
         metadata_payload["metadata"] = metadata_fields
 
+        canonical_descriptor = CanonicalTrendDescriptor(
+            descriptor_state="unavailable",
+            trend_label=None,
+            direction=None,
+            strength=None,
+            selected_lookback_points=None,
+            observed_on=None,
+            reason_code="missing_canonical_descriptor",
+        ).model_dump()
+        if hasattr(self._repository, "get_latest_dataset_canonical_trend_descriptor"):
+            raw_canonical = self._repository.get_latest_dataset_canonical_trend_descriptor(
+                dataset_id=normalized_dataset_id
+            )
+            if raw_canonical is not None:
+                if not isinstance(raw_canonical, dict):
+                    raise ContractQueryError("dataset_detail_canonical_payload_invalid")
+                try:
+                    canonical_descriptor = CanonicalTrendDescriptor.model_validate(
+                        raw_canonical
+                    ).model_dump()
+                except ValidationError as exc:
+                    raise ContractQueryError("dataset_detail_canonical_payload_invalid")
+                except (TypeError, ValueError) as exc:
+                    raise ContractQueryError("dataset_detail_canonical_payload_invalid") from exc
+
+        lookback_snapshots: list[dict[str, Any]] = []
+        if hasattr(self._repository, "list_dataset_lookback_trend_snapshots"):
+            raw_lookbacks = self._repository.list_dataset_lookback_trend_snapshots(
+                dataset_id=normalized_dataset_id
+            )
+            if not isinstance(raw_lookbacks, list):
+                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+            if not all(isinstance(snapshot, dict) for snapshot in raw_lookbacks):
+                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
+            try:
+                lookback_snapshots = [
+                    LookbackTrendSnapshot.model_validate(snapshot).model_dump()
+                    for snapshot in raw_lookbacks
+                ]
+            except ValidationError as exc:
+                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid") from exc
+            except (TypeError, ValueError) as exc:
+                raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid") from exc
+
         return {
             **metadata_payload,
             "observations": deepcopy(observations),
+            "canonical_trend_descriptor": canonical_descriptor,
+            "lookback_trend_snapshots": lookback_snapshots,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }

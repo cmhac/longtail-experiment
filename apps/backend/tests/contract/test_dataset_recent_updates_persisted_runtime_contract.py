@@ -61,4 +61,4 @@ def test_recent_updates_contract_uses_persisted_recency_payload() -> None:
 
     assert payload["limit"] == 5
     assert payload["items"][0]["dataset_id"] == "ENERGY.US.GASREGW"
-    assert payload["sort"] == "latest_update_at_desc,title_asc,dataset_id_asc"
+    assert payload["sort"] == "event_timestamp_desc,title_asc,dataset_id_asc"

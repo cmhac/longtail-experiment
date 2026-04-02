@@ -116,7 +116,7 @@ describe("shell structure and monochrome contract", () => {
     expect(markup).toContain('data-testid="navbar-tab-home"');
     expect(markup).toContain('data-testid="navbar-tab-sources"');
     expect(markup).toContain('data-testid="navbar-tab-datasets"');
-    expect(markup).toContain('data-testid="navbar-tab-trends"');
+    expect(markup).not.toContain('data-testid="navbar-tab-trends"');
     expect(markup).toContain('data-testid="navbar-search-control"');
     expect(markup).toContain('data-testid="navbar-profile-control"');
   });

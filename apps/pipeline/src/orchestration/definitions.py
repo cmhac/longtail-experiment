@@ -14,6 +14,12 @@ from .schedules.source_asset_schedules import SOURCE_ASSET_SCHEDULES
 from .sensors.ondemand_sensor import ondemand_sensor
 from .source_asset_definitions import SOURCE_DAGIT_ASSETS
 
+TREND_STAGE_ENTRYPOINT = "downstream_source_asset"
+"""Authoritative trend stage placement relative to source fetch/update assets."""
+
+TREND_STAGE_DEPENDENCIES: tuple[str, ...] = ("per_series_source_asset_outputs",)
+"""Authoritative fetch/update outputs that drive downstream trend processing."""
+
 if metadata_storage_enforcement_enabled():
     validate_dagster_metadata_storage_config()
 
@@ -40,6 +46,16 @@ def get_dagit_workspace_module() -> str:
 def get_workspace_definition_catalog() -> dict[str, tuple[str, ...]]:
     """Return the expected definitions exposed in the local Dagit workspace."""
     return WORKSPACE_DEFINITION_CATALOG
+
+
+def get_trend_stage_entrypoint() -> str:
+    """Return the configured trend stage orchestration placement mode."""
+    return TREND_STAGE_ENTRYPOINT
+
+
+def get_trend_stage_dependencies() -> tuple[str, ...]:
+    """Return fetch/update dependency surfaces consumed by trend stage wiring."""
+    return TREND_STAGE_DEPENDENCIES
 
 
 def get_scheduling_authority_mode() -> str:

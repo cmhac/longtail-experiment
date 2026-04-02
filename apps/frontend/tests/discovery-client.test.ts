@@ -131,14 +131,16 @@ describe("discovery client", () => {
     );
 
     const response = await fetchRecentDatasets({ limit: 5 });
+    const item = response.items[0];
+    if (!item || item.item_type === "trend_event") {
+      throw new Error("Expected dataset_update item");
+    }
 
-    expect(response.items[0]?.description).toBeNull();
-    expect(response.items[0]?.geographic_scope).toBeNull();
-    expect(response.items[0]?.topic_tags).toEqual([]);
-    expect(response.items[0]?.action_links.view_table_href).toBe("/datasets/ID%20WITH%20SPACE");
-    expect(response.items[0]?.action_links.download_csv_href).toBe(
-      "/api/datasets/ID%20WITH%20SPACE.csv",
-    );
+    expect(item.description).toBeNull();
+    expect(item.geographic_scope).toBeNull();
+    expect(item.topic_tags).toEqual([]);
+    expect(item.action_links.view_table_href).toBe("/datasets/ID%20WITH%20SPACE");
+    expect(item.action_links.download_csv_href).toBe("/api/datasets/ID%20WITH%20SPACE.csv");
   });
 
   it("sends catalog group_by_source parameter when enabled", async () => {

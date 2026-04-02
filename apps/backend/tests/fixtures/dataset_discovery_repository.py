@@ -15,10 +15,16 @@ class InMemoryDatasetDiscoveryRepository:
         *,
         datasets: list[dict[str, Any]] | None = None,
         observations: list[dict[str, Any]] | None = None,
+        trend_events: list[dict[str, Any]] | None = None,
+        canonical_trends_by_dataset: dict[str, dict[str, Any]] | None = None,
+        lookback_snapshots_by_dataset: dict[str, list[dict[str, Any]]] | None = None,
     ) -> None:
         """Initialize fixture rows for datasets and observations."""
         self._datasets = list(datasets or [])
         self._observations = list(observations or [])
+        self._trend_events = list(trend_events or [])
+        self._canonical_trends_by_dataset = dict(canonical_trends_by_dataset or {})
+        self._lookback_snapshots_by_dataset = dict(lookback_snapshots_by_dataset or {})
 
     @staticmethod
     def _normalized_text(row: dict[str, Any]) -> str:
@@ -113,6 +119,18 @@ class InMemoryDatasetDiscoveryRepository:
     def list_recent_datasets(self, *, limit: int) -> list[dict[str, Any]]:
         """Return most recently updated datasets up to limit."""
         rows = self._apply_search(query_text=None)
+        return rows[:limit]
+
+    def list_recent_trend_events(self, *, limit: int) -> list[dict[str, Any]]:
+        """Return recent trend events sorted by trend start period descending."""
+        rows = list(self._trend_events)
+        rows.sort(
+            key=lambda item: (
+                str(item.get("start_period", "")),
+                str(item.get("dataset_id", "")),
+            ),
+            reverse=True,
+        )
         return rows[:limit]
 
     def get_search_summary(self) -> dict[str, Any]:
@@ -243,6 +261,17 @@ class InMemoryDatasetDiscoveryRepository:
             if str(row.get("dataset_id", "")) == dataset_id:
                 return dict(row)
         return None
+
+    def get_latest_dataset_canonical_trend_descriptor(
+        self, *, dataset_id: str
+    ) -> dict[str, Any] | None:
+        """Return pre-seeded canonical trend descriptor for one dataset."""
+        payload = self._canonical_trends_by_dataset.get(dataset_id)
+        return dict(payload) if isinstance(payload, dict) else None
+
+    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, Any]]:
+        """Return pre-seeded lookback snapshots for one dataset identifier."""
+        return list(self._lookback_snapshots_by_dataset.get(dataset_id, []))
 
     def list_sources(self) -> list[dict[str, Any]]:
         """Return unique sources with dataset counts."""

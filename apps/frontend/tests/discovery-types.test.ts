@@ -53,6 +53,43 @@ describe("discovery types", () => {
     expect(detailPayload.geographic_scope).toBeNull();
   });
 
+  it("supports canonical trend descriptor payloads for dataset detail", () => {
+    const detailPayload: DatasetDetail = {
+      dataset_id: "UNRATE",
+      source: { id: "fred", name: "FRED" },
+      title: "Unemployment Rate",
+      description: null,
+      geographic_scope: null,
+      topic_tags: [],
+      metadata: {},
+      observations: [],
+      canonical_trend_descriptor: {
+        descriptor_state: "available",
+        trend_label: "strong_sustained_uptrend",
+        direction: "up",
+        strength: "strong",
+        selected_lookback_points: 100,
+        observed_on: "2026-03-01",
+        reason_code: null,
+      },
+      lookback_trend_snapshots: [
+        {
+          lookback_points: 100,
+          applicability_state: "applicable",
+          outcome_state: "significant_trend",
+          trend_label: "strong_sustained_uptrend",
+          direction: "up",
+          strength: "strong",
+          reason_code: null,
+        },
+      ],
+      observation_sort: "observed_on_asc",
+    };
+
+    expect(detailPayload.canonical_trend_descriptor?.descriptor_state).toBe("available");
+    expect(detailPayload.lookback_trend_snapshots?.[0]?.lookback_points).toBe(100);
+  });
+
   it("preserves required arrays for items, groups, tags, and observations", () => {
     const recentPayload: DatasetRecentUpdatesResponse = {
       items: [

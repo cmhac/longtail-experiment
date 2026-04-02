@@ -74,12 +74,13 @@ services:
       LOCAL_DB_USER: ${LOCAL_DB_USER:-longtail}
       LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-longtail}
       DATABASE_URL: postgresql+psycopg://${LOCAL_DB_USER:-longtail}:${LOCAL_DB_PASSWORD:-longtail}@db:5432/${LOCAL_DB_NAME:-longtail_local}
+      DISCOVERY_EXPECTED_DB_REVISION: 0011_trend_lifecycle_tables
     working_dir: /workspace
     command:
       [
         "sh",
         "-c",
-        "uv sync --project apps/backend --frozen && uv run --project apps/backend alembic -c libs/db/alembic.ini upgrade head && uv run --project apps/backend python -m src.http_api_server --host 0.0.0.0 --port 8080",
+        "if [ ! -x apps/backend/.venv/bin/alembic ]; then uv sync --project apps/backend --frozen; fi && uv run --project apps/backend --no-sync alembic -c libs/db/alembic.ini upgrade head && uv run --project apps/backend --no-sync python -m src.http_api_server --host 0.0.0.0 --port 8080",
       ]
     volumes:
       - ./:/workspace
@@ -148,7 +149,7 @@ services:
       [
         "sh",
         "-c",
-        'mkdir -p "$${DAGSTER_HOME}" && cp apps/pipeline/dagster.yaml "$${DAGSTER_HOME}/dagster.yaml" && uv sync --project apps/pipeline --frozen && uv run --project apps/pipeline dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
+        'mkdir -p "$${DAGSTER_HOME}" && cp apps/pipeline/dagster.yaml "$${DAGSTER_HOME}/dagster.yaml" && if [ ! -x apps/pipeline/.venv/bin/dagster ]; then uv sync --project apps/pipeline --frozen; fi && uv run --project apps/pipeline --no-sync dagster dev -d apps/pipeline -m src.orchestration.definitions --host 0.0.0.0 --port 3000',
       ]
     volumes:
       - ./:/workspace
@@ -165,7 +166,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "python -c \"import json, urllib.request; payload=json.dumps({'query':'query LocalWorkspaceCheck { workspaceOrError { __typename ... on Workspace { locationEntries { id } } } }'}).encode(); req=urllib.request.Request('http://localhost:3000/graphql', data=payload, headers={'Content-Type':'application/json'}); data=json.load(urllib.request.urlopen(req, timeout=3)); workspace=data.get('data', {}).get('workspaceOrError', {}); entries=workspace.get('locationEntries', []); raise SystemExit(0 if workspace.get('__typename') == 'Workspace' and len(entries) >= 1 else 1)\" || exit 1",
+          'python -c "import json, urllib.request; payload=json.dumps({''query'':''query LocalWorkspaceCheck { workspaceOrError { __typename ... on Workspace { locationEntries { id } } } }''}).encode(); req=urllib.request.Request(''http://localhost:3000/graphql'', data=payload, headers={''Content-Type'':''application/json''}); data=json.load(urllib.request.urlopen(req, timeout=3)); workspace=data.get(''data'', {}).get(''workspaceOrError'', {}); entries=workspace.get(''locationEntries'', []); raise SystemExit(0 if workspace.get(''__typename'') == ''Workspace'' and len(entries) >= 1 else 1)" || exit 1',
         ]
       interval: 15s
       timeout: 5s
