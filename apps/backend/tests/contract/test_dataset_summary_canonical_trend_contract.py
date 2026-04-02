@@ -92,7 +92,7 @@ def test_source_topic_and_geography_summary_items_include_canonical_trend_descri
 
     source_payload = execute_source_detail(
         service,
-        source_id="bls",
+        source_id="fred",
         page=1,
         page_size=20,
     ).model_dump()
@@ -109,7 +109,7 @@ def test_source_topic_and_geography_summary_items_include_canonical_trend_descri
         page_size=20,
     ).model_dump()
 
-    expected_descriptor = {
+    expected_unrate_descriptor = {
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
@@ -118,6 +118,13 @@ def test_source_topic_and_geography_summary_items_include_canonical_trend_descri
         "observed_on": "2026-03-01",
         "reason_code": None,
     }
-    assert source_payload["items"][0]["canonical_trend_descriptor"] == expected_descriptor
-    assert topic_payload["items"][0]["canonical_trend_descriptor"] == expected_descriptor
-    assert geography_payload["items"][0]["canonical_trend_descriptor"] == expected_descriptor
+    source_items = {item["dataset_id"]: item for item in source_payload["items"]}
+    topic_items = {item["dataset_id"]: item for item in topic_payload["items"]}
+    geography_items = {item["dataset_id"]: item for item in geography_payload["items"]}
+
+    assert source_items["UNRATE"]["canonical_trend_descriptor"] == expected_unrate_descriptor
+    assert topic_items["UNRATE"]["canonical_trend_descriptor"] == expected_unrate_descriptor
+    assert geography_items["UNRATE"]["canonical_trend_descriptor"] == expected_unrate_descriptor
+
+    for item in source_payload["items"] + topic_payload["items"] + geography_payload["items"]:
+        assert item["canonical_trend_descriptor"]["descriptor_state"] in {"available", "unavailable"}

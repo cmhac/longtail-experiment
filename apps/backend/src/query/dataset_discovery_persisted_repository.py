@@ -340,6 +340,9 @@ class PersistedDatasetDiscoveryRepository:
                     "geographic_scope": row.get("geographic_scope"),
                     "topic_tags": list(cast(list[object], row.get("topic_tags") or [])),
                     "latest_update_at": row.get("latest_update_at"),
+                    "canonical_trend_descriptor": dict(
+                        cast(dict[str, object], row.get("canonical_trend_descriptor") or {})
+                    ),
                 }
             )
         return projected

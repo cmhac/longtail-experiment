@@ -42,7 +42,8 @@ def test_recent_dataset_items_include_canonical_trend_descriptor() -> None:
     ]
 
     assert dataset_items
-    assert dataset_items[0]["canonical_trend_descriptor"] == {
+    by_dataset_id = {item["dataset_id"]: item for item in dataset_items}
+    assert by_dataset_id["UNRATE"]["canonical_trend_descriptor"] == {
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",

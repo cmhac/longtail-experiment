@@ -1,5 +1,6 @@
 import type {
   ApiErrorEnvelope,
+  CanonicalTrendDescriptor,
   DatasetCatalogResponse,
   DatasetDetail,
   DatasetRecentUpdatesResponse,
@@ -82,7 +83,14 @@ const appendPaginationQueryParams = (
   }
 };
 
-const defaultCanonicalTrendDescriptor = () => ({
+const isLookbackPoints = (value: unknown): value is CanonicalTrendDescriptor["selected_lookback_points"] => {
+  return (
+    typeof value === "number" &&
+    [1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000].includes(value)
+  );
+};
+
+const defaultCanonicalTrendDescriptor = (): CanonicalTrendDescriptor => ({
   descriptor_state: "unavailable" as const,
   trend_label: null,
   direction: null,
@@ -94,7 +102,7 @@ const defaultCanonicalTrendDescriptor = () => ({
 
 const normalizeSummaryCanonicalTrendDescriptor = (
   descriptor: unknown,
-): ReturnType<typeof defaultCanonicalTrendDescriptor> => {
+): CanonicalTrendDescriptor => {
   if (!descriptor || typeof descriptor !== "object") {
     return defaultCanonicalTrendDescriptor();
   }
@@ -106,10 +114,9 @@ const normalizeSummaryCanonicalTrendDescriptor = (
     direction:
       payload.direction === "up" || payload.direction === "down" ? payload.direction : null,
     strength: typeof payload.strength === "string" ? payload.strength : null,
-    selected_lookback_points:
-      typeof payload.selected_lookback_points === "number"
-        ? payload.selected_lookback_points
-        : null,
+    selected_lookback_points: isLookbackPoints(payload.selected_lookback_points)
+      ? payload.selected_lookback_points
+      : null,
     observed_on: typeof payload.observed_on === "string" ? payload.observed_on : null,
     reason_code: typeof payload.reason_code === "string" ? payload.reason_code : null,
   };
