@@ -78,7 +78,7 @@ export const DatasetTrendIndicator = ({
       variant={content.state === "unavailable" ? "secondary" : "soft"}
       size="sm"
       className={joinClassNames(
-        "inline-flex items-center justify-end gap-1.5 whitespace-nowrap px-2 py-0.5 text-[0.8rem] leading-none",
+        "inline-flex items-center justify-end gap-1.5 whitespace-nowrap px-2 py-0.5 font-sans text-[0.8rem] leading-none",
         className,
       )}
       data-state={content.state}

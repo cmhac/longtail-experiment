@@ -1,14 +1,14 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
 
-import { DatasetDetailAnalysis } from "../../src/components/discovery/DatasetDetailAnalysis";
+import { DatasetDetailHeader } from "../../src/components/discovery/DatasetDetailHeader";
 import { buildDatasetDetailFixture } from "../fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "../test-utils";
 
 describe("DatasetDetail trend indicator placement", () => {
-  it("renders indicator adjacent to Historical Trend heading", () => {
+  it("renders indicator as the first item in the detail tags row", () => {
     const markup = renderMarkup(
-      <DatasetDetailAnalysis
+      <DatasetDetailHeader
         data={buildDatasetDetailFixture({
           canonical_trend_descriptor: {
             descriptor_state: "available",
@@ -23,8 +23,13 @@ describe("DatasetDetail trend indicator placement", () => {
       />,
     );
 
-    expect(markup).toContain("Historical Trend");
-    expect(markup).toContain('data-testid="dataset-detail-trend-indicator"');
+    const indicatorIndex = markup.indexOf('data-testid="dataset-detail-trend-indicator"');
+    const firstTagIndex = markup.indexOf('href="/geographies/');
+
+    expect(indicatorIndex).toBeGreaterThan(-1);
+    expect(firstTagIndex).toBeGreaterThan(-1);
+    expect(indicatorIndex).toBeLessThan(firstTagIndex);
     expect(markup).toContain('data-state="down"');
+    expect(markup).not.toContain("Historical Trend");
   });
 });

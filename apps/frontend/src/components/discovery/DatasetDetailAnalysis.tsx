@@ -4,7 +4,6 @@ import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
 import { DatasetDetailInsights } from "./DatasetDetailInsights";
-import { DatasetTrendIndicator } from "./DatasetTrendIndicator";
 import { ObservationsChart } from "./ObservationsChart";
 import { ChartSurfaceCard } from "./chart-controls/ChartSurfaceCard";
 import {
@@ -34,18 +33,6 @@ export const DatasetDetailAnalysis = ({ data }: DatasetDetailAnalysisProps): JSX
       <ChartSurfaceCard
         className="grid h-full min-h-96 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-[0.7rem] border border-(--shell-border) bg-(--shell-surface) p-4 shadow-sm max-md:p-[0.8rem]"
         testId="dataset-detail-trend-section"
-        title={
-          <span className="flex items-center justify-between gap-3">
-            <span>Historical Trend</span>
-            {data.canonical_trend_descriptor ? (
-              <DatasetTrendIndicator
-                className="text-[0.77rem]"
-                descriptor={data.canonical_trend_descriptor}
-                testId="dataset-detail-trend-indicator"
-              />
-            ) : null}
-          </span>
-        }
       >
         <ObservationsChart
           onRelativeSettingsChange={setRelativeSettings}

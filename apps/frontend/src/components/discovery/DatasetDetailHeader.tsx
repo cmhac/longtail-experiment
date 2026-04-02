@@ -2,6 +2,7 @@ import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
 import { DatasetComparisonToggleButton } from "./DatasetComparisonToggleButton";
+import { DatasetTrendIndicator } from "./DatasetTrendIndicator";
 import {
   PageHeaderKicker,
   PageHeaderSubtitle,
@@ -35,6 +36,13 @@ export const DatasetDetailHeader = ({ data }: DatasetDetailHeaderProps): JSX.Ele
         data-testid="dataset-detail-meta-row"
       >
         <div aria-label="Topic tags" className="flex min-w-0 flex-1 flex-wrap items-start gap-2">
+          {data.canonical_trend_descriptor ? (
+            <DatasetTrendIndicator
+              className="text-[0.72rem]"
+              descriptor={data.canonical_trend_descriptor}
+              testId="dataset-detail-trend-indicator"
+            />
+          ) : null}
           <TagPillGroup
             emphasizedPills={data.geographic_scope ? [data.geographic_scope] : []}
             fallback={<span>No topic tags</span>}

@@ -23,7 +23,6 @@ describe("DatasetDetail no overlay regression", () => {
       />,
     );
 
-    expect(markup).toContain('data-testid="dataset-detail-trend-indicator"');
     expect(markup).toContain('data-testid="observations-chart"');
     expect(markup).not.toContain("trend-overlay-layer");
     expect(markup).not.toContain("trend-overlay-tooltip");
