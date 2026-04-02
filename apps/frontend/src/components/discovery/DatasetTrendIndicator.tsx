@@ -1,3 +1,6 @@
+"use client";
+
+import { Chip } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 
@@ -15,6 +18,8 @@ interface IndicatorContent {
   glyph: string;
   label: string;
   state: IndicatorState;
+  chipColor: "success" | "danger" | "default";
+  accentClassName: string;
 }
 
 const joinClassNames = (...values: Array<string | undefined>): string => {
@@ -31,11 +36,29 @@ const getIndicatorContent = (descriptor?: CanonicalTrendDescriptor): IndicatorCo
     (descriptor.direction === "up" || descriptor.direction === "down")
   ) {
     return descriptor.direction === "up"
-      ? { glyph: "↑", label: "Uptrend", state: "up" }
-      : { glyph: "↓", label: "Downtrend", state: "down" };
+      ? {
+          glyph: "↑",
+          label: "Uptrend",
+          state: "up",
+          chipColor: "success",
+          accentClassName: "text-success",
+        }
+      : {
+          glyph: "↓",
+          label: "Downtrend",
+          state: "down",
+          chipColor: "danger",
+          accentClassName: "text-danger",
+        };
   }
 
-  return { glyph: "–", label: "Trend unavailable", state: "unavailable" };
+  return {
+    glyph: "–",
+    label: "Trend unavailable",
+    state: "unavailable",
+    chipColor: "default",
+    accentClassName: "text-(--shell-muted)",
+  };
 };
 
 export const DatasetTrendIndicator = ({
@@ -50,23 +73,29 @@ export const DatasetTrendIndicator = ({
   }
 
   return (
-    <span
+    <Chip
+      color={content.chipColor}
+      variant={content.state === "unavailable" ? "secondary" : "soft"}
+      size="sm"
       className={joinClassNames(
-        "inline-flex items-center justify-end gap-1.5 whitespace-nowrap text-(--shell-muted) text-[0.8rem] leading-none",
+        "inline-flex items-center justify-end gap-1.5 whitespace-nowrap px-2 py-0.5 text-[0.8rem] leading-none",
         className,
       )}
       data-state={content.state}
       data-testid={testId}
     >
       <span
-        className="font-semibold text-(--shell-text) text-[0.95rem]"
+        className={joinClassNames("font-semibold text-[0.95rem]", content.accentClassName)}
         data-testid={`${testId}-glyph`}
       >
         {content.glyph}
       </span>
-      <span className="font-medium max-[720px]:sr-only" data-testid={`${testId}-label`}>
+      <Chip.Label
+        className={joinClassNames("font-medium max-[720px]:sr-only", content.accentClassName)}
+        data-testid={`${testId}-label`}
+      >
         {content.label}
-      </span>
-    </span>
+      </Chip.Label>
+    </Chip>
   );
 };
