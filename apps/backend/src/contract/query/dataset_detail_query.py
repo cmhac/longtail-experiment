@@ -14,6 +14,7 @@ class DatasetObservationPoint(BaseModel):
     value: float
     reported_at: str = Field(min_length=1)
     attributes: dict[str, object] = Field(default_factory=dict)
+    as_of_trend_descriptor: ObservationAsOfTrendDescriptor
 
 
 class CanonicalTrendDescriptor(BaseModel):
@@ -40,6 +41,33 @@ class CanonicalTrendDescriptor(BaseModel):
             )
             if any(value is None for value in required_values):
                 raise ValueError("available canonical descriptors must include trend fields")
+        return self
+
+
+class ObservationAsOfTrendDescriptor(BaseModel):
+    """Observation-scoped trend descriptor payload for dataset detail responses."""
+
+    descriptor_state: str = Field(min_length=1)
+    trend_label: str | None = Field(default=None, min_length=1)
+    direction: str | None = Field(default=None, min_length=1)
+    strength: str | None = Field(default=None, min_length=1)
+    selected_lookback_points: int | None = Field(default=None, ge=1)
+    observed_on: str | None = Field(default=None, min_length=1)
+    reason_code: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def validate_available_descriptor_fields(self) -> ObservationAsOfTrendDescriptor:
+        """Require full descriptor fields when observation descriptor state is available."""
+        if self.descriptor_state == "available":
+            required_values = (
+                self.trend_label,
+                self.direction,
+                self.strength,
+                self.selected_lookback_points,
+                self.observed_on,
+            )
+            if any(value is None for value in required_values):
+                raise ValueError("available observation descriptors must include trend fields")
         return self
 
 

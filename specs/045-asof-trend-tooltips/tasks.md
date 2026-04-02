@@ -27,11 +27,11 @@
 
 **Purpose**: Shared contract and mapping prerequisites that block all user stories.
 
-- [ ] T004 Add observation-level descriptor model and validators in apps/backend/src/contract/query/dataset_detail_query.py
-- [ ] T005 [P] Add frontend API type support for observation-level as-of descriptors in apps/frontend/src/lib/api/discovery-types.ts
-- [ ] T006 [P] Add shared parsing/mapping helper for observation-level descriptor normalization in apps/backend/src/query/dataset_discovery_service.py
-- [ ] T007 [P] Add deterministic fixture builders for as-of descriptor test scenarios in apps/backend/tests/contract/fixtures/dataset_detail_asof_trend_fixtures.py
-- [ ] T008 Add foundational contract regression tests for required observation descriptor presence in apps/backend/tests/contract/test_dataset_detail_observation_asof_contract.py
+- [x] T004 Add observation-level descriptor model and validators in apps/backend/src/contract/query/dataset_detail_query.py
+- [x] T005 [P] Add frontend API type support for observation-level as-of descriptors in apps/frontend/src/lib/api/discovery-types.ts
+- [x] T006 [P] Add shared parsing/mapping helper for observation-level descriptor normalization in apps/backend/src/query/dataset_discovery_service.py
+- [x] T007 [P] Add deterministic fixture builders for as-of descriptor test scenarios in apps/backend/tests/contract/fixtures/dataset_detail_asof_trend_fixtures.py
+- [x] T008 Add foundational contract regression tests for required observation descriptor presence in apps/backend/tests/contract/test_dataset_detail_observation_asof_contract.py
 
 **Checkpoint**: Foundation ready. User stories can now proceed.
 

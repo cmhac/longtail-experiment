@@ -13,6 +13,7 @@ from src.contract.errors import ContractQueryError
 from src.contract.query.dataset_detail_query import (
     CanonicalTrendDescriptor,
     LookbackTrendSnapshot,
+    ObservationAsOfTrendDescriptor,
 )
 from src.contract.query.dataset_search_query import SummaryCanonicalTrendDescriptor
 
@@ -129,6 +130,57 @@ def _default_summary_canonical_descriptor() -> dict[str, Any]:
         "observed_on": None,
         "reason_code": "missing_canonical_descriptor",
     }
+
+
+def _default_observation_asof_descriptor() -> dict[str, Any]:
+    return {
+        "descriptor_state": "unavailable",
+        "trend_label": None,
+        "direction": None,
+        "strength": None,
+        "selected_lookback_points": None,
+        "observed_on": None,
+        "reason_code": "missing_observation_asof_descriptor",
+    }
+
+
+def _resolve_observation_asof_descriptor(
+    *,
+    raw_descriptor: object,
+    dataset_id: str,
+    observation_observed_on: object,
+) -> dict[str, Any]:
+    payload = (
+        raw_descriptor
+        if isinstance(raw_descriptor, dict)
+        else _default_observation_asof_descriptor()
+    )
+    try:
+        return ObservationAsOfTrendDescriptor.model_validate(payload).model_dump()
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise ContractQueryError(
+            "dataset_detail_observation_asof_payload_invalid:"
+            f"{dataset_id}:{observation_observed_on}"
+        ) from exc
+
+
+def _map_detail_observations_with_asof_descriptors(
+    *,
+    observations: list[dict[str, Any]],
+    dataset_id: str,
+) -> list[dict[str, Any]]:
+    mapped: list[dict[str, Any]] = []
+    for observation in observations:
+        if not isinstance(observation, dict):
+            raise ContractQueryError("Repository returned invalid observations payload")
+        mapped_observation = dict(observation)
+        mapped_observation["as_of_trend_descriptor"] = _resolve_observation_asof_descriptor(
+            raw_descriptor=observation.get("as_of_trend_descriptor"),
+            dataset_id=dataset_id,
+            observation_observed_on=observation.get("observed_on"),
+        )
+        mapped.append(mapped_observation)
+    return mapped
 
 
 def _resolve_summary_canonical_descriptor(
@@ -852,10 +904,14 @@ class DatasetDiscoveryService:
 
         canonical_descriptor = self._resolve_canonical_descriptor(dataset_id=normalized_dataset_id)
         lookback_snapshots = self._resolve_lookback_snapshots(dataset_id=normalized_dataset_id)
+        normalized_observations = _map_detail_observations_with_asof_descriptors(
+            observations=observations,
+            dataset_id=normalized_dataset_id,
+        )
 
         return {
             **metadata_payload,
-            "observations": deepcopy(observations),
+            "observations": normalized_observations,
             "canonical_trend_descriptor": canonical_descriptor,
             "lookback_trend_snapshots": lookback_snapshots,
             "observation_sort": "observed_on_asc,reported_at_asc",
