@@ -56,6 +56,20 @@ class InMemoryDatasetDiscoveryRepository:
             merged[dataset_id] = latest.get(dataset_id)
         return merged
 
+    def _summary_canonical_descriptor(self, *, dataset_id: str) -> dict[str, Any]:
+        payload = self._canonical_trends_by_dataset.get(dataset_id)
+        if isinstance(payload, dict):
+            return dict(payload)
+        return {
+            "descriptor_state": "unavailable",
+            "trend_label": None,
+            "direction": None,
+            "strength": None,
+            "selected_lookback_points": None,
+            "observed_on": None,
+            "reason_code": "missing_canonical_descriptor",
+        }
+
     def _apply_search(
         self,
         *,
@@ -84,6 +98,9 @@ class InMemoryDatasetDiscoveryRepository:
             projected.setdefault("description", None)
             projected.setdefault("geographic_scope", None)
             projected.setdefault("topic_tags", [])
+            projected["canonical_trend_descriptor"] = self._summary_canonical_descriptor(
+                dataset_id=str(row.get("dataset_id", ""))
+            )
             rows.append(projected)
         rows.sort(
             key=lambda item: (

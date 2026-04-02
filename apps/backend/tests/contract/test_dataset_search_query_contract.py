@@ -29,6 +29,10 @@ def test_search_matches_metadata_and_topic_tags() -> None:
     dataset_ids = [item["dataset_id"] for item in response["items"]]
 
     assert dataset_ids == ["UNRATE"]
+    assert response["items"][0]["canonical_trend_descriptor"]["descriptor_state"] in {
+        "available",
+        "unavailable",
+    }
 
 
 def test_search_response_includes_pagination_and_sort_metadata() -> None:

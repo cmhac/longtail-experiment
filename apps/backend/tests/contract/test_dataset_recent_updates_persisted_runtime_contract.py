@@ -28,6 +28,15 @@ class _PersistedRecentRepoStub:
                 "geographic_scope": "US",
                 "topic_tags": ["energy"],
                 "latest_update_at": "2026-03-20T00:00:00+00:00",
+                "canonical_trend_descriptor": {
+                    "descriptor_state": "available",
+                    "trend_label": "strong_sustained_uptrend",
+                    "direction": "up",
+                    "strength": "strong",
+                    "selected_lookback_points": 100,
+                    "observed_on": "2026-03-20",
+                    "reason_code": None,
+                },
                 "metadata": {},
             }
         ]
@@ -61,4 +70,5 @@ def test_recent_updates_contract_uses_persisted_recency_payload() -> None:
 
     assert payload["limit"] == 5
     assert payload["items"][0]["dataset_id"] == "ENERGY.US.GASREGW"
+    assert payload["items"][0]["canonical_trend_descriptor"]["descriptor_state"] == "available"
     assert payload["sort"] == "event_timestamp_desc,title_asc,dataset_id_asc"

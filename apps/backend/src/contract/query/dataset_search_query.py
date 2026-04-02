@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -10,6 +12,18 @@ class SourceRef(BaseModel):
 
     id: str = Field(min_length=1)
     name: str = Field(min_length=1)
+
+
+class SummaryCanonicalTrendDescriptor(BaseModel):
+    """Canonical trend descriptor payload for dataset summary/list responses."""
+
+    descriptor_state: Literal["available", "unavailable"]
+    trend_label: str | None = Field(default=None, min_length=1)
+    direction: Literal["up", "down"] | None = None
+    strength: str | None = Field(default=None, min_length=1)
+    selected_lookback_points: int | None = Field(default=None, ge=1)
+    observed_on: str | None = Field(default=None, min_length=1)
+    reason_code: str | None = Field(default=None, min_length=1)
 
 
 class DatasetSummary(BaseModel):
@@ -22,6 +36,7 @@ class DatasetSummary(BaseModel):
     geographic_scope: str | None = None
     topic_tags: list[str] = Field(default_factory=list)
     latest_update_at: str | None = None
+    canonical_trend_descriptor: SummaryCanonicalTrendDescriptor
 
 
 class DatasetSearchResponse(BaseModel):
