@@ -135,19 +135,19 @@
 
 ### Additional Tests for User Story 3 Scope Revision
 
-- [ ] T060 [P] [US3] Add shared trend indicator state-mapping tests in apps/frontend/tests/components/DatasetTrendIndicator.test.tsx
-- [ ] T061 [P] [US3] Add shared dataset-row indicator placement tests in apps/frontend/tests/components/UnifiedDatasetRowTrendIndicator.test.tsx
-- [ ] T062 [P] [US3] Add dataset-detail heading indicator placement tests in apps/frontend/tests/components/DatasetDetailTrendIndicatorPlacement.test.tsx
-- [ ] T063 [P] [US3] Add responsive/unavailable indicator regression tests in apps/frontend/tests/components/DatasetTrendIndicatorResponsive.test.tsx
+- [x] T060 [P] [US3] Add shared trend indicator state-mapping tests in apps/frontend/tests/components/DatasetTrendIndicator.test.tsx
+- [x] T061 [P] [US3] Add shared dataset-row indicator placement tests in apps/frontend/tests/components/UnifiedDatasetRowTrendIndicator.test.tsx
+- [x] T062 [P] [US3] Add dataset-detail heading indicator placement tests in apps/frontend/tests/components/DatasetDetailTrendIndicatorPlacement.test.tsx
+- [x] T063 [P] [US3] Add responsive/unavailable indicator regression tests in apps/frontend/tests/components/DatasetTrendIndicatorResponsive.test.tsx
 
 ### Additional Implementation for User Story 3 Scope Revision
 
-- [ ] T064 [US3] Add shared directional trend indicator component in apps/frontend/src/components/discovery/DatasetTrendIndicator.tsx
-- [ ] T065 [US3] Update shared dataset-row props and layout to render the right-aligned trend indicator in apps/frontend/src/components/discovery/UnifiedDatasetRow.tsx and apps/frontend/src/components/discovery/DiscoveryFeedList.tsx
-- [ ] T066 [US3] Update unified row mappers to pass canonical trend descriptor data into shared row rendering in apps/frontend/src/components/discovery/unified-dataset-row-mappers.ts
-- [ ] T067 [US3] Update dataset detail analysis heading composition to render DatasetTrendIndicator beside `Historical Trend` in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
-- [ ] T068 [US3] Remove or deprecate obsolete chip-only detail rendering in apps/frontend/src/components/discovery/DatasetTrendChip.tsx and related imports under apps/frontend/src/components/discovery/
-- [ ] T069 [US3] Update recent updates and catalog list consumers to rely on shared row-level trend indicator rendering in apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx and apps/frontend/src/components/discovery/DatasetCatalogList.tsx
+- [x] T064 [US3] Add shared directional trend indicator component in apps/frontend/src/components/discovery/DatasetTrendIndicator.tsx
+- [x] T065 [US3] Update shared dataset-row props and layout to render the right-aligned trend indicator in apps/frontend/src/components/discovery/UnifiedDatasetRow.tsx and apps/frontend/src/components/discovery/DiscoveryFeedList.tsx
+- [x] T066 [US3] Update unified row mappers to pass canonical trend descriptor data into shared row rendering in apps/frontend/src/components/discovery/unified-dataset-row-mappers.ts
+- [x] T067 [US3] Update dataset detail analysis heading composition to render DatasetTrendIndicator beside `Historical Trend` in apps/frontend/src/components/discovery/DatasetDetailAnalysis.tsx
+- [x] T068 [US3] Remove or deprecate obsolete chip-only detail rendering in apps/frontend/src/components/discovery/DatasetTrendChip.tsx and related imports under apps/frontend/src/components/discovery/
+- [x] T069 [US3] Update recent updates and catalog list consumers to rely on shared row-level trend indicator rendering in apps/frontend/src/components/discovery/RecentUpdatesFeed.tsx and apps/frontend/src/components/discovery/DatasetCatalogList.tsx
 
 ---
 
