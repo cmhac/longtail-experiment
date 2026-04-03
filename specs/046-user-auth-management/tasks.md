@@ -17,11 +17,11 @@
 
 **Purpose**: Align auth/account feature scaffolding and baseline tooling before foundational work.
 
-- [X] T001 Create feature module index exports for new auth/account models in libs/db/src/db/models/**init**.py
-- [X] T002 Create backend auth/account test package scaffolding in apps/backend/tests/contract/test_auth_contract.py
-- [X] T003 [P] Create backend auth integration test scaffolding in apps/backend/tests/integration/test_auth_runtime_flows.py
-- [X] T004 [P] Create frontend auth/account test scaffolding in apps/frontend/tests/auth-page.test.tsx
-- [X] T005 [P] Create frontend admin-user-management test scaffolding in apps/frontend/tests/admin-users-page.test.tsx
+- [x] T001 Create feature module index exports for new auth/account models in libs/db/src/db/models/**init**.py
+- [x] T002 Create backend auth/account test package scaffolding in apps/backend/tests/contract/test_auth_contract.py
+- [x] T003 [P] Create backend auth integration test scaffolding in apps/backend/tests/integration/test_auth_runtime_flows.py
+- [x] T004 [P] Create frontend auth/account test scaffolding in apps/frontend/tests/auth-page.test.tsx
+- [x] T005 [P] Create frontend admin-user-management test scaffolding in apps/frontend/tests/admin-users-page.test.tsx
 
 ---
 
