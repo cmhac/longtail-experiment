@@ -435,6 +435,8 @@ describe("account settings page", () => {
 
     await screen.findByTestId("account-settings-role-chip");
     expect(screen.getByTestId("account-settings-role-chip").textContent).toContain("Admin");
-    expect(screen.getByTestId("account-settings-admin-link").getAttribute("href")).toBe("/admin");
+    expect(screen.getByTestId("account-settings-admin-link").textContent).toContain(
+      "Open admin pages",
+    );
   });
 });

@@ -249,9 +249,19 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                           {authSession.user.privilege_level === "owner" ? "Owner" : "Admin"}
                         </p>
                       ) : null}
-                      <Link href="/settings" onClick={() => setIsProfileMenuOpen(false)}>
+                      <Button
+                        data-testid="header-auth-account-button"
+                        size="sm"
+                        variant="secondary"
+                        onPress={() => {
+                          setIsProfileMenuOpen(false);
+                          if (typeof window !== "undefined") {
+                            window.location.assign("/settings");
+                          }
+                        }}
+                      >
                         Account
-                      </Link>
+                      </Button>
                       {authSession.user.privilege_level === "admin" ||
                       authSession.user.privilege_level === "owner" ? (
                         <Link href="/admin" onClick={() => setIsProfileMenuOpen(false)}>

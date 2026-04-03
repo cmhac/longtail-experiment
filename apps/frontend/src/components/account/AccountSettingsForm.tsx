@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Card, Input } from "@heroui/react";
-import Link from "next/link";
 import * as React from "react";
 import type { JSX } from "react";
 import type {
@@ -269,13 +268,18 @@ export const AccountSettingsForm = ({
             </p>
           )}
           {(profile.privilege_level === "admin" || profile.privilege_level === "owner") && (
-            <Link
-              className="text-primary text-sm"
+            <Button
               data-testid="account-settings-admin-link"
-              href="/admin"
+              size="sm"
+              variant="secondary"
+              onPress={() => {
+                if (typeof window !== "undefined") {
+                  window.location.assign("/admin");
+                }
+              }}
             >
               Open admin pages
-            </Link>
+            </Button>
           )}
           <Button
             data-testid="account-settings-profile-submit"

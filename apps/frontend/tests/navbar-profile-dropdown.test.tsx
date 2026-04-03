@@ -57,7 +57,7 @@ describe("navbar profile dropdown", () => {
     render(<SiteHeader />);
 
     fireEvent.click(screen.getByTestId("navbar-profile-control"));
-    expect(screen.getByText("Account").getAttribute("href")).toBe("/settings");
+    expect(screen.getByTestId("header-auth-account-button").textContent).toContain("Account");
     expect(screen.getByRole("link", { name: "Admin" }).getAttribute("href")).toBe("/admin");
     expect(screen.getByTestId("header-auth-role-chip").textContent).toContain("Admin");
   });
