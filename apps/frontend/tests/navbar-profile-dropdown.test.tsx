@@ -33,9 +33,8 @@ describe("navbar profile dropdown", () => {
     render(<SiteHeader />);
 
     fireEvent.click(screen.getByTestId("navbar-profile-control"));
-    expect(screen.getByTestId("navbar-profile-dropdown").textContent).toContain(
-      "dropdown coming soon",
-    );
+    expect(screen.getByTestId("header-auth-signed-out").textContent).toContain("Sign in");
+    expect(screen.getByTestId("header-auth-signed-out").textContent).toContain("Create account");
   });
 
   it("closes when clicking outside the profile menu", () => {

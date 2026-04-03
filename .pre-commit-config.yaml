@@ -7,34 +7,40 @@ repos:
         language: system
         files: ^apps/frontend/
         pass_filenames: false
-      - id: monorepo-lint-all
-        name: monorepo-lint-all
-        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t lint --all
+      - id: monorepo-lint-affected
+        name: monorepo-lint-affected
+        entry: |
+          bash -c 'FILES="$(git diff --name-only --cached --diff-filter=ACMR | paste -sd, -)"; if [ -z "$FILES" ]; then echo "No staged files for lint"; exit 0; fi; env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx affected -t lint --files="$FILES"'
         language: system
         pass_filenames: false
-      - id: monorepo-format-all
-        name: monorepo-format-all
-        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t format --all
+      - id: monorepo-format-affected
+        name: monorepo-format-affected
+        entry: |
+          bash -c 'FILES="$(git diff --name-only --cached --diff-filter=ACMR | paste -sd, -)"; if [ -z "$FILES" ]; then echo "No staged files for format"; exit 0; fi; env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx affected -t format --files="$FILES"'
         language: system
         pass_filenames: false
-      - id: monorepo-typecheck-all
-        name: monorepo-typecheck-all
-        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t typecheck --all
+      - id: monorepo-typecheck-affected
+        name: monorepo-typecheck-affected
+        entry: |
+          bash -c 'FILES="$(git diff --name-only --cached --diff-filter=ACMR | paste -sd, -)"; if [ -z "$FILES" ]; then echo "No staged files for typecheck"; exit 0; fi; env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx affected -t typecheck --files="$FILES"'
         language: system
         pass_filenames: false
-      - id: monorepo-test-all
-        name: monorepo-test-all
-        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t test --all
+      - id: monorepo-test-affected
+        name: monorepo-test-affected
+        entry: |
+          bash -c 'FILES="$(git diff --name-only --cached --diff-filter=ACMR | paste -sd, -)"; if [ -z "$FILES" ]; then echo "No staged files for test"; exit 0; fi; env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx affected -t test --files="$FILES"'
         language: system
         pass_filenames: false
-      - id: monorepo-coverage-all
-        name: monorepo-coverage-all
-        entry: env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx run-many -t coverage --all
+      - id: monorepo-coverage-affected
+        name: monorepo-coverage-affected
+        entry: |
+          bash -c 'FILES="$(git diff --name-only --cached --diff-filter=ACMR | paste -sd, -)"; if [ -z "$FILES" ]; then echo "No staged files for coverage"; exit 0; fi; env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx affected -t coverage --files="$FILES"'
         language: system
         pass_filenames: false
       - id: duplication-check
         name: duplication-check
-        entry: bash tools/quality/cpd/run-cpd.sh
+        entry: |
+          bash -c 'FILES="$(git diff --name-only --cached --diff-filter=ACMR | paste -sd, -)"; if [ -z "$FILES" ]; then echo "No staged files for duplication"; exit 0; fi; env NX_NATIVE_COMMAND_RUNNER=false pnpm exec nx affected -t duplication --files="$FILES"'
         language: system
         pass_filenames: false
       - id: disallow-inline-suppression

@@ -84,3 +84,70 @@ class TrendLifecycleRepository(Protocol):
 
     def count_trend_records_for_series(self, *, series_key: str) -> int:
         """Return persisted trend record count for one series."""
+
+
+@runtime_checkable
+class AuthManagementRepository(Protocol):
+    """Contract for auth/account persistence and session lifecycle operations."""
+
+    def create_user_account(
+        self,
+        *,
+        email: str,
+        password_hash: str,
+        display_name: str | None,
+        is_admin: bool,
+    ) -> dict[str, object]:
+        """Create one account and active credential record."""
+
+    def get_user_by_email(self, *, email: str) -> dict[str, object] | None:
+        """Return one account snapshot by normalized email when present."""
+
+    def get_user_by_id(self, *, user_id: str) -> dict[str, object] | None:
+        """Return one account snapshot by canonical user id when present."""
+
+    def update_failed_sign_in(
+        self,
+        *,
+        user_id: str,
+        failed_sign_in_count: int,
+        lockout_until: str | None,
+    ) -> None:
+        """Persist updated failed-sign-in and lockout metadata."""
+
+    def update_password_hash(self, *, user_id: str, password_hash: str) -> None:
+        """Rotate active credential hash for one account."""
+
+    def create_session(
+        self,
+        *,
+        user_id: str,
+        expires_at: str,
+        client_metadata: dict[str, object] | None,
+    ) -> dict[str, object]:
+        """Create one active session row and return serialized metadata."""
+
+    def get_active_session(self, *, session_id: str) -> dict[str, object] | None:
+        """Return one active session snapshot when present and not expired."""
+
+    def list_active_sessions(self, *, user_id: str) -> list[dict[str, object]]:
+        """Return active sessions for one account ordered by recency."""
+
+    def revoke_session(self, *, user_id: str, session_id: str, reason: str) -> bool:
+        """Revoke one session for one user and return whether a row changed."""
+
+    def revoke_all_sessions_for_user(self, *, user_id: str, reason: str) -> int:
+        """Revoke all active sessions for one user and return affected row count."""
+
+    def list_admin_users(self) -> list[dict[str, object]]:
+        """Return account snapshots for admin management flows."""
+
+    def write_audit_event(
+        self,
+        *,
+        event_type: str,
+        user_id: str | None,
+        actor_user_id: str | None,
+        event_context: dict[str, object] | None,
+    ) -> None:
+        """Append one immutable audit row for auth/account actions."""

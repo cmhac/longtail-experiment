@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -27,6 +27,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 afterEach(() => {
+  cleanup();
   routerPushMock.mockReset();
   navigationState.setSearchParams("");
   document.body.innerHTML = "";

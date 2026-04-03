@@ -11,6 +11,12 @@ import {
   ComparisonStateCorruptedError,
   getComparisonCount,
 } from "../components/discovery/comparison-state";
+import { logoutAccount } from "../lib/api/auth-management-client";
+import {
+  type AuthSessionState,
+  clearAuthSessionState,
+  loadAuthSessionState,
+} from "../lib/auth/session-state";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
@@ -25,6 +31,8 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [comparisonCount, setComparisonCount] = useState(0);
   const [hasComparisonStateError, setHasComparisonStateError] = useState(false);
+  const [authSession, setAuthSession] = useState<AuthSessionState | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchControlRef = useRef<HTMLDivElement | null>(null);
   const tabs = resolveNavbarTabs(activeTab);
@@ -48,6 +56,18 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
     return () => {
       window.removeEventListener(COMPARISON_STATE_EVENT, syncComparisonCount);
       window.removeEventListener("storage", syncComparisonCount);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncAuthState = (): void => {
+      setAuthSession(loadAuthSessionState());
+    };
+
+    syncAuthState();
+    window.addEventListener("storage", syncAuthState);
+    return () => {
+      window.removeEventListener("storage", syncAuthState);
     };
   }, []);
 
@@ -220,7 +240,52 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                   data-testid="navbar-profile-dropdown"
                   variant="default"
                 >
-                  dropdown coming soon
+                  {authSession ? (
+                    <div className="grid gap-2 p-3" data-testid="header-auth-signed-in">
+                      <p className="text-default-600 text-xs" data-testid="header-auth-email">
+                        {authSession.user.email}
+                      </p>
+                      <Link href="/comparison" onClick={() => setIsProfileMenuOpen(false)}>
+                        Account
+                      </Link>
+                      <Button
+                        data-testid="header-auth-sign-out"
+                        isDisabled={isSigningOut}
+                        size="sm"
+                        variant="danger-soft"
+                        onPress={async () => {
+                          if (isSigningOut) {
+                            return;
+                          }
+                          setIsSigningOut(true);
+                          try {
+                            await logoutAccount(authSession.sessionToken);
+                          } catch {
+                            // ignore logout failures and clear client session state regardless
+                          } finally {
+                            clearAuthSessionState();
+                            setAuthSession(null);
+                            setIsSigningOut(false);
+                            setIsProfileMenuOpen(false);
+                            if (typeof window !== "undefined") {
+                              window.location.assign("/");
+                            }
+                          }
+                        }}
+                      >
+                        Sign out
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-2 p-3" data-testid="header-auth-signed-out">
+                      <Link href="/login" onClick={() => setIsProfileMenuOpen(false)}>
+                        Sign in
+                      </Link>
+                      <Link href="/register" onClick={() => setIsProfileMenuOpen(false)}>
+                        Create account
+                      </Link>
+                    </div>
+                  )}
                 </Card>
               ) : null}
             </div>

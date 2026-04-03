@@ -1,0 +1,470 @@
+openapi: 3.1.0
+info:
+  title: User Auth And Management Contract
+  version: 0.1.0
+  description: >
+    Contract for user registration, sign-in lifecycle, session management,
+    account settings, and admin user oversight for the initial authenticated
+    product release.
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          description: Validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "409":
+          description: Duplicate account identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/auth/login:
+    post:
+      summary: Authenticate user and create session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Sign-in success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "401":
+          description: Invalid credentials or locked account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "423":
+          description: Account temporarily locked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/auth/logout:
+    post:
+      summary: Sign out current session
+      responses:
+        "204":
+          description: Session revoked successfully
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/auth/sessions:
+    get:
+      summary: List active sessions for current user
+      responses:
+        "200":
+          description: Session list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionListResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/auth/sessions/{sessionId}/revoke:
+    post:
+      summary: Revoke one session for current user
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Session revoked
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/account/profile:
+    get:
+      summary: Get profile for current authenticated user
+      responses:
+        "200":
+          description: Profile payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+    patch:
+      summary: Update profile for current authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          description: Validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/account/password:
+    post:
+      summary: Change password for current authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "204":
+          description: Password changed and all sessions revoked
+        "400":
+          description: Validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "401":
+          description: Invalid current password or unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/account/deletion-request:
+    post:
+      summary: Request account deletion (deactivate now, hard-delete later)
+      responses:
+        "202":
+          description: Deletion request accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeletionRequestResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/admin/users:
+    get:
+      summary: List users for administrative management
+      responses:
+        "200":
+          description: Paginated user summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserListResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Forbidden for non-admin users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/admin/users/{userId}/status:
+    patch:
+      summary: Change user account status (activate or deactivate)
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusRequest"
+      responses:
+        "200":
+          description: Updated user summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserSummary"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Forbidden for non-admin users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "409":
+          description: Lifecycle conflict (for example final active admin guardrail)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+components:
+  schemas:
+    ApiErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    UserStatus:
+      type: string
+      enum: [active, deactivated, deletion_pending, deleted]
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+        display_name:
+          type: string
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthSessionResponse:
+      type: object
+      required: [user, session]
+      properties:
+        user:
+          $ref: "#/components/schemas/CurrentUserSummary"
+        session:
+          $ref: "#/components/schemas/SessionSummary"
+
+    CurrentUserSummary:
+      type: object
+      required: [user_id, email, account_status, is_admin]
+      properties:
+        user_id:
+          type: string
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+          nullable: true
+        account_status:
+          $ref: "#/components/schemas/UserStatus"
+        is_admin:
+          type: boolean
+
+    SessionSummary:
+      type: object
+      required: [session_id, created_at, expires_at, session_status]
+      properties:
+        session_id:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        session_status:
+          type: string
+          enum: [active, revoked, expired]
+        client_label:
+          type: string
+          nullable: true
+
+    SessionListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionSummary"
+
+    ProfileResponse:
+      type: object
+      required: [user_id, email, account_status, is_admin]
+      properties:
+        user_id:
+          type: string
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+          nullable: true
+        account_status:
+          $ref: "#/components/schemas/UserStatus"
+        is_admin:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+          nullable: true
+
+    ChangePasswordRequest:
+      type: object
+      required: [current_password, new_password]
+      properties:
+        current_password:
+          type: string
+        new_password:
+          type: string
+          minLength: 12
+
+    DeletionRequestResponse:
+      type: object
+      required: [user_id, account_status, deletion_due_at]
+      properties:
+        user_id:
+          type: string
+        account_status:
+          $ref: "#/components/schemas/UserStatus"
+        deletion_due_at:
+          type: string
+          format: date-time
+
+    AdminUserSummary:
+      type: object
+      required: [user_id, email, account_status, is_admin, created_at]
+      properties:
+        user_id:
+          type: string
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+          nullable: true
+        account_status:
+          $ref: "#/components/schemas/UserStatus"
+        is_admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    AdminUserListResponse:
+      type: object
+      required: [items, page, page_size, total_items, total_pages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUserSummary"
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+        total_items:
+          type: integer
+          minimum: 0
+        total_pages:
+          type: integer
+          minimum: 0
+
+    UpdateUserStatusRequest:
+      type: object
+      required: [account_status]
+      properties:
+        account_status:
+          type: string
+          enum: [active, deactivated]

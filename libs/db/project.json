@@ -29,11 +29,10 @@
         "default",
         "^default",
         "workspaceConfig",
-        "pythonAppConfig",
-        "repoContractFiles"
+        "pythonAppConfig"
       ],
       "options": {
-        "command": "uv run --project apps/backend pytest libs/db/tests"
+        "command": "uv run --project apps/backend pytest --no-cov libs/db/tests"
       }
     },
     "coverage": {
@@ -42,8 +41,7 @@
         "default",
         "^default",
         "workspaceConfig",
-        "pythonAppConfig",
-        "repoContractFiles"
+        "pythonAppConfig"
       ],
       "options": {
         "command": "uv run --project apps/backend pytest libs/db/tests --cov=libs/db/src --cov-fail-under=90"

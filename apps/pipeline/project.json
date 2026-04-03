@@ -29,11 +29,10 @@
         "default",
         "^default",
         "workspaceConfig",
-        "pythonAppConfig",
-        "repoContractFiles"
+        "pythonAppConfig"
       ],
       "options": {
-        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests"
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests"
       }
     },
     "test:orchestration": {
@@ -111,8 +110,7 @@
         "default",
         "^default",
         "workspaceConfig",
-        "pythonAppConfig",
-        "repoContractFiles"
+        "pythonAppConfig"
       ],
       "options": {
         "command": "uv run --project apps/pipeline pytest apps/pipeline/tests --cov=apps/pipeline/src --cov-fail-under=90"
