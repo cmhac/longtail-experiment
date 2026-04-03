@@ -8,6 +8,8 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import Engine, text
 
+from src.contract.errors import ContractQueryError
+
 
 def _iso_datetime(value: datetime) -> str:
     return value.astimezone(UTC).isoformat()
@@ -628,6 +630,122 @@ class PersistedAuthManagementRepository:
             }
             for row in result
         ]
+
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: str,
+    ) -> tuple[dict[str, object] | None, int]:
+        """Update user status with final-admin guard and optional session revocation."""
+        now = datetime.now(tz=UTC)
+        revoked_count = 0
+        with self._engine.begin() as connection:
+            target = (
+                connection.execute(
+                    text(
+                        """
+                        SELECT
+                            ua.id,
+                            ua.account_status,
+                            EXISTS (
+                                SELECT 1
+                                FROM role_assignments ra
+                                WHERE ra.user_id = ua.id
+                                  AND ra.role = 'admin'
+                                  AND ra.revoked_at IS NULL
+                            ) AS is_admin
+                        FROM user_accounts ua
+                        WHERE ua.id = :user_id
+                        LIMIT 1
+                        """
+                    ),
+                    {"user_id": UUID(user_id)},
+                )
+                .mappings()
+                .first()
+            )
+            if target is None:
+                return None, revoked_count
+
+            if (
+                account_status == "deactivated"
+                and bool(target["is_admin"])
+                and str(target["account_status"]) == "active"
+            ):
+                remaining_admins = int(
+                    connection.execute(
+                        text(
+                            """
+                            SELECT COUNT(*)
+                            FROM user_accounts ua
+                            WHERE ua.account_status = 'active'
+                              AND ua.id <> :user_id
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM role_assignments ra
+                                  WHERE ra.user_id = ua.id
+                                    AND ra.role = 'admin'
+                                    AND ra.revoked_at IS NULL
+                              )
+                            """
+                        ),
+                        {"user_id": UUID(user_id)},
+                    ).scalar_one()
+                    or 0
+                )
+                if remaining_admins <= 0:
+                    raise ContractQueryError("final_admin_guard")
+
+            connection.execute(
+                text(
+                    """
+                    UPDATE user_accounts
+                    SET
+                        account_status = CAST(:account_status AS VARCHAR),
+                        deactivated_at = CASE
+                            WHEN CAST(:account_status AS VARCHAR) = 'deactivated'
+                                THEN COALESCE(deactivated_at, :now)
+                            ELSE NULL
+                        END,
+                        updated_at = :now
+                    WHERE id = :user_id
+                    """
+                ),
+                {
+                    "account_status": account_status,
+                    "now": now,
+                    "user_id": UUID(user_id),
+                },
+            )
+
+            if account_status == "deactivated":
+                revoked_rows = connection.execute(
+                    text(
+                        """
+                        UPDATE auth_sessions
+                        SET
+                            session_status = 'revoked',
+                            revoked_at = :revoked_at,
+                            revoked_reason = :revoked_reason
+                        WHERE user_id = :user_id
+                          AND session_status = 'active'
+                        """
+                    ),
+                    {
+                        "revoked_at": now,
+                        "revoked_reason": f"admin_deactivated:{actor_user_id}",
+                        "user_id": UUID(user_id),
+                    },
+                )
+                revoked_count = int(revoked_rows.rowcount or 0)
+
+        return self.get_user_by_id(user_id=user_id), revoked_count
+
+    def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
+        """Revoke all active sessions for a target user from admin actions."""
+        return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
 
     def write_audit_event(
         self,

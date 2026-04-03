@@ -7,12 +7,11 @@ import csv
 import json
 import os
 from collections.abc import Callable, Mapping
-from datetime import UTC, datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, cast
 from urllib.parse import parse_qs, urlparse
 
 from alembic.config import Config as AlembicConfig
@@ -226,6 +225,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                 HTTPStatus.NOT_FOUND,
                 not_found_error("Account was not found").model_dump(),
             ),
+            "final_admin_guard": (
+                HTTPStatus.CONFLICT,
+                conflict_error("Cannot deactivate the final active admin account").model_dump(),
+            ),
             "invalid_credentials": (
                 HTTPStatus.UNAUTHORIZED,
                 unauthorized_error("Invalid credentials").model_dump(),
@@ -306,6 +309,16 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             principal = self._resolve_auth_principal(service)
             session_id = path.split("/")[-2]
             service.revoke_user_session(user_id=str(principal["user_id"]), session_id=session_id)
+            response_status = HTTPStatus.NO_CONTENT
+            response_payload = None
+        elif path.startswith("/api/admin/users/") and path.endswith("/sessions/revoke"):
+            principal = self._resolve_auth_principal(service)
+            self._require_admin(principal)
+            user_id = path.split("/")[-3]
+            service.admin_revoke_user_sessions(
+                actor_user_id=str(principal["user_id"]),
+                user_id=user_id,
+            )
             response_status = HTTPStatus.NO_CONTENT
             response_payload = None
         elif path == "/api/account/password":
@@ -443,14 +456,12 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             account_status = str(payload.get("account_status") or "")
             if account_status not in {"active", "deactivated"}:
                 raise ContractQueryError("account_status must be active or deactivated")
-            return HTTPStatus.OK, {
-                "user_id": user_id,
-                "email": "",
-                "display_name": None,
-                "account_status": account_status,
-                "is_admin": False,
-                "updated_at": datetime.now(tz=UTC).isoformat(),
-            }
+            response = service.update_admin_user_status(
+                actor_user_id=str(principal["user_id"]),
+                user_id=user_id,
+                account_status=cast(Literal["active", "deactivated"], account_status),
+            )
+            return HTTPStatus.OK, response.model_dump()
 
         return None
 

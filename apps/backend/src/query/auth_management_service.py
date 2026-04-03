@@ -122,6 +122,20 @@ class AuthServiceRepository(Protocol):
         """List user projections used by admin account-management screens."""
         ...
 
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: Literal["active", "deactivated"],
+    ) -> tuple[dict[str, object] | None, int]:
+        """Update account status and return updated user plus revoked session count."""
+        ...
+
+    def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
+        """Revoke every active session for a target user from admin workflows."""
+        ...
+
     def write_audit_event(
         self,
         *,
@@ -318,6 +332,58 @@ class AuthManagementService:
             AdminUserSummary.model_validate(item) for item in self.repository.list_admin_users()
         ]
         return AdminUserListResponse(items=users)
+
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: Literal["active", "deactivated"],
+    ) -> AdminUserSummary:
+        """Update a user's lifecycle status from admin controls."""
+        if account_status not in {"active", "deactivated"}:
+            raise ContractQueryError("account_status must be active or deactivated")
+
+        updated, revoked_count = self.repository.update_admin_user_status(
+            actor_user_id=actor_user_id,
+            user_id=user_id,
+            account_status=account_status,
+        )
+        if updated is None:
+            raise ContractQueryError("account_not_found")
+
+        event_type = "account_reactivated" if account_status == "active" else "account_deactivated"
+        self.repository.write_audit_event(
+            event_type=event_type,
+            user_id=user_id,
+            actor_user_id=actor_user_id,
+            event_context={
+                "account_status": account_status,
+                "revoked_session_count": revoked_count,
+            },
+        )
+        return AdminUserSummary.model_validate(updated)
+
+    def admin_revoke_user_sessions(self, *, actor_user_id: str, user_id: str) -> int:
+        """Revoke all active sessions for a target user from admin controls."""
+        account = self.repository.get_user_by_id(user_id=user_id)
+        if account is None:
+            raise ContractQueryError("account_not_found")
+
+        revoked_count = self.repository.revoke_all_sessions_for_user_as_admin(
+            user_id=user_id,
+            reason="admin_revoke",
+        )
+        self.repository.write_audit_event(
+            event_type="session_revoked",
+            user_id=user_id,
+            actor_user_id=actor_user_id,
+            event_context={
+                "reason": "admin_revoke",
+                "revoked_session_count": revoked_count,
+            },
+        )
+        return revoked_count
 
     def get_account_profile(self, *, user_id: str) -> ProfileResponse:
         """Return the current user's persisted profile details."""

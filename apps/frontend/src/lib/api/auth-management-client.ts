@@ -1,5 +1,6 @@
 import type {
   AdminUserListResponse,
+  AdminUserSummary,
   AuthErrorEnvelope,
   AuthSessionResponse,
   ChangePasswordRequest,
@@ -174,11 +175,29 @@ export const updateAdminUserStatus = async (
   sessionToken: string,
   userId: string,
   payload: UpdateUserStatusRequest,
-): Promise<void> => {
-  const response = await fetch(createUrl(`/api/admin/users/${encodeURIComponent(userId)}/status`), {
+): Promise<AdminUserSummary> => {
+  const response = await fetch(createUrl("/api/admin/users"), {
     method: "PATCH",
     headers: withAuthHeaders(sessionToken),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      user_id: userId,
+      account_status: payload.account_status,
+    }),
+  });
+  return parseResponse<AdminUserSummary>(response);
+};
+
+export const revokeAdminUserSessions = async (
+  sessionToken: string,
+  userId: string,
+): Promise<void> => {
+  const response = await fetch(createUrl("/api/admin/users"), {
+    method: "POST",
+    headers: withAuthHeaders(sessionToken),
+    body: JSON.stringify({
+      action: "revoke_sessions",
+      user_id: userId,
+    }),
   });
   await parseResponse<void>(response);
 };

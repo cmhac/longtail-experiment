@@ -30,6 +30,18 @@ class _NoopDiscoveryService:
 
 
 class _AuthServiceDouble:
+    def __init__(self) -> None:
+        self._admin_users = {
+            "user-1": {
+                "user_id": "user-1",
+                "email": "user@example.com",
+                "display_name": "User",
+                "account_status": "active",
+                "is_admin": False,
+                "updated_at": "2026-04-02T00:00:00+00:00",
+            }
+        }
+
     def authenticate_session(self, *, session_id: str) -> dict[str, object]:
         if session_id == "admin-session":
             return {
@@ -74,21 +86,44 @@ class _AuthServiceDouble:
 
     def list_admin_users(self) -> Any:
         class _Response:
-            def model_dump(self) -> dict[str, object]:
-                return {
-                    "items": [
-                        {
-                            "user_id": "user-1",
-                            "email": "user@example.com",
-                            "display_name": "User",
-                            "account_status": "active",
-                            "is_admin": False,
-                            "updated_at": "2026-04-02T00:00:00+00:00",
-                        }
-                    ]
-                }
+            def __init__(self, items: list[dict[str, object]]) -> None:
+                self._items = items
 
-        return _Response()
+            def model_dump(self) -> dict[str, object]:
+                return {"items": self._items}
+
+        return _Response([dict(item) for item in self._admin_users.values()])
+
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: str,
+    ) -> Any:
+        if user_id not in self._admin_users:
+            raise ContractQueryError("account_not_found")
+
+        payload = {
+            **self._admin_users[user_id],
+            "account_status": account_status,
+            "updated_at": "2026-04-02T00:10:00+00:00",
+        }
+        self._admin_users[user_id] = payload
+
+        class _Response:
+            def __init__(self, item: dict[str, object]) -> None:
+                self._item = item
+
+            def model_dump(self) -> dict[str, object]:
+                return self._item
+
+        return _Response(payload)
+
+    def admin_revoke_user_sessions(self, *, actor_user_id: str, user_id: str) -> int:
+        if user_id not in self._admin_users:
+            raise ContractQueryError("account_not_found")
+        return 1
 
     def register_account(
         self,
@@ -345,6 +380,15 @@ def test_auth_post_and_patch_routes_cover_guard_and_dispatch_paths(
     assert admin_status_update == HTTPStatus.OK
     assert admin_status_payload is not None
     assert admin_status_payload["account_status"] == "active"
+
+    admin_revoke_status, admin_revoke_payload = _request_with_body(
+        f"http://{host}:{port}/api/admin/users/user-1/sessions/revoke",
+        method="POST",
+        payload={},
+        token="admin-session",
+    )
+    assert admin_revoke_status == HTTPStatus.NO_CONTENT
+    assert admin_revoke_payload is None
 
     revoke_request = Request(
         f"http://{host}:{port}/api/auth/sessions/user-session/revoke",

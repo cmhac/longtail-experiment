@@ -113,17 +113,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T043 [P] [US3] Add backend contract tests for admin user list/status/session-revoke endpoints in apps/backend/tests/contract/test_admin_user_management_contract.py
-- [ ] T044 [P] [US3] Add backend integration tests for deactivation/re-activation and final-active-admin guardrail in apps/backend/tests/integration/test_admin_user_management_runtime.py
-- [ ] T045 [P] [US3] Add frontend admin user-management page and authorization tests in apps/frontend/tests/admin-users-page.test.tsx
+- [x] T043 [P] [US3] Add backend contract tests for admin user list/status/session-revoke endpoints in apps/backend/tests/contract/test_admin_user_management_contract.py
+- [x] T044 [P] [US3] Add backend integration tests for deactivation/re-activation and final-active-admin guardrail in apps/backend/tests/integration/test_admin_user_management_runtime.py
+- [x] T045 [P] [US3] Add frontend admin user-management page and authorization tests in apps/frontend/tests/admin-users-page.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T046 [US3] Implement backend admin user list and status update service logic in apps/backend/src/query/auth_management_service.py
-- [ ] T047 [US3] Implement backend admin-driven user session revocation and final-admin protection in apps/backend/src/query/auth_management_persisted_repository.py
-- [ ] T048 [P] [US3] Create shared frontend admin user table components with HeroUI in apps/frontend/src/components/account/AdminUserTable.tsx
-- [ ] T049 [P] [US3] Create frontend admin users route page in apps/frontend/src/app/admin/users/page.tsx
-- [ ] T050 [US3] Add frontend admin API route handlers for user list/status/session revoke in apps/frontend/src/app/api/admin/users/route.ts
+- [x] T046 [US3] Implement backend admin user list and status update service logic in apps/backend/src/query/auth_management_service.py
+- [x] T047 [US3] Implement backend admin-driven user session revocation and final-admin protection in apps/backend/src/query/auth_management_persisted_repository.py
+- [x] T048 [P] [US3] Create shared frontend admin user table components with HeroUI in apps/frontend/src/components/account/AdminUserTable.tsx
+- [x] T049 [P] [US3] Create frontend admin users route page in apps/frontend/src/app/admin/users/page.tsx
+- [x] T050 [US3] Add frontend admin API route handlers for user list/status/session revoke in apps/frontend/src/app/api/admin/users/route.ts
 
 **Checkpoint**: US3 is independently functional and testable.
 

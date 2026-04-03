@@ -161,6 +161,21 @@ class _RepoIntegrationDouble:
     def list_admin_users(self) -> list[dict[str, object]]:
         return []
 
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: str,
+    ) -> tuple[dict[str, object] | None, int]:
+        if user_id != self.user_id:
+            return None, 0
+        self.user["account_status"] = account_status
+        return self.user, 0
+
+    def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
+        return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
+
     def write_audit_event(
         self,
         *,

@@ -181,6 +181,28 @@ class _RepoDouble:
     def list_admin_users(self) -> list[dict[str, object]]:
         return cast(list[dict[str, object]], self.admin_users)
 
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: str,
+    ) -> tuple[dict[str, object] | None, int]:
+        user = self.users_by_id.get(user_id)
+        if user is None:
+            return None, 0
+        user["account_status"] = account_status
+        user["updated_at"] = datetime.now(tz=UTC).isoformat()
+        revoked_count = (
+            len(self.list_active_sessions(user_id=user_id))
+            if account_status == "deactivated"
+            else 0
+        )
+        return user, revoked_count
+
+    def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
+        return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
+
     def write_audit_event(
         self,
         *,

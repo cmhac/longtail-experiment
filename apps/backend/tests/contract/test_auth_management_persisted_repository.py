@@ -39,6 +39,9 @@ class _Result:
     def scalar_one_or_none(self) -> object:
         return self._scalar_one_or_none
 
+    def scalar_one(self) -> object:
+        return self._scalar_one_or_none
+
 
 class _ConnectionDouble:
     def __init__(self) -> None:
@@ -108,6 +111,16 @@ class _ConnectionDouble:
                     }
                 ]
             )
+        elif "ua.account_status" in sql and "FROM user_accounts ua" in sql:
+            result = _Result(
+                mappings_first={
+                    "id": uuid4(),
+                    "account_status": "active",
+                    "is_admin": False,
+                }
+            )
+        elif "SELECT COUNT(*)\n                            FROM user_accounts ua" in sql:
+            result = _Result(scalar_one_or_none=1)
         else:
             result = _Result()
         return result
@@ -172,6 +185,15 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
         deletion_due_at=datetime.now(tz=UTC).isoformat(),
     )
     admin_users = repository.list_admin_users()
+    updated_admin_user, admin_revoked_count = repository.update_admin_user_status(
+        actor_user_id="admin-1",
+        user_id=str(account["user_id"]),
+        account_status="deactivated",
+    )
+    admin_session_revoked_count = repository.revoke_all_sessions_for_user_as_admin(
+        user_id=str(account["user_id"]),
+        reason="admin_revoke",
+    )
     repository.write_audit_event(
         event_type="sign_in_success",
         user_id=str(account["user_id"]),
@@ -190,4 +212,10 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
     assert password_revoked_count == expected_revoked_count
     assert deletion_pending is not None
     assert admin_users[0]["is_admin"] is True
+    assert updated_admin_user is not None
+    assert admin_revoked_count == expected_revoked_count
+    assert admin_session_revoked_count == expected_revoked_count
+    assert any(
+        "account_status = CAST(:account_status AS VARCHAR)" in sql for sql, _ in connection.executed
+    )
     assert len(connection.executed) > 0
