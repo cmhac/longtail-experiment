@@ -24,10 +24,25 @@ from .trends import (
 )
 from .topic_tag import DataSeriesTopicTag, TopicTag
 
+try:
+    from .auth_management import (
+        AccountAuditEvent,
+        AuthSession,
+        CredentialRecord,
+        RoleAssignment,
+        UserAccount,
+    )
+except ModuleNotFoundError:
+    # The auth_management module is introduced in a later foundational task.
+    pass
+
 __all__ = [
+    "AccountAuditEvent",
+    "AuthSession",
     "Base",
     "CategoryNode",
     "ConflictRecord",
+    "CredentialRecord",
     "DataSeries",
     "DataSeriesTopicTag",
     "GeographyNode",
@@ -35,6 +50,7 @@ __all__ = [
     "Observation",
     "ProvenanceRecord",
     "RevisionRecord",
+    "RoleAssignment",
     "SourceEligibilitySnapshot",
     "SourceRunLock",
     "SourceRunOutcome",
@@ -47,4 +63,5 @@ __all__ = [
     "TrendRecord",
     "TrendTransitionEvent",
     "TopicTag",
+    "UserAccount",
 ]
