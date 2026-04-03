@@ -1,14 +1,14 @@
-# Data Model: User Auth And Management
+# Data Model: User Auth And Management (Spec 046 Revision)
 
 ## Entity: UserAccount
 
-- Purpose: Represents an end-user identity and lifecycle state.
+- Purpose: Represents a person identity, lifecycle status, and effective privilege classification.
 - Core fields:
   - user_id (string/uuid, unique, immutable)
   - email (string, unique, normalized)
   - display_name (string, nullable)
   - account_status (enum: active, deactivated, deletion_pending, deleted)
-  - is_admin (boolean)
+  - privilege_level (enum: user, admin, owner)
   - failed_sign_in_count (integer)
   - lockout_until (timestamp, nullable)
   - created_at (timestamp)
@@ -18,9 +18,10 @@
   - deletion_due_at (timestamp, nullable)
   - deleted_at (timestamp, nullable)
 - Validation rules:
-  - email uniqueness is case-insensitive.
-  - deleted accounts cannot transition back to active.
-  - deletion_due_at is required when account_status is deletion_pending.
+  - Email uniqueness is case-insensitive.
+  - `deleted` accounts cannot transition back to active.
+  - `deletion_due_at` is required when account_status is `deletion_pending`.
+  - `owner` privilege assignments are immutable through administrator-facing workflows.
 
 ## Entity: CredentialRecord
 
@@ -34,8 +35,8 @@
   - created_at (timestamp)
   - updated_at (timestamp)
 - Validation rules:
-  - one active credential set per active user for this release.
-  - password updates require current credential validation.
+  - One active credential set per active user for this release.
+  - Password updates require current credential validation.
 
 ## Entity: AuthSession
 
@@ -50,43 +51,61 @@
   - revoked_reason (string, nullable)
   - client_metadata (object: device/browser/ip summary)
 - Validation rules:
-  - multiple active sessions per user are allowed.
-  - deactivation revokes all active sessions immediately.
-  - password change revokes all active sessions immediately.
+  - Multiple active sessions per user are allowed.
+  - Deactivation revokes all active sessions immediately.
+  - Password change revokes all active sessions immediately.
 
-## Entity: RoleAssignment
+## Entity: AdminNavigationItem
 
-- Purpose: Captures privileged authorization scope for account actions.
+- Purpose: Represents an admin-only destination shown on admin landing.
 - Core fields:
-  - assignment_id (string/uuid, unique)
-  - user_id (foreign key -> UserAccount)
-  - role (enum: admin)
-  - created_at (timestamp)
-  - revoked_at (timestamp, nullable)
+  - item_key (string, unique)
+  - label (string)
+  - route (string)
+  - description (string)
+  - is_enabled (boolean)
+  - display_order (integer)
 - Validation rules:
-  - user-management admin actions require active admin role assignment.
-  - at least one active admin account must remain (guardrail requirement).
+  - Only admin-visible destinations are listed.
+  - User-management destination is present in initial release.
+
+## Entity: RoleChangeAction
+
+- Purpose: Represents requested role-governance operations from admin user management.
+- Core fields:
+  - action_id (string/uuid, unique)
+  - actor_user_id (foreign key -> UserAccount)
+  - target_user_id (foreign key -> UserAccount)
+  - requested_role (enum: admin_grant, admin_revoke)
+  - action_result (enum: applied, denied)
+  - denial_reason (enum: owner_protected, unauthorized, invalid_state, nullable)
+  - occurred_at (timestamp)
+- Validation rules:
+  - Actor must have `admin` or `owner` privilege level.
+  - Target with `owner` privilege always resolves as `denied` with owner-protected reason.
+  - Action is idempotent for already-in-desired-state targets.
 
 ## Entity: AccountAuditEvent
 
-- Purpose: Immutable audit trail for security-sensitive account and session actions.
+- Purpose: Immutable audit trail for security-sensitive account, session, and role-governance actions.
 - Core fields:
   - event_id (string/uuid, unique)
   - user_id (nullable foreign key -> UserAccount, nullable for unknown principal)
   - actor_user_id (nullable foreign key -> UserAccount)
-  - event_type (enum: register, sign_in_success, sign_in_failure, lockout_applied, sign_out, password_changed, session_revoked, account_deactivated, account_reactivated, deletion_requested, account_hard_deleted)
+  - event_type (enum: register, sign_in_success, sign_in_failure, lockout_applied, sign_out, password_changed, session_revoked, account_deactivated, account_reactivated, deletion_requested, account_hard_deleted, admin_granted, admin_revoked, owner_role_change_denied)
   - event_context (object)
   - occurred_at (timestamp)
 - Validation rules:
-  - audit rows are append-only.
-  - security-sensitive actions must emit corresponding events.
+  - Audit rows are append-only.
+  - Denied owner-targeted role-change attempts must emit explicit audit events.
 
 ## Relationships
 
 - UserAccount 1:1 CredentialRecord (active credential set for this release).
 - UserAccount 1:N AuthSession.
-- UserAccount 1:N RoleAssignment.
 - UserAccount 1:N AccountAuditEvent (as subject and/or actor).
+- UserAccount 1:N RoleChangeAction (as actor and as target).
+- AdminNavigationItem is a catalog consumed by admin-authorized clients.
 
 ## State Transitions
 
@@ -95,6 +114,9 @@
   - deactivated -> active (admin reactivation)
   - active/deactivated -> deletion_pending (user deletion request)
   - deletion_pending -> deleted (retention window elapsed and hard deletion executed)
+  - privilege_level transitions:
+    - user <-> admin (admin governance actions)
+    - owner -> no UI/API transition allowed
 - AuthSession:
   - active -> revoked (manual revoke, deactivation, password change)
   - active -> expired (ttl reached)
@@ -104,6 +126,8 @@
 
 ## Concurrency and Conflict Rules
 
-- Concurrent profile updates use last-write-wins with updated_at checks for conflict detection in API responses.
-- Session revocation operations are idempotent; repeated revoke calls on already revoked sessions return stable success semantics.
-- Deletion-request flow must be idempotent; repeated deletion requests do not create duplicate lifecycle transitions.
+- Concurrent profile updates use last-write-wins with `updated_at` checks for conflict-aware responses.
+- Session revocation operations are idempotent; repeated revoke calls on revoked sessions return stable success semantics.
+- Deletion-request flow is idempotent; repeated requests do not duplicate lifecycle transitions.
+- Admin grant/revoke actions are idempotent and must not mutate owner records.
+- Owner-targeted role-change attempts always return deterministic denial semantics with corresponding audit records.

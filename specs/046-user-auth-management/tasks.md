@@ -1,146 +1,142 @@
 # Tasks: User Auth And Management
 
-**Input**: Design documents from /specs/046-user-auth-management/
+**Input**: Design documents from `/specs/046-user-auth-management/`  
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/user-auth-management.openapi.yaml
 
-**Tests**: Test tasks are required. Every user story and foundational component includes automated test coverage.
+**Tests**: Test tasks are REQUIRED. Every user story and foundational component includes automated test coverage sufficient to maintain >= 90% coverage in affected projects.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
-## Format: [ID] [P?] [Story] Description
-
-- [P] means task can run in parallel
-- [Story] maps work to one user story
-- Every task includes a concrete file path
-
 ## Phase 1: Setup (Shared Infrastructure)
 
-**Purpose**: Align auth/account feature scaffolding and baseline tooling before foundational work.
+**Purpose**: Align in-flight Spec 046 scaffolding with revised account/admin UX and role-governance scope.
 
-- [x] T001 Create feature module index exports for new auth/account models in libs/db/src/db/models/**init**.py
-- [x] T002 Create backend auth/account test package scaffolding in apps/backend/tests/contract/test_auth_contract.py
-- [x] T003 [P] Create backend auth integration test scaffolding in apps/backend/tests/integration/test_auth_runtime_flows.py
-- [x] T004 [P] Create frontend auth/account test scaffolding in apps/frontend/tests/auth-page.test.tsx
-- [x] T005 [P] Create frontend admin-user-management test scaffolding in apps/frontend/tests/admin-users-page.test.tsx
+- [ ] T001 Refresh spec revision references and artifact cross-links in `specs/046-user-auth-management/spec.md`
+- [ ] T002 Refresh planning baseline metadata for revised scope in `specs/046-user-auth-management/plan.md`
+- [ ] T003 [P] Refresh design decisions for admin landing and owner immutability in `specs/046-user-auth-management/research.md`
+- [ ] T004 [P] Refresh revised entity definitions for privilege-level and admin navigation in `specs/046-user-auth-management/data-model.md`
+- [ ] T005 [P] Refresh quickstart manual verification checklist for account/admin UX deltas in `specs/046-user-auth-management/quickstart.md`
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-**Purpose**: Shared identity/session persistence and backend enforcement foundations required by all user stories.
+**Purpose**: Shared contract and persistence foundations required before story-specific implementation begins.
 
-**Critical**: No user story tasks start until this phase is complete.
+**Critical**: No user story work starts until this phase is complete.
 
-- [x] T006 Add shared persistence entity definitions for UserAccount, CredentialRecord, AuthSession, RoleAssignment, and AccountAuditEvent in libs/db/src/db/models/auth_management.py
-- [x] T007 Add Alembic migration for auth/account/session/role/audit tables in libs/db/alembic/versions/0013_user_auth_management.py
-- [x] T008 [P] Add shared repository interface contracts for auth/account/session operations in libs/db/src/db/repositories/interfaces.py
-- [x] T009 [P] Implement shared Postgres auth/account repository adapter in libs/db/src/db/repositories/auth_management_repository.py
-- [x] T010 Wire shared repository exports in libs/db/src/db/repositories/**init**.py
-- [x] T011 Add backend auth/account contract models and error envelope types in apps/backend/src/contract/query/auth_management_query.py
-- [x] T012 [P] Add backend auth/account input validation helpers in apps/backend/src/query/auth_management_validators.py
-- [x] T013 Implement backend auth/account orchestration service in apps/backend/src/query/auth_management_service.py
-- [x] T014 [P] Implement backend persisted auth/account repository adapter in apps/backend/src/query/auth_management_persisted_repository.py
-- [x] T015 Extend backend HTTP server route dispatch and auth guard middleware behavior in apps/backend/src/http_api_server.py
-- [x] T016 Add backend foundational contract tests for schema and error envelopes in apps/backend/tests/contract/test_auth_management_contract_schema.py
-- [x] T017 Add backend foundational runtime tests for auth guards and lifecycle constraints in apps/backend/tests/contract/test_http_auth_runtime_guards.py
-- [x] T018 Add frontend shared auth/account API client types in apps/frontend/src/lib/api/auth-management-types.ts
-- [x] T019 [P] Add frontend shared auth/account API client functions in apps/frontend/src/lib/api/auth-management-client.ts
-- [x] T020 Add frontend shared auth state utilities for current session restoration in apps/frontend/src/lib/auth/session-state.ts
+- [ ] T006 Extend auth management DB model for `privilege_level` and owner-protection metadata in `libs/db/src/db/models/auth_management.py`
+- [ ] T007 Add Alembic migration for privilege-level and owner governance schema changes in `libs/db/alembic/versions/0014_owner_privilege_governance.py`
+- [ ] T008 [P] Extend shared repository interfaces for admin role grant/revoke and owner-protected conflict semantics in `libs/db/src/db/repositories/interfaces.py`
+- [ ] T009 [P] Implement shared repository support for admin role grant/revoke and owner immutability checks in `libs/db/src/db/repositories/auth_management_repository.py`
+- [ ] T010 Extend backend auth contract schemas with privilege-level and admin navigation fields in `apps/backend/src/contract/query/auth_management_query.py`
+- [ ] T011 [P] Extend backend validators for role-governance actions and owner-targeted conflict handling in `apps/backend/src/query/auth_management_validators.py`
+- [ ] T012 Implement backend service-layer owner-protection and admin navigation orchestration in `apps/backend/src/query/auth_management_service.py`
+- [ ] T013 [P] Extend backend persisted adapter audit writes for admin grant/revoke and owner-denied attempts in `apps/backend/src/query/auth_management_persisted_repository.py`
+- [ ] T014 Wire new backend endpoints for account navigation, admin navigation, and role updates in `apps/backend/src/http_api_server.py`
+- [ ] T015 [P] Extend frontend auth-management API types with privilege and navigation contracts in `apps/frontend/src/lib/api/auth-management-types.ts`
+- [ ] T016 [P] Extend frontend auth-management API client functions for account/admin navigation and role updates in `apps/frontend/src/lib/api/auth-management-client.ts`
+- [ ] T017 Add foundational backend contract tests for new navigation/role contract envelopes in `apps/backend/tests/contract/test_auth_management_contract_schema.py`
+- [ ] T018 Add foundational backend runtime guard tests for owner-protected role actions in `apps/backend/tests/contract/test_http_auth_runtime_guards.py`
 
-**Checkpoint**: Shared schema, contracts, guardrails, and clients exist for all stories.
+**Checkpoint**: Shared schema/contracts/clients support privilege-level and revised admin/account surfaces.
 
 ---
 
-## Phase 3: User Story 1 - Account Access Lifecycle (Priority: P1) MVP
+## Phase 3: User Story 1 - Account Access Lifecycle (Priority: P1) 🎯 MVP
 
-**Goal**: Deliver registration, sign-in, sign-out, lockout, and protected-route session restoration behavior.
+**Goal**: Preserve and harden registration/sign-in/sign-out/session restoration/lockout behavior under revised privilege-level foundations.
 
-**Independent Test**: Register a new account, sign in, access protected page, refresh and remain signed in, sign out, then validate lockout after repeated failed sign-ins.
+**Independent Test**: Register account, sign in, access protected route, refresh to restore session, sign out, and confirm lockout policy still enforced after repeated failures.
 
-### Tests for User Story 1
+### Tests for User Story 1 (REQUIRED)
 
-- [x] T021 [P] [US1] Add backend contract tests for register/login/logout endpoints in apps/backend/tests/contract/test_auth_endpoints_contract.py
-- [x] T022 [P] [US1] Add backend integration tests for multi-session creation and lockout enforcement in apps/backend/tests/integration/test_auth_session_and_lockout_flows.py
-- [x] T023 [P] [US1] Add frontend auth page interaction tests for register/login/logout flows in apps/frontend/tests/auth-page.test.tsx
-- [x] T024 [P] [US1] Add frontend protected-route restoration tests in apps/frontend/tests/protected-route-session-restore.test.tsx
+- [ ] T019 [P] [US1] Extend backend endpoint contract tests for auth lifecycle responses with privilege-level fields in `apps/backend/tests/contract/test_auth_endpoints_contract.py`
+- [ ] T020 [P] [US1] Extend backend integration tests for lockout/session restoration under revised schema in `apps/backend/tests/integration/test_auth_session_and_lockout_flows.py`
+- [ ] T021 [P] [US1] Extend frontend auth page tests for unchanged lifecycle UX under revised payloads in `apps/frontend/tests/auth-page.test.tsx`
+- [ ] T022 [P] [US1] Extend frontend protected-route session restoration tests for revised auth state shape in `apps/frontend/tests/protected-route-session-restore.test.tsx`
 
 ### Implementation for User Story 1
 
-- [x] T025 [US1] Implement backend register/login/logout/session-list/session-revoke handlers in apps/backend/src/http_api_server.py
-- [x] T026 [US1] Implement lockout threshold and lockout-window policy logic in apps/backend/src/query/auth_management_service.py
-- [x] T027 [US1] Implement auth audit event writes for sign-in and sign-out lifecycle in apps/backend/src/query/auth_management_persisted_repository.py
-- [x] T028 [P] [US1] Create frontend sign-in and registration UI page in apps/frontend/src/app/login/page.tsx
-- [x] T029 [P] [US1] Create frontend registration route UI page in apps/frontend/src/app/register/page.tsx
-- [x] T030 [US1] Create frontend protected-route guard helper and redirect behavior in apps/frontend/src/lib/auth/route-guard.ts
-- [x] T031 [US1] Add header auth actions for signed-in versus signed-out states in apps/frontend/src/shell/site-header.tsx
-- [x] T032 [US1] Add frontend auth API route handlers for register/login/logout/session list/revoke in apps/frontend/src/app/api/auth/sessions/route.ts
+- [ ] T023 [US1] Update backend auth handlers to emit revised user summary fields in `apps/backend/src/http_api_server.py`
+- [ ] T024 [US1] Update backend auth orchestration to maintain lockout/session guarantees with privilege-level model in `apps/backend/src/query/auth_management_service.py`
+- [ ] T025 [US1] Update frontend auth state deserialization for revised user summary payloads in `apps/frontend/src/lib/auth/session-state.ts`
+- [ ] T026 [US1] Update frontend auth API proxy handlers for revised auth response contracts in `apps/frontend/src/app/api/auth/sessions/route.ts`
+- [ ] T027 [US1] Verify US1 coverage contribution remains >= 90% for affected projects via targeted tests in `apps/backend/tests/integration/test_auth_session_and_lockout_flows.py`
 
-**Checkpoint**: US1 is independently functional and testable.
+**Checkpoint**: US1 remains independently functional and testable.
 
 ---
 
-## Phase 4: User Story 2 - Account Settings Management (Priority: P2)
+## Phase 4: User Story 2 - Account Hub And Self-Service Management (Priority: P2)
 
-**Goal**: Deliver account settings profile updates, password change, and user-driven session revocation.
+**Goal**: Add account-dropdown Account entry, account details page actions, and role-chip display for account surfaces.
 
-**Independent Test**: Sign in, open account settings, update profile, change password, verify all sessions revoked, sign in again with new password, and revoke one active session.
+**Independent Test**: Signed-in user opens dropdown, uses Account action, views account details with role indicator context, updates email/password, and signs out from account page.
 
-### Tests for User Story 2
+### Tests for User Story 2 (REQUIRED)
 
-- [x] T033 [P] [US2] Add backend contract tests for profile/password/deletion-request endpoints in apps/backend/tests/contract/test_account_settings_contract.py
-- [x] T034 [P] [US2] Add backend integration tests for password-change revocation and deletion-pending behavior in apps/backend/tests/integration/test_account_settings_runtime_flows.py
-- [x] T035 [P] [US2] Add frontend account settings page tests for profile/password/session management in apps/frontend/tests/account-settings-page.test.tsx
+- [ ] T028 [P] [US2] Add backend contract tests for account profile + account navigation endpoints in `apps/backend/tests/contract/test_account_settings_contract.py`
+- [ ] T029 [P] [US2] Add backend integration tests for account self-service updates with revised profile fields in `apps/backend/tests/integration/test_account_settings_runtime_flows.py`
+- [ ] T030 [P] [US2] Add frontend dropdown interaction tests for Account action visibility/routing in `apps/frontend/tests/navbar-profile-dropdown.test.tsx`
+- [ ] T031 [P] [US2] Add frontend account settings page tests for role chip and sign-out action from account page in `apps/frontend/tests/account-settings-page.test.tsx`
 
 ### Implementation for User Story 2
 
-- [x] T036 [US2] Implement backend account profile read/update and password change service methods in apps/backend/src/query/auth_management_service.py
-- [x] T037 [US2] Implement backend deletion-request lifecycle transition logic in apps/backend/src/query/auth_management_service.py
-- [x] T038 [US2] Implement backend password-change all-session revocation flow in apps/backend/src/query/auth_management_persisted_repository.py
-- [x] T039 [P] [US2] Create shared frontend account settings components with HeroUI in apps/frontend/src/components/account/AccountSettingsForm.tsx
-- [x] T040 [P] [US2] Create frontend account settings route page in apps/frontend/src/app/settings/page.tsx
-- [x] T041 [US2] Add frontend account settings API route handlers in apps/frontend/src/app/api/account/profile/route.ts
-- [x] T042 [US2] Add frontend password and deletion-request API route handlers in apps/frontend/src/app/api/account/password/route.ts
+- [ ] T032 [US2] Implement backend account navigation endpoint composition in `apps/backend/src/query/auth_management_service.py`
+- [ ] T033 [US2] Wire backend account navigation route in `apps/backend/src/http_api_server.py`
+- [ ] T034 [P] [US2] Add Account action + role-chip display behavior in top-nav profile dropdown in `apps/frontend/src/shell/site-header.tsx`
+- [ ] T035 [P] [US2] Extend account details component for minimal details, role chip, and sign-out action in `apps/frontend/src/components/account/AccountSettingsForm.tsx`
+- [ ] T036 [US2] Update account settings page composition to use shared page header and revised account actions in `apps/frontend/src/app/settings/page.tsx`
+- [ ] T037 [US2] Wire frontend account navigation proxy route in `apps/frontend/src/app/api/account/navigation/route.ts`
+- [ ] T038 [US2] Verify US2 coverage contribution remains >= 90% for affected frontend/backend projects via updated tests in `apps/frontend/tests/account-settings-page.test.tsx`
 
 **Checkpoint**: US2 is independently functional and testable.
 
 ---
 
-## Phase 5: User Story 3 - Administrative User Oversight (Priority: P3)
+## Phase 5: User Story 3 - Admin Landing And Role Governance (Priority: P3)
 
-**Goal**: Deliver admin user listing, activation/deactivation controls, and admin-driven session revocation.
+**Goal**: Add admin landing page and admin navigation surfaces, grant/revoke admin controls, and enforce owner-role immutability.
 
-**Independent Test**: Sign in as admin, list users, deactivate user and verify immediate session revocation plus blocked re-login, reactivate user and verify login restored, verify non-admin denial.
+**Independent Test**: Admin sees Admin entry in dropdown/account page, reaches admin landing with users link, grants/revokes admin for eligible users, and receives deterministic denial for owner-targeted role changes.
 
-### Tests for User Story 3
+### Tests for User Story 3 (REQUIRED)
 
-- [x] T043 [P] [US3] Add backend contract tests for admin user list/status/session-revoke endpoints in apps/backend/tests/contract/test_admin_user_management_contract.py
-- [x] T044 [P] [US3] Add backend integration tests for deactivation/re-activation and final-active-admin guardrail in apps/backend/tests/integration/test_admin_user_management_runtime.py
-- [x] T045 [P] [US3] Add frontend admin user-management page and authorization tests in apps/frontend/tests/admin-users-page.test.tsx
+- [ ] T039 [P] [US3] Add backend contract tests for admin navigation and admin role-update endpoints in `apps/backend/tests/contract/test_admin_user_management_contract.py`
+- [ ] T040 [P] [US3] Add backend integration tests for admin grant/revoke and owner-denied role actions in `apps/backend/tests/integration/test_admin_user_management_runtime.py`
+- [ ] T041 [P] [US3] Add frontend admin landing page tests for admin-only navigation listing in `apps/frontend/tests/admin-page.test.tsx`
+- [ ] T042 [P] [US3] Extend frontend admin users page tests for admin grant/revoke and owner-denial behavior in `apps/frontend/tests/admin-users-page.test.tsx`
+- [ ] T043 [P] [US3] Add frontend account page tests for Admin action visibility by role in `apps/frontend/tests/account-settings-page.test.tsx`
 
 ### Implementation for User Story 3
 
-- [x] T046 [US3] Implement backend admin user list and status update service logic in apps/backend/src/query/auth_management_service.py
-- [x] T047 [US3] Implement backend admin-driven user session revocation and final-admin protection in apps/backend/src/query/auth_management_persisted_repository.py
-- [x] T048 [P] [US3] Create shared frontend admin user table components with HeroUI in apps/frontend/src/components/account/AdminUserTable.tsx
-- [x] T049 [P] [US3] Create frontend admin users route page in apps/frontend/src/app/admin/users/page.tsx
-- [x] T050 [US3] Add frontend admin API route handlers for user list/status/session revoke in apps/frontend/src/app/api/admin/users/route.ts
+- [ ] T044 [US3] Implement backend admin navigation service and authorization checks in `apps/backend/src/query/auth_management_service.py`
+- [ ] T045 [US3] Implement backend admin role update flow with owner-protection conflicts in `apps/backend/src/query/auth_management_persisted_repository.py`
+- [ ] T046 [US3] Wire backend admin navigation and role update routes in `apps/backend/src/http_api_server.py`
+- [ ] T047 [P] [US3] Extend admin users table UI with grant/revoke admin controls and owner-state rendering in `apps/frontend/src/components/account/AdminUserTable.tsx`
+- [ ] T048 [P] [US3] Create admin landing page route using shared page-header component in `apps/frontend/src/app/admin/page.tsx`
+- [ ] T049 [US3] Extend admin users page composition for shared page-header consistency in `apps/frontend/src/app/admin/users/page.tsx`
+- [ ] T050 [US3] Add Admin navigation action on account details page with role-based visibility in `apps/frontend/src/components/account/AccountSettingsForm.tsx`
+- [ ] T051 [US3] Add frontend API route handlers for admin navigation and role updates in `apps/frontend/src/app/api/admin/navigation/route.ts`
+- [ ] T052 [US3] Extend frontend admin users API proxy for role update action in `apps/frontend/src/app/api/admin/users/route.ts`
+- [ ] T053 [US3] Verify US3 coverage contribution remains >= 90% for affected frontend/backend projects via updated tests in `apps/backend/tests/integration/test_admin_user_management_runtime.py`
 
 **Checkpoint**: US3 is independently functional and testable.
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Final Phase: Polish & Cross-Cutting Concerns
 
-**Purpose**: Complete documentation, end-to-end verification, and repository-wide quality gates.
+**Purpose**: Documentation, runtime validation, and monorepo stop gates across all stories.
 
-- [x] T051 [P] Update feature runbook content for auth/account operational flows in docs/runbooks/local-stack-baseline.md
-- [x] T052 [P] Update AGENTS context and command references if auth/account workflow commands changed in AGENTS.md
-- [x] T053 Add frontend accessibility pass for auth/account/admin forms and error states in apps/frontend/src/components/account/AccountSettingsForm.tsx
-- [x] T054 Add backend observability and structured auth audit logging validation tests in apps/backend/tests/contract/test_auth_audit_observability.py
-- [x] T055 Execute full manual quickstart validation scenarios in specs/046-user-auth-management/quickstart.md
-- [x] T056 Run pre-commit all-files gate and resolve failures in .pre-commit-config.yaml
-- [x] T057 Run mandatory full monorepo tests gate in package.json
-- [x] T058 Run mandatory full monorepo coverage gate in package.json
+- [ ] T054 [P] Update spec checklist notes for revised task-plan alignment in `specs/046-user-auth-management/checklists/requirements.md`
+- [ ] T055 [P] Update API contract revision notes for admin landing and role governance in `specs/046-user-auth-management/contracts/user-auth-management.openapi.yaml`
+- [ ] T056 [P] Update AGENTS references if plan-driven workflow or command expectations changed in `AGENTS.md`
+- [ ] T057 Run manual quickstart verification for account/admin pages and owner-role guardrails in `specs/046-user-auth-management/quickstart.md`
+- [ ] T058 Run pre-commit all-files validation and resolve issues via `.pre-commit-config.yaml`
+- [ ] T059 Run mandatory full monorepo test stop gate via `pnpm exec nx run-many -t test --all` from `package.json`
+- [ ] T060 Run mandatory full monorepo coverage stop gate via `pnpm exec nx run-many -t coverage --all` from `package.json`
 
 ---
 
@@ -148,73 +144,78 @@
 
 ### Phase Dependencies
 
-- Phase 1 depends on no prior work and starts immediately.
-- Phase 2 depends on Phase 1 and blocks all user-story implementation.
-- Phase 3 depends on Phase 2 and is the MVP slice.
-- Phase 4 depends on Phase 2 and can proceed after US1 or in parallel once shared foundations are stable.
-- Phase 5 depends on Phase 2 and can proceed after US1 or in parallel once shared foundations are stable.
-- Phase 6 depends on completion of targeted user stories.
+- Phase 1 (Setup): No dependencies.
+- Phase 2 (Foundational): Depends on Phase 1 completion; blocks all user stories.
+- Phase 3 (US1): Depends on Phase 2 completion.
+- Phase 4 (US2): Depends on Phase 2 completion; may proceed after US1 MVP checkpoint.
+- Phase 5 (US3): Depends on Phase 2 completion; may proceed after US1 MVP checkpoint.
+- Final Phase: Depends on completion of desired story phases.
 
 ### User Story Dependencies
 
-- US1 (P1) has no dependency on other user stories after foundational completion.
-- US2 (P2) depends on shared auth/session foundations and can reuse US1 auth flow components.
-- US3 (P3) depends on shared auth/session foundations and admin role/authorization enforcement.
+- US1 (P1): Independent after foundational phase.
+- US2 (P2): Independent after foundational phase, reuses auth/session primitives from US1.
+- US3 (P3): Independent after foundational phase, reuses auth/session primitives and extends admin surfaces.
 
 ### Within Each User Story
 
-- Tests are created first and fail before implementation.
-- Service and persistence logic precede route-handler wiring.
-- Frontend pages are built on shared components and shared API clients.
-- Story-level checkpoint validation is required before advancing.
+- Tests first (must fail before implementation).
+- Backend contract/service updates before frontend integration where API changes are involved.
+- Shared components before route-level composition changes.
+- Coverage verification before declaring story completion.
 
-## Parallel Execution Examples
+## Parallel Opportunities
 
-### User Story 1
+- Setup tasks marked `[P]` can run in parallel (T003-T005).
+- Foundational tasks marked `[P]` can run in parallel after schema baselines (T008-T009, T011, T013, T015-T016).
+- US1 parallel sets: T019-T022 together, then UI/API tasks where file-independent (T025-T026).
+- US2 parallel sets: T028-T031 together, then component/dropdown work (T034-T035).
+- US3 parallel sets: T039-T043 together, then landing/table/UI slices (T047-T048).
+- Final-phase doc updates marked `[P]` can run in parallel (T054-T056).
 
-- Run in parallel:
-  - T021 and T022 and T023 and T024
-  - T028 and T029
+## Parallel Example: User Story 3
 
-### User Story 2
+```bash
+# Run US3 test tasks in parallel:
+Task: "T039 [US3] backend contract tests"
+Task: "T040 [US3] backend integration tests"
+Task: "T041 [US3] frontend admin landing tests"
+Task: "T042 [US3] frontend admin users tests"
+Task: "T043 [US3] frontend account page admin-action tests"
 
-- Run in parallel:
-  - T033 and T034 and T035
-  - T039 and T040
-
-### User Story 3
-
-- Run in parallel:
-  - T043 and T044 and T045
-  - T048 and T049
+# Run independent frontend implementation tasks in parallel:
+Task: "T047 [US3] extend AdminUserTable role controls"
+Task: "T048 [US3] create admin landing page"
+```
 
 ## Implementation Strategy
 
 ### MVP First (US1)
 
 1. Complete Phase 1 and Phase 2.
-2. Deliver Phase 3 (US1) fully.
-3. Validate US1 independent test criteria before expanding scope.
+2. Deliver Phase 3 (US1) and validate independent test criteria.
+3. Demo stable auth lifecycle before expanding to account/admin UX deltas.
 
 ### Incremental Delivery
 
-1. Ship US1 account access lifecycle.
-2. Add US2 account settings and deletion-request flow.
-3. Add US3 administrative oversight.
-4. Finish with cross-cutting verification and docs updates.
+1. Ship US1 auth lifecycle hardening under revised model.
+2. Ship US2 account hub and self-service UX.
+3. Ship US3 admin landing and role governance with owner protection.
+4. Execute final cross-cutting validation and mandatory stop gates.
 
 ### Parallel Team Strategy
 
-1. Team completes Setup and Foundational phases together.
-2. After foundations stabilize, split by story tracks:
-
-- Engineer A: US1 flow hardening
-- Engineer B: US2 settings and session tools
-- Engineer C: US3 admin management
+1. Team aligns on Setup + Foundational.
+2. After foundations stabilize:
+   - Engineer A: US1 lifecycle stability
+   - Engineer B: US2 account hub UX
+   - Engineer C: US3 admin landing + role governance
+3. Converge on final-phase documentation + full gate execution.
 
 ## Notes
 
-- All tasks use strict checklist format with task ID and concrete file path.
-- Story labels are included only in user-story phases.
-- Parallel markers are used only where file-level independence is expected.
-- Full-suite and coverage stop gates are mandatory before commit and before handoff.
+- All tasks follow required checklist format: `- [ ] T### [P?] [US?] Description with file path`.
+- Story labels are only used in user-story phases.
+- Task IDs are sequential and execution-ordered.
+- No unresolved clarifications remain for task execution.
+- Full monorepo test and coverage stop rules are mandatory before commit/handoff.
