@@ -7,6 +7,7 @@ import csv
 import json
 import os
 from collections.abc import Callable, Mapping
+from datetime import UTC, datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
@@ -21,6 +22,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import NullPool
 
 from src.contract.errors import ContractQueryError
+from src.contract.query.auth_management_query import (
+    conflict_error,
+    forbidden_error,
+    locked_error,
+    not_found_error,
+    unauthorized_error,
+    validation_error,
+)
 from src.contract.query.dataset_discovery_contracts import (
     dataset_not_found_error,
     invalid_request_error,
@@ -30,6 +39,8 @@ from src.contract.query.metadata_discovery_contracts import (
     topic_not_found_error,
 )
 from src.contract.query.source_discovery_contracts import source_not_found_error
+from src.query.auth_management_persisted_repository import PersistedAuthManagementRepository
+from src.query.auth_management_service import AuthManagementService
 from src.query.dataset_catalog_query import execute_dataset_catalog
 from src.query.dataset_detail_query import execute_dataset_detail
 from src.query.dataset_discovery_persisted_repository import (
@@ -129,10 +140,20 @@ def _make_service() -> DatasetDiscoveryService:
     return DatasetDiscoveryService(repository)
 
 
+def _make_auth_service() -> AuthManagementService:
+    expected_revision = _resolve_expected_revision(environment=os.environ)
+    database_url = _resolve_database_url(environment=os.environ)
+    engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
+    _require_schema_readiness(engine=engine, expected_revision=expected_revision)
+    repository = PersistedAuthManagementRepository(engine=engine)
+    return AuthManagementService(repository=repository)
+
+
 class DatasetApiHandler(BaseHTTPRequestHandler):
     """HTTP handler exposing dataset discovery and detail endpoints."""
 
     service: DatasetDiscoveryService | None = None
+    auth_service: AuthManagementService | None = None
 
     def _write_json(self, status: int, payload: dict[str, object]) -> None:
         body = json.dumps(payload, separators=(",", ":"), default=str).encode("utf-8")
@@ -150,6 +171,241 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
+
+    def _read_json_body(self) -> dict[str, object]:
+        content_length = int(self.headers.get("Content-Length", "0"))
+        if content_length <= 0:
+            return {}
+        payload = self.rfile.read(content_length)
+        if payload == b"":
+            return {}
+        decoded = json.loads(payload.decode("utf-8"))
+        if not isinstance(decoded, dict):
+            raise ValueError("request body must be a JSON object")
+        return decoded
+
+    def _resolve_auth_principal(self, service: AuthManagementService) -> dict[str, object]:
+        header_value = self.headers.get("Authorization", "")
+        if not header_value.startswith("Bearer "):
+            raise ContractQueryError("auth_required")
+        session_id = header_value[len("Bearer ") :].strip()
+        if session_id == "":
+            raise ContractQueryError("auth_required")
+        session = service.authenticate_session(session_id=session_id)
+        user = session.get("user")
+        if not isinstance(user, dict):
+            raise ContractQueryError("auth_required")
+        principal = dict(user)
+        principal["session_id"] = str(session.get("session_id") or session_id)
+        return principal
+
+    @staticmethod
+    def _require_admin(principal: dict[str, object]) -> None:
+        if not bool(principal.get("is_admin") or False):
+            raise ContractQueryError("forbidden")
+
+    @staticmethod
+    def _auth_contract_error(error: ContractQueryError) -> tuple[HTTPStatus, dict[str, object]]:
+        code = str(error)
+        mapped_errors: dict[str, tuple[HTTPStatus, dict[str, object]]] = {
+            "auth_required": (HTTPStatus.UNAUTHORIZED, unauthorized_error().model_dump()),
+            "forbidden": (HTTPStatus.FORBIDDEN, forbidden_error().model_dump()),
+            "duplicate_email": (
+                HTTPStatus.CONFLICT,
+                conflict_error("Account already exists").model_dump(),
+            ),
+            "account_locked": (
+                HTTPStatus.LOCKED,
+                locked_error("Account is temporarily locked").model_dump(),
+            ),
+            "session_not_found": (
+                HTTPStatus.NOT_FOUND,
+                not_found_error("Session was not found").model_dump(),
+            ),
+            "invalid_credentials": (
+                HTTPStatus.UNAUTHORIZED,
+                unauthorized_error("Invalid credentials").model_dump(),
+            ),
+        }
+        return mapped_errors.get(
+            code,
+            (HTTPStatus.BAD_REQUEST, validation_error(code).model_dump()),
+        )
+
+    def _dispatch_auth_get(
+        self,
+        *,
+        path: str,
+        service: AuthManagementService,
+    ) -> tuple[HTTPStatus, dict[str, object]] | None:
+        if path == "/api/auth/sessions":
+            principal = self._resolve_auth_principal(service)
+            response = service.list_user_sessions(user_id=str(principal["user_id"]))
+            return HTTPStatus.OK, response.model_dump()
+
+        if path == "/api/account/profile":
+            principal = self._resolve_auth_principal(service)
+            return HTTPStatus.OK, {
+                "user_id": principal["user_id"],
+                "email": principal["email"],
+                "display_name": principal.get("display_name"),
+                "account_status": principal["account_status"],
+                "is_admin": bool(principal.get("is_admin") or False),
+                "updated_at": datetime.now(tz=UTC).isoformat(),
+            }
+
+        if path == "/api/admin/users":
+            principal = self._resolve_auth_principal(service)
+            self._require_admin(principal)
+            response = service.list_admin_users()
+            return HTTPStatus.OK, response.model_dump()
+
+        return None
+
+    def _dispatch_auth_post(
+        self,
+        *,
+        path: str,
+        service: AuthManagementService,
+    ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
+        response_status: HTTPStatus
+        response_payload: dict[str, object] | None
+        if path == "/api/auth/register":
+            payload = self._read_json_body()
+            response = service.register_account(
+                email=str(payload.get("email") or ""),
+                password=str(payload.get("password") or ""),
+                display_name=(
+                    str(payload["display_name"])
+                    if payload.get("display_name") is not None
+                    else None
+                ),
+                client_metadata={"client_label": self.headers.get("User-Agent", "api-client")},
+            )
+            response_status = HTTPStatus.CREATED
+            response_payload = response.model_dump()
+        elif path == "/api/auth/login":
+            payload = self._read_json_body()
+            response = service.login(
+                email=str(payload.get("email") or ""),
+                password=str(payload.get("password") or ""),
+                client_metadata={"client_label": self.headers.get("User-Agent", "api-client")},
+            )
+            response_status = HTTPStatus.OK
+            response_payload = response.model_dump()
+        elif path == "/api/auth/logout":
+            principal = self._resolve_auth_principal(service)
+            service.logout(
+                user_id=str(principal["user_id"]),
+                session_id=str(principal["session_id"]),
+            )
+            response_status = HTTPStatus.NO_CONTENT
+            response_payload = None
+        elif path.startswith("/api/auth/sessions/") and path.endswith("/revoke"):
+            principal = self._resolve_auth_principal(service)
+            session_id = path.split("/")[-2]
+            service.revoke_user_session(user_id=str(principal["user_id"]), session_id=session_id)
+            response_status = HTTPStatus.NO_CONTENT
+            response_payload = None
+        elif path == "/api/account/password":
+            principal = self._resolve_auth_principal(service)
+            service.repository.revoke_all_sessions_for_user(
+                user_id=str(principal["user_id"]), reason="password_changed"
+            )
+            response_status = HTTPStatus.NO_CONTENT
+            response_payload = None
+        elif path == "/api/account/deletion-request":
+            principal = self._resolve_auth_principal(service)
+            deletion_due_at = datetime.now(tz=UTC).replace(microsecond=0).isoformat()
+            response_status = HTTPStatus.ACCEPTED
+            response_payload = {
+                "user_id": principal["user_id"],
+                "account_status": "deletion_pending",
+                "deletion_due_at": deletion_due_at,
+            }
+        else:
+            return None
+
+        return response_status, response_payload
+
+    def _handle_auth_get_route(self, *, path: str) -> bool:
+        if self.auth_service is None:
+            return False
+        try:
+            auth_response = self._dispatch_auth_get(path=path, service=self.auth_service)
+        except ContractQueryError as exc:
+            response_status, response_payload = self._auth_contract_error(exc)
+            self._write_json(response_status, response_payload)
+            return True
+        except ValueError as exc:
+            self._write_json(
+                HTTPStatus.BAD_REQUEST,
+                validation_error(str(exc)).model_dump(),
+            )
+            return True
+        if auth_response is None:
+            return False
+
+        response_status, response_payload = auth_response
+        self._write_json(response_status, response_payload)
+        return True
+
+    @staticmethod
+    def _discovery_contract_error(
+        *, path: str, error: ContractQueryError
+    ) -> tuple[HTTPStatus, dict[str, object]]:
+        code = str(error)
+        not_found_payloads: dict[str, Callable[[str], dict[str, object]]] = {
+            "dataset_not_found": lambda value: dataset_not_found_error(value).model_dump(),
+            "topic_not_found": lambda value: topic_not_found_error(value).model_dump(),
+            "geography_not_found": lambda value: geography_not_found_error(value).model_dump(),
+            "source_not_found": lambda value: source_not_found_error(value).model_dump(),
+        }
+        if code in not_found_payloads:
+            entity_id = path.rsplit("/", maxsplit=1)[-1]
+            if code == "dataset_not_found" and entity_id.endswith(".csv"):
+                entity_id = entity_id[: -len(".csv")]
+            return HTTPStatus.NOT_FOUND, not_found_payloads[code](entity_id)
+
+        return HTTPStatus.BAD_REQUEST, invalid_request_error(code).model_dump()
+
+    def _dispatch_auth_patch(
+        self,
+        *,
+        path: str,
+        service: AuthManagementService,
+    ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
+        if path == "/api/account/profile":
+            principal = self._resolve_auth_principal(service)
+            payload = self._read_json_body()
+            display_name = payload.get("display_name")
+            return HTTPStatus.OK, {
+                "user_id": principal["user_id"],
+                "email": principal["email"],
+                "display_name": display_name if isinstance(display_name, str) else None,
+                "account_status": principal["account_status"],
+                "is_admin": bool(principal.get("is_admin") or False),
+                "updated_at": datetime.now(tz=UTC).isoformat(),
+            }
+
+        if path.startswith("/api/admin/users/") and path.endswith("/status"):
+            principal = self._resolve_auth_principal(service)
+            self._require_admin(principal)
+            user_id = path.split("/")[-2]
+            payload = self._read_json_body()
+            account_status = str(payload.get("account_status") or "")
+            if account_status not in {"active", "deactivated"}:
+                raise ContractQueryError("account_status must be active or deactivated")
+            return HTTPStatus.OK, {
+                "user_id": user_id,
+                "email": "",
+                "display_name": None,
+                "account_status": account_status,
+                "is_admin": False,
+                "updated_at": datetime.now(tz=UTC).isoformat(),
+            }
+
+        return None
 
     def _handle_search(
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
@@ -342,6 +598,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         """Handle read-only dataset discovery API requests."""
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
+        if self._handle_auth_get_route(path=parsed.path):
+            return
 
         if self.service is None:
             self._write_json(
@@ -362,32 +620,83 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                 service=self.service,
             )
         except ContractQueryError as exc:
-            if str(exc) == "dataset_not_found":
-                dataset_id = parsed.path.split("/")[-1]
-                if dataset_id.endswith(".csv"):
-                    dataset_id = dataset_id[: -len(".csv")]
-                response_status = HTTPStatus.NOT_FOUND
-                response_payload = dataset_not_found_error(dataset_id).model_dump()
-            elif str(exc) == "topic_not_found":
-                topic_id = parsed.path.split("/")[-1]
-                response_status = HTTPStatus.NOT_FOUND
-                response_payload = topic_not_found_error(topic_id).model_dump()
-            elif str(exc) == "geography_not_found":
-                geography_id = parsed.path.split("/")[-1]
-                response_status = HTTPStatus.NOT_FOUND
-                response_payload = geography_not_found_error(geography_id).model_dump()
-            elif str(exc) == "source_not_found":
-                source_id = parsed.path.split("/")[-1]
-                response_status = HTTPStatus.NOT_FOUND
-                response_payload = source_not_found_error(source_id).model_dump()
-            else:
-                response_status = HTTPStatus.BAD_REQUEST
-                response_payload = invalid_request_error(str(exc)).model_dump()
+            response_status, response_payload = self._discovery_contract_error(
+                path=parsed.path,
+                error=exc,
+            )
         except ValueError as exc:
             response_status = HTTPStatus.BAD_REQUEST
             response_payload = invalid_request_error(str(exc)).model_dump()
 
         self._write_json(response_status, response_payload)
+
+    def do_POST(self) -> None:
+        """Handle auth/account write endpoints."""
+        parsed = urlparse(self.path)
+        if self.auth_service is None:
+            self._write_json(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                invalid_request_error("auth_service_not_initialized").model_dump(),
+            )
+            return
+
+        try:
+            auth_response = self._dispatch_auth_post(path=parsed.path, service=self.auth_service)
+        except ContractQueryError as exc:
+            response_status, response_payload = self._auth_contract_error(exc)
+            self._write_json(response_status, response_payload)
+            return
+        except ValueError as exc:
+            self._write_json(HTTPStatus.BAD_REQUEST, validation_error(str(exc)).model_dump())
+            return
+
+        if auth_response is None:
+            self._write_json(
+                HTTPStatus.NOT_FOUND,
+                not_found_error("Endpoint not found").model_dump(),
+            )
+            return
+
+        response_status, response_payload = auth_response
+        if response_status == HTTPStatus.NO_CONTENT:
+            self.send_response(response_status)
+            self.end_headers()
+            return
+        self._write_json(response_status, response_payload or {})
+
+    def do_PATCH(self) -> None:
+        """Handle auth/account patch endpoints."""
+        parsed = urlparse(self.path)
+        if self.auth_service is None:
+            self._write_json(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                invalid_request_error("auth_service_not_initialized").model_dump(),
+            )
+            return
+
+        try:
+            auth_response = self._dispatch_auth_patch(path=parsed.path, service=self.auth_service)
+        except ContractQueryError as exc:
+            response_status, response_payload = self._auth_contract_error(exc)
+            self._write_json(response_status, response_payload)
+            return
+        except ValueError as exc:
+            self._write_json(HTTPStatus.BAD_REQUEST, validation_error(str(exc)).model_dump())
+            return
+
+        if auth_response is None:
+            self._write_json(
+                HTTPStatus.NOT_FOUND,
+                not_found_error("Endpoint not found").model_dump(),
+            )
+            return
+
+        response_status, response_payload = auth_response
+        if response_status == HTTPStatus.NO_CONTENT:
+            self.send_response(response_status)
+            self.end_headers()
+            return
+        self._write_json(response_status, response_payload or {})
 
 
 def main() -> None:
@@ -398,6 +707,7 @@ def main() -> None:
     args = parser.parse_args()
 
     DatasetApiHandler.service = _make_service()
+    DatasetApiHandler.auth_service = _make_auth_service()
     server = ThreadingHTTPServer((args.host, args.port), DatasetApiHandler)
     server.serve_forever()
 

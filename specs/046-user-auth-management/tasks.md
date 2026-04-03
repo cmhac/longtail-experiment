@@ -31,21 +31,21 @@
 
 **Critical**: No user story tasks start until this phase is complete.
 
-- [ ] T006 Add shared persistence entity definitions for UserAccount, CredentialRecord, AuthSession, RoleAssignment, and AccountAuditEvent in libs/db/src/db/models/auth_management.py
-- [ ] T007 Add Alembic migration for auth/account/session/role/audit tables in libs/db/alembic/versions/0013_user_auth_management.py
-- [ ] T008 [P] Add shared repository interface contracts for auth/account/session operations in libs/db/src/db/repositories/interfaces.py
-- [ ] T009 [P] Implement shared Postgres auth/account repository adapter in libs/db/src/db/repositories/auth_management_repository.py
-- [ ] T010 Wire shared repository exports in libs/db/src/db/repositories/**init**.py
-- [ ] T011 Add backend auth/account contract models and error envelope types in apps/backend/src/contract/query/auth_management_query.py
-- [ ] T012 [P] Add backend auth/account input validation helpers in apps/backend/src/query/auth_management_validators.py
-- [ ] T013 Implement backend auth/account orchestration service in apps/backend/src/query/auth_management_service.py
-- [ ] T014 [P] Implement backend persisted auth/account repository adapter in apps/backend/src/query/auth_management_persisted_repository.py
-- [ ] T015 Extend backend HTTP server route dispatch and auth guard middleware behavior in apps/backend/src/http_api_server.py
-- [ ] T016 Add backend foundational contract tests for schema and error envelopes in apps/backend/tests/contract/test_auth_management_contract_schema.py
-- [ ] T017 Add backend foundational runtime tests for auth guards and lifecycle constraints in apps/backend/tests/contract/test_http_auth_runtime_guards.py
-- [ ] T018 Add frontend shared auth/account API client types in apps/frontend/src/lib/api/auth-management-types.ts
-- [ ] T019 [P] Add frontend shared auth/account API client functions in apps/frontend/src/lib/api/auth-management-client.ts
-- [ ] T020 Add frontend shared auth state utilities for current session restoration in apps/frontend/src/lib/auth/session-state.ts
+- [x] T006 Add shared persistence entity definitions for UserAccount, CredentialRecord, AuthSession, RoleAssignment, and AccountAuditEvent in libs/db/src/db/models/auth_management.py
+- [x] T007 Add Alembic migration for auth/account/session/role/audit tables in libs/db/alembic/versions/0013_user_auth_management.py
+- [x] T008 [P] Add shared repository interface contracts for auth/account/session operations in libs/db/src/db/repositories/interfaces.py
+- [x] T009 [P] Implement shared Postgres auth/account repository adapter in libs/db/src/db/repositories/auth_management_repository.py
+- [x] T010 Wire shared repository exports in libs/db/src/db/repositories/**init**.py
+- [x] T011 Add backend auth/account contract models and error envelope types in apps/backend/src/contract/query/auth_management_query.py
+- [x] T012 [P] Add backend auth/account input validation helpers in apps/backend/src/query/auth_management_validators.py
+- [x] T013 Implement backend auth/account orchestration service in apps/backend/src/query/auth_management_service.py
+- [x] T014 [P] Implement backend persisted auth/account repository adapter in apps/backend/src/query/auth_management_persisted_repository.py
+- [x] T015 Extend backend HTTP server route dispatch and auth guard middleware behavior in apps/backend/src/http_api_server.py
+- [x] T016 Add backend foundational contract tests for schema and error envelopes in apps/backend/tests/contract/test_auth_management_contract_schema.py
+- [x] T017 Add backend foundational runtime tests for auth guards and lifecycle constraints in apps/backend/tests/contract/test_http_auth_runtime_guards.py
+- [x] T018 Add frontend shared auth/account API client types in apps/frontend/src/lib/api/auth-management-types.ts
+- [x] T019 [P] Add frontend shared auth/account API client functions in apps/frontend/src/lib/api/auth-management-client.ts
+- [x] T020 Add frontend shared auth state utilities for current session restoration in apps/frontend/src/lib/auth/session-state.ts
 
 **Checkpoint**: Shared schema, contracts, guardrails, and clients exist for all stories.
 
