@@ -3,8 +3,6 @@ import type { JSX } from "react";
 import { SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { FOOTER_CONTENT } from "./footer-content";
 
-export const SITE_FOOTER_VARIANT = "bordered";
-
 export const SiteFooter = (): JSX.Element => {
   return (
     <footer

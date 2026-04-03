@@ -1,9 +1,6 @@
+import Script from "next/script";
 import React from "react";
 import type { JSX, ReactNode } from "react";
-import {
-  createRootDocumentAttributes,
-  resolveInitialThemePreference,
-} from "../theme/theme-preference";
 import "./globals.css";
 
 interface RootLayoutProps {
@@ -11,17 +8,28 @@ interface RootLayoutProps {
 }
 
 const RootLayout = ({ children }: RootLayoutProps): JSX.Element => {
-  const rootAttributes = createRootDocumentAttributes(resolveInitialThemePreference());
-
   return (
-    <html
-      className={rootAttributes.className}
-      data-theme-preference={rootAttributes.dataThemePreference}
-      lang="en"
-      suppressHydrationWarning
-      style={rootAttributes.style}
-    >
-      <body className="shell-body bg-background text-foreground antialiased">{children}</body>
+    <html className="shell-root bg-background text-foreground" lang="en" suppressHydrationWarning>
+      <body className="shell-body bg-background text-foreground antialiased">
+        <Script id="system-theme-sync" strategy="beforeInteractive">
+          {`(() => {
+  const root = document.documentElement;
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const applyTheme = (isDark) => {
+    root.classList.toggle('dark', isDark);
+    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  };
+  applyTheme(mediaQuery.matches);
+  const handleChange = (event) => applyTheme(event.matches);
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', handleChange);
+  } else {
+    mediaQuery.addListener(handleChange);
+  }
+})();`}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 };

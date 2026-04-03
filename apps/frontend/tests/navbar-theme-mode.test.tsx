@@ -10,24 +10,23 @@ afterEach(() => {
 });
 
 describe("navbar appearance mode contract", () => {
-  it("keeps shell-readable classes in light mode", () => {
-    document.documentElement.setAttribute("data-theme-preference", "light");
+  it("keeps header shell-region classes in light mode", () => {
     render(<SiteHeader />);
 
     const header = screen.getByTestId("shell-header");
-    expect(header.className).toContain("shell-readable");
+    expect(header.className).toContain("shell-region");
+    expect(header.className).toContain("shell-region-header");
   });
 
-  it("keeps shell-readable classes in dark mode", () => {
-    document.documentElement.setAttribute("data-theme-preference", "dark");
+  it("keeps header shell-region classes in dark mode", () => {
     render(<SiteHeader />);
 
     const header = screen.getByTestId("shell-header");
-    expect(header.className).toContain("shell-readable");
+    expect(header.className).toContain("shell-region");
+    expect(header.className).toContain("shell-region-header");
   });
 
   it("keeps dropdown content readable in dark mode", () => {
-    document.documentElement.setAttribute("data-theme-preference", "dark");
     render(<SiteHeader />);
 
     fireEvent.click(screen.getByTestId("navbar-profile-control"));

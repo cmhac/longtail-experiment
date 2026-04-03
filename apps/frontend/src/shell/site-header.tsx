@@ -20,8 +20,6 @@ import {
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
-export const SITE_HEADER_VARIANT = "light";
-
 interface SiteHeaderProps {
   activeTab?: NavbarTabKey;
 }
