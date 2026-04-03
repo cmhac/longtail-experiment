@@ -29,6 +29,7 @@ export const UnifiedSearchSurface = ({
   const searchParams = useSearchParams();
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const scrollHideTimeoutRef = React.useRef<number | null>(null);
+  const blurHideTimeoutRef = React.useRef<number | null>(null);
   const [isSuggestionsScrolling, setIsSuggestionsScrolling] = React.useState(false);
 
   const urlQuery = getQueryFromSearchParams(searchParams);
@@ -81,10 +82,31 @@ export const UnifiedSearchSurface = ({
     }, 180);
   }, []);
 
+  const scheduleBlurHide = React.useCallback((): void => {
+    if (blurHideTimeoutRef.current !== null) {
+      window.clearTimeout(blurHideTimeoutRef.current);
+    }
+
+    blurHideTimeoutRef.current = window.setTimeout(() => {
+      onInputBlur();
+      blurHideTimeoutRef.current = null;
+    }, 120);
+  }, [onInputBlur]);
+
+  const clearBlurHide = React.useCallback((): void => {
+    if (blurHideTimeoutRef.current !== null) {
+      window.clearTimeout(blurHideTimeoutRef.current);
+      blurHideTimeoutRef.current = null;
+    }
+  }, []);
+
   React.useEffect(() => {
     return () => {
       if (scrollHideTimeoutRef.current !== null) {
         window.clearTimeout(scrollHideTimeoutRef.current);
+      }
+      if (blurHideTimeoutRef.current !== null) {
+        window.clearTimeout(blurHideTimeoutRef.current);
       }
     };
   }, []);
@@ -146,11 +168,12 @@ export const UnifiedSearchSurface = ({
                 id="navbar-search-input"
                 name="q"
                 ref={inputRef}
-                onBlur={() => {
-                  window.setTimeout(() => onInputBlur(), 120);
-                }}
+                onBlur={scheduleBlurHide}
                 onChange={(event) => setQuery(event.target.value)}
-                onFocus={onInputFocus}
+                onFocus={() => {
+                  clearBlurHide();
+                  onInputFocus();
+                }}
                 placeholder="Search datasets"
                 type="text"
                 value={query}
@@ -232,11 +255,12 @@ export const UnifiedSearchSurface = ({
                 id="dataset-search-input"
                 name="q"
                 ref={inputRef}
-                onBlur={() => {
-                  window.setTimeout(() => onInputBlur(), 120);
-                }}
+                onBlur={scheduleBlurHide}
                 onChange={(event) => setQuery(event.target.value)}
-                onFocus={onInputFocus}
+                onFocus={() => {
+                  clearBlurHide();
+                  onInputFocus();
+                }}
                 placeholder="Search datasets"
                 type="text"
                 value={query}
