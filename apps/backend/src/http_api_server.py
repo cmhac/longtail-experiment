@@ -222,6 +222,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                 HTTPStatus.NOT_FOUND,
                 not_found_error("Session was not found").model_dump(),
             ),
+            "account_not_found": (
+                HTTPStatus.NOT_FOUND,
+                not_found_error("Account was not found").model_dump(),
+            ),
             "invalid_credentials": (
                 HTTPStatus.UNAUTHORIZED,
                 unauthorized_error("Invalid credentials").model_dump(),
@@ -245,14 +249,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
 
         if path == "/api/account/profile":
             principal = self._resolve_auth_principal(service)
-            return HTTPStatus.OK, {
-                "user_id": principal["user_id"],
-                "email": principal["email"],
-                "display_name": principal.get("display_name"),
-                "account_status": principal["account_status"],
-                "is_admin": bool(principal.get("is_admin") or False),
-                "updated_at": datetime.now(tz=UTC).isoformat(),
-            }
+            response = service.get_account_profile(user_id=str(principal["user_id"]))
+            return HTTPStatus.OK, response.model_dump()
 
         if path == "/api/admin/users":
             principal = self._resolve_auth_principal(service)
@@ -312,20 +310,19 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             response_payload = None
         elif path == "/api/account/password":
             principal = self._resolve_auth_principal(service)
-            service.repository.revoke_all_sessions_for_user(
-                user_id=str(principal["user_id"]), reason="password_changed"
+            payload = self._read_json_body()
+            service.change_account_password(
+                user_id=str(principal["user_id"]),
+                current_password=str(payload.get("current_password") or ""),
+                new_password=str(payload.get("new_password") or ""),
             )
             response_status = HTTPStatus.NO_CONTENT
             response_payload = None
         elif path == "/api/account/deletion-request":
             principal = self._resolve_auth_principal(service)
-            deletion_due_at = datetime.now(tz=UTC).replace(microsecond=0).isoformat()
+            response = service.request_account_deletion(user_id=str(principal["user_id"]))
             response_status = HTTPStatus.ACCEPTED
-            response_payload = {
-                "user_id": principal["user_id"],
-                "account_status": "deletion_pending",
-                "deletion_due_at": deletion_due_at,
-            }
+            response_payload = response.model_dump()
         else:
             return None
 
@@ -431,15 +428,12 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         if path == "/api/account/profile":
             principal = self._resolve_auth_principal(service)
             payload = self._read_json_body()
-            display_name = payload.get("display_name")
-            return HTTPStatus.OK, {
-                "user_id": principal["user_id"],
-                "email": principal["email"],
-                "display_name": display_name if isinstance(display_name, str) else None,
-                "account_status": principal["account_status"],
-                "is_admin": bool(principal.get("is_admin") or False),
-                "updated_at": datetime.now(tz=UTC).isoformat(),
-            }
+            display_name_value = payload.get("display_name")
+            response = service.update_account_profile(
+                user_id=str(principal["user_id"]),
+                display_name=(str(display_name_value) if display_name_value is not None else None),
+            )
+            return HTTPStatus.OK, response.model_dump()
 
         if path.startswith("/api/admin/users/") and path.endswith("/status"):
             principal = self._resolve_auth_principal(service)

@@ -13,6 +13,8 @@ from src.contract.query.auth_management_query import (
     AdminUserSummary,
     AuthSessionResponse,
     CurrentUserSummary,
+    DeletionRequestResponse,
+    ProfileResponse,
     SessionListResponse,
     SessionSummary,
 )
@@ -60,6 +62,34 @@ class AuthServiceRepository(Protocol):
 
     def update_password_hash(self, *, user_id: str, password_hash: str) -> None:
         """Rotate the active password hash for a user account."""
+        ...
+
+    def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        display_name: str | None,
+    ) -> dict[str, object] | None:
+        """Update one user's profile fields and return the latest projection."""
+        ...
+
+    def change_password_and_revoke_sessions(
+        self,
+        *,
+        user_id: str,
+        password_hash: str,
+        reason: str,
+    ) -> int:
+        """Rotate password hash and revoke all active sessions atomically."""
+        ...
+
+    def request_account_deletion(
+        self,
+        *,
+        user_id: str,
+        deletion_due_at: str,
+    ) -> dict[str, object] | None:
+        """Transition account lifecycle to deletion pending and return projection."""
         ...
 
     def create_session(
@@ -112,6 +142,7 @@ class AuthManagementService:
     session_ttl: timedelta = timedelta(days=30)
     lockout_threshold: int = 5
     lockout_window: timedelta = timedelta(minutes=15)
+    deletion_retention_window: timedelta = timedelta(days=7)
 
     def register_account(
         self,
@@ -288,6 +319,93 @@ class AuthManagementService:
         ]
         return AdminUserListResponse(items=users)
 
+    def get_account_profile(self, *, user_id: str) -> ProfileResponse:
+        """Return the current user's persisted profile details."""
+        account = self.repository.get_user_by_id(user_id=user_id)
+        if account is None:
+            raise ContractQueryError("account_not_found")
+        return self._profile_response(account)
+
+    def update_account_profile(self, *, user_id: str, display_name: str | None) -> ProfileResponse:
+        """Persist profile updates for the current user and return latest profile."""
+        normalized_display_name = normalize_display_name(display_name)
+        updated = self.repository.update_user_profile(
+            user_id=user_id,
+            display_name=normalized_display_name,
+        )
+        if updated is None:
+            raise ContractQueryError("account_not_found")
+        return self._profile_response(updated)
+
+    def change_account_password(
+        self,
+        *,
+        user_id: str,
+        current_password: str,
+        new_password: str,
+    ) -> None:
+        """Rotate password hash and revoke all active sessions for the account."""
+        account = self.repository.get_user_by_id(user_id=user_id)
+        if account is None:
+            raise ContractQueryError("account_not_found")
+
+        ensure_account_active(str(account["account_status"]))
+
+        if not self._verify_password(current_password, str(account.get("password_hash") or "")):
+            raise ContractQueryError("invalid_credentials")
+
+        validate_password_strength(new_password)
+        revoked_count = self.repository.change_password_and_revoke_sessions(
+            user_id=user_id,
+            password_hash=self._hash_password(new_password),
+            reason="password_changed",
+        )
+        self.repository.write_audit_event(
+            event_type="password_changed",
+            user_id=user_id,
+            actor_user_id=user_id,
+            event_context={"revoked_session_count": revoked_count},
+        )
+
+    def request_account_deletion(self, *, user_id: str) -> DeletionRequestResponse:
+        """Mark account for deletion and revoke all active sessions immediately."""
+        account = self.repository.get_user_by_id(user_id=user_id)
+        if account is None:
+            raise ContractQueryError("account_not_found")
+        account_status = str(account.get("account_status") or "")
+        if account_status == "deleted":
+            raise ContractQueryError("account_not_found")
+
+        now = datetime.now(tz=UTC)
+        default_due_at = (now + self.deletion_retention_window).replace(microsecond=0).isoformat()
+        updated = self.repository.request_account_deletion(
+            user_id=user_id,
+            deletion_due_at=default_due_at,
+        )
+        if updated is None:
+            raise ContractQueryError("account_not_found")
+
+        deletion_due_at = str(updated.get("deletion_due_at") or default_due_at)
+        revoked_count = self.repository.revoke_all_sessions_for_user(
+            user_id=user_id,
+            reason="deletion_requested",
+        )
+        self.repository.write_audit_event(
+            event_type="deletion_requested",
+            user_id=user_id,
+            actor_user_id=user_id,
+            event_context={
+                "deletion_due_at": deletion_due_at,
+                "revoked_session_count": revoked_count,
+            },
+        )
+
+        return DeletionRequestResponse(
+            user_id=user_id,
+            account_status="deletion_pending",
+            deletion_due_at=deletion_due_at,
+        )
+
     def _create_session_response(
         self,
         *,
@@ -321,6 +439,22 @@ class AuthManagementService:
                 is_admin=bool(account.get("is_admin") or False),
             ),
             session=SessionSummary.model_validate(session_payload),
+        )
+
+    @staticmethod
+    def _profile_response(account: dict[str, object]) -> ProfileResponse:
+        return ProfileResponse(
+            user_id=str(account["user_id"]),
+            email=str(account["email"]),
+            display_name=(
+                str(account["display_name"]) if account.get("display_name") is not None else None
+            ),
+            account_status=cast(
+                Literal["active", "deactivated", "deletion_pending", "deleted"],
+                str(account["account_status"]),
+            ),
+            is_admin=bool(account.get("is_admin") or False),
+            updated_at=str(account.get("updated_at") or datetime.now(tz=UTC).isoformat()),
         )
 
     @staticmethod

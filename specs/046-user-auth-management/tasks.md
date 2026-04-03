@@ -87,19 +87,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T033 [P] [US2] Add backend contract tests for profile/password/deletion-request endpoints in apps/backend/tests/contract/test_account_settings_contract.py
-- [ ] T034 [P] [US2] Add backend integration tests for password-change revocation and deletion-pending behavior in apps/backend/tests/integration/test_account_settings_runtime_flows.py
-- [ ] T035 [P] [US2] Add frontend account settings page tests for profile/password/session management in apps/frontend/tests/account-settings-page.test.tsx
+- [x] T033 [P] [US2] Add backend contract tests for profile/password/deletion-request endpoints in apps/backend/tests/contract/test_account_settings_contract.py
+- [x] T034 [P] [US2] Add backend integration tests for password-change revocation and deletion-pending behavior in apps/backend/tests/integration/test_account_settings_runtime_flows.py
+- [x] T035 [P] [US2] Add frontend account settings page tests for profile/password/session management in apps/frontend/tests/account-settings-page.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T036 [US2] Implement backend account profile read/update and password change service methods in apps/backend/src/query/auth_management_service.py
-- [ ] T037 [US2] Implement backend deletion-request lifecycle transition logic in apps/backend/src/query/auth_management_service.py
-- [ ] T038 [US2] Implement backend password-change all-session revocation flow in apps/backend/src/query/auth_management_persisted_repository.py
-- [ ] T039 [P] [US2] Create shared frontend account settings components with HeroUI in apps/frontend/src/components/account/AccountSettingsForm.tsx
-- [ ] T040 [P] [US2] Create frontend account settings route page in apps/frontend/src/app/settings/page.tsx
-- [ ] T041 [US2] Add frontend account settings API route handlers in apps/frontend/src/app/api/account/profile/route.ts
-- [ ] T042 [US2] Add frontend password and deletion-request API route handlers in apps/frontend/src/app/api/account/password/route.ts
+- [x] T036 [US2] Implement backend account profile read/update and password change service methods in apps/backend/src/query/auth_management_service.py
+- [x] T037 [US2] Implement backend deletion-request lifecycle transition logic in apps/backend/src/query/auth_management_service.py
+- [x] T038 [US2] Implement backend password-change all-session revocation flow in apps/backend/src/query/auth_management_persisted_repository.py
+- [x] T039 [P] [US2] Create shared frontend account settings components with HeroUI in apps/frontend/src/components/account/AccountSettingsForm.tsx
+- [x] T040 [P] [US2] Create frontend account settings route page in apps/frontend/src/app/settings/page.tsx
+- [x] T041 [US2] Add frontend account settings API route handlers in apps/frontend/src/app/api/account/profile/route.ts
+- [x] T042 [US2] Add frontend password and deletion-request API route handlers in apps/frontend/src/app/api/account/password/route.ts
 
 **Checkpoint**: US2 is independently functional and testable.
 

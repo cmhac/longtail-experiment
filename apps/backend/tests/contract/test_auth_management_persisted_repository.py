@@ -141,6 +141,10 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
         lockout_until=None,
     )
     repository.update_password_hash(user_id=str(account["user_id"]), password_hash="hash2")
+    updated_profile = repository.update_user_profile(
+        user_id=str(account["user_id"]),
+        display_name="Updated User",
+    )
     created_session = repository.create_session(
         user_id=str(account["user_id"]),
         expires_at=datetime.now(tz=UTC).isoformat(),
@@ -158,6 +162,15 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
         user_id=str(account["user_id"]),
         reason="all",
     )
+    password_revoked_count = repository.change_password_and_revoke_sessions(
+        user_id=str(account["user_id"]),
+        password_hash="hash3",
+        reason="password_changed",
+    )
+    deletion_pending = repository.request_account_deletion(
+        user_id=str(account["user_id"]),
+        deletion_due_at=datetime.now(tz=UTC).isoformat(),
+    )
     admin_users = repository.list_admin_users()
     repository.write_audit_event(
         event_type="sign_in_success",
@@ -168,10 +181,13 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
 
     assert by_email is not None
     assert by_id is not None
+    assert updated_profile is not None
     assert active_session is not None
     assert sessions[0]["session_status"] == "active"
     assert revoked is True
     expected_revoked_count = 2
     assert revoked_count == expected_revoked_count
+    assert password_revoked_count == expected_revoked_count
+    assert deletion_pending is not None
     assert admin_users[0]["is_admin"] is True
     assert len(connection.executed) > 0

@@ -269,6 +269,117 @@ class PersistedAuthManagementRepository:
                 },
             )
 
+    def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        display_name: str | None,
+    ) -> dict[str, object] | None:
+        """Update one user's display name and return the latest projection."""
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE user_accounts
+                    SET
+                        display_name = :display_name,
+                        updated_at = :updated_at
+                    WHERE id = :user_id
+                    """
+                ),
+                {
+                    "display_name": display_name,
+                    "updated_at": datetime.now(tz=UTC),
+                    "user_id": UUID(user_id),
+                },
+            )
+        return self.get_user_by_id(user_id=user_id)
+
+    def change_password_and_revoke_sessions(
+        self,
+        *,
+        user_id: str,
+        password_hash: str,
+        reason: str,
+    ) -> int:
+        """Rotate password hash and revoke all active sessions in one transaction."""
+        now = datetime.now(tz=UTC)
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE credential_records
+                    SET
+                        password_hash = :password_hash,
+                        password_changed_at = :password_changed_at,
+                        updated_at = :updated_at
+                    WHERE user_id = :user_id
+                      AND credential_status = 'active'
+                    """
+                ),
+                {
+                    "password_hash": password_hash,
+                    "password_changed_at": now,
+                    "updated_at": now,
+                    "user_id": UUID(user_id),
+                },
+            )
+            rows = connection.execute(
+                text(
+                    """
+                    UPDATE auth_sessions
+                    SET
+                        session_status = 'revoked',
+                        revoked_at = :revoked_at,
+                        revoked_reason = :revoked_reason
+                    WHERE user_id = :user_id
+                      AND session_status = 'active'
+                    """
+                ),
+                {
+                    "revoked_at": now,
+                    "revoked_reason": reason,
+                    "user_id": UUID(user_id),
+                },
+            )
+        return int(rows.rowcount or 0)
+
+    def request_account_deletion(
+        self,
+        *,
+        user_id: str,
+        deletion_due_at: str,
+    ) -> dict[str, object] | None:
+        """Transition account to deletion_pending and return updated projection."""
+        now = datetime.now(tz=UTC)
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE user_accounts
+                    SET
+                        account_status = CASE
+                            WHEN account_status = 'deleted' THEN account_status
+                            ELSE 'deletion_pending'
+                        END,
+                        deactivated_at = COALESCE(deactivated_at, :now),
+                        deletion_requested_at = COALESCE(deletion_requested_at, :now),
+                        deletion_due_at = COALESCE(
+                            deletion_due_at,
+                            :deletion_due_at
+                        ),
+                        updated_at = :now
+                    WHERE id = :user_id
+                    """
+                ),
+                {
+                    "now": now,
+                    "deletion_due_at": datetime.fromisoformat(deletion_due_at),
+                    "user_id": UUID(user_id),
+                },
+            )
+        return self.get_user_by_id(user_id=user_id)
+
     def create_session(
         self,
         *,

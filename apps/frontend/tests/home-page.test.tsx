@@ -114,4 +114,38 @@ describe("home page", () => {
     expect(markup).toContain('data-testid="footer-content-container"');
     expect(markup).toContain("shell-footer-mission");
   });
+
+  it("omits summary callout when search summary is unavailable", async () => {
+    vi.spyOn(discoveryClient, "fetchRecentDatasets").mockResolvedValue({
+      items: [],
+      limit: 5,
+      sort: "latest_update_at_desc",
+    });
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockRejectedValue(new Error("down"));
+
+    const element = await HomePage({ searchParams: Promise.resolve({}) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain("Search datasets");
+    expect(markup).not.toContain("48 active datasets from 3 sources.");
+  });
+
+  it("handles missing searchParams promise", async () => {
+    vi.spyOn(discoveryClient, "fetchRecentDatasets").mockResolvedValue({
+      items: [],
+      limit: 5,
+      sort: "latest_update_at_desc",
+    });
+    vi.spyOn(discoveryClient, "fetchSearchSummary").mockResolvedValue({
+      active_dataset_count: 11,
+      active_source_count: 2,
+      generated_at: "2026-03-24T00:00:00Z",
+    });
+
+    const element = await HomePage({});
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain('data-testid="dataset-search-hero"');
+    expect(markup).toContain('value=""');
+  });
 });

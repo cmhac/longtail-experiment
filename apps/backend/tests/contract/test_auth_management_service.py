@@ -87,6 +87,42 @@ class _RepoDouble:
         if user_id in self.users_by_id:
             self.users_by_id[user_id]["password_hash"] = password_hash
 
+    def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        display_name: str | None,
+    ) -> dict[str, object] | None:
+        user = self.users_by_id.get(user_id)
+        if user is None:
+            return None
+        user["display_name"] = display_name
+        user["updated_at"] = datetime.now(tz=UTC).isoformat()
+        return user
+
+    def change_password_and_revoke_sessions(
+        self,
+        *,
+        user_id: str,
+        password_hash: str,
+        reason: str,
+    ) -> int:
+        self.update_password_hash(user_id=user_id, password_hash=password_hash)
+        return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
+
+    def request_account_deletion(
+        self,
+        *,
+        user_id: str,
+        deletion_due_at: str,
+    ) -> dict[str, object] | None:
+        user = self.users_by_id.get(user_id)
+        if user is None:
+            return None
+        user["account_status"] = "deletion_pending"
+        user["deletion_due_at"] = deletion_due_at
+        return user
+
     def create_session(
         self,
         *,

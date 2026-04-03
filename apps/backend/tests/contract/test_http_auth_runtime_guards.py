@@ -139,14 +139,53 @@ class _AuthServiceDouble:
     def revoke_user_session(self, *, user_id: str, session_id: str) -> None:
         return None
 
-    @property
-    def repository(self) -> Any:
-        class _Repository:
-            @staticmethod
-            def revoke_all_sessions_for_user(*, user_id: str, reason: str) -> int:
-                return 1
+    def get_account_profile(self, *, user_id: str) -> Any:
+        class _Response:
+            def model_dump(self) -> dict[str, object]:
+                return {
+                    "user_id": user_id,
+                    "email": "user@example.com",
+                    "display_name": "User",
+                    "account_status": "active",
+                    "is_admin": False,
+                    "updated_at": "2026-04-02T00:00:00+00:00",
+                }
 
-        return _Repository()
+        return _Response()
+
+    def update_account_profile(self, *, user_id: str, display_name: str | None) -> Any:
+        class _Response:
+            def model_dump(self) -> dict[str, object]:
+                return {
+                    "user_id": user_id,
+                    "email": "user@example.com",
+                    "display_name": display_name,
+                    "account_status": "active",
+                    "is_admin": False,
+                    "updated_at": "2026-04-02T00:10:00+00:00",
+                }
+
+        return _Response()
+
+    def change_account_password(
+        self,
+        *,
+        user_id: str,
+        current_password: str,
+        new_password: str,
+    ) -> None:
+        return None
+
+    def request_account_deletion(self, *, user_id: str) -> Any:
+        class _Response:
+            def model_dump(self) -> dict[str, object]:
+                return {
+                    "user_id": user_id,
+                    "account_status": "deletion_pending",
+                    "deletion_due_at": "2026-04-09T00:00:00+00:00",
+                }
+
+        return _Response()
 
 
 @pytest.fixture

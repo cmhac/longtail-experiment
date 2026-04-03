@@ -53,6 +53,12 @@ class SessionListResponse(BaseModel):
     items: list[SessionSummary]
 
 
+class ProfileResponse(CurrentUserSummary):
+    """Authenticated account profile payload."""
+
+    updated_at: str = Field(min_length=1)
+
+
 class RegisterRequest(BaseModel):
     """Registration input payload."""
 

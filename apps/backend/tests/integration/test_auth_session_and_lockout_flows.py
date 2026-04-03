@@ -82,6 +82,36 @@ class _RepoIntegrationDouble:
         self.password_hash = password_hash
         self.user["password_hash"] = password_hash
 
+    def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        display_name: str | None,
+    ) -> dict[str, object] | None:
+        self.user["display_name"] = display_name
+        self.user["updated_at"] = datetime.now(tz=UTC).isoformat()
+        return self.user
+
+    def change_password_and_revoke_sessions(
+        self,
+        *,
+        user_id: str,
+        password_hash: str,
+        reason: str,
+    ) -> int:
+        self.user["password_hash"] = password_hash
+        return 0
+
+    def request_account_deletion(
+        self,
+        *,
+        user_id: str,
+        deletion_due_at: str,
+    ) -> dict[str, object] | None:
+        self.user["account_status"] = "deletion_pending"
+        self.user["deletion_due_at"] = deletion_due_at
+        return self.user
+
     def create_session(
         self,
         *,
