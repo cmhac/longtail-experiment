@@ -22,8 +22,16 @@
 .shell-body {
   margin: 0;
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-  background: linear-gradient(180deg, var(--shell-background) 0%, var(--shell-surface) 100%);
+  background: var(--shell-background);
   color: var(--shell-foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  .shell-root,
+  .shell-body {
+    background: #0f0f0f;
+    color: #f5f5f5;
+  }
 }
 
 a {

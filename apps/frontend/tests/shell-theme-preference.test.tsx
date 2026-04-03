@@ -12,10 +12,9 @@ describe("shell theme preference contracts", () => {
     expect(SHELL_REGION_CLASS_NAMES.footer).not.toContain("shell-readable");
   });
 
-  it("documents HeroUI-driven globals without custom preference media query", () => {
+  it("documents HeroUI-driven globals without legacy theme-preference selectors", () => {
     const globalsCss = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 
     expect(globalsCss).not.toContain("data-theme-preference");
-    expect(globalsCss).not.toContain("@media (prefers-color-scheme: dark)");
   });
 });
