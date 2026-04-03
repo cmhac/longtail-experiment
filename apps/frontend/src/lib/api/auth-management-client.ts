@@ -26,12 +26,13 @@ export class AuthManagementApiError extends Error {
 
 const getApiBaseUrl = (): string => {
   const value = process.env.DISCOVERY_API_BASE_URL;
-
-  if (!value) {
-    throw new Error("Missing DISCOVERY_API_BASE_URL");
+  if (value) {
+    return value.replace(/\/$/, "");
   }
-
-  return value.replace(/\/$/, "");
+  if (typeof window !== "undefined") {
+    return "";
+  }
+  throw new Error("Missing DISCOVERY_API_BASE_URL");
 };
 
 const createUrl = (path: string): string => `${getApiBaseUrl()}${path}`;
@@ -50,6 +51,10 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
     }
 
     throw new AuthManagementApiError(message, response.status, code);
+  }
+
+  if (response.status === 205) {
+    return undefined as T;
   }
 
   if (response.status === 204) {
@@ -72,27 +77,28 @@ const withAuthHeaders = (sessionToken?: string): HeadersInit => {
 };
 
 export const registerAccount = async (payload: RegisterRequest): Promise<AuthSessionResponse> => {
-  const response = await fetch(createUrl("/api/auth/register"), {
+  const response = await fetch(createUrl("/api/auth/sessions"), {
     method: "POST",
     headers: withAuthHeaders(),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ action: "register", ...payload }),
   });
   return parseResponse<AuthSessionResponse>(response);
 };
 
 export const loginAccount = async (payload: LoginRequest): Promise<AuthSessionResponse> => {
-  const response = await fetch(createUrl("/api/auth/login"), {
+  const response = await fetch(createUrl("/api/auth/sessions"), {
     method: "POST",
     headers: withAuthHeaders(),
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ action: "login", ...payload }),
   });
   return parseResponse<AuthSessionResponse>(response);
 };
 
 export const logoutAccount = async (sessionToken: string): Promise<void> => {
-  const response = await fetch(createUrl("/api/auth/logout"), {
+  const response = await fetch(createUrl("/api/auth/sessions"), {
     method: "POST",
     headers: withAuthHeaders(sessionToken),
+    body: JSON.stringify({ action: "logout" }),
   });
   await parseResponse<void>(response);
 };
@@ -106,13 +112,11 @@ export const fetchCurrentSessions = async (sessionToken: string): Promise<Sessio
 };
 
 export const revokeSession = async (sessionToken: string, sessionId: string): Promise<void> => {
-  const response = await fetch(
-    createUrl(`/api/auth/sessions/${encodeURIComponent(sessionId)}/revoke`),
-    {
-      method: "POST",
-      headers: withAuthHeaders(sessionToken),
-    },
-  );
+  const response = await fetch(createUrl("/api/auth/sessions"), {
+    method: "POST",
+    headers: withAuthHeaders(sessionToken),
+    body: JSON.stringify({ action: "revoke", session_id: sessionId }),
+  });
   await parseResponse<void>(response);
 };
 

@@ -268,6 +268,9 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         path: str,
         service: AuthManagementService,
     ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
+        if path == "/api/auth/sessions":
+            return self._dispatch_unified_auth_sessions_post(service=service)
+
         response_status: HTTPStatus
         response_payload: dict[str, object] | None
         if path == "/api/auth/register":
@@ -327,6 +330,56 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             return None
 
         return response_status, response_payload
+
+    def _dispatch_unified_auth_sessions_post(
+        self,
+        *,
+        service: AuthManagementService,
+    ) -> tuple[HTTPStatus, dict[str, object] | None]:
+        payload = self._read_json_body()
+        action = str(payload.get("action") or "").strip().lower()
+
+        if action == "register":
+            response = service.register_account(
+                email=str(payload.get("email") or ""),
+                password=str(payload.get("password") or ""),
+                display_name=(
+                    str(payload["display_name"])
+                    if payload.get("display_name") is not None
+                    else None
+                ),
+                client_metadata={"client_label": self.headers.get("User-Agent", "api-client")},
+            )
+            return HTTPStatus.CREATED, response.model_dump()
+
+        if action == "login":
+            response = service.login(
+                email=str(payload.get("email") or ""),
+                password=str(payload.get("password") or ""),
+                client_metadata={"client_label": self.headers.get("User-Agent", "api-client")},
+            )
+            return HTTPStatus.OK, response.model_dump()
+
+        if action == "logout":
+            principal = self._resolve_auth_principal(service)
+            service.logout(
+                user_id=str(principal["user_id"]),
+                session_id=str(principal["session_id"]),
+            )
+            return HTTPStatus.NO_CONTENT, None
+
+        if action == "revoke":
+            principal = self._resolve_auth_principal(service)
+            session_id = str(payload.get("session_id") or "").strip()
+            if session_id == "":
+                raise ContractQueryError("session_id is required")
+            service.revoke_user_session(
+                user_id=str(principal["user_id"]),
+                session_id=session_id,
+            )
+            return HTTPStatus.NO_CONTENT, None
+
+        raise ContractQueryError("action must be one of register, login, logout, revoke")
 
     def _handle_auth_get_route(self, *, path: str) -> bool:
         if self.auth_service is None:

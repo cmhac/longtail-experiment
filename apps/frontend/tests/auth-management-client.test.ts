@@ -128,7 +128,7 @@ describe("auth-management-client", () => {
     expect(adminUsers.items[0]?.is_admin).toBe(true);
 
     const firstCall = fetchSpy.mock.calls[0]?.[0];
-    expect(String(firstCall)).toContain("/api/auth/register");
+    expect(String(firstCall)).toContain("/api/auth/sessions");
   });
 
   it("supports write calls with auth headers and no-content handling", async () => {
@@ -153,7 +153,8 @@ describe("auth-management-client", () => {
           deletion_due_at: "2026-04-09T00:00:00+00:00",
         }),
       )
-      .mockResolvedValueOnce({ ok: true, status: 204, json: async () => ({}) } as Response);
+      .mockResolvedValueOnce({ ok: true, status: 204, json: async () => ({}) } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 205, json: async () => ({}) } as Response);
 
     await logoutAccount("session-1");
     await revokeSession("session-1", "session-2");
@@ -164,6 +165,11 @@ describe("auth-management-client", () => {
     });
     const deletion = await requestAccountDeletion("session-1");
     await updateAdminUserStatus("session-1", "user-2", { account_status: "deactivated" });
+
+    expect(vi.mocked(globalThis.fetch).mock.calls[0]?.[1]).toMatchObject({
+      method: "POST",
+    });
+    expect(String(vi.mocked(globalThis.fetch).mock.calls[0]?.[0])).toContain("/api/auth/sessions");
 
     expect(updatedProfile.display_name).toBe("Updated");
     expect(deletion.account_status).toBe("deletion_pending");

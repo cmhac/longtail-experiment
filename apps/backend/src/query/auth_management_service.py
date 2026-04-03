@@ -163,14 +163,24 @@ class AuthManagementService:
         ensure_account_active(str(account["account_status"]))
         lockout_until = parse_lockout_until(account.get("lockout_until"))
         now = datetime.now(tz=UTC)
+        failed_sign_in_raw = account.get("failed_sign_in_count")
+        failed_sign_in_count = (
+            int(failed_sign_in_raw) if isinstance(failed_sign_in_raw, int | str) else 0
+        )
+
         if lockout_until is not None and lockout_until > now:
             raise ContractQueryError("account_locked")
 
-        if not self._verify_password(password, str(account.get("password_hash") or "")):
-            failed_sign_in_raw = account.get("failed_sign_in_count")
-            failed_sign_in_count = (
-                int(failed_sign_in_raw) + 1 if isinstance(failed_sign_in_raw, int | str) else 1
+        if lockout_until is not None and lockout_until <= now and failed_sign_in_count > 0:
+            self.repository.update_failed_sign_in(
+                user_id=str(account["user_id"]),
+                failed_sign_in_count=0,
+                lockout_until=None,
             )
+            failed_sign_in_count = 0
+
+        if not self._verify_password(password, str(account.get("password_hash") or "")):
+            failed_sign_in_count += 1
             lockout_expires = (
                 now + self.lockout_window
                 if failed_sign_in_count >= self.lockout_threshold
@@ -181,8 +191,20 @@ class AuthManagementService:
                 failed_sign_in_count=failed_sign_in_count,
                 lockout_until=lockout_expires.isoformat() if lockout_expires else None,
             )
+            if lockout_expires is not None:
+                self.repository.write_audit_event(
+                    event_type="lockout_applied",
+                    user_id=str(account["user_id"]),
+                    actor_user_id=str(account["user_id"]),
+                    event_context={
+                        "failed_sign_in_count": failed_sign_in_count,
+                        "lockout_until": lockout_expires.isoformat(),
+                    },
+                )
+                raise ContractQueryError("account_locked")
+
             self.repository.write_audit_event(
-                event_type=("lockout_applied" if lockout_expires else "sign_in_failure"),
+                event_type="sign_in_failure",
                 user_id=str(account["user_id"]),
                 actor_user_id=str(account["user_id"]),
                 event_context={"failed_sign_in_count": failed_sign_in_count},
