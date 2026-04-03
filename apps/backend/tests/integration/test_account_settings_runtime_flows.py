@@ -25,6 +25,7 @@ class _RepoIntegrationDouble:
             "email_normalized": "user@example.com",
             "display_name": "User",
             "account_status": "active",
+            "privilege_level": "user",
             "failed_sign_in_count": 0,
             "lockout_until": None,
             "password_hash": self.password_hash,
@@ -65,8 +66,12 @@ class _RepoIntegrationDouble:
         self,
         *,
         user_id: str,
+        email: str | None,
         display_name: str | None,
     ) -> dict[str, object] | None:
+        if email is not None:
+            self.user["email"] = email
+            self.user["email_normalized"] = email
         self.user["display_name"] = display_name
         self.user["updated_at"] = datetime.now(tz=UTC).isoformat()
         return self.user
@@ -148,6 +153,15 @@ class _RepoIntegrationDouble:
 
     def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
         return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> dict[str, object] | None:
+        return self.user
 
     def write_audit_event(
         self,

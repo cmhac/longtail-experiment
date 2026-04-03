@@ -1,5 +1,6 @@
 export type AccountStatus = "active" | "deactivated" | "deletion_pending" | "deleted";
 export type SessionStatus = "active" | "revoked" | "expired";
+export type PrivilegeLevel = "user" | "admin" | "owner";
 
 export interface AuthErrorEnvelope {
   error: {
@@ -14,6 +15,7 @@ export interface CurrentUserSummary {
   display_name: string | null;
   account_status: AccountStatus;
   is_admin: boolean;
+  privilege_level: PrivilegeLevel;
 }
 
 export interface SessionSummary {
@@ -45,6 +47,7 @@ export interface LoginRequest {
 }
 
 export interface UpdateProfileRequest {
+  email?: string | null;
   display_name: string | null;
 }
 
@@ -69,6 +72,7 @@ export interface AdminUserSummary {
   display_name: string | null;
   account_status: AccountStatus;
   is_admin: boolean;
+  privilege_level: PrivilegeLevel;
   updated_at: string;
 }
 
@@ -78,4 +82,27 @@ export interface AdminUserListResponse {
 
 export interface UpdateUserStatusRequest {
   account_status: "active" | "deactivated";
+}
+
+export interface UpdateUserRoleRequest {
+  role_action: "grant_admin" | "revoke_admin";
+}
+
+export interface AccountNavigationResponse {
+  account_route: string;
+  show_admin_entry: boolean;
+  admin_route: string | null;
+  role_chip: string | null;
+  privilege_level: PrivilegeLevel;
+}
+
+export interface AdminNavigationItem {
+  item_key: string;
+  label: string;
+  route: string;
+  description: string;
+}
+
+export interface AdminNavigationResponse {
+  items: AdminNavigationItem[];
 }

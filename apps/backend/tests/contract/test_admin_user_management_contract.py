@@ -24,7 +24,7 @@ from src.contract.errors import ContractQueryError
 from src.http_api_server import DatasetApiHandler
 from src.query.dataset_discovery_service import DatasetDiscoveryService
 
-_EXPECTED_ADMIN_USER_COUNT = 2
+_EXPECTED_ADMIN_USER_COUNT = 3
 
 
 class _NoopDiscoveryService:
@@ -40,6 +40,7 @@ class _AuthServiceDouble:
                 "display_name": "Admin",
                 "account_status": "active",
                 "is_admin": True,
+                "privilege_level": "admin",
                 "updated_at": "2026-04-03T00:00:00+00:00",
             },
             "user-1": {
@@ -48,6 +49,16 @@ class _AuthServiceDouble:
                 "display_name": "User",
                 "account_status": "active",
                 "is_admin": False,
+                "privilege_level": "user",
+                "updated_at": "2026-04-03T00:00:00+00:00",
+            },
+            "owner-1": {
+                "user_id": "owner-1",
+                "email": "owner@example.com",
+                "display_name": "Owner",
+                "account_status": "active",
+                "is_admin": True,
+                "privilege_level": "owner",
                 "updated_at": "2026-04-03T00:00:00+00:00",
             },
         }
@@ -62,6 +73,7 @@ class _AuthServiceDouble:
                     "display_name": "Admin",
                     "account_status": "active",
                     "is_admin": True,
+                    "privilege_level": "admin",
                 },
             }
         if session_id == "user-session":
@@ -73,9 +85,26 @@ class _AuthServiceDouble:
                     "display_name": "User",
                     "account_status": "active",
                     "is_admin": False,
+                    "privilege_level": "user",
                 },
             }
         raise ContractQueryError("auth_required")
+
+    def get_admin_navigation(self, *, user_id: str) -> Any:
+        class _Response:
+            def model_dump(self) -> dict[str, object]:
+                return {
+                    "items": [
+                        {
+                            "item_key": "admin_users",
+                            "label": "Users",
+                            "route": "/admin/users",
+                            "description": "Manage account status, sessions, and admin roles.",
+                        }
+                    ]
+                }
+
+        return _Response()
 
     def list_admin_users(self) -> Any:
         class _Response:
@@ -103,6 +132,37 @@ class _AuthServiceDouble:
             **self.admin_users[user_id],
             "account_status": account_status,
             "updated_at": "2026-04-03T00:10:00+00:00",
+        }
+
+        class _Response:
+            def __init__(self, payload: dict[str, object]) -> None:
+                self._payload = payload
+
+            def model_dump(self) -> dict[str, object]:
+                return self._payload
+
+        return _Response(dict(self.admin_users[user_id]))
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> Any:
+        if user_id not in self.admin_users:
+            raise ContractQueryError("account_not_found")
+        if user_id == "owner-1":
+            raise ContractQueryError("owner_role_protected")
+        if role_action not in {"grant_admin", "revoke_admin"}:
+            raise ContractQueryError("role_action must be grant_admin or revoke_admin")
+
+        next_is_admin = role_action == "grant_admin"
+        self.admin_users[user_id] = {
+            **self.admin_users[user_id],
+            "is_admin": next_is_admin,
+            "privilege_level": "admin" if next_is_admin else "user",
+            "updated_at": "2026-04-03T00:20:00+00:00",
         }
 
         class _Response:
@@ -227,3 +287,38 @@ def test_admin_session_revoke_endpoint_contract(
             token="user-session",
         )
     assert forbidden.value.code == HTTPStatus.FORBIDDEN
+
+
+def test_admin_navigation_and_role_update_contract(
+    admin_contract_http_server: tuple[str, int],
+) -> None:
+    host, port = admin_contract_http_server
+
+    navigation_status, navigation_payload = _request(
+        f"http://{host}:{port}/api/admin/navigation",
+        method="GET",
+        token="admin-session",
+    )
+    assert navigation_status == HTTPStatus.OK
+    assert navigation_payload is not None
+    assert navigation_payload["items"][0]["route"] == "/admin/users"
+
+    grant_status, grant_payload = _request(
+        f"http://{host}:{port}/api/admin/users/user-1/role",
+        method="PATCH",
+        payload={"role_action": "grant_admin"},
+        token="admin-session",
+    )
+    assert grant_status == HTTPStatus.OK
+    assert grant_payload is not None
+    assert grant_payload["is_admin"] is True
+    assert grant_payload["privilege_level"] == "admin"
+
+    with pytest.raises(HTTPError) as owner_protected:
+        _request(
+            f"http://{host}:{port}/api/admin/users/owner-1/role",
+            method="PATCH",
+            payload={"role_action": "revoke_admin"},
+            token="admin-session",
+        )
+    assert owner_protected.value.code == HTTPStatus.CONFLICT

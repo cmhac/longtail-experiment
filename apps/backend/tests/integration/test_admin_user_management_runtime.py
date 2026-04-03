@@ -24,6 +24,7 @@ class _RepoIntegrationDouble:
                 "email_normalized": "admin@example.com",
                 "display_name": "Admin",
                 "account_status": "active",
+                "privilege_level": "admin",
                 "failed_sign_in_count": 0,
                 "lockout_until": None,
                 "password_hash": AuthManagementService._hash_password("adminpassword123"),
@@ -36,6 +37,7 @@ class _RepoIntegrationDouble:
                 "email_normalized": "user@example.com",
                 "display_name": "User",
                 "account_status": "active",
+                "privilege_level": "user",
                 "failed_sign_in_count": 0,
                 "lockout_until": None,
                 "password_hash": AuthManagementService._hash_password("userpassword123"),
@@ -78,11 +80,15 @@ class _RepoIntegrationDouble:
         self,
         *,
         user_id: str,
+        email: str | None,
         display_name: str | None,
     ) -> dict[str, object] | None:
         user = self.users.get(user_id)
         if user is None:
             return None
+        if email is not None:
+            user["email"] = email
+            user["email_normalized"] = email
         user["display_name"] = display_name
         user["updated_at"] = datetime.now(tz=UTC).isoformat()
         return user
@@ -141,6 +147,7 @@ class _RepoIntegrationDouble:
                         "display_name": user["display_name"],
                         "account_status": user["account_status"],
                         "is_admin": user["is_admin"],
+                        "privilege_level": user["privilege_level"],
                     },
                 }
         return None
@@ -177,6 +184,7 @@ class _RepoIntegrationDouble:
                 "display_name": user["display_name"],
                 "account_status": user["account_status"],
                 "is_admin": user["is_admin"],
+                "privilege_level": user["privilege_level"],
                 "updated_at": str(user["updated_at"]),
             }
             for user in self.users.values()
@@ -222,11 +230,43 @@ class _RepoIntegrationDouble:
             "display_name": user["display_name"],
             "account_status": user["account_status"],
             "is_admin": user["is_admin"],
+            "privilege_level": user["privilege_level"],
             "updated_at": str(user["updated_at"]),
         }, revoked
 
     def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
         return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> dict[str, object] | None:
+        user = self.users.get(user_id)
+        if user is None:
+            return None
+        if str(user.get("privilege_level") or "user") == "owner":
+            raise ContractQueryError("owner_role_protected")
+        if role_action == "grant_admin":
+            user["is_admin"] = True
+            user["privilege_level"] = "admin"
+        elif role_action == "revoke_admin":
+            user["is_admin"] = False
+            user["privilege_level"] = "user"
+        else:
+            raise ContractQueryError("role_action must be grant_admin or revoke_admin")
+        user["updated_at"] = datetime.now(tz=UTC).isoformat()
+        return {
+            "user_id": user["user_id"],
+            "email": user["email"],
+            "display_name": user["display_name"],
+            "account_status": user["account_status"],
+            "is_admin": user["is_admin"],
+            "privilege_level": user["privilege_level"],
+            "updated_at": str(user["updated_at"]),
+        }
 
     def write_audit_event(
         self,
@@ -291,3 +331,44 @@ def test_admin_can_revoke_target_user_sessions() -> None:
     revoked_count = service.admin_revoke_user_sessions(actor_user_id="admin-1", user_id="user-1")
     assert revoked_count == _EXPECTED_REVOKED_SESSIONS
     assert repo.sessions_by_user["user-1"] == []
+
+
+def test_admin_role_grant_revoke_and_owner_protection() -> None:
+    repo = _RepoIntegrationDouble()
+    repo.users["owner-1"] = {
+        "user_id": "owner-1",
+        "email": "owner@example.com",
+        "email_normalized": "owner@example.com",
+        "display_name": "Owner",
+        "account_status": "active",
+        "privilege_level": "owner",
+        "failed_sign_in_count": 0,
+        "lockout_until": None,
+        "password_hash": AuthManagementService._hash_password("ownerpassword123"),
+        "is_admin": True,
+        "updated_at": datetime.now(tz=UTC).isoformat(),
+    }
+    service = AuthManagementService(repository=repo)
+
+    granted = service.update_admin_user_role(
+        actor_user_id="admin-1",
+        user_id="user-1",
+        role_action="grant_admin",
+    )
+    assert granted.is_admin is True
+    assert granted.privilege_level == "admin"
+
+    revoked = service.update_admin_user_role(
+        actor_user_id="admin-1",
+        user_id="user-1",
+        role_action="revoke_admin",
+    )
+    assert revoked.is_admin is False
+    assert revoked.privilege_level == "user"
+
+    with pytest.raises(ContractQueryError, match="owner_role_protected"):
+        service.update_admin_user_role(
+            actor_user_id="admin-1",
+            user_id="owner-1",
+            role_action="revoke_admin",
+        )

@@ -21,6 +21,7 @@ class _ObservabilityRepoDouble:
                 "email_normalized": "user@example.com",
                 "display_name": "User",
                 "account_status": "active",
+                "privilege_level": "user",
                 "failed_sign_in_count": 0,
                 "lockout_until": None,
                 "password_hash": AuthManagementService._hash_password("verysecure123"),
@@ -47,6 +48,7 @@ class _ObservabilityRepoDouble:
             "email_normalized": email,
             "display_name": display_name,
             "account_status": "active",
+            "privilege_level": "admin" if is_admin else "user",
             "failed_sign_in_count": 0,
             "lockout_until": None,
             "password_hash": password_hash,
@@ -82,11 +84,15 @@ class _ObservabilityRepoDouble:
         self,
         *,
         user_id: str,
+        email: str | None,
         display_name: str | None,
     ) -> dict[str, object] | None:
         user = self.users_by_id.get(user_id)
         if user is None:
             return None
+        if email is not None:
+            user["email"] = email
+            user["email_normalized"] = email
         user["display_name"] = display_name
         user["updated_at"] = datetime.now(tz=UTC).isoformat()
         return user
@@ -146,6 +152,7 @@ class _ObservabilityRepoDouble:
                 "display_name": "User",
                 "account_status": "active",
                 "is_admin": False,
+                "privilege_level": "user",
             },
         }
 
@@ -174,6 +181,7 @@ class _ObservabilityRepoDouble:
                 "display_name": "Admin",
                 "account_status": "active",
                 "is_admin": True,
+                "privilege_level": "admin",
                 "created_at": datetime.now(tz=UTC).isoformat(),
                 "updated_at": datetime.now(tz=UTC).isoformat(),
             }
@@ -190,6 +198,15 @@ class _ObservabilityRepoDouble:
 
     def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
         return 1
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> dict[str, object] | None:
+        return self.users_by_id.get(user_id)
 
     def write_audit_event(
         self,

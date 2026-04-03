@@ -12,6 +12,7 @@ const profile = {
   display_name: "User",
   account_status: "active" as const,
   is_admin: false,
+  privilege_level: "user" as const,
   updated_at: "2026-04-03T00:00:00+00:00",
 };
 
@@ -85,6 +86,32 @@ describe("AccountSettingsForm", () => {
       expect(screen.getByTestId("account-settings-error-message").textContent).toContain(
         "Profile update failed",
       );
+    });
+  });
+
+  it("triggers session invalidation from account sign-out action", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(jsonResponse({ items: [] }))
+        .mockResolvedValueOnce(new Response(null, { status: 204 })),
+    );
+
+    const onSessionInvalidated = vi.fn();
+    render(
+      <AccountSettingsForm
+        initialProfile={profile}
+        onSessionInvalidated={onSessionInvalidated}
+        sessionToken="session-1"
+      />,
+    );
+
+    await screen.findByTestId("account-settings-sign-out-button");
+    fireEvent.click(screen.getByTestId("account-settings-sign-out-button"));
+
+    await waitFor(() => {
+      expect(onSessionInvalidated).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -6,6 +6,11 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { JSX } from "react";
 import { AdminUserTable } from "../../../components/account/AdminUserTable";
+import {
+  PageHeaderSubtitle,
+  PageHeaderTitle,
+  PageHeaderWrapper,
+} from "../../../components/discovery/PageHeader";
 import type {
   AdminUserListResponse,
   AdminUserSummary,
@@ -42,6 +47,7 @@ const AdminUsersPage = (): JSX.Element => {
   const [users, setUsers] = useState<AdminUserSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingUserId, setIsUpdatingUserId] = useState<string | null>(null);
+  const [isUpdatingRoleUserId, setIsUpdatingRoleUserId] = useState<string | null>(null);
   const [isRevokingUserId, setIsRevokingUserId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -149,14 +155,44 @@ const AdminUsersPage = (): JSX.Element => {
     }
   };
 
+  const handleToggleAdminRole = async (user: AdminUserSummary): Promise<void> => {
+    setIsUpdatingRoleUserId(user.user_id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: authHeaders((session as AuthSessionState).sessionToken),
+        body: JSON.stringify({
+          user_id: user.user_id,
+          role_action: user.is_admin ? "revoke_admin" : "grant_admin",
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(await parseApiErrorMessage(response, "Unable to update user role."));
+      }
+      const updated = (await response.json()) as AdminUserSummary;
+      setUsers((previous) =>
+        previous.map((item) => (item.user_id === updated.user_id ? updated : item)),
+      );
+      setSuccessMessage(
+        `${updated.is_admin ? "Granted" : "Revoked"} admin role for ${updated.email}.`,
+      );
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to update user role.");
+    } finally {
+      setIsUpdatingRoleUserId(null);
+    }
+  };
+
   return (
     <SitePageFrame activeTab="datasets" mainClassName="grid gap-4" mainTestId="admin-users-page">
-      <Card className="grid gap-1 p-5">
-        <h1 className="font-semibold text-2xl">Admin users</h1>
-        <p className="text-default-600 text-sm">
-          Review account status and revoke active sessions for any user.
-        </p>
-      </Card>
+      <PageHeaderWrapper testId="admin-users-page-header">
+        <PageHeaderTitle>Admin users</PageHeaderTitle>
+        <PageHeaderSubtitle>
+          Review account status, roles, and revoke active sessions for any user.
+        </PageHeaderSubtitle>
+      </PageHeaderWrapper>
 
       {isLoading ? <Card className="p-5">Loading user management...</Card> : null}
       {errorMessage ? (
@@ -170,8 +206,12 @@ const AdminUsersPage = (): JSX.Element => {
           users={users}
           isUpdatingUserId={isUpdatingUserId}
           isRevokingUserId={isRevokingUserId}
+          isUpdatingRoleUserId={isUpdatingRoleUserId}
           onToggleStatus={(user) => {
             void handleToggleStatus(user);
+          }}
+          onToggleAdminRole={(user) => {
+            void handleToggleAdminRole(user);
           }}
           onRevokeSessions={(user) => {
             void handleRevokeSessions(user);

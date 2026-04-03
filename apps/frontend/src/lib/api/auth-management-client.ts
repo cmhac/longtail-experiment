@@ -1,4 +1,6 @@
 import type {
+  AccountNavigationResponse,
+  AdminNavigationResponse,
   AdminUserListResponse,
   AdminUserSummary,
   AuthErrorEnvelope,
@@ -10,6 +12,7 @@ import type {
   RegisterRequest,
   SessionListResponse,
   UpdateProfileRequest,
+  UpdateUserRoleRequest,
   UpdateUserStatusRequest,
 } from "./auth-management-types";
 
@@ -129,6 +132,16 @@ export const fetchAccountProfile = async (sessionToken: string): Promise<Profile
   return parseResponse<ProfileResponse>(response);
 };
 
+export const fetchAccountNavigation = async (
+  sessionToken: string,
+): Promise<AccountNavigationResponse> => {
+  const response = await fetch(createUrl("/api/account/navigation"), {
+    method: "GET",
+    headers: withAuthHeaders(sessionToken),
+  });
+  return parseResponse<AccountNavigationResponse>(response);
+};
+
 export const updateAccountProfile = async (
   sessionToken: string,
   payload: UpdateProfileRequest,
@@ -171,6 +184,16 @@ export const fetchAdminUsers = async (sessionToken: string): Promise<AdminUserLi
   return parseResponse<AdminUserListResponse>(response);
 };
 
+export const fetchAdminNavigation = async (
+  sessionToken: string,
+): Promise<AdminNavigationResponse> => {
+  const response = await fetch(createUrl("/api/admin/navigation"), {
+    method: "GET",
+    headers: withAuthHeaders(sessionToken),
+  });
+  return parseResponse<AdminNavigationResponse>(response);
+};
+
 export const updateAdminUserStatus = async (
   sessionToken: string,
   userId: string,
@@ -182,6 +205,22 @@ export const updateAdminUserStatus = async (
     body: JSON.stringify({
       user_id: userId,
       account_status: payload.account_status,
+    }),
+  });
+  return parseResponse<AdminUserSummary>(response);
+};
+
+export const updateAdminUserRole = async (
+  sessionToken: string,
+  userId: string,
+  payload: UpdateUserRoleRequest,
+): Promise<AdminUserSummary> => {
+  const response = await fetch(createUrl("/api/admin/users"), {
+    method: "PATCH",
+    headers: withAuthHeaders(sessionToken),
+    body: JSON.stringify({
+      user_id: userId,
+      role_action: payload.role_action,
     }),
   });
   return parseResponse<AdminUserSummary>(response);

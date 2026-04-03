@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   AuthManagementApiError,
   changeAccountPassword,
+  fetchAccountNavigation,
   fetchAccountProfile,
+  fetchAdminNavigation,
   fetchAdminUsers,
   fetchCurrentSessions,
   loginAccount,
@@ -12,6 +14,7 @@ import {
   requestAccountDeletion,
   revokeSession,
   updateAccountProfile,
+  updateAdminUserRole,
   updateAdminUserStatus,
 } from "../src/lib/api/auth-management-client";
 
@@ -46,6 +49,7 @@ describe("auth-management-client", () => {
             display_name: "User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
           },
           session: {
             session_id: "session-1",
@@ -64,6 +68,7 @@ describe("auth-management-client", () => {
             display_name: "User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
           },
           session: {
             session_id: "session-1",
@@ -94,6 +99,7 @@ describe("auth-management-client", () => {
           display_name: "User",
           account_status: "active",
           is_admin: false,
+          privilege_level: "user",
           updated_at: "2026-04-02T00:00:00+00:00",
         }),
       )
@@ -106,6 +112,7 @@ describe("auth-management-client", () => {
               display_name: "Admin",
               account_status: "active",
               is_admin: true,
+              privilege_level: "admin",
               updated_at: "2026-04-02T00:00:00+00:00",
             },
           ],
@@ -142,6 +149,7 @@ describe("auth-management-client", () => {
           display_name: "Updated",
           account_status: "active",
           is_admin: false,
+          privilege_level: "user",
           updated_at: "2026-04-02T00:00:00+00:00",
         }),
       )
@@ -154,6 +162,17 @@ describe("auth-management-client", () => {
         }),
       )
       .mockResolvedValueOnce({ ok: true, status: 204, json: async () => ({}) } as Response)
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          user_id: "user-2",
+          email: "admin@example.com",
+          display_name: "Admin",
+          account_status: "active",
+          is_admin: false,
+          privilege_level: "user",
+          updated_at: "2026-04-02T00:00:00+00:00",
+        }),
+      )
       .mockResolvedValueOnce({ ok: true, status: 205, json: async () => ({}) } as Response);
 
     await logoutAccount("session-1");
@@ -165,6 +184,9 @@ describe("auth-management-client", () => {
     });
     const deletion = await requestAccountDeletion("session-1");
     await updateAdminUserStatus("session-1", "user-2", { account_status: "deactivated" });
+    const updatedRole = await updateAdminUserRole("session-1", "user-2", {
+      role_action: "revoke_admin",
+    });
 
     expect(vi.mocked(globalThis.fetch).mock.calls[0]?.[1]).toMatchObject({
       method: "POST",
@@ -173,6 +195,38 @@ describe("auth-management-client", () => {
 
     expect(updatedProfile.display_name).toBe("Updated");
     expect(deletion.account_status).toBe("deletion_pending");
+    expect(updatedRole.privilege_level).toBe("user");
+  });
+
+  it("supports account/admin navigation reads", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          account_route: "/settings",
+          show_admin_entry: true,
+          admin_route: "/admin",
+          role_chip: "Admin",
+          privilege_level: "admin",
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          items: [
+            {
+              item_key: "admin_users",
+              label: "Users",
+              route: "/admin/users",
+              description: "Manage account status, sessions, and admin roles.",
+            },
+          ],
+        }),
+      );
+
+    const accountNavigation = await fetchAccountNavigation("session-1");
+    const adminNavigation = await fetchAdminNavigation("session-1");
+
+    expect(accountNavigation.account_route).toBe("/settings");
+    expect(adminNavigation.items[0]?.route).toBe("/admin/users");
   });
 
   it("throws AuthManagementApiError for failed responses", async () => {

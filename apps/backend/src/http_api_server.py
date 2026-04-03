@@ -229,6 +229,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                 HTTPStatus.CONFLICT,
                 conflict_error("Cannot deactivate the final active admin account").model_dump(),
             ),
+            "owner_role_protected": (
+                HTTPStatus.CONFLICT,
+                conflict_error("Owner role assignments cannot be modified").model_dump(),
+            ),
             "invalid_credentials": (
                 HTTPStatus.UNAUTHORIZED,
                 unauthorized_error("Invalid credentials").model_dump(),
@@ -253,6 +257,17 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         if path == "/api/account/profile":
             principal = self._resolve_auth_principal(service)
             response = service.get_account_profile(user_id=str(principal["user_id"]))
+            return HTTPStatus.OK, response.model_dump()
+
+        if path == "/api/account/navigation":
+            principal = self._resolve_auth_principal(service)
+            response = service.get_account_navigation(user_id=str(principal["user_id"]))
+            return HTTPStatus.OK, response.model_dump()
+
+        if path == "/api/admin/navigation":
+            principal = self._resolve_auth_principal(service)
+            self._require_admin(principal)
+            response = service.get_admin_navigation(user_id=str(principal["user_id"]))
             return HTTPStatus.OK, response.model_dump()
 
         if path == "/api/admin/users":
@@ -442,8 +457,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             principal = self._resolve_auth_principal(service)
             payload = self._read_json_body()
             display_name_value = payload.get("display_name")
+            email_value = payload.get("email")
             response = service.update_account_profile(
                 user_id=str(principal["user_id"]),
+                email=(str(email_value) if email_value is not None else None),
                 display_name=(str(display_name_value) if display_name_value is not None else None),
             )
             return HTTPStatus.OK, response.model_dump()
@@ -460,6 +477,21 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
                 actor_user_id=str(principal["user_id"]),
                 user_id=user_id,
                 account_status=cast(Literal["active", "deactivated"], account_status),
+            )
+            return HTTPStatus.OK, response.model_dump()
+
+        if path.startswith("/api/admin/users/") and path.endswith("/role"):
+            principal = self._resolve_auth_principal(service)
+            self._require_admin(principal)
+            user_id = path.split("/")[-2]
+            payload = self._read_json_body()
+            role_action = str(payload.get("role_action") or "")
+            if role_action not in {"grant_admin", "revoke_admin"}:
+                raise ContractQueryError("role_action must be grant_admin or revoke_admin")
+            response = service.update_admin_user_role(
+                actor_user_id=str(principal["user_id"]),
+                user_id=user_id,
+                role_action=cast(Literal["grant_admin", "revoke_admin"], role_action),
             )
             return HTTPStatus.OK, response.model_dump()
 

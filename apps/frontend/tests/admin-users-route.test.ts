@@ -58,6 +58,29 @@ describe("admin users route", () => {
     expect(patchResponse.status).toBe(200);
   });
 
+  it("routes role-action PATCH payloads to role endpoint", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ user_id: "user-1", is_admin: true }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const response = await PATCH(
+      new NextRequest("http://localhost/api/admin/users", {
+        method: "PATCH",
+        body: JSON.stringify({ user_id: "user-1", role_action: "grant_admin" }),
+        headers: { authorization: "Bearer admin-session", "content-type": "application/json" },
+      }),
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "http://backend:8080/api/admin/users/user-1/role",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+    expect(response.status).toBe(200);
+  });
+
   it("validates PATCH and POST payloads", async () => {
     const missingUserIdPatch = await PATCH(
       new NextRequest("http://localhost/api/admin/users", {

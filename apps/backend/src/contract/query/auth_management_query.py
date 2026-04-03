@@ -28,6 +28,7 @@ class CurrentUserSummary(BaseModel):
     display_name: str | None = None
     account_status: Literal["active", "deactivated", "deletion_pending", "deleted"]
     is_admin: bool
+    privilege_level: Literal["user", "admin", "owner"]
 
 
 class SessionSummary(BaseModel):
@@ -77,6 +78,7 @@ class LoginRequest(BaseModel):
 class UpdateProfileRequest(BaseModel):
     """Profile update input payload."""
 
+    email: str | None = Field(default=None, min_length=3)
     display_name: str | None = Field(default=None, max_length=255)
 
 
@@ -103,7 +105,33 @@ class AdminUserSummary(BaseModel):
     display_name: str | None = None
     account_status: Literal["active", "deactivated", "deletion_pending", "deleted"]
     is_admin: bool
+    privilege_level: Literal["user", "admin", "owner"]
     updated_at: str = Field(min_length=1)
+
+
+class AccountNavigationResponse(BaseModel):
+    """Account-surface navigation metadata for authenticated user UI."""
+
+    account_route: str = Field(min_length=1)
+    show_admin_entry: bool
+    admin_route: str | None = None
+    role_chip: str | None = None
+    privilege_level: Literal["user", "admin", "owner"]
+
+
+class AdminNavigationItem(BaseModel):
+    """One admin-only navigation destination item."""
+
+    item_key: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    route: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+
+
+class AdminNavigationResponse(BaseModel):
+    """Ordered admin-only destination list."""
+
+    items: list[AdminNavigationItem]
 
 
 class AdminUserListResponse(BaseModel):
@@ -116,6 +144,12 @@ class UpdateUserStatusRequest(BaseModel):
     """Admin account-status update payload."""
 
     account_status: Literal["active", "deactivated"]
+
+
+class UpdateUserRoleRequest(BaseModel):
+    """Admin role-governance update payload."""
+
+    role_action: Literal["grant_admin", "revoke_admin"]
 
 
 def auth_error(code: str, message: str) -> AuthErrorEnvelope:

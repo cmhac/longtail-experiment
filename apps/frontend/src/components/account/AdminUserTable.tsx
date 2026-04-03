@@ -9,16 +9,20 @@ interface AdminUserTableProps {
   users: AdminUserSummary[];
   isUpdatingUserId: string | null;
   isRevokingUserId: string | null;
+  isUpdatingRoleUserId: string | null;
   onToggleStatus: (user: AdminUserSummary) => void;
   onRevokeSessions: (user: AdminUserSummary) => void;
+  onToggleAdminRole: (user: AdminUserSummary) => void;
 }
 
 export const AdminUserTable = ({
   users,
   isUpdatingUserId,
   isRevokingUserId,
+  isUpdatingRoleUserId,
   onToggleStatus,
   onRevokeSessions,
+  onToggleAdminRole,
 }: AdminUserTableProps): JSX.Element => {
   if (users.length === 0) {
     return <Card className="p-4 text-default-600 text-sm">No users found.</Card>;
@@ -42,14 +46,25 @@ export const AdminUserTable = ({
             {users.map((user) => {
               const isUpdating = isUpdatingUserId === user.user_id;
               const isRevoking = isRevokingUserId === user.user_id;
+              const isUpdatingRole = isUpdatingRoleUserId === user.user_id;
               const nextStatus = user.account_status === "active" ? "deactivated" : "active";
               const nextActionLabel = nextStatus === "deactivated" ? "Deactivate" : "Reactivate";
+              const isOwner = user.privilege_level === "owner";
+              const roleActionLabel = user.is_admin ? "Revoke admin" : "Grant admin";
 
               return (
                 <Table.Row key={user.user_id} id={user.user_id}>
                   <Table.Cell>
                     <div className="grid gap-1" data-testid={`admin-user-row-${user.user_id}`}>
                       <p className="font-medium text-sm">{user.display_name ?? user.email}</p>
+                      {user.privilege_level !== "user" ? (
+                        <p
+                          className="text-default-500 text-xs"
+                          data-testid={`admin-user-role-${user.user_id}`}
+                        >
+                          {user.privilege_level}
+                        </p>
+                      ) : null}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
@@ -67,7 +82,7 @@ export const AdminUserTable = ({
                     <div className="flex flex-wrap items-center justify-end gap-2">
                       <Button
                         data-testid={`admin-user-status-toggle-${user.user_id}`}
-                        isDisabled={isUpdating || isRevoking}
+                        isDisabled={isUpdating || isRevoking || isUpdatingRole}
                         size="sm"
                         variant="secondary"
                         onPress={() => onToggleStatus(user)}
@@ -75,8 +90,21 @@ export const AdminUserTable = ({
                         {isUpdating ? "Saving..." : nextActionLabel}
                       </Button>
                       <Button
+                        data-testid={`admin-user-role-toggle-${user.user_id}`}
+                        isDisabled={isUpdating || isRevoking || isUpdatingRole || isOwner}
+                        size="sm"
+                        variant="outline"
+                        onPress={() => onToggleAdminRole(user)}
+                      >
+                        {isUpdatingRole
+                          ? "Saving role..."
+                          : isOwner
+                            ? "Owner protected"
+                            : roleActionLabel}
+                      </Button>
+                      <Button
                         data-testid={`admin-user-revoke-${user.user_id}`}
-                        isDisabled={isUpdating || isRevoking}
+                        isDisabled={isUpdating || isRevoking || isUpdatingRole}
                         size="sm"
                         variant="danger-soft"
                         onPress={() => onRevokeSessions(user)}

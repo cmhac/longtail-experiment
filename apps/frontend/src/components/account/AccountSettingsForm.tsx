@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card, Input } from "@heroui/react";
+import Link from "next/link";
 import * as React from "react";
 import type { JSX } from "react";
 import type {
@@ -41,6 +42,7 @@ export const AccountSettingsForm = ({
 }: AccountSettingsFormProps): JSX.Element => {
   const passwordHintId = React.useId();
   const [profile, setProfile] = React.useState<ProfileResponse>(initialProfile);
+  const [emailInput, setEmailInput] = React.useState(initialProfile.email);
   const [displayNameInput, setDisplayNameInput] = React.useState(initialProfile.display_name ?? "");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
@@ -49,6 +51,7 @@ export const AccountSettingsForm = ({
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
   const [isChangingPassword, setIsChangingPassword] = React.useState(false);
   const [isRequestingDeletion, setIsRequestingDeletion] = React.useState(false);
+  const [isSigningOut, setIsSigningOut] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
@@ -97,6 +100,7 @@ export const AccountSettingsForm = ({
     setIsSavingProfile(true);
     try {
       const payload: UpdateProfileRequest = {
+        email: emailInput.trim(),
         display_name: displayNameInput.trim() === "" ? null : displayNameInput.trim(),
       };
       const response = await fetch("/api/account/profile", {
@@ -113,12 +117,32 @@ export const AccountSettingsForm = ({
       }
       const updated = (await response.json()) as ProfileResponse;
       setProfile(updated);
+      setEmailInput(updated.email);
       setDisplayNameInput(updated.display_name ?? "");
       setSuccessMessage("Profile updated.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to update profile.");
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const handleSignOut = async (): Promise<void> => {
+    if (isSigningOut) {
+      return;
+    }
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setIsSigningOut(true);
+    try {
+      await fetch("/api/auth/sessions", {
+        method: "POST",
+        headers: withAuthHeaders(sessionToken),
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } finally {
+      setIsSigningOut(false);
+      onSessionInvalidated();
     }
   };
 
@@ -225,7 +249,11 @@ export const AccountSettingsForm = ({
         >
           <label className="grid gap-1 text-sm" htmlFor="account-settings-email-input">
             <span>Email</span>
-            <Input id="account-settings-email-input" readOnly value={profile.email} />
+            <Input
+              id="account-settings-email-input"
+              value={emailInput}
+              onChange={(event) => setEmailInput(event.target.value)}
+            />
           </label>
           <label className="grid gap-1 text-sm" htmlFor="account-settings-display-name-input">
             <span>Display name</span>
@@ -235,6 +263,20 @@ export const AccountSettingsForm = ({
               onChange={(event) => setDisplayNameInput(event.target.value)}
             />
           </label>
+          {(profile.privilege_level === "admin" || profile.privilege_level === "owner") && (
+            <p className="text-default-600 text-xs" data-testid="account-settings-role-chip">
+              {profile.privilege_level === "owner" ? "Owner" : "Admin"}
+            </p>
+          )}
+          {(profile.privilege_level === "admin" || profile.privilege_level === "owner") && (
+            <Link
+              className="text-primary text-sm"
+              data-testid="account-settings-admin-link"
+              href="/admin"
+            >
+              Open admin pages
+            </Link>
+          )}
           <Button
             data-testid="account-settings-profile-submit"
             isDisabled={!profileCanSubmit}
@@ -354,6 +396,16 @@ export const AccountSettingsForm = ({
           }}
         >
           {isRequestingDeletion ? "Submitting..." : "Request account deletion"}
+        </Button>
+        <Button
+          data-testid="account-settings-sign-out-button"
+          isDisabled={isSigningOut}
+          variant="danger-soft"
+          onPress={() => {
+            void handleSignOut();
+          }}
+        >
+          {isSigningOut ? "Signing out..." : "Sign out"}
         </Button>
       </Card>
 

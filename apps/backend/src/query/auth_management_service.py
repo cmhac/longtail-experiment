@@ -9,6 +9,9 @@ from typing import Literal, Protocol, cast
 
 from src.contract.errors import ContractQueryError
 from src.contract.query.auth_management_query import (
+    AccountNavigationResponse,
+    AdminNavigationItem,
+    AdminNavigationResponse,
     AdminUserListResponse,
     AdminUserSummary,
     AuthSessionResponse,
@@ -23,6 +26,7 @@ from .auth_management_validators import (
     ensure_account_active,
     normalize_display_name,
     normalize_email,
+    normalize_optional_email,
     parse_lockout_until,
     validate_password_strength,
 )
@@ -68,6 +72,7 @@ class AuthServiceRepository(Protocol):
         self,
         *,
         user_id: str,
+        email: str | None,
         display_name: str | None,
     ) -> dict[str, object] | None:
         """Update one user's profile fields and return the latest projection."""
@@ -134,6 +139,16 @@ class AuthServiceRepository(Protocol):
 
     def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
         """Revoke every active session for a target user from admin workflows."""
+        ...
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: Literal["grant_admin", "revoke_admin"],
+    ) -> dict[str, object] | None:
+        """Apply admin role changes for target users with owner safeguards."""
         ...
 
     def write_audit_event(
@@ -333,6 +348,52 @@ class AuthManagementService:
         ]
         return AdminUserListResponse(items=users)
 
+    def get_account_navigation(self, *, user_id: str) -> AccountNavigationResponse:
+        """Return account-surface navigation metadata for current user."""
+        account = self.repository.get_user_by_id(user_id=user_id)
+        if account is None:
+            raise ContractQueryError("account_not_found")
+
+        privilege_level = cast(
+            Literal["user", "admin", "owner"],
+            str(account.get("privilege_level") or "user"),
+        )
+        show_admin_entry = privilege_level in {"admin", "owner"}
+        if privilege_level == "owner":
+            role_chip = "Owner"
+        elif privilege_level == "admin":
+            role_chip = "Admin"
+        else:
+            role_chip = None
+        return AccountNavigationResponse(
+            account_route="/settings",
+            show_admin_entry=show_admin_entry,
+            admin_route="/admin" if show_admin_entry else None,
+            role_chip=role_chip,
+            privilege_level=privilege_level,
+        )
+
+    def get_admin_navigation(self, *, user_id: str) -> AdminNavigationResponse:
+        """Return ordered admin-only destination list for admins and owners."""
+        account = self.repository.get_user_by_id(user_id=user_id)
+        if account is None:
+            raise ContractQueryError("account_not_found")
+
+        privilege_level = str(account.get("privilege_level") or "user")
+        if privilege_level not in {"admin", "owner"}:
+            raise ContractQueryError("forbidden")
+
+        return AdminNavigationResponse(
+            items=[
+                AdminNavigationItem(
+                    item_key="admin_users",
+                    label="Users",
+                    route="/admin/users",
+                    description="Manage account status, sessions, and admin roles.",
+                )
+            ]
+        )
+
     def update_admin_user_status(
         self,
         *,
@@ -385,6 +446,27 @@ class AuthManagementService:
         )
         return revoked_count
 
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: Literal["grant_admin", "revoke_admin"],
+    ) -> AdminUserSummary:
+        """Apply role-governance updates with owner-protected invariants."""
+        if role_action not in {"grant_admin", "revoke_admin"}:
+            raise ContractQueryError("role_action must be grant_admin or revoke_admin")
+
+        updated = self.repository.update_admin_user_role(
+            actor_user_id=actor_user_id,
+            user_id=user_id,
+            role_action=role_action,
+        )
+        if updated is None:
+            raise ContractQueryError("account_not_found")
+
+        return AdminUserSummary.model_validate(updated)
+
     def get_account_profile(self, *, user_id: str) -> ProfileResponse:
         """Return the current user's persisted profile details."""
         account = self.repository.get_user_by_id(user_id=user_id)
@@ -392,11 +474,19 @@ class AuthManagementService:
             raise ContractQueryError("account_not_found")
         return self._profile_response(account)
 
-    def update_account_profile(self, *, user_id: str, display_name: str | None) -> ProfileResponse:
+    def update_account_profile(
+        self,
+        *,
+        user_id: str,
+        email: str | None,
+        display_name: str | None,
+    ) -> ProfileResponse:
         """Persist profile updates for the current user and return latest profile."""
+        normalized_email = normalize_optional_email(email)
         normalized_display_name = normalize_display_name(display_name)
         updated = self.repository.update_user_profile(
             user_id=user_id,
+            email=normalized_email,
             display_name=normalized_display_name,
         )
         if updated is None:
@@ -503,6 +593,10 @@ class AuthManagementService:
                     str(account["account_status"]),
                 ),
                 is_admin=bool(account.get("is_admin") or False),
+                privilege_level=cast(
+                    Literal["user", "admin", "owner"],
+                    str(account.get("privilege_level") or "user"),
+                ),
             ),
             session=SessionSummary.model_validate(session_payload),
         )
@@ -520,6 +614,10 @@ class AuthManagementService:
                 str(account["account_status"]),
             ),
             is_admin=bool(account.get("is_admin") or False),
+            privilege_level=cast(
+                Literal["user", "admin", "owner"],
+                str(account.get("privilege_level") or "user"),
+            ),
             updated_at=str(account.get("updated_at") or datetime.now(tz=UTC).isoformat()),
         )
 

@@ -29,6 +29,10 @@ class UserAccount(Base):
             name="ck_user_accounts_status",
         ),
         CheckConstraint(
+            "privilege_level IN ('user', 'admin', 'owner')",
+            name="ck_user_accounts_privilege_level",
+        ),
+        CheckConstraint(
             "deletion_due_at IS NULL OR deletion_requested_at IS NOT NULL",
             name="ck_user_accounts_deletion_due_requires_request",
         ),
@@ -42,6 +46,9 @@ class UserAccount(Base):
     email_normalized: Mapped[str] = mapped_column(String(320), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     account_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    privilege_level: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="user"
+    )
     failed_sign_in_count: Mapped[int] = mapped_column(default=0, nullable=False)
     lockout_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -193,7 +200,8 @@ class AccountAuditEvent(Base):
             "event_type IN ("
             "'register', 'sign_in_success', 'sign_in_failure', 'lockout_applied', "
             "'sign_out', 'password_changed', 'session_revoked', 'account_deactivated', "
-            "'account_reactivated', 'deletion_requested', 'account_hard_deleted'"
+            "'account_reactivated', 'deletion_requested', 'account_hard_deleted', "
+            "'admin_granted', 'admin_revoked', 'admin_role_update_denied'"
             ")",
             name="ck_account_audit_events_type",
         ),

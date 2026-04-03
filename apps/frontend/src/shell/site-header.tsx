@@ -243,9 +243,21 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                       <p className="text-default-600 text-xs" data-testid="header-auth-email">
                         {authSession.user.email}
                       </p>
-                      <Link href="/comparison" onClick={() => setIsProfileMenuOpen(false)}>
+                      {authSession.user.privilege_level === "admin" ||
+                      authSession.user.privilege_level === "owner" ? (
+                        <p className="text-default-500 text-xs" data-testid="header-auth-role-chip">
+                          {authSession.user.privilege_level === "owner" ? "Owner" : "Admin"}
+                        </p>
+                      ) : null}
+                      <Link href="/settings" onClick={() => setIsProfileMenuOpen(false)}>
                         Account
                       </Link>
+                      {authSession.user.privilege_level === "admin" ||
+                      authSession.user.privilege_level === "owner" ? (
+                        <Link href="/admin" onClick={() => setIsProfileMenuOpen(false)}>
+                          Admin
+                        </Link>
+                      ) : null}
                       <Button
                         data-testid="header-auth-sign-out"
                         isDisabled={isSigningOut}

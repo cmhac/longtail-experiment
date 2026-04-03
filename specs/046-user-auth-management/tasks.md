@@ -25,19 +25,19 @@
 
 **Critical**: No user story work starts until this phase is complete.
 
-- [ ] T006 Extend auth management DB model for `privilege_level` and owner-protection metadata in `libs/db/src/db/models/auth_management.py`
-- [ ] T007 Add Alembic migration for privilege-level and owner governance schema changes in `libs/db/alembic/versions/0014_owner_privilege_governance.py`
-- [ ] T008 [P] Extend shared repository interfaces for admin role grant/revoke and owner-protected conflict semantics in `libs/db/src/db/repositories/interfaces.py`
-- [ ] T009 [P] Implement shared repository support for admin role grant/revoke and owner immutability checks in `libs/db/src/db/repositories/auth_management_repository.py`
-- [ ] T010 Extend backend auth contract schemas with privilege-level and admin navigation fields in `apps/backend/src/contract/query/auth_management_query.py`
-- [ ] T011 [P] Extend backend validators for role-governance actions and owner-targeted conflict handling in `apps/backend/src/query/auth_management_validators.py`
-- [ ] T012 Implement backend service-layer owner-protection and admin navigation orchestration in `apps/backend/src/query/auth_management_service.py`
-- [ ] T013 [P] Extend backend persisted adapter audit writes for admin grant/revoke and owner-denied attempts in `apps/backend/src/query/auth_management_persisted_repository.py`
-- [ ] T014 Wire new backend endpoints for account navigation, admin navigation, and role updates in `apps/backend/src/http_api_server.py`
-- [ ] T015 [P] Extend frontend auth-management API types with privilege and navigation contracts in `apps/frontend/src/lib/api/auth-management-types.ts`
-- [ ] T016 [P] Extend frontend auth-management API client functions for account/admin navigation and role updates in `apps/frontend/src/lib/api/auth-management-client.ts`
-- [ ] T017 Add foundational backend contract tests for new navigation/role contract envelopes in `apps/backend/tests/contract/test_auth_management_contract_schema.py`
-- [ ] T018 Add foundational backend runtime guard tests for owner-protected role actions in `apps/backend/tests/contract/test_http_auth_runtime_guards.py`
+- [X] T006 Extend auth management DB model for `privilege_level` and owner-protection metadata in `libs/db/src/db/models/auth_management.py`
+- [X] T007 Add Alembic migration for privilege-level and owner governance schema changes in `libs/db/alembic/versions/0014_owner_privilege_governance.py`
+- [X] T008 [P] Extend shared repository interfaces for admin role grant/revoke and owner-protected conflict semantics in `libs/db/src/db/repositories/interfaces.py`
+- [X] T009 [P] Implement shared repository support for admin role grant/revoke and owner immutability checks in `libs/db/src/db/repositories/auth_management_repository.py`
+- [X] T010 Extend backend auth contract schemas with privilege-level and admin navigation fields in `apps/backend/src/contract/query/auth_management_query.py`
+- [X] T011 [P] Extend backend validators for role-governance actions and owner-targeted conflict handling in `apps/backend/src/query/auth_management_validators.py`
+- [X] T012 Implement backend service-layer owner-protection and admin navigation orchestration in `apps/backend/src/query/auth_management_service.py`
+- [X] T013 [P] Extend backend persisted adapter audit writes for admin grant/revoke and owner-denied attempts in `apps/backend/src/query/auth_management_persisted_repository.py`
+- [X] T014 Wire new backend endpoints for account navigation, admin navigation, and role updates in `apps/backend/src/http_api_server.py`
+- [X] T015 [P] Extend frontend auth-management API types with privilege and navigation contracts in `apps/frontend/src/lib/api/auth-management-types.ts`
+- [X] T016 [P] Extend frontend auth-management API client functions for account/admin navigation and role updates in `apps/frontend/src/lib/api/auth-management-client.ts`
+- [X] T017 Add foundational backend contract tests for new navigation/role contract envelopes in `apps/backend/tests/contract/test_auth_management_contract_schema.py`
+- [X] T018 Add foundational backend runtime guard tests for owner-protected role actions in `apps/backend/tests/contract/test_http_auth_runtime_guards.py`
 
 **Checkpoint**: Shared schema/contracts/clients support privilege-level and revised admin/account surfaces.
 
@@ -76,19 +76,19 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T028 [P] [US2] Add backend contract tests for account profile + account navigation endpoints in `apps/backend/tests/contract/test_account_settings_contract.py`
+- [X] T028 [P] [US2] Add backend contract tests for account profile + account navigation endpoints in `apps/backend/tests/contract/test_account_settings_contract.py`
 - [ ] T029 [P] [US2] Add backend integration tests for account self-service updates with revised profile fields in `apps/backend/tests/integration/test_account_settings_runtime_flows.py`
-- [ ] T030 [P] [US2] Add frontend dropdown interaction tests for Account action visibility/routing in `apps/frontend/tests/navbar-profile-dropdown.test.tsx`
-- [ ] T031 [P] [US2] Add frontend account settings page tests for role chip and sign-out action from account page in `apps/frontend/tests/account-settings-page.test.tsx`
+- [X] T030 [P] [US2] Add frontend dropdown interaction tests for Account action visibility/routing in `apps/frontend/tests/navbar-profile-dropdown.test.tsx`
+- [X] T031 [P] [US2] Add frontend account settings page tests for role chip and sign-out action from account page in `apps/frontend/tests/account-settings-page.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Implement backend account navigation endpoint composition in `apps/backend/src/query/auth_management_service.py`
-- [ ] T033 [US2] Wire backend account navigation route in `apps/backend/src/http_api_server.py`
-- [ ] T034 [P] [US2] Add Account action + role-chip display behavior in top-nav profile dropdown in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T035 [P] [US2] Extend account details component for minimal details, role chip, and sign-out action in `apps/frontend/src/components/account/AccountSettingsForm.tsx`
-- [ ] T036 [US2] Update account settings page composition to use shared page header and revised account actions in `apps/frontend/src/app/settings/page.tsx`
-- [ ] T037 [US2] Wire frontend account navigation proxy route in `apps/frontend/src/app/api/account/navigation/route.ts`
+- [X] T032 [US2] Implement backend account navigation endpoint composition in `apps/backend/src/query/auth_management_service.py`
+- [X] T033 [US2] Wire backend account navigation route in `apps/backend/src/http_api_server.py`
+- [X] T034 [P] [US2] Add Account action + role-chip display behavior in top-nav profile dropdown in `apps/frontend/src/shell/site-header.tsx`
+- [X] T035 [P] [US2] Extend account details component for minimal details, role chip, and sign-out action in `apps/frontend/src/components/account/AccountSettingsForm.tsx`
+- [X] T036 [US2] Update account settings page composition to use shared page header and revised account actions in `apps/frontend/src/app/settings/page.tsx`
+- [X] T037 [US2] Wire frontend account navigation proxy route in `apps/frontend/src/app/api/account/navigation/route.ts`
 - [ ] T038 [US2] Verify US2 coverage contribution remains >= 90% for affected frontend/backend projects via updated tests in `apps/frontend/tests/account-settings-page.test.tsx`
 
 **Checkpoint**: US2 is independently functional and testable.
@@ -103,23 +103,23 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T039 [P] [US3] Add backend contract tests for admin navigation and admin role-update endpoints in `apps/backend/tests/contract/test_admin_user_management_contract.py`
-- [ ] T040 [P] [US3] Add backend integration tests for admin grant/revoke and owner-denied role actions in `apps/backend/tests/integration/test_admin_user_management_runtime.py`
-- [ ] T041 [P] [US3] Add frontend admin landing page tests for admin-only navigation listing in `apps/frontend/tests/admin-page.test.tsx`
-- [ ] T042 [P] [US3] Extend frontend admin users page tests for admin grant/revoke and owner-denial behavior in `apps/frontend/tests/admin-users-page.test.tsx`
-- [ ] T043 [P] [US3] Add frontend account page tests for Admin action visibility by role in `apps/frontend/tests/account-settings-page.test.tsx`
+- [X] T039 [P] [US3] Add backend contract tests for admin navigation and admin role-update endpoints in `apps/backend/tests/contract/test_admin_user_management_contract.py`
+- [X] T040 [P] [US3] Add backend integration tests for admin grant/revoke and owner-denied role actions in `apps/backend/tests/integration/test_admin_user_management_runtime.py`
+- [X] T041 [P] [US3] Add frontend admin landing page tests for admin-only navigation listing in `apps/frontend/tests/admin-page.test.tsx`
+- [X] T042 [P] [US3] Extend frontend admin users page tests for admin grant/revoke and owner-denial behavior in `apps/frontend/tests/admin-users-page.test.tsx`
+- [X] T043 [P] [US3] Add frontend account page tests for Admin action visibility by role in `apps/frontend/tests/account-settings-page.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T044 [US3] Implement backend admin navigation service and authorization checks in `apps/backend/src/query/auth_management_service.py`
-- [ ] T045 [US3] Implement backend admin role update flow with owner-protection conflicts in `apps/backend/src/query/auth_management_persisted_repository.py`
-- [ ] T046 [US3] Wire backend admin navigation and role update routes in `apps/backend/src/http_api_server.py`
-- [ ] T047 [P] [US3] Extend admin users table UI with grant/revoke admin controls and owner-state rendering in `apps/frontend/src/components/account/AdminUserTable.tsx`
-- [ ] T048 [P] [US3] Create admin landing page route using shared page-header component in `apps/frontend/src/app/admin/page.tsx`
-- [ ] T049 [US3] Extend admin users page composition for shared page-header consistency in `apps/frontend/src/app/admin/users/page.tsx`
-- [ ] T050 [US3] Add Admin navigation action on account details page with role-based visibility in `apps/frontend/src/components/account/AccountSettingsForm.tsx`
-- [ ] T051 [US3] Add frontend API route handlers for admin navigation and role updates in `apps/frontend/src/app/api/admin/navigation/route.ts`
-- [ ] T052 [US3] Extend frontend admin users API proxy for role update action in `apps/frontend/src/app/api/admin/users/route.ts`
+- [X] T044 [US3] Implement backend admin navigation service and authorization checks in `apps/backend/src/query/auth_management_service.py`
+- [X] T045 [US3] Implement backend admin role update flow with owner-protection conflicts in `apps/backend/src/query/auth_management_persisted_repository.py`
+- [X] T046 [US3] Wire backend admin navigation and role update routes in `apps/backend/src/http_api_server.py`
+- [X] T047 [P] [US3] Extend admin users table UI with grant/revoke admin controls and owner-state rendering in `apps/frontend/src/components/account/AdminUserTable.tsx`
+- [X] T048 [P] [US3] Create admin landing page route using shared page-header component in `apps/frontend/src/app/admin/page.tsx`
+- [X] T049 [US3] Extend admin users page composition for shared page-header consistency in `apps/frontend/src/app/admin/users/page.tsx`
+- [X] T050 [US3] Add Admin navigation action on account details page with role-based visibility in `apps/frontend/src/components/account/AccountSettingsForm.tsx`
+- [X] T051 [US3] Add frontend API route handlers for admin navigation and role updates in `apps/frontend/src/app/api/admin/navigation/route.ts`
+- [X] T052 [US3] Extend frontend admin users API proxy for role update action in `apps/frontend/src/app/api/admin/users/route.ts`
 - [ ] T053 [US3] Verify US3 coverage contribution remains >= 90% for affected frontend/backend projects via updated tests in `apps/backend/tests/integration/test_admin_user_management_runtime.py`
 
 **Checkpoint**: US3 is independently functional and testable.

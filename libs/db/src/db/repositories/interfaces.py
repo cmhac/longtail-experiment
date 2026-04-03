@@ -13,6 +13,7 @@ class ObservationRepository(Protocol):
 
     def upsert_value(self, series_key: str, observed_on: date, value: Decimal) -> None:
         """Insert or replace an observation value."""
+        ...
 
 
 @runtime_checkable
@@ -23,6 +24,7 @@ class ProvenanceRepository(Protocol):
         self, observation_id: str, release_id: str, source_url: str
     ) -> None:
         """Attach release metadata to an observation."""
+        ...
 
 
 @runtime_checkable
@@ -31,6 +33,7 @@ class HierarchyRepository(Protocol):
 
     def get_descendant_ids(self, node_id: str) -> list[str]:
         """Return descendant node ids for category or geography filters."""
+        ...
 
 
 @runtime_checkable
@@ -45,9 +48,11 @@ class DatasetDiscoveryReadRepository(Protocol):
         page_size: int,
     ) -> tuple[list[dict[str, object]], int]:
         """Return paginated dataset search items and total item count."""
+        ...
 
     def list_recent_datasets(self, *, limit: int) -> list[dict[str, object]]:
         """Return recent dataset summaries ordered by recency descending."""
+        ...
 
     def list_catalog_datasets(
         self,
@@ -58,9 +63,11 @@ class DatasetDiscoveryReadRepository(Protocol):
         page_size: int,
     ) -> tuple[list[dict[str, object]], int]:
         """Return paginated catalog items with optional filters and total count."""
+        ...
 
     def get_dataset_detail(self, *, dataset_id: str) -> dict[str, object] | None:
         """Return metadata for one dataset by canonical identifier."""
+        ...
 
     def list_dataset_observations(
         self,
@@ -70,6 +77,7 @@ class DatasetDiscoveryReadRepository(Protocol):
         to_date: date | None,
     ) -> list[dict[str, object]]:
         """Return one dataset's observations in ascending observed date order."""
+        ...
 
 
 @runtime_checkable
@@ -78,12 +86,15 @@ class TrendLifecycleRepository(Protocol):
 
     def upsert_trend_record(self, payload: dict[str, object]) -> str:
         """Insert one trend lifecycle record and return canonical id."""
+        ...
 
     def append_transition(self, payload: dict[str, object]) -> None:
         """Persist one immutable trend lifecycle transition event."""
+        ...
 
     def count_trend_records_for_series(self, *, series_key: str) -> int:
         """Return persisted trend record count for one series."""
+        ...
 
 
 @runtime_checkable
@@ -99,12 +110,15 @@ class AuthManagementRepository(Protocol):
         is_admin: bool,
     ) -> dict[str, object]:
         """Create one account and active credential record."""
+        ...
 
     def get_user_by_email(self, *, email: str) -> dict[str, object] | None:
         """Return one account snapshot by normalized email when present."""
+        ...
 
     def get_user_by_id(self, *, user_id: str) -> dict[str, object] | None:
         """Return one account snapshot by canonical user id when present."""
+        ...
 
     def update_failed_sign_in(
         self,
@@ -114,9 +128,21 @@ class AuthManagementRepository(Protocol):
         lockout_until: str | None,
     ) -> None:
         """Persist updated failed-sign-in and lockout metadata."""
+        ...
 
     def update_password_hash(self, *, user_id: str, password_hash: str) -> None:
         """Rotate active credential hash for one account."""
+        ...
+
+    def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        email: str | None,
+        display_name: str | None,
+    ) -> dict[str, object] | None:
+        """Update one account profile projection and return latest snapshot."""
+        ...
 
     def create_session(
         self,
@@ -126,21 +152,53 @@ class AuthManagementRepository(Protocol):
         client_metadata: dict[str, object] | None,
     ) -> dict[str, object]:
         """Create one active session row and return serialized metadata."""
+        ...
 
     def get_active_session(self, *, session_id: str) -> dict[str, object] | None:
         """Return one active session snapshot when present and not expired."""
+        ...
 
     def list_active_sessions(self, *, user_id: str) -> list[dict[str, object]]:
         """Return active sessions for one account ordered by recency."""
+        ...
 
     def revoke_session(self, *, user_id: str, session_id: str, reason: str) -> bool:
         """Revoke one session for one user and return whether a row changed."""
+        ...
 
     def revoke_all_sessions_for_user(self, *, user_id: str, reason: str) -> int:
         """Revoke all active sessions for one user and return affected row count."""
+        ...
 
     def list_admin_users(self) -> list[dict[str, object]]:
         """Return account snapshots for admin management flows."""
+        ...
+
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: str,
+    ) -> tuple[dict[str, object] | None, int]:
+        """Update account status and return updated account plus revoked sessions."""
+        ...
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> dict[str, object] | None:
+        """Apply admin role update action and return updated account projection."""
+        ...
+
+    def revoke_all_sessions_for_user_as_admin(
+        self, *, user_id: str, reason: str
+    ) -> int:
+        """Revoke all sessions for target user from admin workflows."""
+        ...
 
     def write_audit_event(
         self,
@@ -151,3 +209,4 @@ class AuthManagementRepository(Protocol):
         event_context: dict[str, object] | None,
     ) -> None:
         """Append one immutable audit row for auth/account actions."""
+        ...

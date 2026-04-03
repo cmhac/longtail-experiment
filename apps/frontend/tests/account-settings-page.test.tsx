@@ -44,6 +44,7 @@ describe("account settings page", () => {
           display_name: "User",
           account_status: "active",
           is_admin: false,
+          privilege_level: "user",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -90,6 +91,7 @@ describe("account settings page", () => {
             display_name: "User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
             updated_at: "2026-04-03T00:00:00+00:00",
           });
         }
@@ -99,13 +101,17 @@ describe("account settings page", () => {
         }
 
         if (url === "/api/account/profile" && method === "PATCH") {
-          const parsed = JSON.parse(String(init?.body ?? "{}")) as { display_name: string | null };
+          const parsed = JSON.parse(String(init?.body ?? "{}")) as {
+            email?: string;
+            display_name: string | null;
+          };
           return createJsonResponse({
             user_id: "user-1",
-            email: "user@example.com",
+            email: parsed.email ?? "user@example.com",
             display_name: parsed.display_name,
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
             updated_at: "2026-04-03T00:10:00+00:00",
           });
         }
@@ -132,6 +138,9 @@ describe("account settings page", () => {
 
     await screen.findByTestId("account-settings-profile-form");
 
+    fireEvent.change(getInputById("account-settings-email-input"), {
+      target: { value: "updated@example.com" },
+    });
     fireEvent.change(getInputById("account-settings-display-name-input"), {
       target: { value: "Updated User" },
     });
@@ -165,6 +174,7 @@ describe("account settings page", () => {
             display_name: "User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
             updated_at: "2026-04-03T00:00:00+00:00",
           });
         }
@@ -223,6 +233,7 @@ describe("account settings page", () => {
             display_name: "User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
             updated_at: "2026-04-03T00:00:00+00:00",
           });
         }
@@ -262,6 +273,47 @@ describe("account settings page", () => {
     window.localStorage.clear();
 
     render(<AccountSettingsPage />);
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/login?next=%2Fsettings");
+    });
+  });
+
+  it("signs out from account page action", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method ?? "GET";
+
+        if (url === "/api/account/profile" && method === "GET") {
+          return createJsonResponse({
+            user_id: "user-1",
+            email: "user@example.com",
+            display_name: "User",
+            account_status: "active",
+            is_admin: false,
+            privilege_level: "user",
+            updated_at: "2026-04-03T00:00:00+00:00",
+          });
+        }
+
+        if (url === "/api/auth/sessions" && method === "GET") {
+          return createJsonResponse({ items: [] });
+        }
+
+        if (url === "/api/auth/sessions" && method === "POST") {
+          return new Response(null, { status: 204 });
+        }
+
+        throw new Error(`Unexpected request ${method} ${url}`);
+      }),
+    );
+
+    render(<AccountSettingsPage />);
+    await screen.findByTestId("account-settings-sign-out-button");
+
+    fireEvent.click(screen.getByTestId("account-settings-sign-out-button"));
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith("/login?next=%2Fsettings");
@@ -337,5 +389,52 @@ describe("account settings page", () => {
         "Unable to load account settings.",
       );
     });
+  });
+
+  it("shows admin chip and admin link for admin profiles", async () => {
+    window.localStorage.setItem(
+      "longtail.auth.session",
+      JSON.stringify({
+        sessionToken: "session-auth",
+        user: {
+          user_id: "admin-1",
+          email: "admin@example.com",
+          display_name: "Admin",
+          account_status: "active",
+          is_admin: true,
+          privilege_level: "admin",
+        },
+        restoredAt: "2026-04-03T00:00:00+00:00",
+      }),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method ?? "GET";
+        if (url === "/api/account/profile" && method === "GET") {
+          return createJsonResponse({
+            user_id: "admin-1",
+            email: "admin@example.com",
+            display_name: "Admin",
+            account_status: "active",
+            is_admin: true,
+            privilege_level: "admin",
+            updated_at: "2026-04-03T00:00:00+00:00",
+          });
+        }
+        if (url === "/api/auth/sessions" && method === "GET") {
+          return createJsonResponse({ items: [] });
+        }
+        throw new Error(`Unexpected request ${method} ${url}`);
+      }),
+    );
+
+    render(<AccountSettingsPage />);
+
+    await screen.findByTestId("account-settings-role-chip");
+    expect(screen.getByTestId("account-settings-role-chip").textContent).toContain("Admin");
+    expect(screen.getByTestId("account-settings-admin-link").getAttribute("href")).toBe("/admin");
   });
 });
