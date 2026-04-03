@@ -29,8 +29,7 @@
         "default",
         "^default",
         "workspaceConfig",
-        "pythonAppConfig",
-        "repoContractFiles"
+        "pythonAppConfig"
       ],
       "options": {
         "command": "uv run --project apps/backend pytest apps/backend/tests"
@@ -54,8 +53,7 @@
         "default",
         "^default",
         "workspaceConfig",
-        "pythonAppConfig",
-        "repoContractFiles"
+        "pythonAppConfig"
       ],
       "options": {
         "command": "uv run --project apps/backend pytest apps/backend/tests --cov=apps/backend/src --cov-fail-under=90"
