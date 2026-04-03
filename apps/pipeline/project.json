@@ -32,7 +32,7 @@
         "pythonAppConfig"
       ],
       "options": {
-        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests"
+        "command": "uv run --project apps/pipeline pytest --no-cov apps/pipeline/tests"
       }
     },
     "test:orchestration": {

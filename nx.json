@@ -50,7 +50,6 @@
     },
     "coverage": {
       "inputs": ["default", "^default", "workspaceConfig", "pythonAppConfig"],
-      "parallelism": false,
       "cache": true
     },
     "duplication": {

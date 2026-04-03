@@ -32,7 +32,7 @@
         "pythonAppConfig"
       ],
       "options": {
-        "command": "uv run --project apps/backend pytest libs/db/tests"
+        "command": "uv run --project apps/backend pytest --no-cov libs/db/tests"
       }
     },
     "coverage": {

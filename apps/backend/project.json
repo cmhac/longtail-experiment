@@ -32,7 +32,7 @@
         "pythonAppConfig"
       ],
       "options": {
-        "command": "uv run --project apps/backend pytest apps/backend/tests"
+        "command": "uv run --project apps/backend pytest --no-cov apps/backend/tests"
       }
     },
     "test:discovery-contract": {
