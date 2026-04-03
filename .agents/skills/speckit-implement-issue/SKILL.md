@@ -1,5 +1,5 @@
 ---
-name: speckit-impement-issue
+name: speckit-implement-issue
 description: This agent is assigned a GitHub issue created with the speckit-taskstoissues skill. It implements the issue by writing code, committing changes, and pushing to the repository. The agent should follow the instructions in the issue description and use the tools at its disposal to complete the implementation.
 ---
 
