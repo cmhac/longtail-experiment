@@ -39,6 +39,7 @@ export const AccountSettingsForm = ({
   sessionToken,
   onSessionInvalidated,
 }: AccountSettingsFormProps): JSX.Element => {
+  const passwordHintId = React.useId();
   const [profile, setProfile] = React.useState<ProfileResponse>(initialProfile);
   const [displayNameInput, setDisplayNameInput] = React.useState(initialProfile.display_name ?? "");
   const [currentPassword, setCurrentPassword] = React.useState("");
@@ -212,7 +213,7 @@ export const AccountSettingsForm = ({
 
   return (
     <div className="grid gap-4" data-testid="account-settings-form">
-      <Card className="grid gap-4 p-5">
+      <Card aria-busy={isSavingProfile} className="grid gap-4 p-5">
         <div className="grid gap-1">
           <h2 className="font-semibold text-lg">Profile</h2>
           <p className="text-default-600 text-sm">Keep your account details up to date.</p>
@@ -245,7 +246,7 @@ export const AccountSettingsForm = ({
         </form>
       </Card>
 
-      <Card className="grid gap-4 p-5">
+      <Card aria-busy={isChangingPassword} className="grid gap-4 p-5">
         <div className="grid gap-1">
           <h2 className="font-semibold text-lg">Password</h2>
           <p className="text-default-600 text-sm">
@@ -268,7 +269,11 @@ export const AccountSettingsForm = ({
           </label>
           <label className="grid gap-1 text-sm" htmlFor="account-settings-new-password-input">
             <span>New password</span>
+            <span className="text-default-500 text-xs" id={passwordHintId}>
+              Must be at least 12 characters.
+            </span>
             <Input
+              aria-describedby={passwordHintId}
               id="account-settings-new-password-input"
               type="password"
               value={newPassword}
@@ -286,7 +291,11 @@ export const AccountSettingsForm = ({
         </form>
       </Card>
 
-      <Card className="grid gap-4 p-5" data-testid="account-settings-sessions-card">
+      <Card
+        aria-busy={isLoadingSessions}
+        className="grid gap-4 p-5"
+        data-testid="account-settings-sessions-card"
+      >
         <div className="grid gap-1">
           <h2 className="font-semibold text-lg">Active sessions</h2>
           <p className="text-default-600 text-sm">Revoke any session you do not recognize.</p>
@@ -308,6 +317,7 @@ export const AccountSettingsForm = ({
                     <span className="text-default-500 text-xs">{session.session_id}</span>
                   </div>
                   <Button
+                    aria-label={`Revoke session ${session.client_label ?? session.session_id}`}
                     data-testid={`account-settings-revoke-${session.session_id}`}
                     size="sm"
                     variant="outline"
@@ -348,14 +358,23 @@ export const AccountSettingsForm = ({
       </Card>
 
       {errorMessage ? (
-        <p className="text-danger text-sm" data-testid="account-settings-error-message">
+        <p
+          aria-live="assertive"
+          className="text-danger text-sm"
+          data-testid="account-settings-error-message"
+          role="alert"
+        >
           {errorMessage}
         </p>
       ) : null}
       {successMessage ? (
-        <p className="text-sm text-success" data-testid="account-settings-success-message">
+        <output
+          aria-live="polite"
+          className="text-sm text-success"
+          data-testid="account-settings-success-message"
+        >
           {successMessage}
-        </p>
+        </output>
       ) : null}
     </div>
   );

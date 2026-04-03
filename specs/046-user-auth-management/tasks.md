@@ -133,14 +133,14 @@
 
 **Purpose**: Complete documentation, end-to-end verification, and repository-wide quality gates.
 
-- [ ] T051 [P] Update feature runbook content for auth/account operational flows in docs/runbooks/local-stack-baseline.md
-- [ ] T052 [P] Update AGENTS context and command references if auth/account workflow commands changed in AGENTS.md
-- [ ] T053 Add frontend accessibility pass for auth/account/admin forms and error states in apps/frontend/src/components/account/AccountSettingsForm.tsx
-- [ ] T054 Add backend observability and structured auth audit logging validation tests in apps/backend/tests/contract/test_auth_audit_observability.py
-- [ ] T055 Execute full manual quickstart validation scenarios in specs/046-user-auth-management/quickstart.md
-- [ ] T056 Run pre-commit all-files gate and resolve failures in .pre-commit-config.yaml
-- [ ] T057 Run mandatory full monorepo tests gate in package.json
-- [ ] T058 Run mandatory full monorepo coverage gate in package.json
+- [x] T051 [P] Update feature runbook content for auth/account operational flows in docs/runbooks/local-stack-baseline.md
+- [x] T052 [P] Update AGENTS context and command references if auth/account workflow commands changed in AGENTS.md
+- [x] T053 Add frontend accessibility pass for auth/account/admin forms and error states in apps/frontend/src/components/account/AccountSettingsForm.tsx
+- [x] T054 Add backend observability and structured auth audit logging validation tests in apps/backend/tests/contract/test_auth_audit_observability.py
+- [x] T055 Execute full manual quickstart validation scenarios in specs/046-user-auth-management/quickstart.md
+- [x] T056 Run pre-commit all-files gate and resolve failures in .pre-commit-config.yaml
+- [x] T057 Run mandatory full monorepo tests gate in package.json
+- [x] T058 Run mandatory full monorepo coverage gate in package.json
 
 ---
 

@@ -85,9 +85,37 @@ Dagit is available as a Docker Compose service in this stack. Use `docker compos
 6. Verify discovery runtime is persisted-data-backed (not fixture-backed):
    `DISCOVERY_API_BASE_URL=http://127.0.0.1:8080 bash tools/quality/local-stack/test-discovery-persisted-parity.sh`
 7. Verify quality gates for affected changes:
-   - `pnpm run affected:lint`
-   - `pnpm run affected:test`
-   - `pnpm run affected:coverage`
+    - `pnpm run affected:lint`
+    - `pnpm run affected:test`
+    - `pnpm run affected:coverage`
+
+## Auth And Account Runtime Verification (Feature 046)
+
+Use this flow when validating account auth, settings, and admin oversight behavior against the local stack.
+
+1. Start from clean stack state:
+   - `docker compose down`
+   - `docker compose up -d db backend frontend`
+   - `docker compose ps`
+2. Register and sign in through the frontend routes:
+   - `http://127.0.0.1:3000/register`
+   - `http://127.0.0.1:3000/login`
+3. Validate account settings flow at `http://127.0.0.1:3000/settings`:
+   - Update display name and confirm success banner.
+   - Change password and confirm redirect to login due to session invalidation.
+   - Revoke one active session and confirm only the targeted session is removed.
+   - Submit deletion request and confirm account enters `deletion_pending` state.
+4. Validate admin user management at `http://127.0.0.1:3000/admin/users`:
+   - Verify non-admin users receive forbidden behavior.
+   - Verify admins can deactivate/reactivate users.
+   - Verify deactivation revokes active sessions immediately.
+5. Run auth/account automated checks:
+   - `uv run --project apps/backend pytest apps/backend/tests/contract/test_auth_audit_observability.py`
+   - `pnpm --dir apps/frontend test -- account-settings-page.test.tsx`
+6. Run required monorepo gates before handoff:
+   - `pre-commit run --all-files`
+   - `pnpm exec nx run-many -t test --all`
+   - `pnpm exec nx run-many -t coverage --all`
 
 ## Development-only Warning
 
