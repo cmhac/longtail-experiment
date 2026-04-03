@@ -255,6 +255,8 @@ CRITICAL: each time you finish working on a given task, before you stop work, yo
 
 Once you finish implementing a change, verify it by executing the code in a real-world scenario using the local development environment rather than assuming it works: first run any existing automated tests, then perform manual testing using the most appropriate mechanism for the stack.
 
+When browser automation is needed, use the `use-chrome-browser` skill to drive Rodney consistently. Follow its required first command: `uvx rodney --help` before any other Rodney command.
+
 For example, if you updated an API route, start the local development server and use a CURL command, python script, or other means to send a request to that route and confirm the expected response. If you updated a database migration, run the migration against a local database instance and check the schema changes. If you updated a data processing function, execute it with real input data and verify the output. If you updated a frontend component, start the development server and interact with the UI to confirm the change is reflected as expected. If you updated an orchestration job, run it in the local Dagster environment and check the logs and outputs.
 
 If you encounter any issues during manual testing, fix them immediately and then re-test until the change works as expected in the local environment. Do not skip or rush through this step, as it is critical for catching issues that may not be covered by automated tests and for ensuring that your change works in a realistic scenario.

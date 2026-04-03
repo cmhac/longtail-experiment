@@ -29,6 +29,7 @@ Do not rely on tests and lint/type checks alone. Always execute real runtime beh
 4. If manual testing reveals a defect, fix it and repeat the manual loop.
 5. Add or update automated tests for defects found during manual testing.
 6. Record what you ran and what you observed.
+7. For browser-driven UI flows, use the `use-chrome-browser` skill for Rodney-based interactions.
 
 ## Required Manual Testing Loop
 
@@ -81,9 +82,12 @@ Do not rely on tests and lint/type checks alone. Always execute real runtime beh
 1. Prepare backend data first (pipeline + backend runtime) so UI has realistic data.
 2. Run frontend in local runtime.
 3. Use browser automation tools to open impacted pages and exercise user flows.
-4. Check browser console for runtime errors.
-5. Capture screenshots of impacted views and verify visual/interaction correctness.
-6. Validate loading, empty, and error states relevant to the change.
+4. Prefer the `use-chrome-browser` skill when using Rodney for browser automation.
+   - Follow that skill's mandatory first step: run `uvx rodney --help` before any other Rodney command.
+   - Use Rodney lifecycle commands (`start`/`stop`) to keep sessions explicit and clean.
+5. Check browser console for runtime errors.
+6. Capture screenshots of impacted views and verify visual/interaction correctness.
+7. Validate loading, empty, and error states relevant to the change.
 
 ## Cross-Area Checks
 
