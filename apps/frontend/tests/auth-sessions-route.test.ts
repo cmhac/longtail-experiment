@@ -39,6 +39,21 @@ describe("auth sessions route", () => {
     expect(response.status).toBe(200);
   });
 
+  it("falls back content type for GET when upstream header missing", async () => {
+    const responseDouble = {
+      status: 200,
+      text: async () => JSON.stringify({ items: [] }),
+      headers: {
+        get: () => null,
+      },
+    } as unknown as Response;
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(responseDouble);
+
+    const response = await GET(new NextRequest("http://localhost/api/auth/sessions"));
+
+    expect(response.headers.get("content-type")).toBe("application/json");
+  });
+
   it("proxies POST /api/auth/sessions with payload and no-content passthrough", async () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
@@ -78,6 +93,28 @@ describe("auth sessions route", () => {
     );
     expect(loginResponse.status).toBe(201);
     expect(logoutResponse.status).toBe(204);
+  });
+
+  it("falls back content type for non-204 POST when upstream header missing", async () => {
+    const responseDouble = {
+      status: 201,
+      text: async () => JSON.stringify({ user: {}, session: {} }),
+      headers: {
+        get: () => null,
+      },
+    } as unknown as Response;
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(responseDouble);
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/auth/sessions", {
+        method: "POST",
+        body: JSON.stringify({ action: "login", email: "u@example.com", password: "pw" }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(response.headers.get("content-type")).toBe("application/json");
   });
 
   it("returns 502 on missing config or upstream error", async () => {

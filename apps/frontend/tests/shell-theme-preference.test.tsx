@@ -39,6 +39,12 @@ describe("shell theme preference contracts", () => {
     expect(systemSession.style.colorScheme).toBe("light dark");
   });
 
+  it("uses explicit color scheme for non-system preference", () => {
+    const lightSession = createRootDocumentAttributes("light");
+
+    expect(lightSession.style.colorScheme).toBe("light");
+  });
+
   it("documents device preference media query tokens in globals", () => {
     const globalsCss = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 

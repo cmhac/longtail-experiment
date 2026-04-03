@@ -59,21 +59,21 @@
 
 ### Tests for User Story 1
 
-- [ ] T021 [P] [US1] Add backend contract tests for register/login/logout endpoints in apps/backend/tests/contract/test_auth_endpoints_contract.py
-- [ ] T022 [P] [US1] Add backend integration tests for multi-session creation and lockout enforcement in apps/backend/tests/integration/test_auth_session_and_lockout_flows.py
-- [ ] T023 [P] [US1] Add frontend auth page interaction tests for register/login/logout flows in apps/frontend/tests/auth-page.test.tsx
-- [ ] T024 [P] [US1] Add frontend protected-route restoration tests in apps/frontend/tests/protected-route-session-restore.test.tsx
+- [x] T021 [P] [US1] Add backend contract tests for register/login/logout endpoints in apps/backend/tests/contract/test_auth_endpoints_contract.py
+- [x] T022 [P] [US1] Add backend integration tests for multi-session creation and lockout enforcement in apps/backend/tests/integration/test_auth_session_and_lockout_flows.py
+- [x] T023 [P] [US1] Add frontend auth page interaction tests for register/login/logout flows in apps/frontend/tests/auth-page.test.tsx
+- [x] T024 [P] [US1] Add frontend protected-route restoration tests in apps/frontend/tests/protected-route-session-restore.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T025 [US1] Implement backend register/login/logout/session-list/session-revoke handlers in apps/backend/src/http_api_server.py
-- [ ] T026 [US1] Implement lockout threshold and lockout-window policy logic in apps/backend/src/query/auth_management_service.py
-- [ ] T027 [US1] Implement auth audit event writes for sign-in and sign-out lifecycle in apps/backend/src/query/auth_management_persisted_repository.py
-- [ ] T028 [P] [US1] Create frontend sign-in and registration UI page in apps/frontend/src/app/login/page.tsx
-- [ ] T029 [P] [US1] Create frontend registration route UI page in apps/frontend/src/app/register/page.tsx
-- [ ] T030 [US1] Create frontend protected-route guard helper and redirect behavior in apps/frontend/src/lib/auth/route-guard.ts
-- [ ] T031 [US1] Add header auth actions for signed-in versus signed-out states in apps/frontend/src/shell/site-header.tsx
-- [ ] T032 [US1] Add frontend auth API route handlers for register/login/logout/session list/revoke in apps/frontend/src/app/api/auth/sessions/route.ts
+- [x] T025 [US1] Implement backend register/login/logout/session-list/session-revoke handlers in apps/backend/src/http_api_server.py
+- [x] T026 [US1] Implement lockout threshold and lockout-window policy logic in apps/backend/src/query/auth_management_service.py
+- [x] T027 [US1] Implement auth audit event writes for sign-in and sign-out lifecycle in apps/backend/src/query/auth_management_persisted_repository.py
+- [x] T028 [P] [US1] Create frontend sign-in and registration UI page in apps/frontend/src/app/login/page.tsx
+- [x] T029 [P] [US1] Create frontend registration route UI page in apps/frontend/src/app/register/page.tsx
+- [x] T030 [US1] Create frontend protected-route guard helper and redirect behavior in apps/frontend/src/lib/auth/route-guard.ts
+- [x] T031 [US1] Add header auth actions for signed-in versus signed-out states in apps/frontend/src/shell/site-header.tsx
+- [x] T032 [US1] Add frontend auth API route handlers for register/login/logout/session list/revoke in apps/frontend/src/app/api/auth/sessions/route.ts
 
 **Checkpoint**: US1 is independently functional and testable.
 
