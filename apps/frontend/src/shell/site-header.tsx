@@ -20,8 +20,6 @@ import {
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
-export const SITE_HEADER_VARIANT = "light";
-
 interface SiteHeaderProps {
   activeTab?: NavbarTabKey;
 }
@@ -245,11 +243,49 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                       <p className="text-default-600 text-xs" data-testid="header-auth-email">
                         {authSession.user.email}
                       </p>
-                      <Link href="/comparison" onClick={() => setIsProfileMenuOpen(false)}>
-                        Account
-                      </Link>
+                      {authSession.user.privilege_level === "admin" ||
+                      authSession.user.privilege_level === "owner" ? (
+                        <p className="text-default-500 text-xs" data-testid="header-auth-role-chip">
+                          {authSession.user.privilege_level === "owner" ? "Owner" : "Admin"}
+                        </p>
+                      ) : null}
                       <Button
+                        className="justify-center border border-default-300 bg-default-100 text-foreground dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                        data-testid="header-auth-account-button"
+                        fullWidth
+                        size="sm"
+                        variant="outline"
+                        onPress={() => {
+                          setIsProfileMenuOpen(false);
+                          if (typeof window !== "undefined") {
+                            window.location.assign("/settings");
+                          }
+                        }}
+                      >
+                        Account
+                      </Button>
+                      {authSession.user.privilege_level === "admin" ||
+                      authSession.user.privilege_level === "owner" ? (
+                        <Button
+                          className="justify-center border border-default-300 bg-default-100 text-foreground dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                          data-testid="header-auth-admin-button"
+                          fullWidth
+                          size="sm"
+                          variant="outline"
+                          onPress={() => {
+                            setIsProfileMenuOpen(false);
+                            if (typeof window !== "undefined") {
+                              window.location.assign("/admin");
+                            }
+                          }}
+                        >
+                          Admin
+                        </Button>
+                      ) : null}
+                      <Button
+                        className="justify-center"
                         data-testid="header-auth-sign-out"
+                        fullWidth
                         isDisabled={isSigningOut}
                         size="sm"
                         variant="danger-soft"

@@ -54,6 +54,7 @@ export const PATCH = async (request: NextRequest): Promise<NextResponse> => {
     const payload = (await request.json()) as {
       user_id?: string;
       account_status?: "active" | "deactivated";
+      role_action?: "grant_admin" | "revoke_admin";
     };
     const userId = String(payload.user_id ?? "").trim();
 
@@ -69,19 +70,25 @@ export const PATCH = async (request: NextRequest): Promise<NextResponse> => {
       );
     }
 
-    const response = await fetch(
-      `${backendBaseUrl}/api/admin/users/${encodeURIComponent(userId)}/status`,
-      {
-        method: "PATCH",
-        cache: "no-store",
-        headers: {
-          "content-type": "application/json",
-          accept: "application/json",
-          ...forwardAuthHeader(request),
-        },
-        body: JSON.stringify({ account_status: payload.account_status }),
+    const hasRoleAction =
+      payload.role_action === "grant_admin" || payload.role_action === "revoke_admin";
+    const route = hasRoleAction
+      ? `${backendBaseUrl}/api/admin/users/${encodeURIComponent(userId)}/role`
+      : `${backendBaseUrl}/api/admin/users/${encodeURIComponent(userId)}/status`;
+    const bodyPayload = hasRoleAction
+      ? { role_action: payload.role_action }
+      : { account_status: payload.account_status };
+
+    const response = await fetch(route, {
+      method: "PATCH",
+      cache: "no-store",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        ...forwardAuthHeader(request),
       },
-    );
+      body: JSON.stringify(bodyPayload),
+    });
 
     return passthroughJsonResponse(response);
   } catch {

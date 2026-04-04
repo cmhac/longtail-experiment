@@ -2,98 +2,12 @@
 @import "@heroui/styles";
 
 :root {
-  --background: #f5f5f5;
-  --foreground: #111111;
-  --surface: #ffffff;
-  --surface-foreground: #111111;
-  --overlay: #ffffff;
-  --overlay-foreground: #111111;
-  --border: #d4d4d4;
-  --muted: #404040;
-  --accent: #111111;
-  --accent-foreground: #ffffff;
-  --field-background: #ffffff;
-  --field-foreground: #111111;
-  --field-border: #d4d4d4;
-  --field-placeholder: #737373;
-  --radius: 0.85rem;
-  --shell-background: #f5f5f5;
-  --shell-surface: #ffffff;
-  --shell-border: #d4d4d4;
-  --shell-foreground: #111111;
-  --shell-muted: #404040;
+  --shell-background: var(--background);
+  --shell-surface: var(--default);
+  --shell-border: color-mix(in oklab, var(--foreground) 20%, transparent);
+  --shell-foreground: var(--foreground);
+  --shell-muted: color-mix(in oklab, var(--foreground) 65%, transparent);
   --shell-content-max-width: 74rem;
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f0f;
-    --foreground: #f5f5f5;
-    --surface: #171717;
-    --surface-foreground: #f5f5f5;
-    --overlay: #171717;
-    --overlay-foreground: #f5f5f5;
-    --border: #3f3f46;
-    --muted: #d4d4d8;
-    --accent: #f5f5f5;
-    --accent-foreground: #111111;
-    --field-background: #171717;
-    --field-foreground: #f5f5f5;
-    --field-border: #3f3f46;
-    --field-placeholder: #a1a1aa;
-    --shell-background: #0f0f0f;
-    --shell-surface: #171717;
-    --shell-border: #3f3f46;
-    --shell-foreground: #f5f5f5;
-    --shell-muted: #d4d4d8;
-  }
-}
-
-html[data-theme-preference="light"] {
-  --background: #f5f5f5;
-  --foreground: #111111;
-  --surface: #ffffff;
-  --surface-foreground: #111111;
-  --overlay: #ffffff;
-  --overlay-foreground: #111111;
-  --border: #d4d4d4;
-  --muted: #404040;
-  --accent: #111111;
-  --accent-foreground: #ffffff;
-  --field-background: #ffffff;
-  --field-foreground: #111111;
-  --field-border: #d4d4d4;
-  --field-placeholder: #737373;
-  --shell-background: #f5f5f5;
-  --shell-surface: #ffffff;
-  --shell-border: #d4d4d4;
-  --shell-foreground: #111111;
-  --shell-muted: #404040;
-  color-scheme: light;
-}
-
-html[data-theme-preference="dark"] {
-  --background: #0f0f0f;
-  --foreground: #f5f5f5;
-  --surface: #171717;
-  --surface-foreground: #f5f5f5;
-  --overlay: #171717;
-  --overlay-foreground: #f5f5f5;
-  --border: #3f3f46;
-  --muted: #d4d4d8;
-  --accent: #f5f5f5;
-  --accent-foreground: #111111;
-  --field-background: #171717;
-  --field-foreground: #f5f5f5;
-  --field-border: #3f3f46;
-  --field-placeholder: #a1a1aa;
-  --shell-background: #0f0f0f;
-  --shell-surface: #171717;
-  --shell-border: #3f3f46;
-  --shell-foreground: #f5f5f5;
-  --shell-muted: #d4d4d8;
-  color-scheme: dark;
 }
 
 * {
@@ -108,8 +22,16 @@ html[data-theme-preference="dark"] {
 .shell-body {
   margin: 0;
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-  background: linear-gradient(180deg, var(--shell-background) 0%, var(--shell-surface) 100%);
+  background: var(--shell-background);
   color: var(--shell-foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  .shell-root,
+  .shell-body {
+    background: #0f0f0f;
+    color: #f5f5f5;
+  }
 }
 
 a {
@@ -140,20 +62,6 @@ a {
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-}
-
-.shell-monochrome > [data-slot="base"] {
-  background: var(--shell-surface) !important;
-  border: 1px solid var(--shell-border) !important;
-}
-
-.shell-monochrome > [data-slot="card"] {
-  background: var(--shell-surface) !important;
-  border: 1px solid var(--shell-border) !important;
-}
-
-.shell-readable {
-  color: var(--shell-foreground);
 }
 
 .shell-region-main {
@@ -354,46 +262,6 @@ a {
   color: #f5f5f5;
 }
 
-html[data-theme-preference="dark"] .shell-navbar-comparison-link.is-active {
-  background: #e5e7eb;
-  border-color: #e5e7eb;
-  color: #111111;
-}
-
-html[data-theme-preference="dark"] .shell-navbar-comparison-link.is-active:hover {
-  background: #d1d5db;
-  border-color: #d1d5db;
-}
-
-html[data-theme-preference="dark"]
-  .shell-navbar-comparison-link.is-active
-  .shell-navbar-comparison-count {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #111111;
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme-preference="light"]) .shell-navbar-comparison-link.is-active {
-    background: #e5e7eb;
-    border-color: #e5e7eb;
-    color: #111111;
-  }
-
-  html:not([data-theme-preference="light"]) .shell-navbar-comparison-link.is-active:hover {
-    background: #d1d5db;
-    border-color: #d1d5db;
-  }
-
-  html:not([data-theme-preference="light"])
-    .shell-navbar-comparison-link.is-active
-    .shell-navbar-comparison-count {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-    color: #111111;
-  }
-}
-
 .shell-navbar-dropdown {
   position: absolute;
   top: calc(100% + 0.35rem);
@@ -451,20 +319,6 @@ html[data-theme-preference="dark"]
   color: #f5f5f5;
 }
 
-html[data-theme-preference="dark"] .dataset-detail-action-export {
-  background: #e5e7eb;
-  border-color: #e5e7eb;
-  color: #111111;
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme-preference="light"]) .dataset-detail-action-export {
-    background: #e5e7eb;
-    border-color: #e5e7eb;
-    color: #111111;
-  }
-}
-
 .comparison-controls-card {
   border: 1px solid color-mix(in srgb, var(--shell-border) 88%, transparent);
   background: color-mix(in srgb, var(--shell-surface) 94%, var(--shell-background));
@@ -506,175 +360,6 @@ html[data-theme-preference="dark"] .dataset-detail-action-export {
   border-color: color-mix(in srgb, var(--shell-border) 94%, transparent);
   background: color-mix(in srgb, var(--shell-surface) 86%, var(--shell-background));
   color: var(--shell-foreground);
-}
-
-html[data-theme-preference="dark"] .comparison-controls-card {
-  border-color: #313131;
-  background: #141414;
-}
-
-html[data-theme-preference="dark"] .comparison-control-chip {
-  border-color: #3f3f3f;
-  background: #1d1d1d;
-  color: #f5f5f5;
-}
-
-html[data-theme-preference="dark"] .comparison-control-chip:hover,
-html[data-theme-preference="dark"] .comparison-control-chip[data-hovered="true"] {
-  border-color: #666 !important;
-  background: #2a2a2a !important;
-  color: #fff !important;
-}
-
-html[data-theme-preference="dark"] .comparison-control-select .select__trigger,
-html[data-theme-preference="dark"] .comparison-control-input.input {
-  border-color: #4b4b4b;
-  background: #222222;
-  color: #f5f5f5;
-}
-
-html[data-theme-preference="dark"] .comparison-control-select .select__trigger:hover,
-html[data-theme-preference="dark"] .comparison-control-select .select__trigger[data-hovered="true"],
-html[data-theme-preference="dark"] .comparison-control-input.input:hover,
-html[data-theme-preference="dark"] .comparison-control-input.input[data-hovered="true"] {
-  border-color: #717171 !important;
-  background: #2f2f2f !important;
-  color: #fff !important;
-}
-
-html[data-theme-preference="dark"] .comparison-control-popover.select__popover {
-  border-color: #4b4b4b;
-  background: #161616;
-  color: #f5f5f5;
-}
-
-html[data-theme-preference="dark"] .comparison-control-option {
-  color: #f2f2f2;
-  background: transparent;
-}
-
-html[data-theme-preference="dark"] .comparison-control-option[data-hovered="true"],
-html[data-theme-preference="dark"] .comparison-control-option:hover {
-  color: #ffffff;
-  background: #2b2b2b;
-}
-
-html[data-theme-preference="dark"] .comparison-control-option[data-selected="true"] {
-  color: #111111;
-  background: #e5e7eb;
-}
-
-html[data-theme-preference="dark"]
-  .comparison-control-option[data-selected="true"]
-  .list-box-item__indicator {
-  color: #111111;
-}
-
-html[data-theme-preference="dark"] .comparison-control-select .select__trigger:hover .select__value,
-html[data-theme-preference="dark"]
-  .comparison-control-select
-  .select__trigger[data-hovered="true"]
-  .select__value {
-  color: #fff !important;
-}
-
-html[data-theme-preference="dark"]
-  .comparison-control-select
-  .select__value[data-placeholder="true"],
-html[data-theme-preference="dark"] .comparison-control-input.input::placeholder,
-html[data-theme-preference="dark"] .comparison-control-select .select__indicator {
-  color: #bebebe;
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme-preference="light"]) .comparison-controls-card {
-    border-color: #313131;
-    background: #141414;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-chip {
-    border-color: #3f3f3f;
-    background: #1d1d1d;
-    color: #f5f5f5;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-chip:hover,
-  html:not([data-theme-preference="light"]) .comparison-control-chip[data-hovered="true"] {
-    border-color: #666 !important;
-    background: #2a2a2a !important;
-    color: #fff !important;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-select .select__trigger,
-  html:not([data-theme-preference="light"]) .comparison-control-input.input {
-    border-color: #4b4b4b;
-    background: #222222;
-    color: #f5f5f5;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-select .select__trigger:hover,
-  html:not([data-theme-preference="light"])
-    .comparison-control-select
-    .select__trigger[data-hovered="true"],
-  html:not([data-theme-preference="light"]) .comparison-control-input.input:hover,
-  html:not([data-theme-preference="light"]) .comparison-control-input.input[data-hovered="true"] {
-    border-color: #717171 !important;
-    background: #2f2f2f !important;
-    color: #fff !important;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-popover.select__popover {
-    border-color: #4b4b4b;
-    background: #161616;
-    color: #f5f5f5;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-option {
-    color: #f2f2f2;
-    background: transparent;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-option[data-hovered="true"],
-  html:not([data-theme-preference="light"]) .comparison-control-option:hover {
-    color: #ffffff;
-    background: #2b2b2b;
-  }
-
-  html:not([data-theme-preference="light"]) .comparison-control-option[data-selected="true"] {
-    color: #111111;
-    background: #e5e7eb;
-  }
-
-  html:not([data-theme-preference="light"])
-    .comparison-control-option[data-selected="true"]
-    .list-box-item__indicator {
-    color: #111111;
-  }
-
-  html:not([data-theme-preference="light"])
-    .comparison-control-select
-    .select__trigger:hover
-    .select__value,
-  html:not([data-theme-preference="light"])
-    .comparison-control-select
-    .select__trigger[data-hovered="true"]
-    .select__value {
-    color: #fff !important;
-  }
-
-  html:not([data-theme-preference="light"])
-    .comparison-control-select
-    .select__value[data-placeholder="true"],
-  html:not([data-theme-preference="light"]) .comparison-control-input.input::placeholder,
-  html:not([data-theme-preference="light"]) .comparison-control-select .select__indicator {
-    color: #bebebe;
-  }
-}
-
-html[data-theme-preference="dark"] .dataset-detail-action-export {
-  background: #f5f5f5;
-  border-color: #f5f5f5;
-  color: #111111;
 }
 
 .dataset-detail-metric-movement-positive,

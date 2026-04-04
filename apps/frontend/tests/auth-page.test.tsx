@@ -63,6 +63,7 @@ describe("auth page", () => {
             display_name: "User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
           },
           session: {
             session_id: "session-1",
@@ -106,6 +107,7 @@ describe("auth page", () => {
             display_name: "New User",
             account_status: "active",
             is_admin: false,
+            privilege_level: "user",
           },
           session: {
             session_id: "session-2",
@@ -153,6 +155,7 @@ describe("auth page", () => {
           display_name: "Logout User",
           account_status: "active",
           is_admin: false,
+          privilege_level: "user",
         },
         restoredAt: "2026-04-02T00:00:00+00:00",
       }),

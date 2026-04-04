@@ -4,12 +4,7 @@ import CatalogPage from "../src/app/datasets/page";
 import HomePage from "../src/app/page";
 import SourceListPage from "../src/app/sources/page";
 import * as discoveryClient from "../src/lib/api/discovery-client";
-import { SITE_FOOTER_VARIANT } from "../src/shell/site-footer";
-import { SITE_HEADER_VARIANT } from "../src/shell/site-header";
-import {
-  FORBIDDEN_ACCENT_VARIANTS,
-  isMonochromeVariantAllowed,
-} from "../src/theme/monochrome-theme";
+import { SHELL_REGION_CLASS_NAMES } from "../src/theme/monochrome-theme";
 import { renderMarkup } from "./test-utils";
 
 vi.mock("next/navigation", () => ({
@@ -97,7 +92,7 @@ const renderSourceListPage = async (): Promise<string> => {
   return renderMarkup(element);
 };
 
-describe("shell structure and monochrome contract", () => {
+describe("shell structure contract", () => {
   it("asserts header region presence and semantics", async () => {
     const markup = await renderHomePage();
 
@@ -197,37 +192,28 @@ describe("shell structure and monochrome contract", () => {
     expect(markup).toContain('data-testid="unified-dataset-row"');
   });
 
-  it("asserts header uses monochrome classes and tokens only", async () => {
+  it("asserts header uses shell region classes", async () => {
     const markup = await renderHomePage();
 
     expect(markup).toContain('data-shell-region="header"');
-    expect(markup).toContain("shell-monochrome");
+    expect(markup).toContain(SHELL_REGION_CLASS_NAMES.header);
     expect(markup).toContain("shell-region-full-width");
-    expect(isMonochromeVariantAllowed(SITE_HEADER_VARIANT)).toBe(true);
   });
 
-  it("asserts main content remains monochrome-compatible", async () => {
+  it("asserts main content region class contract", async () => {
     const markup = await renderHomePage();
 
     expect(markup).toContain('data-testid="home-content"');
-    expect(markup).toContain("shell-monochrome");
+    expect(markup).toContain("shell-content-constrained");
   });
 
-  it("asserts footer uses monochrome classes and tokens only", async () => {
+  it("asserts footer uses shell region classes", async () => {
     const markup = await renderHomePage();
 
     expect(markup).toContain('data-shell-region="footer"');
-    expect(markup).toContain("shell-monochrome");
+    expect(markup).toContain(SHELL_REGION_CLASS_NAMES.footer);
     expect(markup).toContain("shell-region-full-width");
-    expect(markup).toContain("shell-readable");
     expect(markup).toContain("shell-footer-content");
-    expect(isMonochromeVariantAllowed(SITE_FOOTER_VARIANT)).toBe(true);
-  });
-
-  it("rejects accent variant usage in shell components", () => {
-    for (const variant of FORBIDDEN_ACCENT_VARIANTS) {
-      expect(isMonochromeVariantAllowed(variant)).toBe(false);
-    }
   });
 
   it("asserts navbar order remains brand then tabs then utility", async () => {

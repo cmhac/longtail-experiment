@@ -39,7 +39,9 @@ export const AccountSettingsForm = ({
   sessionToken,
   onSessionInvalidated,
 }: AccountSettingsFormProps): JSX.Element => {
+  const passwordHintId = React.useId();
   const [profile, setProfile] = React.useState<ProfileResponse>(initialProfile);
+  const [emailInput, setEmailInput] = React.useState(initialProfile.email);
   const [displayNameInput, setDisplayNameInput] = React.useState(initialProfile.display_name ?? "");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
@@ -48,6 +50,7 @@ export const AccountSettingsForm = ({
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
   const [isChangingPassword, setIsChangingPassword] = React.useState(false);
   const [isRequestingDeletion, setIsRequestingDeletion] = React.useState(false);
+  const [isSigningOut, setIsSigningOut] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
@@ -96,6 +99,7 @@ export const AccountSettingsForm = ({
     setIsSavingProfile(true);
     try {
       const payload: UpdateProfileRequest = {
+        email: emailInput.trim(),
         display_name: displayNameInput.trim() === "" ? null : displayNameInput.trim(),
       };
       const response = await fetch("/api/account/profile", {
@@ -112,12 +116,32 @@ export const AccountSettingsForm = ({
       }
       const updated = (await response.json()) as ProfileResponse;
       setProfile(updated);
+      setEmailInput(updated.email);
       setDisplayNameInput(updated.display_name ?? "");
       setSuccessMessage("Profile updated.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to update profile.");
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const handleSignOut = async (): Promise<void> => {
+    if (isSigningOut) {
+      return;
+    }
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setIsSigningOut(true);
+    try {
+      await fetch("/api/auth/sessions", {
+        method: "POST",
+        headers: withAuthHeaders(sessionToken),
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } finally {
+      setIsSigningOut(false);
+      onSessionInvalidated();
     }
   };
 
@@ -212,7 +236,7 @@ export const AccountSettingsForm = ({
 
   return (
     <div className="grid gap-4" data-testid="account-settings-form">
-      <Card className="grid gap-4 p-5">
+      <Card aria-busy={isSavingProfile} className="grid gap-4 p-5">
         <div className="grid gap-1">
           <h2 className="font-semibold text-lg">Profile</h2>
           <p className="text-default-600 text-sm">Keep your account details up to date.</p>
@@ -224,7 +248,11 @@ export const AccountSettingsForm = ({
         >
           <label className="grid gap-1 text-sm" htmlFor="account-settings-email-input">
             <span>Email</span>
-            <Input id="account-settings-email-input" readOnly value={profile.email} />
+            <Input
+              id="account-settings-email-input"
+              value={emailInput}
+              onChange={(event) => setEmailInput(event.target.value)}
+            />
           </label>
           <label className="grid gap-1 text-sm" htmlFor="account-settings-display-name-input">
             <span>Display name</span>
@@ -234,6 +262,25 @@ export const AccountSettingsForm = ({
               onChange={(event) => setDisplayNameInput(event.target.value)}
             />
           </label>
+          {(profile.privilege_level === "admin" || profile.privilege_level === "owner") && (
+            <p className="text-default-600 text-xs" data-testid="account-settings-role-chip">
+              {profile.privilege_level === "owner" ? "Owner" : "Admin"}
+            </p>
+          )}
+          {(profile.privilege_level === "admin" || profile.privilege_level === "owner") && (
+            <Button
+              data-testid="account-settings-admin-link"
+              size="sm"
+              variant="secondary"
+              onPress={() => {
+                if (typeof window !== "undefined") {
+                  window.location.assign("/admin");
+                }
+              }}
+            >
+              Open admin pages
+            </Button>
+          )}
           <Button
             data-testid="account-settings-profile-submit"
             isDisabled={!profileCanSubmit}
@@ -245,7 +292,7 @@ export const AccountSettingsForm = ({
         </form>
       </Card>
 
-      <Card className="grid gap-4 p-5">
+      <Card aria-busy={isChangingPassword} className="grid gap-4 p-5">
         <div className="grid gap-1">
           <h2 className="font-semibold text-lg">Password</h2>
           <p className="text-default-600 text-sm">
@@ -268,7 +315,11 @@ export const AccountSettingsForm = ({
           </label>
           <label className="grid gap-1 text-sm" htmlFor="account-settings-new-password-input">
             <span>New password</span>
+            <span className="text-default-500 text-xs" id={passwordHintId}>
+              Must be at least 12 characters.
+            </span>
             <Input
+              aria-describedby={passwordHintId}
               id="account-settings-new-password-input"
               type="password"
               value={newPassword}
@@ -286,7 +337,11 @@ export const AccountSettingsForm = ({
         </form>
       </Card>
 
-      <Card className="grid gap-4 p-5" data-testid="account-settings-sessions-card">
+      <Card
+        aria-busy={isLoadingSessions}
+        className="grid gap-4 p-5"
+        data-testid="account-settings-sessions-card"
+      >
         <div className="grid gap-1">
           <h2 className="font-semibold text-lg">Active sessions</h2>
           <p className="text-default-600 text-sm">Revoke any session you do not recognize.</p>
@@ -308,6 +363,7 @@ export const AccountSettingsForm = ({
                     <span className="text-default-500 text-xs">{session.session_id}</span>
                   </div>
                   <Button
+                    aria-label={`Revoke session ${session.client_label ?? session.session_id}`}
                     data-testid={`account-settings-revoke-${session.session_id}`}
                     size="sm"
                     variant="outline"
@@ -345,17 +401,36 @@ export const AccountSettingsForm = ({
         >
           {isRequestingDeletion ? "Submitting..." : "Request account deletion"}
         </Button>
+        <Button
+          data-testid="account-settings-sign-out-button"
+          isDisabled={isSigningOut}
+          variant="danger-soft"
+          onPress={() => {
+            void handleSignOut();
+          }}
+        >
+          {isSigningOut ? "Signing out..." : "Sign out"}
+        </Button>
       </Card>
 
       {errorMessage ? (
-        <p className="text-danger text-sm" data-testid="account-settings-error-message">
+        <p
+          aria-live="assertive"
+          className="text-danger text-sm"
+          data-testid="account-settings-error-message"
+          role="alert"
+        >
           {errorMessage}
         </p>
       ) : null}
       {successMessage ? (
-        <p className="text-sm text-success" data-testid="account-settings-success-message">
+        <output
+          aria-live="polite"
+          className="text-sm text-success"
+          data-testid="account-settings-success-message"
+        >
           {successMessage}
-        </p>
+        </output>
       ) : null}
     </div>
   );

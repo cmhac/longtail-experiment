@@ -37,6 +37,31 @@ describe("navbar profile dropdown", () => {
     expect(screen.getByTestId("header-auth-signed-out").textContent).toContain("Create account");
   });
 
+  it("renders account and admin actions for admin sessions", () => {
+    window.localStorage.setItem(
+      "longtail.auth.session",
+      JSON.stringify({
+        sessionToken: "admin-session",
+        user: {
+          user_id: "admin-1",
+          email: "admin@example.com",
+          display_name: "Admin",
+          account_status: "active",
+          is_admin: true,
+          privilege_level: "admin",
+        },
+        restoredAt: "2026-04-03T00:00:00+00:00",
+      }),
+    );
+
+    render(<SiteHeader />);
+
+    fireEvent.click(screen.getByTestId("navbar-profile-control"));
+    expect(screen.getByTestId("header-auth-account-button").textContent).toContain("Account");
+    expect(screen.getByTestId("header-auth-admin-button").textContent).toContain("Admin");
+    expect(screen.getByTestId("header-auth-role-chip").textContent).toContain("Admin");
+  });
+
   it("closes when clicking outside the profile menu", () => {
     render(
       <>

@@ -53,6 +53,7 @@ class _ConnectionDouble:
             "email_normalized": "user@example.com",
             "display_name": "User",
             "account_status": "active",
+            "privilege_level": "user",
             "failed_sign_in_count": 0,
             "lockout_until": None,
             "updated_at": now,
@@ -79,6 +80,7 @@ class _ConnectionDouble:
                     "email": "user@example.com",
                     "display_name": "User",
                     "account_status": "active",
+                    "privilege_level": "user",
                     "is_admin": False,
                 }
             )
@@ -106,6 +108,7 @@ class _ConnectionDouble:
                         "email": "admin@example.com",
                         "display_name": "Admin",
                         "account_status": "active",
+                        "privilege_level": "admin",
                         "updated_at": datetime.now(tz=UTC),
                         "is_admin": True,
                     }
@@ -116,11 +119,19 @@ class _ConnectionDouble:
                 mappings_first={
                     "id": uuid4(),
                     "account_status": "active",
+                    "privilege_level": "user",
                     "is_admin": False,
                 }
             )
         elif "SELECT COUNT(*)\n                            FROM user_accounts ua" in sql:
             result = _Result(scalar_one_or_none=1)
+        elif "SELECT id, privilege_level" in sql:
+            result = _Result(
+                mappings_first={
+                    "id": uuid4(),
+                    "privilege_level": "user",
+                }
+            )
         else:
             result = _Result()
         return result
@@ -156,6 +167,7 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
     repository.update_password_hash(user_id=str(account["user_id"]), password_hash="hash2")
     updated_profile = repository.update_user_profile(
         user_id=str(account["user_id"]),
+        email=None,
         display_name="Updated User",
     )
     created_session = repository.create_session(
@@ -186,9 +198,14 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
     )
     admin_users = repository.list_admin_users()
     updated_admin_user, admin_revoked_count = repository.update_admin_user_status(
-        actor_user_id="admin-1",
+        actor_user_id=str(account["user_id"]),
         user_id=str(account["user_id"]),
         account_status="deactivated",
+    )
+    updated_role_user = repository.update_admin_user_role(
+        actor_user_id=str(account["user_id"]),
+        user_id=str(account["user_id"]),
+        role_action="grant_admin",
     )
     admin_session_revoked_count = repository.revoke_all_sessions_for_user_as_admin(
         user_id=str(account["user_id"]),
@@ -213,6 +230,7 @@ def test_persisted_repository_methods_cover_foundational_paths() -> None:
     assert deletion_pending is not None
     assert admin_users[0]["is_admin"] is True
     assert updated_admin_user is not None
+    assert updated_role_user is not None
     assert admin_revoked_count == expected_revoked_count
     assert admin_session_revoked_count == expected_revoked_count
     assert any(

@@ -232,6 +232,7 @@ def test_main_wires_server_and_calls_serve_forever(monkeypatch: pytest.MonkeyPat
             captured["served"] = True
 
     monkeypatch.setattr("src.http_api_server._make_service", lambda: object())
+    monkeypatch.setattr("src.http_api_server._make_auth_service", lambda: object())
     monkeypatch.setattr("src.http_api_server.ThreadingHTTPServer", _FakeServer)
     monkeypatch.setattr(
         "src.http_api_server.argparse.ArgumentParser.parse_args",

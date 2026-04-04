@@ -58,6 +58,29 @@ describe("account profile route", () => {
     expect(patchResponse.status).toBe(200);
   });
 
+  it("forwards optional email field in PATCH payload", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ user_id: "user-1", email: "updated@example.com" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const patchResponse = await PATCH(
+      new NextRequest("http://localhost/api/account/profile", {
+        method: "PATCH",
+        body: JSON.stringify({ email: "updated@example.com", display_name: "Updated" }),
+        headers: { authorization: "Bearer session-1", "content-type": "application/json" },
+      }),
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "http://backend:8080/api/account/profile",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+    expect(patchResponse.status).toBe(200);
+  });
+
   it("returns 502 when configuration is missing or upstream fails", async () => {
     process.env.DISCOVERY_API_BASE_URL = "";
     const missingConfig = await GET(new NextRequest("http://localhost/api/account/profile"));

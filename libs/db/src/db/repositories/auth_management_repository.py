@@ -42,6 +42,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                         email_normalized,
                         display_name,
                         account_status,
+                        privilege_level,
                         failed_sign_in_count,
                         lockout_until,
                         created_at,
@@ -56,6 +57,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                         :email_normalized,
                         :display_name,
                         'active',
+                        :privilege_level,
                         0,
                         NULL,
                         :created_at,
@@ -72,6 +74,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                     "email": email,
                     "email_normalized": normalized_email,
                     "display_name": display_name,
+                    "privilege_level": "admin" if is_admin else "user",
                     "created_at": now,
                     "updated_at": now,
                 },
@@ -147,6 +150,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                             ua.email_normalized,
                             ua.display_name,
                             ua.account_status,
+                            ua.privilege_level,
                             ua.failed_sign_in_count,
                             ua.lockout_until,
                             ua.updated_at,
@@ -187,6 +191,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                             ua.email_normalized,
                             ua.display_name,
                             ua.account_status,
+                            ua.privilege_level,
                             ua.failed_sign_in_count,
                             ua.lockout_until,
                             ua.updated_at,
@@ -346,6 +351,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                             ua.email,
                             ua.display_name,
                             ua.account_status,
+                            ua.privilege_level,
                             EXISTS (
                                 SELECT 1
                                 FROM role_assignments ra
@@ -391,7 +397,10 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                 "email": str(row["email"]),
                 "display_name": row["display_name"],
                 "account_status": str(row["account_status"]),
-                "is_admin": bool(row["is_admin"]),
+                "is_admin": bool(
+                    row["is_admin"] or str(row["privilege_level"]) in {"admin", "owner"}
+                ),
+                "privilege_level": str(row["privilege_level"]),
             },
         }
 
@@ -488,6 +497,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                         ua.email,
                         ua.display_name,
                         ua.account_status,
+                        ua.privilege_level,
                         ua.updated_at,
                         EXISTS (
                             SELECT 1
@@ -508,11 +518,265 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
                 "email": str(row["email"]),
                 "display_name": row["display_name"],
                 "account_status": str(row["account_status"]),
-                "is_admin": bool(row["is_admin"]),
+                "is_admin": bool(
+                    row["is_admin"] or str(row["privilege_level"]) in {"admin", "owner"}
+                ),
+                "privilege_level": str(row["privilege_level"]),
                 "updated_at": _iso_datetime(row["updated_at"]),
             }
             for row in result
         ]
+
+    def update_user_profile(
+        self,
+        *,
+        user_id: str,
+        email: str | None,
+        display_name: str | None,
+    ) -> dict[str, object] | None:
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE user_accounts
+                    SET
+                        email = COALESCE(:email, email),
+                        email_normalized = COALESCE(:email_normalized, email_normalized),
+                        display_name = :display_name,
+                        updated_at = :updated_at
+                    WHERE id = :user_id
+                    """
+                ),
+                {
+                    "email": email,
+                    "email_normalized": (
+                        email.strip().lower() if email is not None else None
+                    ),
+                    "display_name": display_name,
+                    "updated_at": datetime.now(tz=UTC),
+                    "user_id": UUID(user_id),
+                },
+            )
+        return self.get_user_by_id(user_id=user_id)
+
+    def update_admin_user_status(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        account_status: str,
+    ) -> tuple[dict[str, object] | None, int]:
+        now = datetime.now(tz=UTC)
+        revoked_count = 0
+        with self._engine.begin() as connection:
+            target = (
+                connection.execute(
+                    text(
+                        """
+                        SELECT
+                            ua.id,
+                            ua.account_status,
+                            EXISTS (
+                                SELECT 1
+                                FROM role_assignments ra
+                                WHERE ra.user_id = ua.id
+                                  AND ra.role = 'admin'
+                                  AND ra.revoked_at IS NULL
+                            ) AS is_admin
+                        FROM user_accounts ua
+                        WHERE ua.id = :user_id
+                        LIMIT 1
+                        """
+                    ),
+                    {"user_id": UUID(user_id)},
+                )
+                .mappings()
+                .first()
+            )
+            if target is None:
+                return None, revoked_count
+
+            if (
+                account_status == "deactivated"
+                and bool(target["is_admin"])
+                and str(target["account_status"]) == "active"
+            ):
+                remaining_admins = int(
+                    connection.execute(
+                        text(
+                            """
+                            SELECT COUNT(*)
+                            FROM user_accounts ua
+                            WHERE ua.account_status = 'active'
+                              AND ua.id <> :user_id
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM role_assignments ra
+                                  WHERE ra.user_id = ua.id
+                                    AND ra.role = 'admin'
+                                    AND ra.revoked_at IS NULL
+                              )
+                            """
+                        ),
+                        {"user_id": UUID(user_id)},
+                    ).scalar_one()
+                    or 0
+                )
+                if remaining_admins <= 0:
+                    raise ValueError("final_admin_guard")
+
+            connection.execute(
+                text(
+                    """
+                    UPDATE user_accounts
+                    SET
+                        account_status = CAST(:account_status AS VARCHAR),
+                        deactivated_at = CASE
+                            WHEN CAST(:account_status AS VARCHAR) = 'deactivated'
+                                THEN COALESCE(deactivated_at, :now)
+                            ELSE NULL
+                        END,
+                        updated_at = :now
+                    WHERE id = :user_id
+                    """
+                ),
+                {
+                    "account_status": account_status,
+                    "now": now,
+                    "user_id": UUID(user_id),
+                },
+            )
+
+            if account_status == "deactivated":
+                revoked_rows = connection.execute(
+                    text(
+                        """
+                        UPDATE auth_sessions
+                        SET
+                            session_status = 'revoked',
+                            revoked_at = :revoked_at,
+                            revoked_reason = :revoked_reason
+                        WHERE user_id = :user_id
+                          AND session_status = 'active'
+                        """
+                    ),
+                    {
+                        "revoked_at": now,
+                        "revoked_reason": f"admin_deactivated:{actor_user_id}",
+                        "user_id": UUID(user_id),
+                    },
+                )
+                revoked_count = int(revoked_rows.rowcount or 0)
+
+        return self.get_user_by_id(user_id=user_id), revoked_count
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> dict[str, object] | None:
+        now = datetime.now(tz=UTC)
+        with self._engine.begin() as connection:
+            target = (
+                connection.execute(
+                    text(
+                        """
+                        SELECT id, privilege_level
+                        FROM user_accounts
+                        WHERE id = :user_id
+                        LIMIT 1
+                        """
+                    ),
+                    {"user_id": UUID(user_id)},
+                )
+                .mappings()
+                .first()
+            )
+            if target is None:
+                return None
+
+            if str(target["privilege_level"]) == "owner":
+                raise ValueError("owner_role_protected")
+
+            if role_action == "grant_admin":
+                connection.execute(
+                    text(
+                        """
+                        UPDATE user_accounts
+                        SET privilege_level = 'admin',
+                            updated_at = :updated_at
+                        WHERE id = :user_id
+                        """
+                    ),
+                    {"updated_at": now, "user_id": UUID(user_id)},
+                )
+                connection.execute(
+                    text(
+                        """
+                        UPDATE role_assignments
+                        SET revoked_at = NULL
+                        WHERE user_id = :user_id
+                          AND role = 'admin'
+                        """
+                    ),
+                    {"user_id": UUID(user_id)},
+                )
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO role_assignments (id, user_id, role, created_at, revoked_at)
+                        SELECT :id, :user_id, 'admin', :created_at, NULL
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM role_assignments
+                            WHERE user_id = :user_id AND role = 'admin'
+                        )
+                        """
+                    ),
+                    {"id": uuid4(), "user_id": UUID(user_id), "created_at": now},
+                )
+            elif role_action == "revoke_admin":
+                connection.execute(
+                    text(
+                        """
+                        UPDATE user_accounts
+                        SET privilege_level = 'user',
+                            updated_at = :updated_at
+                        WHERE id = :user_id
+                        """
+                    ),
+                    {"updated_at": now, "user_id": UUID(user_id)},
+                )
+                connection.execute(
+                    text(
+                        """
+                        UPDATE role_assignments
+                        SET revoked_at = :revoked_at
+                        WHERE user_id = :user_id
+                          AND role = 'admin'
+                          AND revoked_at IS NULL
+                        """
+                    ),
+                    {"revoked_at": now, "user_id": UUID(user_id)},
+                )
+            else:
+                raise ValueError("role_action must be grant_admin or revoke_admin")
+
+        self.write_audit_event(
+            event_type="admin_granted"
+            if role_action == "grant_admin"
+            else "admin_revoked",
+            user_id=user_id,
+            actor_user_id=actor_user_id,
+            event_context={"role_action": role_action},
+        )
+        return self.get_user_by_id(user_id=user_id)
+
+    def revoke_all_sessions_for_user_as_admin(
+        self, *, user_id: str, reason: str
+    ) -> int:
+        return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
 
     def write_audit_event(
         self,
@@ -570,6 +834,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
             else datetime.now(tz=UTC)
         )
         failed_sign_in_value = row["failed_sign_in_count"]
+        privilege_level = str(row.get("privilege_level") or "user")
         return {
             "user_id": str(row["id"]),
             "email": str(row["email"]),
@@ -583,6 +848,7 @@ class PostgresAuthManagementRepository(AuthManagementRepository):
             ),
             "lockout_until": _iso_datetime(lockout_until) if lockout_until else None,
             "password_hash": row["password_hash"],
-            "is_admin": bool(row["is_admin"]),
+            "is_admin": bool(row["is_admin"] or privilege_level in {"admin", "owner"}),
+            "privilege_level": privilege_level,
             "updated_at": _iso_datetime(updated_at),
         }

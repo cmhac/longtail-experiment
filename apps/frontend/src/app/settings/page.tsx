@@ -6,6 +6,11 @@ import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { JSX } from "react";
 import { AccountSettingsForm } from "../../components/account/AccountSettingsForm";
+import {
+  PageHeaderSubtitle,
+  PageHeaderTitle,
+  PageHeaderWrapper,
+} from "../../components/discovery/PageHeader";
 import type { AuthErrorEnvelope, ProfileResponse } from "../../lib/api/auth-management-types";
 import { buildLoginRedirectPath } from "../../lib/auth/route-guard";
 import {
@@ -89,12 +94,10 @@ const AccountSettingsPage = (): JSX.Element => {
 
   return (
     <SitePageFrame activeTab="datasets" mainClassName="grid gap-4" mainTestId="settings-page">
-      <Card className="grid gap-1 p-5">
-        <h1 className="font-semibold text-2xl">Account settings</h1>
-        <p className="text-default-600 text-sm">
-          Manage your profile, password, and active sessions.
-        </p>
-      </Card>
+      <PageHeaderWrapper testId="account-settings-page-header">
+        <PageHeaderTitle>Account settings</PageHeaderTitle>
+        <PageHeaderSubtitle>Manage your profile, password, and active sessions.</PageHeaderSubtitle>
+      </PageHeaderWrapper>
 
       {isLoading ? <Card className="p-5">Loading account settings...</Card> : null}
       {errorMessage ? (

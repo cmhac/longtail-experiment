@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from src.contract.query.auth_management_query import (
+    AccountNavigationResponse,
+    AdminNavigationResponse,
     AdminUserListResponse,
     AuthSessionResponse,
     ChangePasswordRequest,
@@ -11,6 +13,7 @@ from src.contract.query.auth_management_query import (
     RegisterRequest,
     SessionListResponse,
     UpdateProfileRequest,
+    UpdateUserRoleRequest,
     UpdateUserStatusRequest,
     forbidden_error,
     locked_error,
@@ -35,6 +38,7 @@ def test_auth_request_models_validate_expected_shapes() -> None:
         }
     )
     profile = UpdateProfileRequest.model_validate({"display_name": "Updated"})
+    role = UpdateUserRoleRequest.model_validate({"role_action": "grant_admin"})
     password = ChangePasswordRequest.model_validate(
         {
             "current_password": "oldpassword123",
@@ -46,6 +50,7 @@ def test_auth_request_models_validate_expected_shapes() -> None:
     assert register.email == "user@example.com"
     assert login.password == "verysecure123"
     assert profile.display_name == "Updated"
+    assert role.role_action == "grant_admin"
     assert password.new_password == "newpassword123"
     assert status.account_status == "deactivated"
 
@@ -60,6 +65,7 @@ def test_auth_response_models_validate_expected_shapes() -> None:
                 "display_name": "User",
                 "account_status": "active",
                 "is_admin": False,
+                "privilege_level": "user",
             },
             "session": {
                 "session_id": "session-1",
@@ -84,7 +90,29 @@ def test_auth_response_models_validate_expected_shapes() -> None:
                     "display_name": "Admin",
                     "account_status": "active",
                     "is_admin": True,
+                    "privilege_level": "admin",
                     "updated_at": "2026-04-02T00:00:00+00:00",
+                }
+            ]
+        }
+    )
+    account_navigation = AccountNavigationResponse.model_validate(
+        {
+            "account_route": "/settings",
+            "show_admin_entry": True,
+            "admin_route": "/admin",
+            "role_chip": "Admin",
+            "privilege_level": "admin",
+        }
+    )
+    admin_navigation = AdminNavigationResponse.model_validate(
+        {
+            "items": [
+                {
+                    "item_key": "admin_users",
+                    "label": "Users",
+                    "route": "/admin/users",
+                    "description": "Manage account status, sessions, and admin roles.",
                 }
             ]
         }
@@ -100,6 +128,8 @@ def test_auth_response_models_validate_expected_shapes() -> None:
     assert session_response.user.user_id == "user-1"
     assert session_list.items[0].session_id == "session-1"
     assert admin_users.items[0].is_admin is True
+    assert account_navigation.show_admin_entry is True
+    assert admin_navigation.items[0].item_key == "admin_users"
     assert deletion_response.account_status == "deletion_pending"
 
 

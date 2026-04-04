@@ -11,6 +11,7 @@ from src.query.auth_management_validators import (
     ensure_account_active,
     normalize_display_name,
     normalize_email,
+    normalize_optional_email,
     parse_lockout_until,
     validate_password_strength,
 )
@@ -22,6 +23,15 @@ def test_normalize_email_validates_and_lowercases() -> None:
 
     with pytest.raises(ContractQueryError):
         normalize_email("invalid")
+
+
+def test_normalize_optional_email_passthrough_and_validation() -> None:
+    """Normalize optional email or reject invalid optional email strings."""
+    assert normalize_optional_email(None) is None
+    assert normalize_optional_email(" User@Example.COM ") == "user@example.com"
+
+    with pytest.raises(ContractQueryError):
+        normalize_optional_email("invalid")
 
 
 def test_normalize_display_name_handles_empty_and_max_length() -> None:

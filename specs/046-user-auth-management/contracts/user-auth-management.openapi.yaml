@@ -4,8 +4,8 @@ info:
   version: 0.1.0
   description: >
     Contract for user registration, sign-in lifecycle, session management,
-    account settings, and admin user oversight for the initial authenticated
-    product release.
+    account self-service, admin landing/navigation, and admin user oversight
+    including role governance constraints for owner-protected accounts.
 paths:
   /api/auth/register:
     post:
@@ -164,6 +164,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
 
+  /api/account/navigation:
+    get:
+      summary: Get account-surface navigation metadata for current user
+      responses:
+        "200":
+          description: Account and admin entry metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountNavigationResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
   /api/account/password:
     post:
       summary: Change password for current authenticated user
@@ -229,6 +246,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
 
+  /api/admin/navigation:
+    get:
+      summary: List admin-only destinations for admin landing page
+      responses:
+        "200":
+          description: Ordered list of available admin destinations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminNavigationResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Forbidden for non-admin users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
   /api/admin/users/{userId}/status:
     patch:
       summary: Change user account status (activate or deactivate)
@@ -265,6 +305,47 @@ paths:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
         "409":
           description: Lifecycle conflict (for example final active admin guardrail)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/admin/users/{userId}/role:
+    patch:
+      summary: Grant or revoke administrator role for a managed user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRoleRequest"
+      responses:
+        "200":
+          description: Updated user summary with effective role information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserSummary"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Forbidden for non-admin users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "409":
+          description: Role governance conflict (for example owner-protected target)
           content:
             application/json:
               schema:
@@ -324,7 +405,7 @@ components:
 
     CurrentUserSummary:
       type: object
-      required: [user_id, email, account_status, is_admin]
+      required: [user_id, email, account_status, is_admin, privilege_level]
       properties:
         user_id:
           type: string
@@ -338,6 +419,8 @@ components:
           $ref: "#/components/schemas/UserStatus"
         is_admin:
           type: boolean
+        privilege_level:
+          $ref: "#/components/schemas/PrivilegeLevel"
 
     SessionSummary:
       type: object
@@ -369,7 +452,7 @@ components:
 
     ProfileResponse:
       type: object
-      required: [user_id, email, account_status, is_admin]
+      required: [user_id, email, account_status, is_admin, privilege_level]
       properties:
         user_id:
           type: string
@@ -383,6 +466,8 @@ components:
           $ref: "#/components/schemas/UserStatus"
         is_admin:
           type: boolean
+        privilege_level:
+          $ref: "#/components/schemas/PrivilegeLevel"
         updated_at:
           type: string
           format: date-time
@@ -390,9 +475,55 @@ components:
     UpdateProfileRequest:
       type: object
       properties:
+        email:
+          type: string
+          format: email
         display_name:
           type: string
           nullable: true
+
+    PrivilegeLevel:
+      type: string
+      enum: [user, admin, owner]
+
+    AccountNavigationResponse:
+      type: object
+      required: [account_route, show_admin_entry, privilege_level]
+      properties:
+        account_route:
+          type: string
+        show_admin_entry:
+          type: boolean
+        admin_route:
+          type: string
+          nullable: true
+        role_chip:
+          type: string
+          nullable: true
+        privilege_level:
+          $ref: "#/components/schemas/PrivilegeLevel"
+
+    AdminNavigationItem:
+      type: object
+      required: [item_key, label, route, description]
+      properties:
+        item_key:
+          type: string
+        label:
+          type: string
+        route:
+          type: string
+        description:
+          type: string
+
+    AdminNavigationResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminNavigationItem"
 
     ChangePasswordRequest:
       type: object
@@ -418,7 +549,7 @@ components:
 
     AdminUserSummary:
       type: object
-      required: [user_id, email, account_status, is_admin, created_at]
+      required: [user_id, email, account_status, is_admin, privilege_level, created_at]
       properties:
         user_id:
           type: string
@@ -432,6 +563,8 @@ components:
           $ref: "#/components/schemas/UserStatus"
         is_admin:
           type: boolean
+        privilege_level:
+          $ref: "#/components/schemas/PrivilegeLevel"
         created_at:
           type: string
           format: date-time
@@ -468,3 +601,11 @@ components:
         account_status:
           type: string
           enum: [active, deactivated]
+
+    UpdateUserRoleRequest:
+      type: object
+      required: [role_action]
+      properties:
+        role_action:
+          type: string
+          enum: [grant_admin, revoke_admin]

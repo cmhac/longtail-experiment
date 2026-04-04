@@ -43,6 +43,7 @@ describe("admin users page", () => {
       display_name: string;
       account_status: string;
       is_admin: boolean;
+      privilege_level: "user" | "admin" | "owner";
       updated_at: string;
     }> = [
       {
@@ -51,6 +52,7 @@ describe("admin users page", () => {
         display_name: "User",
         account_status: "active",
         is_admin: false,
+        privilege_level: "user",
         updated_at: "2026-04-03T00:00:00+00:00",
       },
     ];
@@ -65,6 +67,7 @@ describe("admin users page", () => {
           display_name: "Admin",
           account_status: "active",
           is_admin: true,
+          privilege_level: "admin",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -84,6 +87,7 @@ describe("admin users page", () => {
           const payload = JSON.parse(String(init?.body ?? "{}")) as {
             user_id?: string;
             account_status?: string;
+            role_action?: "grant_admin" | "revoke_admin";
           };
           const current = users[0];
           if (!current) {
@@ -92,6 +96,18 @@ describe("admin users page", () => {
           const next = {
             ...current,
             account_status: payload.account_status ?? current.account_status,
+            is_admin:
+              payload.role_action === "grant_admin"
+                ? true
+                : payload.role_action === "revoke_admin"
+                  ? false
+                  : current.is_admin,
+            privilege_level:
+              payload.role_action === "grant_admin"
+                ? "admin"
+                : payload.role_action === "revoke_admin"
+                  ? "user"
+                  : current.privilege_level,
           };
           users[0] = next;
           return createJsonResponse(next);
@@ -122,6 +138,14 @@ describe("admin users page", () => {
         "Revoked active sessions",
       );
     });
+
+    fireEvent.click(screen.getByTestId("admin-user-role-toggle-user-1"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("admin-users-success-message").textContent).toContain(
+        "Granted admin role",
+      );
+    });
   });
 
   it("redirects to login when no local session is available", async () => {
@@ -143,6 +167,7 @@ describe("admin users page", () => {
           display_name: "User",
           account_status: "active",
           is_admin: false,
+          privilege_level: "user",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -168,6 +193,7 @@ describe("admin users page", () => {
           display_name: "Admin",
           account_status: "active",
           is_admin: true,
+          privilege_level: "admin",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -187,6 +213,7 @@ describe("admin users page", () => {
                 display_name: "User",
                 account_status: "active",
                 is_admin: false,
+                privilege_level: "user",
                 updated_at: "2026-04-03T00:00:00+00:00",
               },
             ],
@@ -225,6 +252,7 @@ describe("admin users page", () => {
           display_name: "Admin",
           account_status: "active",
           is_admin: true,
+          privilege_level: "admin",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -244,6 +272,7 @@ describe("admin users page", () => {
                 display_name: "User",
                 account_status: "active",
                 is_admin: false,
+                privilege_level: "user",
                 updated_at: "2026-04-03T00:00:00+00:00",
               },
             ],
@@ -282,6 +311,7 @@ describe("admin users page", () => {
           display_name: "Admin",
           account_status: "active",
           is_admin: true,
+          privilege_level: "admin",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -312,6 +342,7 @@ describe("admin users page", () => {
           display_name: "Admin",
           account_status: "active",
           is_admin: true,
+          privilege_level: "admin",
         },
         restoredAt: "2026-04-03T00:00:00+00:00",
       }),
@@ -331,5 +362,53 @@ describe("admin users page", () => {
         "Admin access is required",
       );
     });
+  });
+
+  it("shows owner-protected role button state", async () => {
+    window.localStorage.setItem(
+      "longtail.auth.session",
+      JSON.stringify({
+        sessionToken: "admin-session",
+        user: {
+          user_id: "admin-1",
+          email: "admin@example.com",
+          display_name: "Admin",
+          account_status: "active",
+          is_admin: true,
+          privilege_level: "admin",
+        },
+        restoredAt: "2026-04-03T00:00:00+00:00",
+      }),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        const method = init?.method ?? "GET";
+        if (url === "/api/admin/users" && method === "GET") {
+          return createJsonResponse({
+            items: [
+              {
+                user_id: "owner-1",
+                email: "owner@example.com",
+                display_name: "Owner",
+                account_status: "active",
+                is_admin: true,
+                privilege_level: "owner",
+                updated_at: "2026-04-03T00:00:00+00:00",
+              },
+            ],
+          });
+        }
+        throw new Error(`Unexpected request ${method} ${url}`);
+      }),
+    );
+
+    render(<AdminUsersPage />);
+    await screen.findByTestId("admin-user-row-owner-1");
+    expect(screen.getByTestId("admin-user-role-toggle-owner-1").textContent).toContain(
+      "Owner protected",
+    );
   });
 });

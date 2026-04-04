@@ -3,7 +3,7 @@
 **Feature Branch**: `[046-user-auth-management]`  
 **Created**: 2026-04-02  
 **Status**: Draft  
-**Input**: User description: "Implement real user accounts, authentication, and account settings workflows across database, backend, and frontend"
+**Input**: User description: "Revise Spec 046 to improve account and admin UX: add Account action in nav dropdown, account details page with self-service updates and sign-out, admin status chips and admin navigation surfaces, an admin landing page, admin role grant/revoke controls on admin users page, immutable owner role protections, and shared page header usage across account/admin pages"
 
 ## Clarifications
 
@@ -14,6 +14,12 @@
 - Q: What happens to active sessions when an administrator deactivates an account? → A: Deactivation immediately revokes all active sessions and blocks new sessions.
 - Q: Is multi-factor authentication required in the initial release? → A: No, multi-factor authentication is deferred to a follow-up feature.
 - Q: How should user deletion requests be handled? → A: Deactivate immediately, then hard-delete after a defined retention period.
+
+### Session 2026-04-03
+
+- Q: Should this request create a new spec/branch? → A: No; revise existing Spec 046 in place.
+- Q: What initial admin landing scope is required? → A: Provide an admin landing page that lists admin-only destinations, with user management as the initial entry.
+- Q: How should owner-level permissions work? → A: Owner role assignment is manual and cannot be granted, revoked, or downgraded through administrator UI actions.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -48,40 +54,43 @@ As a platform user, I need to create an account, sign in, remain signed in secur
 
 ---
 
-### User Story 2 - Account Settings Management (Priority: P2)
+### User Story 2 - Account Hub And Self-Service Management (Priority: P2)
 
-As a signed-in user, I need an account settings workflow to view and update my profile and security settings so my account data stays accurate and under my control.
+As a signed-in user, I need a clear Account entry in the top-nav profile menu and a dedicated account page where I can view key account details, update email/password, and sign out.
 
-**Why this priority**: User management is incomplete without self-service account maintenance and clear ownership of profile/security data.
+**Why this priority**: Core authentication is not sufficient unless users can reliably find and manage their own account information from the primary navigation.
 
-**Independent Test**: Can be tested by signing in, opening account settings, updating profile fields and password, and confirming changes persist in subsequent sessions.
+**Independent Test**: Can be tested by signing in, opening the top-nav profile dropdown, navigating to Account, viewing account details, updating email/password, and signing out.
 
 **Acceptance Scenarios**:
 
-1. **Given** a signed-in user, **When** they open account settings, **Then** they can view their current account profile and security state.
-2. **Given** a signed-in user, **When** they submit valid profile updates, **Then** the updated values are saved and reflected immediately.
-3. **Given** a signed-in user, **When** they change their password with valid current and new credentials, **Then** password change succeeds and future sign-ins require the new password.
-4. **Given** invalid account-setting input, **When** the user submits changes, **Then** the system rejects the request with clear actionable validation feedback.
-5. **Given** a signed-in user with multiple active sessions, **When** they revoke a session from account settings, **Then** the targeted session is terminated while other sessions remain active.
+1. **Given** a signed-in user, **When** they open the profile dropdown, **Then** an Account action is visible and routes to the account details page.
+2. **Given** a signed-in user, **When** they open the account page, **Then** they can see minimal user details and current account role indicators relevant to their access.
+3. **Given** a signed-in user, **When** they submit a valid email update, **Then** the email change is persisted and immediately reflected in account details.
+4. **Given** a signed-in user, **When** they change their password with valid current and new credentials, **Then** password change succeeds and future sign-ins require the new password.
+5. **Given** a signed-in user, **When** they activate sign-out from the account page, **Then** their active session ends and protected pages require sign-in.
+6. **Given** invalid account-setting input, **When** the user submits changes, **Then** the system rejects the request with clear actionable validation feedback.
 
 ---
 
-### User Story 3 - Administrative User Oversight (Priority: P3)
+### User Story 3 - Admin Landing And Role Governance (Priority: P3)
 
-As an administrator, I need a basic user management workflow to view users and manage account status so operational and security incidents can be handled safely.
+As an administrator, I need clear admin navigation and role controls so I can access admin tools quickly, grant/revoke admin access safely, and preserve owner-level safeguards.
 
-**Why this priority**: Admin oversight is needed for support and risk control but depends on foundational account/auth capabilities from P1 and P2.
+**Why this priority**: Admin workflows become error-prone without clear wayfinding and explicit role-governance rules, especially when owner-level constraints must be enforced.
 
-**Independent Test**: Can be tested by signing in as an administrator, viewing a user list, deactivating/reactivating a user, and verifying resulting sign-in behavior.
+**Independent Test**: Can be tested by signing in as an administrator, accessing admin entry points from dropdown/account page, opening admin landing, navigating to users management, changing admin roles for eligible users, and verifying owner protections.
 
 **Acceptance Scenarios**:
 
-1. **Given** an authenticated administrator, **When** they open user management, **Then** they can view paginated user summaries and account status.
-2. **Given** an authenticated administrator, **When** they deactivate a user, **Then** that user can no longer create new sessions until reactivated.
-3. **Given** an authenticated administrator, **When** they reactivate a user, **Then** the user can sign in again using valid credentials.
-4. **Given** a non-administrator user, **When** they attempt to access administrative user-management actions, **Then** access is denied.
-5. **Given** an authenticated administrator, **When** they revoke active sessions for a user account, **Then** the selected sessions are terminated immediately.
-6. **Given** an authenticated administrator, **When** they deactivate a user account, **Then** all currently active sessions for that account are terminated immediately.
+1. **Given** an authenticated administrator, **When** they open the profile dropdown or account page, **Then** they see a visible Admin action leading to the admin landing page.
+2. **Given** an authenticated administrator, **When** they open the admin landing page, **Then** they can see a list of available admin-only destinations, including user management.
+3. **Given** an authenticated administrator, **When** they open user management, **Then** they can view paginated user summaries with role indicators, including administrator and owner visibility.
+4. **Given** an authenticated administrator, **When** they grant administrator access to an eligible non-owner account, **Then** that account gains administrator permissions.
+5. **Given** an authenticated administrator, **When** they revoke administrator access from an eligible non-owner account, **Then** that account loses administrator permissions while remaining active unless separately deactivated.
+6. **Given** an owner account, **When** an administrator attempts to change its role, **Then** the action is denied and owner role remains unchanged.
+7. **Given** a non-administrator user, **When** they attempt to access administrative pages or role-management actions, **Then** access is denied.
+8. **Given** an authenticated administrator, **When** they deactivate a user account, **Then** all currently active sessions for that account are terminated immediately.
 
 ### Edge Cases
 
@@ -89,8 +98,10 @@ As an administrator, I need a basic user management workflow to view users and m
 - What happens when repeated failed sign-in attempts exceed allowed thresholds?
 - What happens when a session expires during an in-progress account settings update?
 - What happens when two account settings updates are submitted concurrently for the same user?
+- What happens when a signed-in non-admin user tries to access admin landing directly by URL?
 - Deactivating a currently signed-in user immediately ends all active sessions and blocks new session creation until reactivation.
 - What happens when the final active administrator account would be deactivated?
+- What happens when an administrator attempts to promote, demote, or deactivate an owner account?
 - What happens when authentication cookies or tokens are missing, expired, or tampered with?
 - During retention after deletion request, the account remains deactivated and all account actions are denied until hard deletion completes.
 
@@ -126,6 +137,18 @@ As an administrator, I need a basic user management workflow to view users and m
 - **FR-026**: System MUST support user deletion requests by immediately deactivating the account and revoking active sessions.
 - **FR-027**: System MUST perform irreversible hard deletion of requested accounts after a defined retention period.
 - **FR-028**: System MUST deny all account access and session creation for accounts in deletion-pending or deactivated states.
+- **FR-029**: System MUST expose an Account action in the signed-in top navigation profile dropdown that routes to the account details page.
+- **FR-030**: System MUST provide an account details page showing minimal user account information and security/account actions including sign-out, email update, and password change.
+- **FR-031**: System MUST display an administrator role indicator in the profile dropdown and account details page for users with administrator privileges.
+- **FR-032**: System MUST expose an Admin action in both the profile dropdown and account details page for users with administrator privileges.
+- **FR-033**: System MUST provide an admin landing page that lists available admin-only pages and supports navigation to them.
+- **FR-034**: System MUST include user management as an available destination on the initial admin landing page.
+- **FR-035**: System MUST allow administrators to grant administrator role to eligible non-owner accounts from the admin users management page.
+- **FR-036**: System MUST allow administrators to revoke administrator role from eligible non-owner accounts from the admin users management page.
+- **FR-037**: System MUST enforce an owner role classification that cannot be granted, revoked, or downgraded through administrator-facing application workflows.
+- **FR-038**: System MUST deny and audit any administrator-initiated role change attempt targeting an owner account.
+- **FR-039**: System MUST present consistent shared page-header treatment on account details, admin landing, and admin user-management pages.
+- **FR-040**: System MUST preserve existing admin user-management controls for account activation/deactivation and session revocation while adding role-governance actions.
 
 ### Assumptions and Dependencies
 
@@ -137,6 +160,9 @@ As an administrator, I need a basic user management workflow to view users and m
 - A minimal administrator role model is sufficient for initial user-management operations.
 - Existing local environment, testing gates, and quality requirements remain mandatory for this feature.
 - The initial release permits concurrent sessions across multiple devices/browsers for the same user account.
+- The initial admin landing page can list only currently available admin destinations and will include user management at minimum.
+- Minimal account details include identity and role information sufficient for account verification and self-management tasks.
+- Owner role assignment is out of scope for UI/API workflows and is handled manually through controlled operational procedures.
 
 ### Key Entities _(include if feature involves data)_
 
@@ -144,6 +170,7 @@ As an administrator, I need a basic user management workflow to view users and m
 - **Credential Record**: Represents authentication secret material and credential lifecycle metadata required for sign-in validation.
 - **Authenticated Session**: Represents an active signed-in context tied to one user, with creation, expiry, and revocation state.
 - **User Role Assignment**: Represents granted access scope for a user, including administrative permissions.
+- **Privilege Level**: Represents effective account privilege tier (standard user, administrator, owner) with owner constraints that override administrator role-governance actions.
 - **Account Audit Event**: Represents immutable security and lifecycle events for account and session actions.
 
 ## Success Criteria _(mandatory)_
@@ -159,6 +186,10 @@ As an administrator, I need a basic user management workflow to view users and m
 - **SC-007**: 100% of audited sign-in attempts during active lockout windows are denied.
 - **SC-008**: 100% of audited requests from sessions belonging to deactivated accounts are denied after deactivation.
 - **SC-009**: 100% of deletion-requested accounts in audit samples are deactivated immediately and transition to hard-deleted state after the retention window.
+- **SC-010**: At least 95% of signed-in users can navigate from the top-nav dropdown to the account details page and complete a basic self-service update flow in under 2 minutes.
+- **SC-011**: 100% of audited administrator sessions can reach admin landing from at least one primary account surface (dropdown or account page), while 100% of audited non-admin sessions cannot.
+- **SC-012**: 100% of audited administrator attempts to change owner account privilege are denied and recorded in audit events.
+- **SC-013**: 100% of audited renders for account details, admin landing, and admin user-management pages include the shared page-header experience.
 
 ## Constitution Alignment _(mandatory)_
 

@@ -42,6 +42,7 @@ class _AuthServiceDouble:
                     "display_name": "User",
                     "account_status": "active",
                     "is_admin": False,
+                    "privilege_level": "user",
                 },
             }
         raise ContractQueryError("auth_required")
@@ -55,20 +56,41 @@ class _AuthServiceDouble:
                     "display_name": "User",
                     "account_status": "active",
                     "is_admin": False,
+                    "privilege_level": "user",
                     "updated_at": "2026-04-03T00:00:00+00:00",
                 }
 
         return _Response()
 
-    def update_account_profile(self, *, user_id: str, display_name: str | None) -> Any:
+    def get_account_navigation(self, *, user_id: str) -> Any:
+        class _Response:
+            def model_dump(self) -> dict[str, object]:
+                return {
+                    "account_route": "/settings",
+                    "show_admin_entry": False,
+                    "admin_route": None,
+                    "role_chip": None,
+                    "privilege_level": "user",
+                }
+
+        return _Response()
+
+    def update_account_profile(
+        self,
+        *,
+        user_id: str,
+        email: str | None,
+        display_name: str | None,
+    ) -> Any:
         class _Response:
             def model_dump(self) -> dict[str, object]:
                 return {
                     "user_id": user_id,
-                    "email": "user@example.com",
+                    "email": email or "user@example.com",
                     "display_name": display_name,
                     "account_status": "active",
                     "is_admin": False,
+                    "privilege_level": "user",
                     "updated_at": "2026-04-03T00:10:00+00:00",
                 }
 
@@ -168,6 +190,20 @@ def test_account_profile_endpoints_contract(
     assert patch_status == HTTPStatus.OK
     assert patch_payload is not None
     assert patch_payload["display_name"] == "Updated User"
+
+
+def test_account_navigation_endpoint_contract(
+    account_settings_contract_http_server: tuple[str, int],
+) -> None:
+    host, port = account_settings_contract_http_server
+    status, payload = _request(
+        f"http://{host}:{port}/api/account/navigation",
+        method="GET",
+        token="valid-session",
+    )
+    assert status == HTTPStatus.OK
+    assert payload is not None
+    assert payload["account_route"] == "/settings"
 
 
 def test_account_password_endpoint_contract(

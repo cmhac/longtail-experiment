@@ -40,6 +40,7 @@ class _AuthServiceDouble:
                     "display_name": "User",
                     "account_status": "active",
                     "is_admin": False,
+                    "privilege_level": "user",
                 },
             }
         raise ContractQueryError("auth_required")
@@ -64,6 +65,7 @@ class _AuthServiceDouble:
                         "display_name": display_name,
                         "account_status": "active",
                         "is_admin": False,
+                        "privilege_level": "user",
                     },
                     "session": {
                         "session_id": "valid-session",

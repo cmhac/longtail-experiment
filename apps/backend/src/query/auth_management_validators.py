@@ -32,6 +32,13 @@ def normalize_display_name(value: str | None) -> str | None:
     return normalized
 
 
+def normalize_optional_email(value: str | None) -> str | None:
+    """Normalize optional email payload values for account profile updates."""
+    if value is None:
+        return None
+    return normalize_email(value)
+
+
 def validate_password_strength(value: str) -> None:
     """Validate baseline password requirements for initial auth release."""
     if len(value) < _MIN_PASSWORD_LENGTH:

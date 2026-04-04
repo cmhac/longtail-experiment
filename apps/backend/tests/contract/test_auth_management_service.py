@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import cast
+from typing import Literal, cast
 
 import pytest
 
@@ -28,6 +28,7 @@ class _RepoDouble:
                 "display_name": "Admin",
                 "account_status": "active",
                 "is_admin": True,
+                "privilege_level": "admin",
                 "updated_at": now,
             }
         ]
@@ -48,6 +49,7 @@ class _RepoDouble:
             "email_normalized": email,
             "display_name": display_name,
             "account_status": "active",
+            "privilege_level": "admin" if is_admin else "user",
             "failed_sign_in_count": 0,
             "lockout_until": None,
             "password_hash": password_hash,
@@ -91,11 +93,15 @@ class _RepoDouble:
         self,
         *,
         user_id: str,
+        email: str | None,
         display_name: str | None,
     ) -> dict[str, object] | None:
         user = self.users_by_id.get(user_id)
         if user is None:
             return None
+        if email is not None:
+            user["email"] = email
+            user["email_normalized"] = email
         user["display_name"] = display_name
         user["updated_at"] = datetime.now(tz=UTC).isoformat()
         return user
@@ -151,6 +157,7 @@ class _RepoDouble:
                 "display_name": self.users_by_id[user_id]["display_name"],
                 "account_status": self.users_by_id[user_id]["account_status"],
                 "is_admin": bool(self.users_by_id[user_id]["is_admin"]),
+                "privilege_level": str(self.users_by_id[user_id].get("privilege_level") or "user"),
             },
         }
         return cast(dict[str, object], payload)
@@ -202,6 +209,29 @@ class _RepoDouble:
 
     def revoke_all_sessions_for_user_as_admin(self, *, user_id: str, reason: str) -> int:
         return self.revoke_all_sessions_for_user(user_id=user_id, reason=reason)
+
+    def update_admin_user_role(
+        self,
+        *,
+        actor_user_id: str,
+        user_id: str,
+        role_action: str,
+    ) -> dict[str, object] | None:
+        user = self.users_by_id.get(user_id)
+        if user is None:
+            return None
+        if str(user.get("privilege_level") or "user") == "owner":
+            raise ContractQueryError("owner_role_protected")
+        if role_action == "grant_admin":
+            user["is_admin"] = True
+            user["privilege_level"] = "admin"
+        elif role_action == "revoke_admin":
+            user["is_admin"] = False
+            user["privilege_level"] = "user"
+        else:
+            raise ContractQueryError("role_action must be grant_admin or revoke_admin")
+        user["updated_at"] = datetime.now(tz=UTC).isoformat()
+        return user
 
     def write_audit_event(
         self,
@@ -308,6 +338,101 @@ def test_revoke_session_and_admin_list_paths() -> None:
 
     assert repo.revocations[-1][2] == "user_revoke"
     assert admin_users.items[0].is_admin is True
+
+
+def test_navigation_and_role_update_paths() -> None:
+    """Cover account/admin navigation responses and role update happy path."""
+    service, repo = _service_and_repo()
+    register = service.register_account(
+        email="user@example.com",
+        password="verysecure123",
+        display_name="User",
+    )
+
+    account_navigation = service.get_account_navigation(user_id=register.user.user_id)
+    assert account_navigation.account_route == "/settings"
+    assert account_navigation.show_admin_entry is False
+
+    with pytest.raises(ContractQueryError, match="forbidden"):
+        service.get_admin_navigation(user_id=register.user.user_id)
+
+    repo.users_by_id["admin-1"] = {
+        "user_id": "admin-1",
+        "email": "admin@example.com",
+        "email_normalized": "admin@example.com",
+        "display_name": "Admin",
+        "account_status": "active",
+        "failed_sign_in_count": 0,
+        "lockout_until": None,
+        "password_hash": AuthManagementService._hash_password("verysecure123"),
+        "is_admin": True,
+        "privilege_level": "admin",
+        "updated_at": datetime.now(tz=UTC).isoformat(),
+    }
+    admin_navigation = service.get_admin_navigation(user_id="admin-1")
+    assert admin_navigation.items[0].route == "/admin/users"
+
+    role_updated = service.update_admin_user_role(
+        actor_user_id="admin-1",
+        user_id=register.user.user_id,
+        role_action="grant_admin",
+    )
+    assert role_updated.is_admin is True
+    assert role_updated.privilege_level == "admin"
+
+
+def test_profile_updates_and_missing_account_paths() -> None:
+    """Validate profile updates and missing-account lookup error path."""
+    service, _repo = _service_and_repo()
+    register = service.register_account(
+        email="user@example.com",
+        password="verysecure123",
+        display_name="User",
+    )
+
+    updated = service.update_account_profile(
+        user_id=register.user.user_id,
+        email="updated@example.com",
+        display_name="Updated User",
+    )
+    assert updated.email == "updated@example.com"
+    assert updated.display_name == "Updated User"
+
+    with pytest.raises(ContractQueryError, match="account_not_found"):
+        service.get_account_profile(user_id="missing-user")
+
+
+def test_role_update_rejects_missing_and_invalid_actions() -> None:
+    """Reject admin-role updates for missing users and invalid role actions."""
+    service, _repo = _service_and_repo()
+    with pytest.raises(ContractQueryError, match="account_not_found"):
+        service.update_admin_user_role(
+            actor_user_id="admin-1",
+            user_id="missing-user",
+            role_action="grant_admin",
+        )
+
+    with pytest.raises(ContractQueryError, match="role_action must be grant_admin or revoke_admin"):
+        service.update_admin_user_role(
+            actor_user_id="admin-1",
+            user_id="missing-user",
+            role_action=cast(Literal["grant_admin", "revoke_admin"], "invalid"),
+        )
+
+
+def test_password_and_deletion_missing_account_paths() -> None:
+    """Return account-not-found for password/deletion calls on unknown users."""
+    service, _repo = _service_and_repo()
+
+    with pytest.raises(ContractQueryError, match="account_not_found"):
+        service.change_account_password(
+            user_id="missing-user",
+            current_password="oldpassword123",
+            new_password="newpassword123",
+        )
+
+    with pytest.raises(ContractQueryError, match="account_not_found"):
+        service.request_account_deletion(user_id="missing-user")
 
 
 def test_authenticate_requires_valid_session_and_active_account() -> None:

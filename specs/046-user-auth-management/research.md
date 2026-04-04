@@ -1,71 +1,60 @@
-# Research: User Auth And Management
+# Research: User Auth And Management (Spec 046 Revision)
 
-## Decision 1: Session model supports multiple concurrent sessions with revocation
+## Decision 1: Keep Spec 046 as in-place revision
 
-- Decision: Allow multiple active sessions per user and provide explicit user-level and admin-level session revocation controls.
-- Rationale: Matches clarified product behavior, supports multi-device usage, and allows targeted risk response without unnecessary sign-outs.
+- Decision: Update planning/design artifacts under existing `046-user-auth-management` instead of creating a new spec/branch.
+- Rationale: Stakeholder explicitly requested revision of in-flight spec and branch to preserve delivery continuity.
 - Alternatives considered:
-  - Single-session-only model: rejected due to poor multi-device UX and higher support friction.
-  - Multi-session with no revocation controls: rejected because it weakens incident response.
+  - Create new spec for admin UX expansion: rejected because it fragments scope already under active implementation.
 
-## Decision 2: Failed sign-in protection uses bounded temporary lockout
+## Decision 2: Admin landing page is a dedicated admin index surface
 
-- Decision: Enforce temporary lockout after a bounded number of consecutive failed sign-in attempts.
-- Rationale: Reduces credential-stuffing and brute-force risk while keeping user recovery manageable.
+- Decision: Introduce an admin landing page that lists currently available admin-only destinations, with user management as the initial listed entry.
+- Rationale: Provides explicit wayfinding and scalable navigation for future admin pages without coupling directly to one screen.
 - Alternatives considered:
-  - No lockout: rejected for insufficient security posture.
-  - Immediate long lockout: rejected for high support burden and account abuse risk.
+  - Direct-link only to admin users page from dropdown/account: rejected because it does not satisfy explicit landing-page requirement.
+  - Empty placeholder landing with no links: rejected because it provides no operational value.
 
-## Decision 3: Account deactivation immediately revokes active sessions
+## Decision 3: Owner privilege is immutable through administrator workflows
 
-- Decision: On account deactivation, immediately revoke all existing sessions and block new session creation.
-- Rationale: Provides deterministic access cut-off and aligns with clarified admin expectations.
+- Decision: Treat `owner` as a protected privilege level that administrators cannot grant, revoke, or downgrade through application UI/API operations.
+- Rationale: Matches governance requirement that owner assignment is manual DB-only and resistant to admin override.
 - Alternatives considered:
-  - Block only new sessions: rejected because active sessions could retain access.
-  - Grace-period revocation: rejected because it introduces avoidable security ambiguity.
+  - Allow admins to demote owners with confirmation: rejected due to explicit non-overridable owner requirement.
+  - Hide owner entirely from admin lists: rejected because visibility is needed for safe governance and clear denial messaging.
 
-## Decision 4: Initial release excludes MFA
+## Decision 4: Admin role management extends existing admin users flow
 
-- Decision: Multi-factor authentication is explicitly out of scope for this release.
-- Rationale: Keeps first release focused on foundational identity/session capabilities and reduces delivery risk.
+- Decision: Add grant/revoke admin controls to existing admin users management experience rather than creating a separate role-management tool.
+- Rationale: Keeps operational actions centralized and aligned with existing admin account-status workflows.
 - Alternatives considered:
-  - MFA for all users now: rejected as too broad for initial slice.
-  - MFA only for admins now: rejected as additional complexity better handled in follow-up.
+  - Separate role-management page: rejected as unnecessary scope expansion and extra navigation overhead.
+  - Backend-only role management without UI: rejected because stakeholder explicitly requested admin UI controls.
 
-## Decision 5: Deletion lifecycle is deactivation-first with delayed hard deletion
+## Decision 5: Shared page-header component is mandatory for three target pages
 
-- Decision: Handle deletion requests by immediate deactivation + session revocation, then hard deletion after retention period.
-- Rationale: Supports safety, reversibility window, and clean eventual data lifecycle handling.
+- Decision: Enforce shared page-header usage on account details, admin landing, and admin users pages via existing components-folder abstractions.
+- Rationale: Ensures visual consistency and compliance with constitution principle for reusable frontend patterns.
 - Alternatives considered:
-  - Immediate hard deletion: rejected due to operational recovery risk.
-  - Soft-delete forever: rejected because it does not satisfy irreversible deletion requirement.
+  - Route-local bespoke headers: rejected due to consistency drift and duplicate markup.
 
-## Decision 6: Use shared libs/db migration authority for account schema changes
+## Decision 6: Role indicators surfaced in both dropdown and account page
 
-- Decision: Add account, credential, session, role, and audit-event persistence via libs/db models and Alembic versions.
-- Rationale: Repository conventions designate libs/db as sole migration authority and shared persistence boundary.
+- Decision: Display role chips/indicators where specified (profile dropdown and account details page), including admin visibility and owner-aware account context.
+- Rationale: Reduces ambiguity about effective privileges and explains why admin navigation/actions are present.
 - Alternatives considered:
-  - Backend-local ad hoc tables: rejected due to architecture boundary violations.
-  - External identity store now: rejected for unnecessary initial complexity.
+  - Show role only on account page: rejected because dropdown was explicitly requested.
+  - Text-only labels without chip treatment: rejected because stakeholder requested chip presentation.
 
-## Decision 7: Preserve backend contract-first pattern with explicit error envelopes
+## Decision 7: Preserve prior auth/session security controls while adding role-governance
 
-- Decision: Add auth/account/admin backend contracts and standardized error envelopes following existing contract/query style.
-- Rationale: Maintains consistent API behavior, validation, and testability across backend surfaces.
+- Decision: Keep lockout, multi-session revocation, deactivation behavior, and deletion lifecycle unchanged while extending role governance.
+- Rationale: New UX and privilege controls are additive and should not regress previously clarified security/lifecycle rules.
 - Alternatives considered:
-  - Implicit response shapes from handlers: rejected due to brittle client behavior.
-  - Frontend-only validation assumptions: rejected because backend must enforce authority.
-
-## Decision 8: Frontend flow implemented with shared HeroUI/Tailwind components
-
-- Decision: Build auth and account-management UI with HeroUI primitives and reusable shared components under apps/frontend/src/components.
-- Rationale: Aligns with constitution requirements and existing frontend architecture.
-- Alternatives considered:
-  - Route-local one-off components: rejected for duplication and consistency drift.
-  - Custom CSS-heavy bespoke patterns: rejected by UI system constraints.
+  - Rework auth lifecycle simultaneously: rejected as high-risk scope expansion.
 
 ## Planning Readiness
 
-- All high-impact clarification items from the spec are resolved.
-- No remaining NEEDS CLARIFICATION markers are required for planning.
-- Phase 1 design artifacts can proceed without blocking decisions.
+- All revised-spec planning unknowns are resolved.
+- No `NEEDS CLARIFICATION` markers remain for this plan cycle.
+- Phase 1 artifacts (data model, contract, quickstart) are ready for updated design alignment.
