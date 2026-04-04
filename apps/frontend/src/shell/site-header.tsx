@@ -250,9 +250,11 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                         </p>
                       ) : null}
                       <Button
+                        className="justify-center border border-default-300 bg-default-100 text-foreground dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
                         data-testid="header-auth-account-button"
+                        fullWidth
                         size="sm"
-                        variant="secondary"
+                        variant="outline"
                         onPress={() => {
                           setIsProfileMenuOpen(false);
                           if (typeof window !== "undefined") {
@@ -264,12 +266,26 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                       </Button>
                       {authSession.user.privilege_level === "admin" ||
                       authSession.user.privilege_level === "owner" ? (
-                        <Link href="/admin" onClick={() => setIsProfileMenuOpen(false)}>
+                        <Button
+                          className="justify-center border border-default-300 bg-default-100 text-foreground dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                          data-testid="header-auth-admin-button"
+                          fullWidth
+                          size="sm"
+                          variant="outline"
+                          onPress={() => {
+                            setIsProfileMenuOpen(false);
+                            if (typeof window !== "undefined") {
+                              window.location.assign("/admin");
+                            }
+                          }}
+                        >
                           Admin
-                        </Link>
+                        </Button>
                       ) : null}
                       <Button
+                        className="justify-center"
                         data-testid="header-auth-sign-out"
+                        fullWidth
                         isDisabled={isSigningOut}
                         size="sm"
                         variant="danger-soft"
