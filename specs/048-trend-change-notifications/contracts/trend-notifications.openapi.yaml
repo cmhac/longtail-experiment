@@ -1,0 +1,417 @@
+openapi: 3.1.0
+info:
+  title: Trend Notifications API Contract
+  version: 0.1.0
+  description: >
+    Authenticated backend contract for in-app trend reversal notifications,
+    unread summaries, and per-user dataset subscriptions. This release enables
+    in-app delivery only while preserving channel-ready event semantics.
+paths:
+  /api/notifications:
+    get:
+      summary: List authenticated user notifications
+      parameters:
+        - in: query
+          name: page_size
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+        - in: query
+          name: cursor
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: unread_only
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Paginated newest-first notification list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationListResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/notifications/summary:
+    get:
+      summary: Get unread notification summary for authenticated user
+      responses:
+        "200":
+          description: Unread summary payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationSummaryResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/notifications/mark-all-read:
+    post:
+      summary: Mark all unread notifications as read for authenticated user
+      responses:
+        "200":
+          description: Bulk read-state update result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarkAllReadResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/notifications/{notificationId}/mark-read:
+    post:
+      summary: Mark one notification as read for authenticated user
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Single-item read-state update result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarkReadResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "404":
+          description: Notification not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/notifications/{notificationId}/mark-unread:
+    post:
+      summary: Mark one notification as unread for authenticated user
+      parameters:
+        - in: path
+          name: notificationId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Single-item unread-state update result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarkUnreadResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "404":
+          description: Notification not found or not owned by user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/notifications/subscriptions:
+    get:
+      summary: List active dataset subscriptions for authenticated user
+      responses:
+        "200":
+          description: Active dataset subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionListResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+    post:
+      summary: Create or reactivate a dataset subscription for authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSubscriptionRequest"
+      responses:
+        "200":
+          description: Subscription created or reactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+  /api/notifications/subscriptions/{datasetId}:
+    delete:
+      summary: Remove active dataset subscription for authenticated user
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscription removed or already absent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteSubscriptionResponse"
+        "401":
+          description: Missing or invalid session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+
+components:
+  schemas:
+    ApiErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - unauthorized
+                - notification_not_found
+                - notification_contract_error
+                - invalid_request
+            message:
+              type: string
+
+    PaginationInfo:
+      type: object
+      required: [page_size, has_more]
+      properties:
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+          nullable: true
+
+    NotificationItem:
+      type: object
+      required:
+        - notification_id
+        - event_id
+        - dataset_id
+        - title
+        - body
+        - previous_direction
+        - current_direction
+        - effective_observed_on
+        - destination_path
+        - unread
+        - delivered_at
+        - channel
+        - delivery_status
+      properties:
+        notification_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        dataset_id:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        previous_direction:
+          type: string
+          enum: [up, down]
+        current_direction:
+          type: string
+          enum: [up, down]
+        effective_observed_on:
+          type: string
+          format: date
+        destination_path:
+          type: string
+        unread:
+          type: boolean
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+        channel:
+          type: string
+          enum: [in_app]
+        delivery_status:
+          type: string
+          enum: [queued, delivered, failed, suppressed]
+        processing_context:
+          type: string
+          enum: [incremental, historical_reprocessing]
+        visibility_classification:
+          type: string
+          enum: [user_visible, audit_only]
+
+    NotificationListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationItem"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    NotificationSummaryResponse:
+      type: object
+      required: [unread_count, generated_at]
+      properties:
+        unread_count:
+          type: integer
+          minimum: 0
+        last_notification_at:
+          type: string
+          format: date-time
+          nullable: true
+        generated_at:
+          type: string
+          format: date-time
+
+    MarkReadResponse:
+      type: object
+      required: [notification_id, updated]
+      properties:
+        notification_id:
+          type: string
+          format: uuid
+        updated:
+          type: boolean
+        unread_count:
+          type: integer
+          minimum: 0
+
+    MarkAllReadResponse:
+      type: object
+      required: [updated_count, unread_count]
+      properties:
+        updated_count:
+          type: integer
+          minimum: 0
+        unread_count:
+          type: integer
+          minimum: 0
+
+    MarkUnreadResponse:
+      type: object
+      required: [notification_id, updated]
+      properties:
+        notification_id:
+          type: string
+          format: uuid
+        updated:
+          type: boolean
+        unread_count:
+          type: integer
+          minimum: 0
+
+    DatasetSubscription:
+      type: object
+      required: [dataset_id, subscribed_at]
+      properties:
+        dataset_id:
+          type: string
+        subscribed_at:
+          type: string
+          format: date-time
+        unsubscribed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    SubscriptionListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetSubscription"
+
+    CreateSubscriptionRequest:
+      type: object
+      required: [dataset_id]
+      properties:
+        dataset_id:
+          type: string
+          minLength: 1
+
+    SubscriptionResponse:
+      type: object
+      required: [dataset_id, subscribed_at, created]
+      properties:
+        dataset_id:
+          type: string
+        subscribed_at:
+          type: string
+          format: date-time
+        created:
+          type: boolean
+
+    DeleteSubscriptionResponse:
+      type: object
+      required: [dataset_id, removed]
+      properties:
+        dataset_id:
+          type: string
+        removed:
+          type: boolean

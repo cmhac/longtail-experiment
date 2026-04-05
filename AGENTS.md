@@ -13,6 +13,10 @@ Auto-generated from all feature plans. Last updated: 2026-04-05
 - PostgreSQL 16 via shared `libs/db` migration authority (046-user-auth-management)
 - Python 3.12 (library + pipeline runtime) + `libs/trend_analysis` cadence/classifier logic, Dagster ingest orchestration, pipeline trend runtime processor, pytest, Ruff, Ty (047-handle-cadence-gaps)
 - PostgreSQL 16 runtime/trend persistence and run outcome tables (`ingestion_runs`, `source_run_outcomes`, trend tables) (047-handle-cadence-gaps)
+- Python 3.12 (libs, pipeline, backend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, existing `libs/db` repositories and ORM models, Dagster-oriented pipeline runtime orchestration, existing backend auth/session and discovery service patterns, pytest, Ruff, Ty (048-trend-change-notifications)
+- PostgreSQL 16 via `libs/db` migrations and shared model authority (`observations`, `trend_canonical_descriptors`, auth tables, plus new notification tables) (048-trend-change-notifications)
+- Python 3.12 (libs, pipeline, backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster runtime orchestration, HeroUI 3 (`@heroui/react`), Tailwind utilities, existing auth/session and discovery client contracts, pytest, Ruff, Ty, Vitest, Biome (048-trend-change-notifications)
+- PostgreSQL 16 via `libs/db` migrations and shared model authority (`trend_canonical_descriptors`, auth tables, and new notification tables) (048-trend-change-notifications)
 
 - TypeScript 5.x + React 19 (Next.js 15 App Router), Python 3.12 backend query layer, existing pipeline contracts/persistence semantics + Existing discovery API client/types, Next.js routing primitives, existing shell/layout tokens, backend dataset discovery service/repository surfaces (032-source-pages)
 - Existing PostgreSQL 16 discovery metadata in `source_profiles`, `data_series`, `topic_tags`, and `observations`; no new datastore expected (032-source-pages)
@@ -280,9 +284,9 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 048-trend-change-notifications: Added Python 3.12 (libs, pipeline, backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster runtime orchestration, HeroUI 3 (`@heroui/react`), Tailwind utilities, existing auth/session and discovery client contracts, pytest, Ruff, Ty, Vitest, Biome
+- 048-trend-change-notifications: Added Python 3.12 (libs, pipeline, backend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, existing `libs/db` repositories and ORM models, Dagster-oriented pipeline runtime orchestration, existing backend auth/session and discovery service patterns, pytest, Ruff, Ty
 - 047-handle-cadence-gaps: Added Python 3.12 (library + pipeline runtime) + `libs/trend_analysis` cadence/classifier logic, Dagster ingest orchestration, pipeline trend runtime processor, pytest, Ruff, Ty
-- 046-user-auth-management: Added Python 3.12 (backend/libs), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, HeroUI 3 (`@heroui/react`), Tailwind utilities, existing auth/discovery client contracts
-- 046-user-auth-management: Added Python 3.12 (backend/libs), TypeScript 5.x + React 19 + Next.js 15 (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, psycopg 3.x, HeroUI 3, Tailwind utilities, Next.js App Router
 
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
