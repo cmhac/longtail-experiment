@@ -25,11 +25,25 @@ def _load_trend_library_symbols() -> Any:
     """Load trend-analysis symbols used by runtime processing."""
     _ensure_trend_library_import_path()
     classifier_module = importlib.import_module("trend_analysis.classifier")
-    return classifier_module.evaluate_multi_lookbacks
+    cadence_module = importlib.import_module("trend_analysis.cadence")
+    return (classifier_module.evaluate_multi_lookbacks, cadence_module.infer_cadence_decision)
 
 
-_EVALUATE_MULTI_LOOKBACKS = _load_trend_library_symbols()
+_EVALUATE_MULTI_LOOKBACKS, _INFER_CADENCE_DECISION = _load_trend_library_symbols()
 MIN_POINTS_FOR_CADENCE_INFERENCE = 3
+
+
+def _serialize_cadence_decision(decision: object) -> dict[str, object]:
+    """Convert cadence decision objects into JSON-safe runtime payloads."""
+    return {
+        "cadence_state": decision.cadence_state,
+        "inferred_cadence": decision.inferred_cadence,
+        "irregular_gap_count": decision.irregular_gap_count,
+        "total_interval_count": decision.total_interval_count,
+        "irregular_gap_ratio": decision.irregular_gap_ratio,
+        "reason_code": decision.reason_code,
+        "reason_detail": decision.reason_detail,
+    }
 
 
 class TrendRuntimeProcessor:
@@ -85,6 +99,15 @@ class TrendRuntimeProcessor:
             )
             for row in rows
         ]
+        series_cadence_decision = _INFER_CADENCE_DECISION(points)
+        if series_cadence_decision.cadence_state == "irregular_rejected":
+            return {
+                "series_key": series_key,
+                "execution_state": "no_op",
+                "outcome_reason_code": "cadence_irregular_rejected",
+                "cadence_decision": _serialize_cadence_decision(series_cadence_decision),
+            }
+
         rows_to_process = [rows[-1]]
         if run_full_backfill:
             rows_to_process = rows[MIN_POINTS_FOR_CADENCE_INFERENCE - 1 :]
@@ -100,6 +123,10 @@ class TrendRuntimeProcessor:
                 for candidate_observed_on, candidate_value in points
                 if candidate_observed_on <= observed_on
             ]
+            history_cadence_decision = _INFER_CADENCE_DECISION(history_points)
+            if history_cadence_decision.cadence_state == "irregular_rejected":
+                continue
+
             evaluation = _EVALUATE_MULTI_LOOKBACKS(history_points)
             apply_results.append(
                 self._lifecycle_service.apply_lookback_evaluation(
@@ -115,4 +142,5 @@ class TrendRuntimeProcessor:
             "series_key": series_key,
             "execution_state": apply_result.outcome_state,
             "outcome_reason_code": apply_result.outcome_reason_code,
+            "cadence_decision": apply_result.cadence_decision,
         }

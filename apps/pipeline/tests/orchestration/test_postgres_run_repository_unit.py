@@ -95,6 +95,18 @@ def test_add_run_outcome_writes_source_and_series_outcomes(monkeypatch) -> None:
                             "failed_count": 0,
                         }
                     ],
+                    "cadence_decisions": [
+                        {
+                            "series_key": "INT.US.FEDFUNDS",
+                            "cadence_state": "regular",
+                            "inferred_cadence": "daily",
+                            "irregular_gap_count": 0,
+                            "total_interval_count": 7,
+                            "irregular_gap_ratio": 0.0,
+                            "reason_code": "regular_spacing",
+                            "reason_detail": None,
+                        }
+                    ],
                 }
             ],
             "series_outcome_count": 1,

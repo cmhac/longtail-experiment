@@ -201,6 +201,40 @@ class PostgresRunRepository:
                     },
                 )
 
+                cadence_decisions = source_result.get("cadence_decisions")
+                if isinstance(cadence_decisions, list):
+                    cadence_message_parts = [
+                        (
+                            f"{cast(dict[str, Any], decision).get('series_key')}:"
+                            f"{cast(dict[str, Any], decision).get('cadence_state')}:"
+                            f"{cast(dict[str, Any], decision).get('reason_code')}"
+                        )
+                        for decision in cadence_decisions
+                        if isinstance(decision, dict)
+                    ]
+                    if cadence_message_parts:
+                        prior_message = source_result.get("message")
+                        cadence_message = f"cadence_decisions={';'.join(cadence_message_parts)}"
+                        merged_message = (
+                            f"{prior_message} | {cadence_message}"
+                            if isinstance(prior_message, str) and prior_message.strip()
+                            else cadence_message
+                        )
+                        connection.execute(
+                            text(
+                                """
+                                UPDATE source_run_outcomes
+                                SET message = :message
+                                WHERE run_id = :run_id AND source_key = :source_key
+                                """
+                            ),
+                            {
+                                "run_id": run_id,
+                                "source_key": str(source_result["source_key"]),
+                                "message": merged_message,
+                            },
+                        )
+
                 series_outcomes = source_result.get("series_outcomes")
                 if not isinstance(series_outcomes, list):
                     continue

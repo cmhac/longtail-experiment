@@ -51,12 +51,26 @@ class FakeCanonicalResult:
 
 
 @dataclass(frozen=True)
+class FakeCadenceDecision:
+    """Minimal cadence decision fixture."""
+
+    cadence_state: str
+    inferred_cadence: str | None
+    irregular_gap_count: int
+    total_interval_count: int
+    irregular_gap_ratio: float
+    reason_code: str
+    reason_detail: str | None
+
+
+@dataclass(frozen=True)
 class FakeLookbackEvaluation:
     """Minimal lookback evaluation payload fixture."""
 
     applicability: tuple[object, ...]
     lookback_snapshots: tuple[object, ...]
     canonical_descriptor: object
+    cadence_decision: object
 
 
 class FakeTrendRepository(TrendRepository):
@@ -125,6 +139,15 @@ def test_no_significant_lookbacks_still_persist_with_unavailable_canonical() -> 
             selected_lookback_points=None,
             weighting_trace={"selected": None},
         ),
+        cadence_decision=FakeCadenceDecision(
+            cadence_state="regular",
+            inferred_cadence="daily",
+            irregular_gap_count=0,
+            total_interval_count=7,
+            irregular_gap_ratio=0.0,
+            reason_code="regular_spacing",
+            reason_detail=None,
+        ),
     )
 
     result = service.apply_lookback_evaluation(
@@ -136,6 +159,8 @@ def test_no_significant_lookbacks_still_persist_with_unavailable_canonical() -> 
 
     assert result.outcome_state == "applied"
     assert result.outcome_reason_code == "lookback_snapshots_persisted"
+    assert result.cadence_decision is not None
+    assert result.cadence_decision["cadence_state"] == "regular"
     assert len(repository.applicability_writes) == 1
     assert len(repository.snapshot_writes) == 1
     assert len(repository.canonical_writes) == 1
@@ -174,6 +199,15 @@ def test_snapshot_write_failure_returns_partial_applied() -> None:
             selected_lookback_points=1,
             weighting_trace={"selected": 1},
         ),
+        cadence_decision=FakeCadenceDecision(
+            cadence_state="gap_tolerant",
+            inferred_cadence="weekly",
+            irregular_gap_count=1,
+            total_interval_count=500,
+            irregular_gap_ratio=0.002,
+            reason_code="isolated_irregular_gaps_tolerated",
+            reason_detail="ratio=0.002000,threshold=0.002000",
+        ),
     )
 
     result = service.apply_lookback_evaluation(
@@ -185,5 +219,7 @@ def test_snapshot_write_failure_returns_partial_applied() -> None:
 
     assert result.outcome_state == "partial_applied"
     assert result.outcome_reason_code == "partial_lookback_write_failure"
+    assert result.cadence_decision is not None
+    assert result.cadence_decision["cadence_state"] == "gap_tolerant"
     assert len(repository.applicability_writes) == 1
     assert len(repository.canonical_writes) == 1

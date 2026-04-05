@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import cast
 
@@ -13,6 +13,7 @@ from src.orchestration.jobs.trend_runtime_processor import TrendRuntimeProcessor
 
 EXPECTED_LOOKBACK_COUNT = 12
 ELIGIBLE_BACKFILL_OBSERVATION_COUNT = 4
+GAP_INDEX_AT_THRESHOLD = 250
 
 
 class _FakeObservationRepository:
@@ -71,6 +72,9 @@ def test_first_run_persists_lookback_rows() -> None:
 
     assert result["execution_state"] == "applied"
     assert result["outcome_reason_code"] == "lookback_snapshots_persisted"
+    cadence_decision = cast(dict[str, object], result["cadence_decision"])
+    assert cadence_decision["cadence_state"] == "regular"
+    assert cadence_decision["reason_code"] == "regular_spacing"
     # Eligible observations exclude first two points (cadence inference needs 3 points).
     assert (
         len(trend_repository.applicability_writes)
@@ -93,6 +97,37 @@ def test_empty_series_is_noop() -> None:
     assert result["outcome_reason_code"] == "no_observations"
 
 
+def test_irregular_cadence_returns_noop_with_cadence_decision_context() -> None:
+    """Irregular spacing should return no-op with explicit cadence decision details."""
+    series_key = "SERIES.IRREGULAR"
+    rows: list[dict[str, object]] = cast(
+        list[dict[str, object]],
+        [
+            {"observed_on": date(2026, 1, 1), "value": 1.0},
+            {"observed_on": date(2026, 1, 2), "value": 2.0},
+            {"observed_on": date(2026, 1, 3), "value": 3.0},
+            {"observed_on": date(2026, 1, 10), "value": 4.0},
+            {"observed_on": date(2026, 1, 11), "value": 5.0},
+        ],
+    )
+    processor = TrendRuntimeProcessor(
+        observation_repository=_FakeObservationRepository({series_key: rows}),
+        trend_repository=_FakeTrendRepository(),
+    )
+
+    result = processor.process_series(series_key=series_key)
+
+    assert result["execution_state"] == "no_op"
+    assert result["outcome_reason_code"] == "cadence_irregular_rejected"
+    cadence_decision = cast(dict[str, object], result["cadence_decision"])
+    assert cadence_decision["cadence_state"] == "irregular_rejected"
+    assert cadence_decision["reason_code"] in {
+        "mixed_cadence_families",
+        "irregular_gap_ratio_exceeds_threshold",
+        "no_supported_cadence_gaps",
+    }
+
+
 def test_existing_series_with_partial_canonical_history_triggers_backfill() -> None:
     """Existing trend records should still backfill when canonical history is incomplete."""
     series_key = "SERIES.PARTIAL_HISTORY"
@@ -110,3 +145,29 @@ def test_existing_series_with_partial_canonical_history_triggers_backfill() -> N
 
     assert result["execution_state"] == "applied"
     assert len(trend_repository.canonical_writes) == ELIGIBLE_BACKFILL_OBSERVATION_COUNT
+
+
+def test_gap_tolerant_cadence_continues_processing_without_irregular_failure() -> None:
+    """Mostly regular spacing with one isolated gap should continue trend processing."""
+    series_key = "SERIES.GAP_TOLERANT"
+    observed_on = date(2024, 1, 1)
+    rows: list[dict[str, object]] = []
+    for index in range(501):
+        rows.append({"observed_on": observed_on, "value": float(index)})
+        observed_on += timedelta(days=10 if index == GAP_INDEX_AT_THRESHOLD else 1)
+
+    # Existing history means runtime only processes the latest observation, while cadence
+    # still evaluates the full history and should classify it as gap_tolerant.
+    trend_repository = _FakeTrendRepository(trend_record_count=1, canonical_descriptor_count=499)
+    processor = TrendRuntimeProcessor(
+        observation_repository=_FakeObservationRepository({series_key: rows}),
+        trend_repository=trend_repository,
+    )
+
+    result = processor.process_series(series_key=series_key)
+
+    assert result["execution_state"] == "applied"
+    assert result["outcome_reason_code"] == "lookback_snapshots_persisted"
+    cadence_decision = cast(dict[str, object], result["cadence_decision"])
+    assert cadence_decision["cadence_state"] == "gap_tolerant"
+    assert cadence_decision["reason_code"] == "isolated_irregular_gaps_tolerated"

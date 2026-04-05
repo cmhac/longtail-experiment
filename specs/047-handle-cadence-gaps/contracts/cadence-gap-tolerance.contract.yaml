@@ -1,0 +1,73 @@
+name: cadence-gap-tolerance
+version: 0.1.0
+description: >
+  Runtime trend-processing cadence decision contract for distinguishing regular,
+  gap-tolerant, and irregular-rejected series behavior.
+
+definitions:
+  CadenceState:
+    type: string
+    enum:
+      - regular
+      - gap_tolerant
+      - irregular_rejected
+
+  CadenceFamily:
+    type: string
+    enum:
+      - daily
+      - weekly
+      - monthly
+
+  CadenceDecisionOutcome:
+    type: object
+    required:
+      - cadence_state
+      - irregular_gap_count
+      - total_interval_count
+      - irregular_gap_ratio
+      - reason_code
+    properties:
+      cadence_state:
+        $ref: "#/definitions/CadenceState"
+      inferred_cadence:
+        oneOf:
+          - $ref: "#/definitions/CadenceFamily"
+          - type: "null"
+      irregular_gap_count:
+        type: integer
+        minimum: 0
+      total_interval_count:
+        type: integer
+        minimum: 0
+      irregular_gap_ratio:
+        type: number
+        minimum: 0
+        maximum: 1
+      reason_code:
+        type: string
+        minLength: 1
+      reason_detail:
+        oneOf:
+          - type: string
+          - type: "null"
+
+rules:
+  - id: cad-001
+    description: cadence decision must be produced for every series where cadence is evaluated
+  - id: cad-002
+    description: inferred_cadence is required when cadence_state is regular or gap_tolerant
+  - id: cad-003
+    description: inferred_cadence is null when cadence_state is irregular_rejected
+  - id: cad-004
+    description: irregular_rejected must preserve existing runtime failure propagation semantics
+  - id: cad-005
+    description: gap_tolerant decisions must include ratio and counts for operator diagnostics
+
+policy_constants:
+  max_irregular_gap_ratio: 0.002
+  dominant_cadence_required: true
+  supported_cadence_families:
+    - daily
+    - weekly
+    - monthly

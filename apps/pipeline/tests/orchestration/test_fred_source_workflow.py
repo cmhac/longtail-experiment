@@ -187,6 +187,9 @@ def test_fred_source_maps_grouped_series_and_tracks_partial_success() -> None:
     assert fedfunds_outcome["quarantined_count"] == 1
     assert gas_outcome["status"] == "success"
     assert gas_outcome["accepted_count"] == 1
+    assert "cadence_decision" in fedfunds_outcome
+    assert "cadence_decision" in gas_outcome
+    assert result.cadence_decisions == []
 
     unit_type_by_series = {str(row.series_key): str(row.unit_type) for row in capture_repo.rows}
     assert unit_type_by_series[FRED_FEDFUNDS_CANONICAL_SERIES] == "percent"

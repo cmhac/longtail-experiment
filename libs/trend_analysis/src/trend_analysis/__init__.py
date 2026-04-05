@@ -7,6 +7,7 @@ from .classifier import (
     evaluate_multi_lookbacks,
 )
 from .models import (
+    CadenceDecisionResult,
     CanonicalTrendDescriptorResult,
     LookbackApplicabilityResult,
     LookbackTrendSnapshotResult,
@@ -18,6 +19,7 @@ from .version import CANONICAL_WEIGHTING_VERSION, LIBRARY_VERSION
 
 __all__ = [
     "CANONICAL_WEIGHTING_VERSION",
+    "CadenceDecisionResult",
     "CanonicalTrendDescriptorResult",
     "LOOKBACK_CATALOG",
     "LookbackApplicabilityResult",

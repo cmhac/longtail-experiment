@@ -29,7 +29,13 @@ class _Coordinator:
             "deferred_source_count": 0,
             "not_due_source_count": 0,
             "failed_source_count": 0,
-            "source_results": [{"source_key": "fred", "status": "success"}],
+            "source_results": [
+                {
+                    "source_key": "fred",
+                    "status": "success",
+                    "cadence_decisions": [],
+                }
+            ],
         }
 
     def list_registered_source_keys(self) -> list[str]:
@@ -124,8 +130,8 @@ def test_execute_ingest_run_includes_recovery_plan_on_failed_sources() -> None:
             "not_due_source_count": 0,
             "failed_source_count": 1,
             "source_results": [
-                {"source_key": "fred", "status": "success"},
-                {"source_key": "bls", "status": "failure"},
+                {"source_key": "fred", "status": "success", "cadence_decisions": []},
+                {"source_key": "bls", "status": "failure", "cadence_decisions": []},
             ],
         }
     )
@@ -161,7 +167,13 @@ def test_execute_ingest_run_logs_warning_when_deferred_sources_present() -> None
             "deferred_source_count": 1,
             "not_due_source_count": 0,
             "failed_source_count": 0,
-            "source_results": [{"source_key": "fred", "status": "success"}],
+            "source_results": [
+                {
+                    "source_key": "fred",
+                    "status": "success",
+                    "cadence_decisions": [],
+                }
+            ],
         }
     )
     context = _Context(

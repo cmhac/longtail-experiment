@@ -8,7 +8,7 @@ import json
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import pytest
 
@@ -160,7 +160,7 @@ def test_default_eia_client_handles_pagination_and_start_date() -> None:
             },
         ]
     )
-    client._opener = opener  # pyright: ignore[reportPrivateUsage]
+    client._opener = cast(Any, opener)  # pyright: ignore[reportPrivateUsage]
 
     rows = client.fetch_observations(
         api_key="test-key",
@@ -177,7 +177,7 @@ def test_default_eia_client_handles_pagination_and_start_date() -> None:
 def test_default_eia_client_rejects_invalid_response_shapes() -> None:
     client = _DefaultEiaClient(base_url="https://example.test", page_size=1)
     opener = _FakeOpener([{"response": {"data": "bad"}}])
-    client._opener = opener  # pyright: ignore[reportPrivateUsage]
+    client._opener = cast(Any, opener)  # pyright: ignore[reportPrivateUsage]
 
     with pytest.raises(RuntimeError, match="eia response data payload is invalid"):
         client.fetch_observations(
@@ -281,6 +281,8 @@ def test_eia_source_maps_series_and_uses_incremental_start_dates() -> None:
     assert result.accepted_count == TWO
     assert len(capture_repo.rows) == TWO
     assert len(client.calls) == TWO
+    assert result.cadence_decisions == []
+    assert all("cadence_decision" in outcome for outcome in result.series_outcomes)
     call_map = {(call["product_code"], call["duoarea"]): call for call in client.calls}
     assert call_map[(first["provider_product_code"], first["provider_duoarea"])][
         "start_date"
