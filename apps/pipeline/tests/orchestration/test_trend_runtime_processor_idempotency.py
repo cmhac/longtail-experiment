@@ -78,6 +78,7 @@ def test_retry_processing_is_idempotent_for_lookback_and_canonical_writes() -> N
 
     assert first["execution_state"] == "applied"
     assert second["execution_state"] == "applied"
+    assert first["cadence_decision"] == second["cadence_decision"]
     assert (
         len(trend_repository.applicability_by_key)
         == EXPECTED_LOOKBACK_COUNT * ELIGIBLE_BACKFILL_OBSERVATION_COUNT

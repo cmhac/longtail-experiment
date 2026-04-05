@@ -13,6 +13,8 @@ TrendOutcome = Literal[
     "no_significant_trend",
     "insufficient_data",
 ]
+CadenceFamily = Literal["daily", "weekly", "monthly"]
+CadenceState = Literal["regular", "gap_tolerant", "irregular_rejected"]
 LookbackApplicabilityState = Literal["applicable", "inapplicable"]
 LookbackOutcomeState = Literal["significant_trend", "no_significant_trend"]
 CanonicalDescriptorState = Literal["available", "unavailable"]
@@ -79,15 +81,51 @@ class CanonicalTrendDescriptorResult:
 
 
 @dataclass(frozen=True)
+class CadenceDecisionResult:
+    """Deterministic cadence decision output for one ordered observation history."""
+
+    cadence_state: CadenceState
+    inferred_cadence: CadenceFamily | None
+    irregular_gap_count: int
+    total_interval_count: int
+    irregular_gap_ratio: float
+    reason_code: str
+    reason_detail: str | None
+
+
+@dataclass(frozen=True)
 class MultiLookbackEvaluationResult:
     """Full multi-lookback evaluation payload for one observation context."""
 
     analysis_version: str
     weighting_version: str
     evaluated_observation_count: int
+    cadence_decision: CadenceDecisionResult
     applicability: tuple[LookbackApplicabilityResult, ...]
     lookback_snapshots: tuple[LookbackTrendSnapshotResult, ...]
     canonical_descriptor: CanonicalTrendDescriptorResult
+
+
+def build_cadence_decision_result(
+    *,
+    cadence_state: CadenceState,
+    inferred_cadence: CadenceFamily | None,
+    irregular_gap_count: int,
+    total_interval_count: int,
+    irregular_gap_ratio: float,
+    reason_code: str,
+    reason_detail: str | None,
+) -> CadenceDecisionResult:
+    """Build a typed cadence decision result."""
+    return CadenceDecisionResult(
+        cadence_state=cadence_state,
+        inferred_cadence=inferred_cadence,
+        irregular_gap_count=irregular_gap_count,
+        total_interval_count=total_interval_count,
+        irregular_gap_ratio=irregular_gap_ratio,
+        reason_code=reason_code,
+        reason_detail=reason_detail,
+    )
 
 
 def build_result(

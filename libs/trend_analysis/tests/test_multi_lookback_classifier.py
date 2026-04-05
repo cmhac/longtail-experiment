@@ -32,6 +32,17 @@ def test_evaluate_multi_lookbacks_marks_depth_inapplicable_with_reason() -> None
     assert by_lookback[10].reason_code == "insufficient_history"
 
 
+def test_evaluate_multi_lookbacks_includes_cadence_decision_metadata() -> None:
+    """Lookback evaluation should include cadence decision metadata for transparency."""
+    points = _daily_points([100.0, 101.0, 102.0, 103.0, 104.0, 105.0])
+
+    result = evaluate_multi_lookbacks(points)
+
+    assert result.cadence_decision.cadence_state == "regular"
+    assert result.cadence_decision.inferred_cadence == "monthly"
+    assert result.cadence_decision.reason_code == "regular_spacing"
+
+
 def test_evaluate_multi_lookbacks_records_no_signal_for_flat_series() -> None:
     """Applicable lookbacks with small moves should persist no-significant states."""
     points = _daily_points([100.0, 100.1, 100.0, 100.1, 100.0, 100.1, 100.0, 100.1])

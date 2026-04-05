@@ -40,6 +40,7 @@ class TrendLookbackApplyResult:
 
     outcome_state: Literal["applied", "partial_applied"]
     outcome_reason_code: str
+    cadence_decision: dict[str, object] | None = None
 
 
 class LookbackEvaluationResultLike(Protocol):
@@ -48,6 +49,19 @@ class LookbackEvaluationResultLike(Protocol):
     applicability: tuple[LookbackApplicabilityLike, ...]
     lookback_snapshots: tuple[LookbackSnapshotLike, ...]
     canonical_descriptor: CanonicalDescriptorLike
+    cadence_decision: CadenceDecisionLike
+
+
+class CadenceDecisionLike(Protocol):
+    """Structural cadence decision metadata item."""
+
+    cadence_state: Literal["regular", "gap_tolerant", "irregular_rejected"]
+    inferred_cadence: Literal["daily", "weekly", "monthly"] | None
+    irregular_gap_count: int
+    total_interval_count: int
+    irregular_gap_ratio: float
+    reason_code: str
+    reason_detail: str | None
 
 
 class LookbackApplicabilityLike(Protocol):
@@ -214,6 +228,16 @@ class TrendLifecycleService:
         applicability = typed_result.applicability
         snapshots = typed_result.lookback_snapshots
         canonical = typed_result.canonical_descriptor
+        cadence_decision = typed_result.cadence_decision
+        cadence_decision_payload: dict[str, object] = {
+            "cadence_state": cadence_decision.cadence_state,
+            "inferred_cadence": cadence_decision.inferred_cadence,
+            "irregular_gap_count": cadence_decision.irregular_gap_count,
+            "total_interval_count": cadence_decision.total_interval_count,
+            "irregular_gap_ratio": cadence_decision.irregular_gap_ratio,
+            "reason_code": cadence_decision.reason_code,
+            "reason_detail": cadence_decision.reason_detail,
+        }
 
         first_snapshot_error: Exception | None = None
         for item in applicability:
@@ -270,8 +294,10 @@ class TrendLifecycleService:
             return TrendLookbackApplyResult(
                 outcome_state="partial_applied",
                 outcome_reason_code="partial_lookback_write_failure",
+                cadence_decision=cadence_decision_payload,
             )
         return TrendLookbackApplyResult(
             outcome_state="applied",
             outcome_reason_code="lookback_snapshots_persisted",
+            cadence_decision=cadence_decision_payload,
         )

@@ -23,6 +23,20 @@ class FakeLookbackEvaluation:
     applicability: tuple[object, ...]
     lookback_snapshots: tuple[object, ...]
     canonical_descriptor: object
+    cadence_decision: object
+
+
+@dataclass(frozen=True)
+class FakeCadenceDecision:
+    """Minimal cadence decision metadata fixture."""
+
+    cadence_state: str
+    inferred_cadence: str | None
+    irregular_gap_count: int
+    total_interval_count: int
+    irregular_gap_ratio: float
+    reason_code: str
+    reason_detail: str | None
 
 
 @dataclass(frozen=True)
@@ -128,6 +142,15 @@ def test_retry_with_unchanged_state_is_idempotent_and_writes_nothing() -> None:
             selected_lookback_points=1,
             weighting_trace={"selected": 1},
         ),
+        cadence_decision=FakeCadenceDecision(
+            cadence_state="regular",
+            inferred_cadence="daily",
+            irregular_gap_count=0,
+            total_interval_count=7,
+            irregular_gap_ratio=0.0,
+            reason_code="regular_spacing",
+            reason_detail=None,
+        ),
     )
 
     first = service.apply_lookback_evaluation(
@@ -145,8 +168,10 @@ def test_retry_with_unchanged_state_is_idempotent_and_writes_nothing() -> None:
 
     assert first.outcome_state == "applied"
     assert first.outcome_reason_code == "lookback_snapshots_persisted"
+    assert first.cadence_decision is not None
     assert second.outcome_state == "applied"
     assert second.outcome_reason_code == "lookback_snapshots_persisted"
+    assert second.cadence_decision is not None
     assert len(repository.applicability_writes) == EXPECTED_RETRY_WRITES
     assert len(repository.snapshot_writes) == EXPECTED_RETRY_WRITES
     assert len(repository.canonical_writes) == EXPECTED_RETRY_WRITES

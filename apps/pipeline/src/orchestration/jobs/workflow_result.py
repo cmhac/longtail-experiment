@@ -47,3 +47,4 @@ class SourceWorkflowResult(BaseModel):
     visible_in_dagit: bool = True
     failure_summary: str | None = None
     series_outcomes: list[dict[str, object]] = Field(default_factory=list)
+    cadence_decisions: list[dict[str, object]] = Field(default_factory=list)

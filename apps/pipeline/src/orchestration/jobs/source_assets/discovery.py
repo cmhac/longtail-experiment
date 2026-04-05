@@ -14,6 +14,7 @@ import pkgutil
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date
 from functools import lru_cache
 from typing import Any, Protocol, cast
 
@@ -29,8 +30,9 @@ CRON_FIELD_COUNT = 5
 class ObservationCheckpointRepository(Protocol):
     """Protocol for reading latest persisted canonical observation dates."""
 
-    def read_latest_observed_on(self, *, series_key: str):
+    def read_latest_observed_on(self, *, series_key: str) -> date | None:
         """Return latest persisted observation date for one canonical series."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -269,8 +271,9 @@ def _build_source_builder_spec(*, module_name: str, module: Any) -> SourceBuilde
             )
         )
 
-    builder = raw_spec.get("builder")
-    if not callable(builder):
+    raw_builder = raw_spec.get("builder")
+    builder: Callable[..., SourceWorkflowRegistration] | None = None
+    if not callable(raw_builder):
         violations.append(
             _violation(
                 module_name=module_name,
@@ -278,6 +281,8 @@ def _build_source_builder_spec(*, module_name: str, module: Any) -> SourceBuilde
                 reason="builder must be callable",
             )
         )
+    else:
+        builder = cast(Callable[..., SourceWorkflowRegistration], raw_builder)
 
     if violations:
         raise SourceAdapterManifestError(violations=tuple(violations))
@@ -287,6 +292,7 @@ def _build_source_builder_spec(*, module_name: str, module: Any) -> SourceBuilde
     assert description is not None
     assert cron_schedule is not None
     assert cadence_label is not None
+    assert builder is not None
 
     return SourceBuilderSpec(
         source_key=source_key,

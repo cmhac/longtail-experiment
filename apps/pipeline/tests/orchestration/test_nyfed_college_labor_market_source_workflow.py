@@ -7,7 +7,7 @@ import zipfile
 from datetime import date
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 
 import pytest
 
@@ -307,7 +307,7 @@ def test_default_nyfed_client_filters_rows_by_start_date() -> None:
     )
     client = _DefaultNyfedClient(workbook_url="https://example.test/workbook.xlsx", timeout=12)
     opener = _FakeOpener([workbook])
-    client._opener = opener  # pyright: ignore[reportPrivateUsage]
+    client._opener = cast(Any, opener)  # pyright: ignore[reportPrivateUsage]
 
     rows = client.fetch_observations(
         provider_series_id="unemployed_recent_graduates",
@@ -390,6 +390,8 @@ def test_nyfed_source_maps_grouped_series_and_uses_incremental_start_dates() -> 
     assert result.status == "success"
     assert result.accepted_count == FOUR
     assert len(capture_repo.rows) == FOUR
+    assert result.cadence_decisions == []
+    assert all("cadence_decision" in outcome for outcome in result.series_outcomes)
     start_dates = {call["provider_series_id"]: call["start_date"] for call in client.calls}
     assert start_dates["unemployed_recent_graduates"] == date(2025, 12, 2)
     assert start_dates["unemployed_college_graduates"] == date(2025, 11, 2)

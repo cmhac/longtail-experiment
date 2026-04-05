@@ -6,13 +6,14 @@ from collections.abc import Sequence
 from datetime import date
 from typing import Literal
 
-from .cadence import infer_cadence
+from .cadence import CadenceInferenceError, infer_cadence, infer_cadence_decision
 from .models import (
     CanonicalTrendDescriptorResult,
     LookbackTrendSnapshotResult,
     MultiLookbackEvaluationResult,
     TrendAnalysisResult,
     TrendSignature,
+    build_cadence_decision_result,
     build_canonical_descriptor,
     build_lookback_applicability_result,
     build_lookback_snapshot_result,
@@ -284,6 +285,15 @@ def evaluate_multi_lookbacks(
                 weighting_trace={"selected": None, "candidates": {}},
             ).weighting_version,
             evaluated_observation_count=len(observations),
+            cadence_decision=build_cadence_decision_result(
+                cadence_state="irregular_rejected",
+                inferred_cadence=None,
+                irregular_gap_count=0,
+                total_interval_count=max(len(observations) - 1, 0),
+                irregular_gap_ratio=0.0,
+                reason_code="insufficient_history",
+                reason_detail=(f"requires at least {MIN_LOOKBACK_OBSERVATION_COUNT} observations"),
+            ),
             applicability=empty_applicability,
             lookback_snapshots=(),
             canonical_descriptor=build_canonical_descriptor(
@@ -297,7 +307,22 @@ def evaluate_multi_lookbacks(
             ),
         )
 
-    cadence = infer_cadence(observations)
+    cadence_decision = infer_cadence_decision(observations)
+    cadence = cadence_decision.inferred_cadence
+    if cadence_decision.cadence_state == "irregular_rejected" or cadence is None:
+        if cadence_decision.reason_code == "insufficient_observations":
+            raise CadenceInferenceError(
+                "observation cadence cannot be inferred with fewer than 3 points"
+            )
+        if cadence_decision.reason_code == "non_increasing_periods":
+            raise CadenceInferenceError(
+                "observation cadence cannot be inferred from non-increasing periods"
+            )
+        raise CadenceInferenceError(
+            "observation cadence cannot be inferred from irregular spacing "
+            f"({cadence_decision.reason_code})"
+        )
+
     applicability_results = []
     snapshots = []
     for lookback in lookback_catalog:
@@ -321,6 +346,7 @@ def evaluate_multi_lookbacks(
         ).analysis_version,
         weighting_version=canonical.weighting_version,
         evaluated_observation_count=len(observations),
+        cadence_decision=cadence_decision,
         applicability=tuple(applicability_results),
         lookback_snapshots=tuple(snapshots),
         canonical_descriptor=canonical,

@@ -54,6 +54,7 @@ class EiaClient(Protocol):
         start_date: date | None,
     ) -> list[dict[str, Any]]:
         """Fetch EIA observation rows for one product and area."""
+        raise NotImplementedError
 
 
 class _DefaultEiaClient:
@@ -394,6 +395,7 @@ def build_eia_retail_fuel_prices_source_workflow(
         quarantined_count = 0
         failed_count = 0
         series_outcomes: list[dict[str, object]] = []
+        cadence_decisions: list[dict[str, object]] = []
 
         requested_series_items_raw = request.run_context.get("series_item_keys")
         requested_series_items = (
@@ -446,6 +448,16 @@ def build_eia_retail_fuel_prices_source_workflow(
                 records=_map_records(rows=raw_rows, series_config=series_config),
                 fallback_series_keys=[series_config["canonical_series_key"]],
             )
+            cadence_decision = next(
+                (
+                    decision
+                    for decision in result.cadence_decisions
+                    if decision.get("series_key") == series_config["canonical_series_key"]
+                ),
+                None,
+            )
+            if isinstance(cadence_decision, dict):
+                cadence_decisions.append(dict(cadence_decision))
             accepted_count += result.accepted_count
             quarantined_count += result.quarantined_count
             failed_count += result.failed_count
@@ -461,6 +473,7 @@ def build_eia_retail_fuel_prices_source_workflow(
                     "accepted_count": result.accepted_count,
                     "quarantined_count": result.quarantined_count,
                     "failed_count": result.failed_count,
+                    "cadence_decision": cadence_decision,
                 }
             )
 
@@ -483,6 +496,7 @@ def build_eia_retail_fuel_prices_source_workflow(
             outcome_reason_code=outcome_reason,
             message=message,
             series_outcomes=series_outcomes,
+            cadence_decisions=cadence_decisions,
         )
 
     return SourceWorkflowRegistration(

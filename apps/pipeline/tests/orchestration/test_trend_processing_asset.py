@@ -23,6 +23,7 @@ class FakeEvaluationResult:
     applicability: tuple[object, ...]
     lookback_snapshots: tuple[object, ...]
     canonical_descriptor: object
+    cadence_decision: object
 
 
 class FakeLifecycleApplier:
@@ -45,6 +46,15 @@ class FakeLifecycleApplier:
         return TrendLookbackApplyResult(
             outcome_state="applied",
             outcome_reason_code="lookback_snapshots_persisted",
+            cadence_decision={
+                "cadence_state": "regular",
+                "inferred_cadence": "daily",
+                "irregular_gap_count": 0,
+                "total_interval_count": 5,
+                "irregular_gap_ratio": 0.0,
+                "reason_code": "regular_spacing",
+                "reason_detail": None,
+            },
         )
 
 
@@ -69,6 +79,7 @@ def test_process_updated_series_emits_per_series_metadata_in_order() -> None:
                     applicability=(),
                     lookback_snapshots=(),
                     canonical_descriptor=object(),
+                    cadence_decision=object(),
                 ),
             ),
         ),
@@ -82,6 +93,7 @@ def test_process_updated_series_emits_per_series_metadata_in_order() -> None:
                     applicability=(),
                     lookback_snapshots=(),
                     canonical_descriptor=object(),
+                    cadence_decision=object(),
                 ),
             ),
         ),

@@ -199,6 +199,66 @@ def test_ingest_job_series_targeted_request_executes_selected_series_only() -> N
         assert series_item_keys <= {"fred_fedfunds"}
 
 
+def test_ingest_job_persists_series_outcome_cadence_decision_context() -> None:
+    """Persisted run payload should include cadence decision context when available."""
+    if not os.getenv("FRED_API_KEY", "").strip():
+        pytest.skip("FRED_API_KEY not set; skipping cadence decision visibility integration")
+
+    runtime = get_ingest_runtime()
+    run_repo = runtime.run_repository
+
+    probe_run_id = f"run-probe-{uuid4()}"
+    try:
+        run_repo.fetch_run(probe_run_id)
+    except Exception as exc:  # pragma: no cover - environment-dependent integration guard
+        pytest.skip(f"postgres runtime DB unavailable for integration test: {exc}")
+
+    run_repo.clear_all()
+
+    result = defs.get_job_def("ingest_job").execute_in_process(
+        run_config={},
+        tags={"trigger_type": "on_demand", "requested_by": "cadence-context-visibility"},
+    )
+
+    assert result.success
+    run_output = result.output_for_node("execute_ingest_run")
+    source_rows = [
+        row for row in run_output["source_results"] if row["source_key"] == FRED_FEDFUNDS_SOURCE_KEY
+    ]
+    assert len(source_rows) == 1
+    cadence_decisions = source_rows[0].get("cadence_decisions", [])
+    assert isinstance(cadence_decisions, list)
+    if cadence_decisions:
+        first = cadence_decisions[0]
+        assert isinstance(first, dict)
+        assert "series_key" in first
+        assert "cadence_state" in first
+        assert "reason_code" in first
+
+
+def test_ingest_job_runtime_serializes_cadence_decisions_in_source_results() -> None:
+    """Static run payload shape should include cadence_decisions list for source rows."""
+    payload = {
+        "source_results": [
+            {
+                "source_key": "fred_fedfunds",
+                "status": "success",
+                "cadence_decisions": [
+                    {
+                        "series_key": "INT.US.FEDFUNDS",
+                        "cadence_state": "regular",
+                        "reason_code": "regular_spacing",
+                    }
+                ],
+            }
+        ]
+    }
+
+    source_rows = payload["source_results"]
+    assert isinstance(source_rows, list)
+    assert isinstance(source_rows[0]["cadence_decisions"], list)
+
+
 def test_ingest_job_second_run_adds_no_duplicate_fred_observations() -> None:
     """Two immediate runs should not create duplicate FRED observations."""
     if not os.getenv("FRED_API_KEY", "").strip():

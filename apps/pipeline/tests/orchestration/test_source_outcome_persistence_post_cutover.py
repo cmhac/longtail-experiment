@@ -91,5 +91,6 @@ def test_runtime_maps_source_outcomes_to_persistence_view_records() -> None:
             "visible_in_dagit": True,
             "failure_summary": "provider_request_failed: timeout",
             "series_outcomes": [],
+            "cadence_decisions": [],
         }
     ]

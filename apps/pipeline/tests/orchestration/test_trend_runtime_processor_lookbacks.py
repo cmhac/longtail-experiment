@@ -64,6 +64,8 @@ def test_runtime_persists_applicability_for_supported_and_unsupported_lookbacks(
     result = processor.process_series(series_key=series_key)
 
     assert result["execution_state"] == "applied"
+    cadence_decision = cast(dict[str, object], result["cadence_decision"])
+    assert cadence_decision["cadence_state"] == "regular"
     assert (
         len(trend_repository.applicability_writes)
         == EXPECTED_LOOKBACK_COUNT * ELIGIBLE_BACKFILL_OBSERVATION_COUNT

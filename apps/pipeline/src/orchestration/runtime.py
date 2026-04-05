@@ -126,6 +126,7 @@ class SourceOutcomePersistenceRecord(TypedDict):
     visible_in_dagit: bool
     failure_summary: str | None
     series_outcomes: list[dict[str, object]]
+    cadence_decisions: list[dict[str, object]]
 
 
 @dataclass(frozen=True)
@@ -190,6 +191,11 @@ def map_source_outcomes_to_persistence_records(
                     else None
                 ),
                 "series_outcomes": list(series_outcomes),
+                "cadence_decisions": (
+                    cast(list[dict[str, object]], source_result.get("cadence_decisions"))
+                    if isinstance(source_result.get("cadence_decisions"), list)
+                    else []
+                ),
             }
         )
     return mapped

@@ -130,3 +130,5 @@ def test_series_outcome_traceability_persists_across_ownership_transition() -> N
 
     assert grouped_records[0]["series_outcomes"][0]["series_item_key"] == "fred_gasregw"
     assert split_records[0]["series_outcomes"][0]["series_item_key"] == "fred_gasregw"
+    assert grouped_records[0]["cadence_decisions"] == []
+    assert split_records[0]["cadence_decisions"] == []
