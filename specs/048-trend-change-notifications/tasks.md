@@ -11,9 +11,9 @@
 
 **Purpose**: Align artifacts and verification paths across backend, pipeline, libs, and frontend.
 
-- [ ] T001 Verify and cross-link feature artifacts in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/plan.md`
-- [ ] T002 Capture manual API + browser verification flow in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/quickstart.md`
-- [ ] T003 [P] Validate endpoint list and payload semantics in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/contracts/trend-notifications.openapi.yaml`
+- [X] T001 Verify and cross-link feature artifacts in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/plan.md`
+- [X] T002 Capture manual API + browser verification flow in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/quickstart.md`
+- [X] T003 [P] Validate endpoint list and payload semantics in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/contracts/trend-notifications.openapi.yaml`
 
 ---
 
@@ -23,13 +23,13 @@
 
 **CRITICAL**: No user story implementation starts until this phase is complete.
 
-- [ ] T004 Add notification-domain Alembic migration in `/root/snap/longtail-experiment/libs/db/alembic/versions/0015_trend_notifications.py`
-- [ ] T005 Extend DB models and exports for event/subscription/notification entities in `/root/snap/longtail-experiment/libs/db/src/db/models/trends.py`
-- [ ] T006 [P] Add repository interfaces for trend notifications and subscriptions in `/root/snap/longtail-experiment/libs/db/src/db/repositories/interfaces.py`
-- [ ] T007 [P] Implement Postgres repository SQL for event idempotency, fan-out, and read/unread mutations in `/root/snap/longtail-experiment/libs/db/src/db/repositories/postgres_trend_repository.py`
-- [ ] T008 [P] Add notification repository helper module in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
-- [ ] T009 Add migration and repository tests in `/root/snap/longtail-experiment/libs/db/tests/test_trend_notification_migration_contract.py`
-- [ ] T010 [P] Add repository behavior tests in `/root/snap/longtail-experiment/libs/db/tests/test_notification_repository.py`
+- [X] T004 Add notification-domain Alembic migration in `/root/snap/longtail-experiment/libs/db/alembic/versions/0015_trend_notifications.py`
+- [X] T005 Extend DB models and exports for event/subscription/notification entities in `/root/snap/longtail-experiment/libs/db/src/db/models/trends.py`
+- [X] T006 [P] Add repository interfaces for trend notifications and subscriptions in `/root/snap/longtail-experiment/libs/db/src/db/repositories/interfaces.py`
+- [X] T007 [P] Implement Postgres repository SQL for event idempotency, fan-out, and read/unread mutations in `/root/snap/longtail-experiment/libs/db/src/db/repositories/postgres_trend_repository.py`
+- [X] T008 [P] Add notification repository helper module in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
+- [X] T009 Add migration and repository tests in `/root/snap/longtail-experiment/libs/db/tests/test_trend_notification_migration_contract.py`
+- [X] T010 [P] Add repository behavior tests in `/root/snap/longtail-experiment/libs/db/tests/test_notification_repository.py`
 
 **Checkpoint**: Shared schema/repository contracts are implemented and test-covered.
 
@@ -43,18 +43,18 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T011 [P] [US1] Add orchestration test for qualifying `up -> down` event creation in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
-- [ ] T012 [P] [US1] Add orchestration test for qualifying `down -> up` event creation in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
-- [ ] T013 [P] [US1] Add orchestration test for non-event cases in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
-- [ ] T014 [P] [US1] Add retry idempotency test for event dedupe in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_notification_service_idempotency.py`
+- [X] T011 [P] [US1] Add orchestration test for qualifying `up -> down` event creation in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
+- [X] T012 [P] [US1] Add orchestration test for qualifying `down -> up` event creation in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
+- [X] T013 [P] [US1] Add orchestration test for non-event cases in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
+- [X] T014 [P] [US1] Add retry idempotency test for event dedupe in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_notification_service_idempotency.py`
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Add trend notification service orchestration in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/jobs/trend_notification_service.py`
-- [ ] T016 [US1] Integrate reversal detection into canonical persistence flow in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
-- [ ] T017 [US1] Tag events with processing context and visibility classification in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py`
-- [ ] T018 [US1] Extend pipeline trend repository protocol for notification seams in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/resources/trend_repository.py`
-- [ ] T019 [US1] Implement pipeline Postgres adapter calls for event write/read context in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/resources/postgres_trend_repository.py`
+- [X] T015 [US1] Add trend notification service orchestration in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/jobs/trend_notification_service.py`
+- [X] T016 [US1] Integrate reversal detection into canonical persistence flow in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
+- [X] T017 [US1] Tag events with processing context and visibility classification in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py`
+- [X] T018 [US1] Extend pipeline trend repository protocol for notification seams in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/resources/trend_repository.py`
+- [X] T019 [US1] Implement pipeline Postgres adapter calls for event write/read context in `/root/snap/longtail-experiment/apps/pipeline/src/orchestration/resources/postgres_trend_repository.py`
 
 **Checkpoint**: US1 independently delivers deterministic reversal-event persistence.
 
@@ -68,20 +68,20 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T020 [P] [US2] Add backend contract schema tests for notification payloads in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_contract_schema.py`
-- [ ] T021 [P] [US2] Add backend service tests for unread summary and pagination ordering in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_service.py`
-- [ ] T022 [P] [US2] Add HTTP endpoint tests for auth guards and self-only ownership in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_http_trend_notification_endpoints.py`
-- [ ] T023 [P] [US2] Add pipeline test for subscription-based fan-out eligibility in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
-- [ ] T024 [P] [US2] Add pipeline test for re-subscribe forward-only behavior in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_notification_service_idempotency.py`
+- [X] T020 [P] [US2] Add backend contract schema tests for notification payloads in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_contract_schema.py`
+- [X] T021 [P] [US2] Add backend service tests for unread summary and pagination ordering in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_service.py`
+- [X] T022 [P] [US2] Add HTTP endpoint tests for auth guards and self-only ownership in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_http_trend_notification_endpoints.py`
+- [X] T023 [P] [US2] Add pipeline test for subscription-based fan-out eligibility in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
+- [X] T024 [P] [US2] Add pipeline test for re-subscribe forward-only behavior in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_notification_service_idempotency.py`
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Add backend notification contracts in `/root/snap/longtail-experiment/apps/backend/src/contract/query/trend_notification_query.py`
-- [ ] T026 [US2] Implement backend persisted repository adapter in `/root/snap/longtail-experiment/apps/backend/src/query/trend_notification_persisted_repository.py`
-- [ ] T027 [US2] Implement backend notification service in `/root/snap/longtail-experiment/apps/backend/src/query/trend_notification_service.py`
-- [ ] T028 [US2] Register notification routes in `/root/snap/longtail-experiment/apps/backend/src/http_api_server.py`
-- [ ] T029 [US2] Implement subscription list/create/delete repository methods in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
-- [ ] T030 [US2] Implement unread summary + read/unread mutation repository methods in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
+- [X] T025 [US2] Add backend notification contracts in `/root/snap/longtail-experiment/apps/backend/src/contract/query/trend_notification_query.py`
+- [X] T026 [US2] Implement backend persisted repository adapter in `/root/snap/longtail-experiment/apps/backend/src/query/trend_notification_persisted_repository.py`
+- [X] T027 [US2] Implement backend notification service in `/root/snap/longtail-experiment/apps/backend/src/query/trend_notification_service.py`
+- [X] T028 [US2] Register notification routes in `/root/snap/longtail-experiment/apps/backend/src/http_api_server.py`
+- [X] T029 [US2] Implement subscription list/create/delete repository methods in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
+- [X] T030 [US2] Implement unread summary + read/unread mutation repository methods in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
 
 **Checkpoint**: US2 independently delivers backend contracts required by frontend notification UX.
 
@@ -95,25 +95,25 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T031 [P] [US3] Add navbar notification bell/dropdown interaction tests in `/root/snap/longtail-experiment/apps/frontend/tests/navbar-notifications.test.tsx`
-- [ ] T032 [P] [US3] Add notifications management page tests in `/root/snap/longtail-experiment/apps/frontend/tests/notifications-page.test.tsx`
-- [ ] T033 [P] [US3] Add frontend notification client tests for list/summary/read-state calls in `/root/snap/longtail-experiment/apps/frontend/tests/notification-client.test.ts`
-- [ ] T034 [P] [US3] Extend shell structure contract test for notification control presence in `/root/snap/longtail-experiment/apps/frontend/tests/shell-structure-contract.test.tsx`
+- [X] T031 [P] [US3] Add navbar notification bell/dropdown interaction tests in `/root/snap/longtail-experiment/apps/frontend/tests/navbar-notifications.test.tsx`
+- [X] T032 [P] [US3] Add notifications management page tests in `/root/snap/longtail-experiment/apps/frontend/tests/notifications-page.test.tsx`
+- [X] T033 [P] [US3] Add frontend notification client tests for list/summary/read-state calls in `/root/snap/longtail-experiment/apps/frontend/tests/notification-client.test.ts`
+- [X] T034 [P] [US3] Extend shell structure contract test for notification control presence in `/root/snap/longtail-experiment/apps/frontend/tests/shell-structure-contract.test.tsx`
 
 ### Implementation for User Story 3 (maps to Spec Story 2)
 
-- [ ] T035 [US3] Add notification API types in `/root/snap/longtail-experiment/apps/frontend/src/lib/api/notification-types.ts`
-- [ ] T036 [US3] Add notification API client in `/root/snap/longtail-experiment/apps/frontend/src/lib/api/notification-client.ts`
-- [ ] T037 [US3] Add frontend proxy route for notification list in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/route.ts`
-- [ ] T038 [US3] Add frontend proxy route for unread summary in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/summary/route.ts`
-- [ ] T039 [US3] Add frontend proxy route for mark-all-read in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/mark-all-read/route.ts`
-- [ ] T040 [US3] Add frontend proxy route for mark-read in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/[notificationId]/mark-read/route.ts`
-- [ ] T041 [US3] Add frontend proxy route for mark-unread in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/[notificationId]/mark-unread/route.ts`
-- [ ] T042 [US3] Add frontend proxy route for subscriptions list/create in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/subscriptions/route.ts`
-- [ ] T043 [US3] Add frontend proxy route for subscription delete in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/subscriptions/[datasetId]/route.ts`
-- [ ] T044 [US3] Add shared notifications components in `/root/snap/longtail-experiment/apps/frontend/src/components/notifications/`
-- [ ] T045 [US3] Integrate top-nav bell/unread badge/dropdown in `/root/snap/longtail-experiment/apps/frontend/src/shell/site-header.tsx`
-- [ ] T046 [US3] Add full notifications page in `/root/snap/longtail-experiment/apps/frontend/src/app/notifications/page.tsx`
+- [X] T035 [US3] Add notification API types in `/root/snap/longtail-experiment/apps/frontend/src/lib/api/notification-types.ts`
+- [X] T036 [US3] Add notification API client in `/root/snap/longtail-experiment/apps/frontend/src/lib/api/notification-client.ts`
+- [X] T037 [US3] Add frontend proxy route for notification list in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/route.ts`
+- [X] T038 [US3] Add frontend proxy route for unread summary in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/summary/route.ts`
+- [X] T039 [US3] Add frontend proxy route for mark-all-read in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/mark-all-read/route.ts`
+- [X] T040 [US3] Add frontend proxy route for mark-read in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/[notificationId]/mark-read/route.ts`
+- [X] T041 [US3] Add frontend proxy route for mark-unread in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/[notificationId]/mark-unread/route.ts`
+- [X] T042 [US3] Add frontend proxy route for subscriptions list/create in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/subscriptions/route.ts`
+- [X] T043 [US3] Add frontend proxy route for subscription delete in `/root/snap/longtail-experiment/apps/frontend/src/app/api/notifications/subscriptions/[datasetId]/route.ts`
+- [X] T044 [US3] Add shared notifications components in `/root/snap/longtail-experiment/apps/frontend/src/components/notifications/`
+- [X] T045 [US3] Integrate top-nav bell/unread badge/dropdown in `/root/snap/longtail-experiment/apps/frontend/src/shell/site-header.tsx`
+- [X] T046 [US3] Add full notifications page in `/root/snap/longtail-experiment/apps/frontend/src/app/notifications/page.tsx`
 
 **Checkpoint**: US3 independently delivers authenticated shell/page notification UX.
 
@@ -127,16 +127,16 @@
 
 ### Tests for User Story 4 (REQUIRED)
 
-- [ ] T047 [P] [US4] Add dataset detail subscription control tests in `/root/snap/longtail-experiment/apps/frontend/tests/DatasetDetailHeader.notifications.test.tsx`
-- [ ] T048 [P] [US4] Add notification subscription management UI tests in `/root/snap/longtail-experiment/apps/frontend/tests/notifications-page.test.tsx`
-- [ ] T049 [P] [US4] Add new-user default-empty-subscriptions test in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_service.py`
+- [X] T047 [P] [US4] Add dataset detail subscription control tests in `/root/snap/longtail-experiment/apps/frontend/tests/DatasetDetailHeader.notifications.test.tsx`
+- [X] T048 [P] [US4] Add notification subscription management UI tests in `/root/snap/longtail-experiment/apps/frontend/tests/notifications-page.test.tsx`
+- [X] T049 [P] [US4] Add new-user default-empty-subscriptions test in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_service.py`
 
 ### Implementation for User Story 4 (maps to Spec Story 3)
 
-- [ ] T050 [US4] Add reusable dataset subscription control in `/root/snap/longtail-experiment/apps/frontend/src/components/notifications/NotificationSubscriptionControl.tsx`
-- [ ] T051 [US4] Integrate follow/unfollow alert action into dataset detail header in `/root/snap/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailHeader.tsx`
-- [ ] T052 [US4] Add subscription-management section to notifications page in `/root/snap/longtail-experiment/apps/frontend/src/app/notifications/page.tsx`
-- [ ] T053 [US4] Add unauthenticated guard handling for frontend subscription actions in `/root/snap/longtail-experiment/apps/frontend/src/lib/api/notification-client.ts`
+- [X] T050 [US4] Add reusable dataset subscription control in `/root/snap/longtail-experiment/apps/frontend/src/components/notifications/NotificationSubscriptionControl.tsx`
+- [X] T051 [US4] Integrate follow/unfollow alert action into dataset detail header in `/root/snap/longtail-experiment/apps/frontend/src/components/discovery/DatasetDetailHeader.tsx`
+- [X] T052 [US4] Add subscription-management section to notifications page in `/root/snap/longtail-experiment/apps/frontend/src/app/notifications/page.tsx`
+- [X] T053 [US4] Add unauthenticated guard handling for frontend subscription actions in `/root/snap/longtail-experiment/apps/frontend/src/lib/api/notification-client.ts`
 
 **Checkpoint**: US4 independently delivers user-managed dataset alert subscriptions via UI.
 
@@ -150,20 +150,20 @@
 
 ### Tests for User Story 5 (REQUIRED)
 
-- [ ] T054 [P] [US5] Add repository tests for processing-context and visibility metadata persistence in `/root/snap/longtail-experiment/libs/db/tests/test_notification_repository.py`
-- [ ] T055 [P] [US5] Add backend tests for metadata exposure in notification responses in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_service.py`
-- [ ] T056 [P] [US5] Add pipeline test for historical reprocessing audit-only suppression in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
-- [ ] T057 [P] [US5] Add frontend consistency test for dropdown/page unread reconciliation in `/root/snap/longtail-experiment/apps/frontend/tests/navbar-notifications.test.tsx`
-- [ ] T058 [P] [US5] Add repository/service test asserting no age-based unread auto-expiry in `/root/snap/longtail-experiment/libs/db/tests/test_notification_repository.py`
-- [ ] T059 [P] [US5] Add backend/frontend tests for deactivated-user access and delivery behavior in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_http_trend_notification_endpoints.py`
-- [ ] T060 [P] [US5] Add frontend tests for unauthenticated notification dropdown/page actions routing to sign-in in `/root/snap/longtail-experiment/apps/frontend/tests/navbar-notifications.test.tsx`
+- [X] T054 [P] [US5] Add repository tests for processing-context and visibility metadata persistence in `/root/snap/longtail-experiment/libs/db/tests/test_notification_repository.py`
+- [X] T055 [P] [US5] Add backend tests for metadata exposure in notification responses in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_trend_notification_service.py`
+- [X] T056 [P] [US5] Add pipeline test for historical reprocessing audit-only suppression in `/root/snap/longtail-experiment/apps/pipeline/tests/orchestration/test_trend_runtime_processor_notification_events.py`
+- [X] T057 [P] [US5] Add frontend consistency test for dropdown/page unread reconciliation in `/root/snap/longtail-experiment/apps/frontend/tests/navbar-notifications.test.tsx`
+- [X] T058 [P] [US5] Add repository/service test asserting no age-based unread auto-expiry in `/root/snap/longtail-experiment/libs/db/tests/test_notification_repository.py`
+- [X] T059 [P] [US5] Add backend/frontend tests for deactivated-user access and delivery behavior in `/root/snap/longtail-experiment/apps/backend/tests/contract/test_http_trend_notification_endpoints.py`
+- [X] T060 [P] [US5] Add frontend tests for unauthenticated notification dropdown/page actions routing to sign-in in `/root/snap/longtail-experiment/apps/frontend/tests/navbar-notifications.test.tsx`
 
 ### Implementation for User Story 5
 
-- [ ] T061 [US5] Add delivery/process metadata mapping in `/root/snap/longtail-experiment/libs/db/src/db/models/trends.py`
-- [ ] T062 [US5] Ensure backend contracts expose required metadata in `/root/snap/longtail-experiment/apps/backend/src/contract/query/trend_notification_query.py`
-- [ ] T063 [US5] Implement and verify 365-day retention policy handling in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
-- [ ] T064 [US5] Document traceability/replay guidance in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/quickstart.md`
+- [X] T061 [US5] Add delivery/process metadata mapping in `/root/snap/longtail-experiment/libs/db/src/db/models/trends.py`
+- [X] T062 [US5] Ensure backend contracts expose required metadata in `/root/snap/longtail-experiment/apps/backend/src/contract/query/trend_notification_query.py`
+- [X] T063 [US5] Implement and verify 365-day retention policy handling in `/root/snap/longtail-experiment/libs/db/src/db/repositories/notification_repository.py`
+- [X] T064 [US5] Document traceability/replay guidance in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/quickstart.md`
 
 **Checkpoint**: US5 independently confirms auditable and channel-ready foundation with consistent UX state.
 
@@ -173,12 +173,12 @@
 
 **Purpose**: Final hardening, documentation sync, and mandatory stop gates.
 
-- [ ] T065 [P] Sync final design intent in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/research.md`
-- [ ] T066 [P] Verify plan/spec/data-model/contracts/quickstart/tasks consistency in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/`
-- [ ] T067 [P] Run focused libs/pipeline/backend/frontend suites for notification feature paths
-- [ ] T068 Run mandatory pre-commit gate with `pre-commit run --all-files` from `/root/snap/longtail-experiment`
-- [ ] T069 Run mandatory full-suite tests with `pnpm exec nx run-many -t test --all` from `/root/snap/longtail-experiment`
-- [ ] T070 Run mandatory full-suite coverage with `pnpm exec nx run-many -t coverage --all` from `/root/snap/longtail-experiment`
+- [X] T065 [P] Sync final design intent in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/research.md`
+- [X] T066 [P] Verify plan/spec/data-model/contracts/quickstart/tasks consistency in `/root/snap/longtail-experiment/specs/048-trend-change-notifications/`
+- [X] T067 [P] Run focused libs/pipeline/backend/frontend suites for notification feature paths
+- [X] T068 Run mandatory pre-commit gate with `pre-commit run --all-files` from `/root/snap/longtail-experiment`
+- [X] T069 Run mandatory full-suite tests with `pnpm exec nx run-many -t test --all` from `/root/snap/longtail-experiment`
+- [X] T070 Run mandatory full-suite coverage with `pnpm exec nx run-many -t coverage --all` from `/root/snap/longtail-experiment`
 
 ---
 

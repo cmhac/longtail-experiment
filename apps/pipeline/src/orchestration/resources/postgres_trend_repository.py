@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import Engine, create_engine, text
@@ -456,3 +456,240 @@ class PostgresTrendRepository:
                     "created_at": datetime.now(tz=UTC),
                 },
             )
+
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> str | None:
+        """Return latest canonical direction prior to one observed date."""
+        with self._engine.begin() as connection:
+            value = connection.execute(
+                text(
+                    """
+                    SELECT tcd.canonical_direction
+                    FROM trend_canonical_descriptors tcd
+                    JOIN data_series ds ON ds.id = tcd.data_series_id
+                    WHERE ds.series_key = :series_key
+                      AND tcd.observed_on < :observed_on
+                      AND tcd.canonical_direction IN ('up', 'down')
+                    ORDER BY tcd.observed_on DESC, tcd.created_at DESC
+                    LIMIT 1
+                    """
+                ),
+                {
+                    "series_key": series_key,
+                    "observed_on": observed_on,
+                },
+            ).scalar_one_or_none()
+        if value is None:
+            return None
+        direction = str(value)
+        if direction not in {"up", "down"}:
+            return None
+        return direction
+
+    def append_trend_change_event(self, payload: dict[str, object]) -> dict[str, object]:
+        """Persist one trend-change event idempotently and return event metadata."""
+        emitted_at = payload.get("emitted_at")
+        now = emitted_at if isinstance(emitted_at, datetime) else datetime.now(tz=UTC)
+        with self._engine.begin() as connection:
+            inserted = (
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO trend_change_events (
+                            id,
+                            data_series_id,
+                            previous_direction,
+                            current_direction,
+                            effective_observed_on,
+                            processing_context,
+                            visibility_classification,
+                            idempotency_fingerprint,
+                            emitted_at
+                        ) VALUES (
+                            :id,
+                            (
+                                SELECT id
+                                FROM data_series
+                                WHERE series_key = :series_key
+                                LIMIT 1
+                            ),
+                            :previous_direction,
+                            :current_direction,
+                            :effective_observed_on,
+                            :processing_context,
+                            :visibility_classification,
+                            :idempotency_fingerprint,
+                            :emitted_at
+                        )
+                        ON CONFLICT (idempotency_fingerprint) DO NOTHING
+                        RETURNING id
+                        """
+                    ),
+                    {
+                        "id": uuid4(),
+                        "series_key": payload["series_key"],
+                        "previous_direction": payload["previous_direction"],
+                        "current_direction": payload["current_direction"],
+                        "effective_observed_on": payload["effective_observed_on"],
+                        "processing_context": payload["processing_context"],
+                        "visibility_classification": payload["visibility_classification"],
+                        "idempotency_fingerprint": payload["idempotency_fingerprint"],
+                        "emitted_at": now,
+                    },
+                )
+                .mappings()
+                .first()
+            )
+            if inserted is not None:
+                event_id_value = inserted["id"]
+                event_id = (
+                    str(event_id_value)
+                    if isinstance(event_id_value, UUID)
+                    else str(_parse_uuid(str(event_id_value)))
+                )
+                return {
+                    "event_id": event_id,
+                    "inserted": True,
+                }
+
+            existing = (
+                connection.execute(
+                    text(
+                        """
+                        SELECT id
+                        FROM trend_change_events
+                        WHERE idempotency_fingerprint = :idempotency_fingerprint
+                        LIMIT 1
+                        """
+                    ),
+                    {
+                        "idempotency_fingerprint": payload["idempotency_fingerprint"],
+                    },
+                )
+                .mappings()
+                .first()
+            )
+
+        if existing is None:
+            raise RuntimeError("failed to resolve idempotent trend change event")
+
+        event_id_value = existing["id"]
+        event_id = (
+            str(event_id_value)
+            if isinstance(event_id_value, UUID)
+            else str(_parse_uuid(str(event_id_value)))
+        )
+        return {
+            "event_id": event_id,
+            "inserted": False,
+        }
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        """Fan out one user-visible event to active subscriptions."""
+        with self._engine.begin() as connection:
+            row = (
+                connection.execute(
+                    text(
+                        """
+                        SELECT
+                            tce.id,
+                            tce.data_series_id,
+                            ds.series_key AS dataset_id,
+                            tce.previous_direction,
+                            tce.current_direction,
+                            tce.visibility_classification,
+                            tce.emitted_at
+                        FROM trend_change_events tce
+                        JOIN data_series ds ON ds.id = tce.data_series_id
+                        WHERE tce.id = :event_id
+                        LIMIT 1
+                        """
+                    ),
+                    {"event_id": _parse_uuid(event_id)},
+                )
+                .mappings()
+                .first()
+            )
+            if row is None:
+                return 0
+            if str(row["visibility_classification"]) != "user_visible":
+                return 0
+
+            eligible_rows = (
+                connection.execute(
+                    text(
+                        """
+                        SELECT uds.user_id
+                        FROM user_dataset_subscriptions uds
+                        JOIN user_accounts ua ON ua.id = uds.user_id
+                        WHERE uds.data_series_id = :data_series_id
+                          AND uds.unsubscribed_at IS NULL
+                          AND uds.subscribed_at <= :emitted_at
+                          AND ua.account_status = 'active'
+                        """
+                    ),
+                    {
+                        "data_series_id": row["data_series_id"],
+                        "emitted_at": row["emitted_at"],
+                    },
+                )
+                .mappings()
+                .all()
+            )
+
+            inserted_count = 0
+            for eligible in eligible_rows:
+                result = connection.execute(
+                    text(
+                        """
+                        INSERT INTO user_trend_notifications (
+                            id,
+                            event_id,
+                            user_id,
+                            data_series_id,
+                            destination_path,
+                            title,
+                            body,
+                            unread_state,
+                            read_at,
+                            delivered_at,
+                            channel,
+                            delivery_status
+                        ) VALUES (
+                            :id,
+                            :event_id,
+                            :user_id,
+                            :data_series_id,
+                            :destination_path,
+                            :title,
+                            :body,
+                            'unread',
+                            NULL,
+                            :delivered_at,
+                            'in_app',
+                            'delivered'
+                        )
+                        ON CONFLICT (event_id, user_id) DO NOTHING
+                        """
+                    ),
+                    {
+                        "id": uuid4(),
+                        "event_id": _parse_uuid(event_id),
+                        "user_id": eligible["user_id"],
+                        "data_series_id": row["data_series_id"],
+                        "destination_path": f"/datasets/{row['dataset_id']}",
+                        "title": "Trend reversal detected",
+                        "body": (
+                            f"{row['dataset_id']}: {row['previous_direction']} to "
+                            f"{row['current_direction']}"
+                        ),
+                        "delivered_at": datetime.now(tz=UTC),
+                    },
+                )
+                inserted_count += int(result.rowcount or 0)
+
+        return inserted_count

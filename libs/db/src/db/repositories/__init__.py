@@ -10,7 +10,9 @@ from .interfaces import (
     ObservationRepository,
     ProvenanceRepository,
     TrendLifecycleRepository,
+    TrendNotificationRepository,
 )
+from .notification_repository import PostgresNotificationRepository
 from .postgres_trend_repository import PostgresTrendRepository
 from .run_repository import InMemoryRunRepository, StoredRunOutcome
 
@@ -23,9 +25,11 @@ __all__ = [
     "InMemoryRunRepository",
     "ObservationRepository",
     "PostgresAuthManagementRepository",
+    "PostgresNotificationRepository",
     "PostgresTrendRepository",
     "ProvenanceRepository",
     "StoredConflict",
     "StoredRunOutcome",
     "TrendLifecycleRepository",
+    "TrendNotificationRepository",
 ]

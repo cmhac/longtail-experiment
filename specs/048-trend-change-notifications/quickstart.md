@@ -95,7 +95,13 @@ All commands must pass before commit or handoff.
 - Re-subscribe is forward-only: old events are not restored as unread.
 - Unread notifications do not auto-expire by age.
 - Historical reprocessing defaults to audit-only event visibility unless explicitly changed by policy.
+- Retention policy: read notifications are eligible for archival/removal after 365 days; unread notifications are not age-expired automatically.
 - Frontend notifications UI uses shared shell/components; repeated patterns should be extracted under `apps/frontend/src/components/notifications`.
+- Replay and support traceability workflow:
+  1. Identify the notification row (`user_trend_notifications.id`) from UI/API payload.
+  2. Join to `trend_change_events` via `event_id` to inspect `processing_context`, `visibility_classification`, and reversal fields.
+  3. Join to `data_series` on `data_series_id` to confirm canonical dataset key.
+  4. For historical replay audits, verify `processing_context='historical_reprocessing'` events remain `audit_only` and do not fan out unread user rows.
 - Keep compose restart discipline for manual verification:
   1. `docker compose down`
   2. `docker compose up -d`

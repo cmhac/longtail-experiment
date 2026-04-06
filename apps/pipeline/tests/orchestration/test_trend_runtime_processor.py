@@ -36,6 +36,7 @@ class _FakeTrendRepository:
         self.applicability_writes: list[dict[str, object]] = []
         self.snapshot_writes: list[dict[str, object]] = []
         self.canonical_writes: list[dict[str, object]] = []
+        self.notification_events: list[dict[str, object]] = []
 
     def count_trend_records_for_series(self, *, series_key: str) -> int:
         del series_key
@@ -53,6 +54,26 @@ class _FakeTrendRepository:
 
     def upsert_canonical_descriptor(self, payload: dict[str, object]) -> None:
         self.canonical_writes.append(dict(payload))
+
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> str | None:
+        del series_key, observed_on
+        return None
+
+    def append_trend_change_event(self, payload: dict[str, object]) -> dict[str, object]:
+        self.notification_events.append(dict(payload))
+        return {
+            "event_id": "event-1",
+            "inserted": True,
+        }
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        del event_id
+        return 0
 
 
 def test_first_run_persists_lookback_rows() -> None:

@@ -29,6 +29,11 @@ from src.contract.query.auth_management_query import (
     unauthorized_error,
     validation_error,
 )
+from src.contract.query.trend_notification_query import (
+    notification_not_found_error,
+    notification_unauthorized_error,
+    notification_validation_error,
+)
 from src.contract.query.dataset_discovery_contracts import (
     dataset_not_found_error,
     invalid_request_error,
@@ -53,6 +58,10 @@ from src.query.dataset_search_summary_query import execute_search_summary
 from src.query.geography_detail_query import execute_geography_detail
 from src.query.source_detail_query import execute_source_detail
 from src.query.source_list_query import execute_source_list
+from src.query.trend_notification_persisted_repository import (
+    PersistedTrendNotificationRepository,
+)
+from src.query.trend_notification_service import TrendNotificationService
 from src.query.topic_detail_query import execute_topic_detail
 
 
@@ -148,11 +157,21 @@ def _make_auth_service() -> AuthManagementService:
     return AuthManagementService(repository=repository)
 
 
+def _make_notification_service() -> TrendNotificationService:
+    expected_revision = _resolve_expected_revision(environment=os.environ)
+    database_url = _resolve_database_url(environment=os.environ)
+    engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
+    _require_schema_readiness(engine=engine, expected_revision=expected_revision)
+    repository = PersistedTrendNotificationRepository(engine=engine)
+    return TrendNotificationService(repository=repository)
+
+
 class DatasetApiHandler(BaseHTTPRequestHandler):
     """HTTP handler exposing dataset discovery and detail endpoints."""
 
     service: DatasetDiscoveryService | None = None
     auth_service: AuthManagementService | None = None
+    notification_service: TrendNotificationService | None = None
 
     def _write_json(self, status: int, payload: dict[str, object]) -> None:
         body = json.dumps(payload, separators=(",", ":"), default=str).encode("utf-8")
@@ -497,6 +516,220 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
 
         return None
 
+    @staticmethod
+    def _notification_contract_error(
+        error: ContractQueryError,
+    ) -> tuple[HTTPStatus, dict[str, object]]:
+        code = str(error)
+        mapped_errors: dict[str, tuple[HTTPStatus, dict[str, object]]] = {
+            "auth_required": (
+                HTTPStatus.UNAUTHORIZED,
+                notification_unauthorized_error().model_dump(),
+            ),
+            "notification_not_found": (
+                HTTPStatus.NOT_FOUND,
+                notification_not_found_error(
+                    "Notification not found or not owned by user"
+                ).model_dump(),
+            ),
+            "dataset_not_found": (
+                HTTPStatus.BAD_REQUEST,
+                notification_validation_error("Dataset was not found").model_dump(),
+            ),
+        }
+        return mapped_errors.get(
+            code,
+            (HTTPStatus.BAD_REQUEST, notification_validation_error(code).model_dump()),
+        )
+
+    def _dispatch_notification_get(
+        self,
+        *,
+        path: str,
+        query: dict[str, list[str]],
+        service: TrendNotificationService,
+    ) -> tuple[HTTPStatus, dict[str, object]] | None:
+        principal = self._resolve_auth_principal(self.auth_service)
+        user_id = str(principal["user_id"])
+
+        if path == "/api/notifications":
+            page_size_value = query.get("page_size", [None])[0]
+            page_size = (
+                int(page_size_value)
+                if isinstance(page_size_value, str) and page_size_value != ""
+                else None
+            )
+            cursor_value = query.get("cursor", [None])[0]
+            cursor = cursor_value if isinstance(cursor_value, str) and cursor_value != "" else None
+            unread_only_value = str(query.get("unread_only", ["false"])[0]).strip().lower()
+            unread_only = unread_only_value in {"1", "true", "yes", "on"}
+            response = service.list_notifications(
+                user_id=user_id,
+                page_size=page_size,
+                cursor=cursor,
+                unread_only=unread_only,
+            )
+            return HTTPStatus.OK, response.model_dump()
+
+        if path == "/api/notifications/summary":
+            response = service.get_unread_summary(user_id=user_id)
+            return HTTPStatus.OK, response.model_dump()
+
+        if path == "/api/notifications/subscriptions":
+            response = service.list_subscriptions(user_id=user_id)
+            return HTTPStatus.OK, response.model_dump()
+
+        return None
+
+    def _dispatch_notification_post(
+        self,
+        *,
+        path: str,
+        service: TrendNotificationService,
+    ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
+        principal = self._resolve_auth_principal(self.auth_service)
+        user_id = str(principal["user_id"])
+
+        if path == "/api/notifications/mark-all-read":
+            response = service.mark_all_notifications_read(user_id=user_id)
+            return HTTPStatus.OK, response.model_dump()
+
+        if path.startswith("/api/notifications/") and path.endswith("/mark-read"):
+            notification_id = path.split("/")[-2]
+            response = service.mark_notification_read(
+                user_id=user_id,
+                notification_id=notification_id,
+            )
+            return HTTPStatus.OK, response.model_dump()
+
+        if path.startswith("/api/notifications/") and path.endswith("/mark-unread"):
+            notification_id = path.split("/")[-2]
+            response = service.mark_notification_unread(
+                user_id=user_id,
+                notification_id=notification_id,
+            )
+            return HTTPStatus.OK, response.model_dump()
+
+        if path == "/api/notifications/subscriptions":
+            payload = self._read_json_body()
+            response = service.create_subscription(
+                user_id=user_id,
+                dataset_id=str(payload.get("dataset_id") or ""),
+            )
+            return HTTPStatus.OK, response.model_dump()
+
+        return None
+
+    def _dispatch_notification_delete(
+        self,
+        *,
+        path: str,
+        service: TrendNotificationService,
+    ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
+        principal = self._resolve_auth_principal(self.auth_service)
+        user_id = str(principal["user_id"])
+
+        if path.startswith("/api/notifications/subscriptions/"):
+            dataset_id = path.split("/")[-1]
+            response = service.delete_subscription(user_id=user_id, dataset_id=dataset_id)
+            return HTTPStatus.OK, response.model_dump()
+
+        return None
+
+    def _handle_notification_get_route(
+        self,
+        *,
+        path: str,
+        query: dict[str, list[str]],
+    ) -> bool:
+        if self.notification_service is None or self.auth_service is None:
+            return False
+        if not (
+            path == "/api/notifications"
+            or path == "/api/notifications/summary"
+            or path == "/api/notifications/subscriptions"
+        ):
+            return False
+
+        try:
+            response = self._dispatch_notification_get(
+                path=path,
+                query=query,
+                service=self.notification_service,
+            )
+        except ContractQueryError as exc:
+            status, payload = self._notification_contract_error(exc)
+            self._write_json(status, payload)
+            return True
+        except ValueError as exc:
+            self._write_json(
+                HTTPStatus.BAD_REQUEST,
+                notification_validation_error(str(exc)).model_dump(),
+            )
+            return True
+        if response is None:
+            return False
+
+        status, payload = response
+        self._write_json(status, payload)
+        return True
+
+    def _handle_notification_post_route(self, *, path: str) -> bool:
+        if self.notification_service is None or self.auth_service is None:
+            return False
+        if not path.startswith("/api/notifications"):
+            return False
+
+        try:
+            response = self._dispatch_notification_post(
+                path=path,
+                service=self.notification_service,
+            )
+        except ContractQueryError as exc:
+            status, payload = self._notification_contract_error(exc)
+            self._write_json(status, payload)
+            return True
+        except ValueError as exc:
+            self._write_json(
+                HTTPStatus.BAD_REQUEST,
+                notification_validation_error(str(exc)).model_dump(),
+            )
+            return True
+        if response is None:
+            return False
+
+        status, payload = response
+        self._write_json(status, payload or {})
+        return True
+
+    def _handle_notification_delete_route(self, *, path: str) -> bool:
+        if self.notification_service is None or self.auth_service is None:
+            return False
+        if not path.startswith("/api/notifications/subscriptions/"):
+            return False
+
+        try:
+            response = self._dispatch_notification_delete(
+                path=path,
+                service=self.notification_service,
+            )
+        except ContractQueryError as exc:
+            status, payload = self._notification_contract_error(exc)
+            self._write_json(status, payload)
+            return True
+        except ValueError as exc:
+            self._write_json(
+                HTTPStatus.BAD_REQUEST,
+                notification_validation_error(str(exc)).model_dump(),
+            )
+            return True
+        if response is None:
+            return False
+
+        status, payload = response
+        self._write_json(status, payload or {})
+        return True
+
     def _handle_search(
         self, query: dict[str, list[str]], service: DatasetDiscoveryService
     ) -> dict[str, object]:
@@ -688,6 +921,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         """Handle read-only dataset discovery API requests."""
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
+        if self._handle_notification_get_route(path=parsed.path, query=query):
+            return
         if self._handle_auth_get_route(path=parsed.path):
             return
 
@@ -723,6 +958,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         """Handle auth/account write endpoints."""
         parsed = urlparse(self.path)
+        if self._handle_notification_post_route(path=parsed.path):
+            return
         if self.auth_service is None:
             self._write_json(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -753,6 +990,17 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
         self._write_json(response_status, response_payload or {})
+
+    def do_DELETE(self) -> None:
+        """Handle notification delete endpoints."""
+        parsed = urlparse(self.path)
+        if self._handle_notification_delete_route(path=parsed.path):
+            return
+
+        self._write_json(
+            HTTPStatus.NOT_FOUND,
+            not_found_error("Endpoint not found").model_dump(),
+        )
 
     def do_PATCH(self) -> None:
         """Handle auth/account patch endpoints."""
@@ -798,6 +1046,7 @@ def main() -> None:
 
     DatasetApiHandler.service = _make_service()
     DatasetApiHandler.auth_service = _make_auth_service()
+    DatasetApiHandler.notification_service = _make_notification_service()
     server = ThreadingHTTPServer((args.host, args.port), DatasetApiHandler)
     server.serve_forever()
 

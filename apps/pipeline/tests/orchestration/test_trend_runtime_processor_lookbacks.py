@@ -46,6 +46,26 @@ class _FakeTrendRepository:
         del series_key
         return 0
 
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> str | None:
+        del series_key, observed_on
+        return None
+
+    def append_trend_change_event(self, payload: dict[str, object]) -> dict[str, object]:
+        del payload
+        return {
+            "event_id": "event-1",
+            "inserted": True,
+        }
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        del event_id
+        return 0
+
 
 def test_runtime_persists_applicability_for_supported_and_unsupported_lookbacks() -> None:
     """Processor should persist explicit applicability decisions for the full catalog."""

@@ -17,10 +17,13 @@ from .source_profile import SourceProfile
 from .taxonomy import CategoryNode, GeographyNode
 from .trends import (
     TrendCanonicalDescriptor,
+    TrendChangeEvent,
     TrendLookbackEvaluation,
     TrendLookbackSnapshot,
     TrendRecord,
     TrendTransitionEvent,
+    UserDatasetSubscription,
+    UserTrendNotification,
 )
 from .topic_tag import DataSeriesTopicTag, TopicTag
 
@@ -58,10 +61,13 @@ __all__ = [
     "SourceSchedulePolicy",
     "SourceProfile",
     "TrendCanonicalDescriptor",
+    "TrendChangeEvent",
     "TrendLookbackEvaluation",
     "TrendLookbackSnapshot",
     "TrendRecord",
     "TrendTransitionEvent",
     "TopicTag",
+    "UserDatasetSubscription",
+    "UserTrendNotification",
     "UserAccount",
 ]

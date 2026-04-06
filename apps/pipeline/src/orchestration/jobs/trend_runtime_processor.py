@@ -10,6 +10,7 @@ from typing import Any, cast
 
 from .trend_backfill_service import decide_backfill_scope
 from .trend_lifecycle_service import TrendLifecycleService
+from .trend_notification_service import TrendNotificationService
 
 
 def _ensure_trend_library_import_path() -> None:
@@ -59,6 +60,7 @@ class TrendRuntimeProcessor:
         self._observation_repository = observation_repository
         self._trend_repository = trend_repository
         self._lifecycle_service = TrendLifecycleService(repository=trend_repository)
+        self._notification_service = TrendNotificationService(repository=trend_repository)
 
     def process_series(self, *, series_key: str) -> dict[str, object]:
         """Process lookback snapshots and canonical descriptor for one series."""
@@ -128,13 +130,29 @@ class TrendRuntimeProcessor:
                 continue
 
             evaluation = _EVALUATE_MULTI_LOOKBACKS(history_points)
-            apply_results.append(
-                self._lifecycle_service.apply_lookback_evaluation(
-                    series_key=series_key,
-                    observed_on=observed_on,
-                    observation_id=observation_id,
-                    evaluation_result=evaluation,
+            apply_result = self._lifecycle_service.apply_lookback_evaluation(
+                series_key=series_key,
+                observed_on=observed_on,
+                observation_id=observation_id,
+                evaluation_result=evaluation,
+            )
+            apply_results.append(apply_result)
+
+            canonical = evaluation.canonical_descriptor
+            current_direction = (
+                canonical.direction if canonical.descriptor_state == "available" else None
+            )
+            processing_context, visibility_classification = (
+                self._lifecycle_service.classify_notification_visibility(
+                    run_full_backfill=run_full_backfill
                 )
+            )
+            self._notification_service.process_canonical_transition(
+                series_key=series_key,
+                observed_on=observed_on,
+                current_direction=current_direction,
+                processing_context=processing_context,
+                visibility_classification=visibility_classification,
             )
 
         apply_result = apply_results[-1]
