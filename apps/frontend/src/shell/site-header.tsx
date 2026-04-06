@@ -6,6 +6,7 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 import { UnifiedSearchSurface } from "../components/discovery/UnifiedSearchSurface";
+import { NotificationsDropdown } from "../components/notifications/NotificationsDropdown";
 import {
   COMPARISON_STATE_EVENT,
   ComparisonStateCorruptedError,
@@ -17,6 +18,11 @@ import {
   clearAuthSessionState,
   loadAuthSessionState,
 } from "../lib/auth/session-state";
+import { AuthManagementApiError } from "../lib/api/auth-management-client";
+import {
+  fetchNotificationSummary,
+  requireNotificationSessionToken,
+} from "../lib/api/notification-client";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
@@ -25,15 +31,22 @@ interface SiteHeaderProps {
 }
 
 export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element => {
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [comparisonCount, setComparisonCount] = useState(0);
   const [hasComparisonStateError, setHasComparisonStateError] = useState(false);
   const [authSession, setAuthSession] = useState<AuthSessionState | null>(null);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchControlRef = useRef<HTMLDivElement | null>(null);
   const tabs = resolveNavbarTabs(activeTab);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   useEffect(() => {
     const syncComparisonCount = (): void => {
@@ -70,10 +83,47 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
+
+    const preloadUnreadSummary = async (): Promise<void> => {
+      const sessionToken = authSession?.sessionToken;
+      if (!sessionToken) {
+        setUnreadNotificationCount(0);
+        return;
+      }
+
+      try {
+        const token = await requireNotificationSessionToken(sessionToken);
+        const summary = await fetchNotificationSummary(token);
+        if (!isCancelled) {
+          setUnreadNotificationCount(summary.unread_count);
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+        if (error instanceof AuthManagementApiError && error.status === 401) {
+          setUnreadNotificationCount(0);
+        }
+      }
+    };
+
+    void preloadUnreadSummary();
+    return () => {
+      isCancelled = true;
+    };
+  }, [authSession?.sessionToken]);
+
+  useEffect(() => {
     const handleDocumentPointerDown = (event: MouseEvent): void => {
       if (event.target instanceof Node) {
+        const targetElement = event.target instanceof Element ? event.target : null;
         if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
           setIsProfileMenuOpen(false);
+        }
+
+        if (!targetElement?.closest("[data-testid='navbar-notifications-wrapper']")) {
+          setIsNotificationsOpen(false);
         }
 
         if (searchControlRef.current && !searchControlRef.current.contains(event.target)) {
@@ -182,6 +232,47 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                   </svg>
                 </Button>
               )}
+            </div>
+
+            <Button
+              className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} relative`}
+              data-testid="navbar-notifications-control"
+              aria-label={
+                hasHydrated && unreadNotificationCount > 0
+                  ? `Notifications (${unreadNotificationCount} unread)`
+                  : "Notifications"
+              }
+              aria-controls="navbar-notifications-dropdown"
+              aria-expanded={isNotificationsOpen ? "true" : "false"}
+              isIconOnly
+              size="sm"
+              variant="ghost"
+              onPress={() => {
+                setIsNotificationsOpen((previous) => !previous);
+              }}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
+                <path
+                  d="M12 3a5 5 0 0 0-5 5v2.26c0 .66-.2 1.31-.56 1.86L5 14v1h14v-1l-1.44-1.88A3.2 3.2 0 0 1 17 10.26V8a5 5 0 0 0-5-5Zm0 19a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"
+                  fill="currentColor"
+                />
+              </svg>
+              {hasHydrated && unreadNotificationCount > 0 ? (
+                <span
+                  className="absolute top-1 right-1 min-w-[0.95rem] rounded-full bg-danger px-1 text-center text-[0.62rem] text-white leading-4"
+                  data-testid="navbar-notifications-badge"
+                >
+                  {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                </span>
+              ) : null}
+            </Button>
+
+            <div className="relative" data-testid="navbar-notifications-wrapper">
+              <NotificationsDropdown
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+                onUnreadCountChange={setUnreadNotificationCount}
+              />
             </div>
 
             <Button

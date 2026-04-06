@@ -1,6 +1,7 @@
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
+import { NotificationSubscriptionControl } from "../notifications/NotificationSubscriptionControl";
 import { DatasetComparisonToggleButton } from "./DatasetComparisonToggleButton";
 import { DatasetTrendIndicator } from "./DatasetTrendIndicator";
 import {
@@ -56,6 +57,7 @@ export const DatasetDetailHeader = ({ data }: DatasetDetailHeaderProps): JSX.Ele
           data-testid="dataset-detail-utility-actions"
         >
           <div className="inline-flex flex-none flex-wrap gap-[0.45rem]">
+            <NotificationSubscriptionControl datasetId={data.dataset_id} />
             <DatasetComparisonToggleButton datasetId={data.dataset_id} />
           </div>
         </div>

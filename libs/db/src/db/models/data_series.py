@@ -19,10 +19,13 @@ if TYPE_CHECKING:
     from .topic_tag import TopicTag
     from .trends import (
         TrendCanonicalDescriptor,
+        TrendChangeEvent,
         TrendLookbackEvaluation,
         TrendLookbackSnapshot,
         TrendRecord,
         TrendTransitionEvent,
+        UserDatasetSubscription,
+        UserTrendNotification,
     )
 
 
@@ -68,4 +71,13 @@ class DataSeries(Base):
     )
     trend_canonical_descriptors: Mapped[list["TrendCanonicalDescriptor"]] = (
         relationship(back_populates="data_series")
+    )
+    trend_change_events: Mapped[list["TrendChangeEvent"]] = relationship(
+        back_populates="data_series"
+    )
+    user_dataset_subscriptions: Mapped[list["UserDatasetSubscription"]] = relationship(
+        back_populates="data_series"
+    )
+    user_trend_notifications: Mapped[list["UserTrendNotification"]] = relationship(
+        back_populates="data_series"
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -17,6 +18,9 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .trends import UserDatasetSubscription, UserTrendNotification
 
 
 class UserAccount(Base):
@@ -81,6 +85,14 @@ class UserAccount(Base):
         cascade="all, delete-orphan",
     )
     role_assignments: Mapped[list["RoleAssignment"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    dataset_subscriptions: Mapped[list["UserDatasetSubscription"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    trend_notifications: Mapped[list["UserTrendNotification"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )

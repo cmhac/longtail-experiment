@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -13,6 +13,7 @@ from src.orchestration.resources.trend_repository import (
     CanonicalDescriptorInsert,
     LookbackApplicabilityInsert,
     LookbackSnapshotInsert,
+    TrendChangeEventInsert,
     TrendRecordInsert,
     TrendRepository,
     TrendTransitionInsert,
@@ -26,9 +27,13 @@ REQUIRED_METHOD_NAMES = (
     "close_ongoing_trend_for_series",
     "append_transition",
     "count_trend_records_for_series",
+    "count_canonical_descriptors_for_series",
     "upsert_lookback_applicability",
     "upsert_lookback_snapshot",
     "upsert_canonical_descriptor",
+    "get_previous_canonical_direction",
+    "append_trend_change_event",
+    "fan_out_notifications_for_event",
 )
 
 
@@ -43,6 +48,8 @@ class FakeTrendRepository(TrendRepository):
         self.lookback_applicability_writes: list[LookbackApplicabilityInsert] = []
         self.lookback_snapshot_writes: list[LookbackSnapshotInsert] = []
         self.canonical_descriptor_writes: list[CanonicalDescriptorInsert] = []
+        self.notification_events: list[TrendChangeEventInsert] = []
+        self.notification_fanouts: list[str] = []
 
     def get_ongoing_trend_for_series(self, *, series_key: str) -> dict[str, object] | None:
         """Return one stored ongoing record for a series when present."""
@@ -83,6 +90,12 @@ class FakeTrendRepository(TrendRepository):
         """Return count of captured trend-record writes for one series key."""
         return sum(1 for write in self.record_writes if write["series_key"] == series_key)
 
+    def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
+        """Return count of captured canonical descriptor writes for one series key."""
+        return sum(
+            1 for write in self.canonical_descriptor_writes if write["series_key"] == series_key
+        )
+
     def upsert_lookback_applicability(self, payload: LookbackApplicabilityInsert) -> None:
         """Capture one lookback applicability write."""
         self.lookback_applicability_writes.append(payload)
@@ -94,6 +107,39 @@ class FakeTrendRepository(TrendRepository):
     def upsert_canonical_descriptor(self, payload: CanonicalDescriptorInsert) -> None:
         """Capture one canonical descriptor write."""
         self.canonical_descriptor_writes.append(payload)
+
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> Literal["up", "down"] | None:
+        """Return latest prior canonical direction for one series when available."""
+        for write in sorted(
+            self.canonical_descriptor_writes,
+            key=lambda item: cast(date, item["observed_on"]),
+            reverse=True,
+        ):
+            if (
+                write["series_key"] == series_key
+                and cast(date, write["observed_on"]) < observed_on
+                and write["canonical_direction"] in {"up", "down"}
+            ):
+                return cast(Literal["up", "down"], write["canonical_direction"])
+        return None
+
+    def append_trend_change_event(self, payload: TrendChangeEventInsert) -> dict[str, object]:
+        """Capture one trend-change event payload and return synthetic metadata."""
+        self.notification_events.append(payload)
+        return {
+            "event_id": f"event-{len(self.notification_events)}",
+            "inserted": True,
+        }
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        """Capture one fan-out call and return synthetic delivered count."""
+        self.notification_fanouts.append(event_id)
+        return 0
 
 
 def test_fake_repository_overrides_full_protocol_surface() -> None:
@@ -186,6 +232,7 @@ def test_protocol_surface_supports_lifecycle_and_snapshot_payloads() -> None:
     assert len(fake_repository.lookback_applicability_writes) == 1
     assert len(fake_repository.lookback_snapshot_writes) == 1
     assert len(fake_repository.canonical_descriptor_writes) == 1
+    assert fake_repository.count_canonical_descriptors_for_series(series_key="SERIES.T009") == 1
 
 
 def test_new_typed_dict_payload_keys_are_accessible() -> None:

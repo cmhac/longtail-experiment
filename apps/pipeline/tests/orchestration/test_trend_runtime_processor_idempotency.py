@@ -29,6 +29,7 @@ class _IdempotentTrendRepository:
         self.applicability_by_key: dict[tuple[str, date, int], dict[str, object]] = {}
         self.snapshots_by_key: dict[tuple[str, date, int], dict[str, object]] = {}
         self.canonical_by_key: dict[tuple[str, date], dict[str, object]] = {}
+        self.notification_events_by_fingerprint: dict[str, dict[str, object]] = {}
 
     def upsert_lookback_applicability(self, payload: dict[str, object]) -> None:
         key = (
@@ -55,6 +56,49 @@ class _IdempotentTrendRepository:
 
     def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
         return len([key for key in self.canonical_by_key if key[0] == series_key])
+
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> str | None:
+        candidates = [
+            payload
+            for (stored_series_key, stored_observed_on), payload in self.canonical_by_key.items()
+            if stored_series_key == series_key and stored_observed_on < observed_on
+        ]
+        if not candidates:
+            return None
+        latest = sorted(candidates, key=lambda item: cast(date, item["observed_on"]))[-1]
+        direction = latest.get("canonical_direction")
+        if direction in {"up", "down"}:
+            return cast(str, direction)
+        return None
+
+    def append_trend_change_event(self, payload: dict[str, object]) -> dict[str, object]:
+        fingerprint = str(payload["idempotency_fingerprint"])
+        existing = self.notification_events_by_fingerprint.get(fingerprint)
+        if existing is not None:
+            return {
+                "event_id": str(existing["event_id"]),
+                "inserted": False,
+            }
+
+        event_id = f"event-{len(self.notification_events_by_fingerprint) + 1}"
+        stored = {
+            **dict(payload),
+            "event_id": event_id,
+        }
+        self.notification_events_by_fingerprint[fingerprint] = stored
+        return {
+            "event_id": event_id,
+            "inserted": True,
+        }
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        del event_id
+        return 0
 
 
 def _build_rows() -> list[dict[str, object]]:

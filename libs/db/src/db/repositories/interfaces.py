@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Protocol, runtime_checkable
 
@@ -209,4 +209,88 @@ class AuthManagementRepository(Protocol):
         event_context: dict[str, object] | None,
     ) -> None:
         """Append one immutable audit row for auth/account actions."""
+        ...
+
+
+@runtime_checkable
+class TrendNotificationRepository(Protocol):
+    """Contract for trend-change notification persistence operations."""
+
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> str | None:
+        """Return latest prior canonical direction before observed date."""
+        ...
+
+    def append_trend_change_event(
+        self, payload: dict[str, object]
+    ) -> dict[str, object]:
+        """Persist one reversal event idempotently and return event metadata."""
+        ...
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        """Fan out one user-visible event to active subscriptions."""
+        ...
+
+    def list_notifications(
+        self,
+        *,
+        user_id: str,
+        page_size: int,
+        cursor: str | None,
+        unread_only: bool,
+    ) -> dict[str, object]:
+        """Return one paginated newest-first notification listing payload."""
+        ...
+
+    def get_unread_summary(self, *, user_id: str) -> dict[str, object]:
+        """Return unread count and latest-delivery summary for one user."""
+        ...
+
+    def mark_notification_read(self, *, user_id: str, notification_id: str) -> bool:
+        """Mark one notification read for one user."""
+        ...
+
+    def mark_notification_unread(self, *, user_id: str, notification_id: str) -> bool:
+        """Mark one notification unread for one user."""
+        ...
+
+    def mark_all_notifications_read(self, *, user_id: str) -> int:
+        """Mark all unread notifications read for one user."""
+        ...
+
+    def list_active_subscriptions(self, *, user_id: str) -> list[dict[str, object]]:
+        """Return active dataset subscriptions for one user."""
+        ...
+
+    def create_or_reactivate_subscription(
+        self,
+        *,
+        user_id: str,
+        dataset_id: str,
+        now: datetime,
+    ) -> dict[str, object] | None:
+        """Create or reactivate one dataset subscription for one user."""
+        ...
+
+    def remove_active_subscription(
+        self,
+        *,
+        user_id: str,
+        dataset_id: str,
+        now: datetime,
+    ) -> bool:
+        """Deactivate one dataset subscription when currently active."""
+        ...
+
+    def enforce_notification_retention_policy(
+        self,
+        *,
+        now: datetime,
+        retention_days: int = 365,
+    ) -> int:
+        """Remove retention-eligible read notifications and return deleted count."""
         ...

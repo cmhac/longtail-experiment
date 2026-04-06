@@ -113,6 +113,19 @@ class TrendLifecycleService:
         """Initialize service with trend lifecycle persistence dependency."""
         self._repository = repository
 
+    @staticmethod
+    def classify_notification_visibility(
+        *,
+        run_full_backfill: bool,
+    ) -> tuple[
+        Literal["incremental", "historical_reprocessing"],
+        Literal["user_visible", "audit_only"],
+    ]:
+        """Resolve processing context and notification visibility classification."""
+        if run_full_backfill:
+            return ("historical_reprocessing", "audit_only")
+        return ("incremental", "user_visible")
+
     def apply_analysis_result(
         self,
         *,

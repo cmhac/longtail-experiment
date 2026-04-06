@@ -113,6 +113,7 @@ describe("shell structure contract", () => {
     expect(markup).toContain('data-testid="navbar-tab-datasets"');
     expect(markup).not.toContain('data-testid="navbar-tab-trends"');
     expect(markup).toContain('data-testid="navbar-search-control"');
+    expect(markup).toContain('data-testid="navbar-notifications-control"');
     expect(markup).toContain('data-testid="navbar-profile-control"');
   });
 
