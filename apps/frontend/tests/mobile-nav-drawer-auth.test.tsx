@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthSessionState } from "../src/lib/auth/session-state";
@@ -104,11 +104,14 @@ beforeEach(() => {
   asMock(navigateTo).mockReset();
   asMock(fetchNotificationSummary).mockClear();
   asMock(requireNotificationSessionToken).mockClear();
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {
+    return;
+  });
   window.localStorage.clear();
 });
 
 afterEach(() => {
-  document.body.innerHTML = "";
+  cleanup();
   window.localStorage.clear();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -201,7 +204,7 @@ describe("mobile nav drawer auth and role behaviors", () => {
     expect(screen.queryByTestId("mobile-nav-drawer-action-admin")).toBeNull();
     fireEvent.click(screen.getByTestId("mobile-nav-drawer-backdrop"));
 
-    document.body.innerHTML = "";
+    cleanup();
 
     setAuthSession(null);
     render(<SiteHeader />);

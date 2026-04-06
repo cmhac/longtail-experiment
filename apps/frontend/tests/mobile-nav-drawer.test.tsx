@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -79,10 +79,13 @@ beforeEach(() => {
     })),
   );
   asMock(navigateTo).mockReset();
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {
+    return;
+  });
 });
 
 afterEach(() => {
-  document.body.innerHTML = "";
+  cleanup();
   window.localStorage.clear();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -90,14 +93,48 @@ afterEach(() => {
 
 describe("mobile nav drawer", () => {
   it("opens and closes from trigger and backdrop", async () => {
+    const scrollToSpy = vi.mocked(window.scrollTo);
     render(<SiteHeader />);
 
     await openDrawer();
+    expect(document.documentElement.style.overflow).toBe("hidden");
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.body.style.touchAction).toBe("none");
+
     fireEvent.click(screen.getByTestId("mobile-nav-drawer-backdrop"));
 
     await waitFor(() => {
       expect(screen.queryByTestId("mobile-nav-drawer-panel")).toBeNull();
     });
+
+    expect(document.documentElement.style.overflow).toBe("");
+    expect(document.body.style.overflow).toBe("");
+    expect(document.body.style.touchAction).toBe("");
+    expect(document.body.style.position).toBe("");
+    expect(scrollToSpy).toHaveBeenCalled();
+  });
+
+  it("locks body scroll position while open and restores it on close", async () => {
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      writable: true,
+      value: 312,
+    });
+    const scrollToSpy = vi.mocked(window.scrollTo);
+
+    render(<SiteHeader />);
+
+    await openDrawer();
+    expect(document.body.style.position).toBe("fixed");
+    expect(document.body.style.top).toBe("-312px");
+    expect(document.body.style.width).toBe("100%");
+
+    fireEvent.click(screen.getByTestId("mobile-nav-drawer-backdrop"));
+    await waitFor(() => {
+      expect(screen.queryByTestId("mobile-nav-drawer-panel")).toBeNull();
+    });
+
+    expect(scrollToSpy).toHaveBeenCalledWith(0, 312);
   });
 
   it("renders top-row logo and bell, then required primary row order", async () => {

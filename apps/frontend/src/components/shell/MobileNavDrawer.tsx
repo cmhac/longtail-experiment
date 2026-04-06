@@ -2,7 +2,9 @@
 
 import { Button } from "@heroui/react";
 import React from "react";
+import { createPortal } from "react-dom";
 import type { JSX } from "react";
+import { useEffect } from "react";
 import type { PrivilegeLevel } from "../../lib/api/auth-management-types";
 import { SHELL_NAVBAR_CLASS_NAMES } from "../../theme/monochrome-theme";
 import { MobileNavDrawerAction } from "./MobileNavDrawerAction";
@@ -42,11 +44,61 @@ export const MobileNavDrawer = ({
   authStatus,
   privilegeLevel,
 }: MobileNavDrawerProps): JSX.Element | null => {
+  useEffect(() => {
+    if (typeof document === "undefined" || !isOpen) {
+      return;
+    }
+
+    const htmlStyle = document.documentElement.style;
+    const bodyStyle = document.body.style;
+    const lockedScrollY = window.scrollY;
+
+    const previousHtmlOverflow = htmlStyle.overflow;
+    const previousBodyOverflow = bodyStyle.overflow;
+    const previousBodyTouchAction = bodyStyle.touchAction;
+    const previousBodyPosition = bodyStyle.position;
+    const previousBodyTop = bodyStyle.top;
+    const previousBodyLeft = bodyStyle.left;
+    const previousBodyRight = bodyStyle.right;
+    const previousBodyWidth = bodyStyle.width;
+
+    htmlStyle.overflow = "hidden";
+    bodyStyle.overflow = "hidden";
+    bodyStyle.touchAction = "none";
+    bodyStyle.position = "fixed";
+    bodyStyle.top = `-${lockedScrollY}px`;
+    bodyStyle.left = "0";
+    bodyStyle.right = "0";
+    bodyStyle.width = "100%";
+
+    return () => {
+      htmlStyle.overflow = previousHtmlOverflow;
+      bodyStyle.overflow = previousBodyOverflow;
+      bodyStyle.touchAction = previousBodyTouchAction;
+      bodyStyle.position = previousBodyPosition;
+      bodyStyle.top = previousBodyTop;
+      bodyStyle.left = previousBodyLeft;
+      bodyStyle.right = previousBodyRight;
+      bodyStyle.width = previousBodyWidth;
+      if (typeof window.scrollTo === "function") {
+        try {
+          window.scrollTo(0, lockedScrollY);
+        } catch {
+          return;
+        }
+      }
+    };
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div className={SHELL_NAVBAR_CLASS_NAMES.mobileDrawerRoot} data-testid="mobile-nav-drawer-root">
       <button
         type="button"
@@ -137,6 +189,7 @@ export const MobileNavDrawer = ({
           />
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 };

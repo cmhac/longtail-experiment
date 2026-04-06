@@ -26,7 +26,7 @@ export const MobileNavDrawerAction = ({
 }: MobileNavDrawerActionProps): JSX.Element => {
   return (
     <Button
-      className={`${SHELL_NAVBAR_CLASS_NAMES.mobileDrawerActionRow}${
+      className={`${SHELL_NAVBAR_CLASS_NAMES.mobileDrawerActionRow} ${
         tone === "danger" ? " is-danger" : ""
       }`}
       data-testid={testId}

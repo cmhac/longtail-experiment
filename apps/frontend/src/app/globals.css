@@ -285,6 +285,7 @@ a {
   inset: 0;
   z-index: 320;
   pointer-events: none;
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .shell-mobile-drawer-backdrop {
@@ -292,7 +293,7 @@ a {
   inset: 0;
   border: 0;
   margin: 0;
-  background: color-mix(in srgb, var(--shell-background) 40%, transparent);
+  background: transparent;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   pointer-events: auto;
@@ -305,6 +306,7 @@ a {
   bottom: 0;
   width: min(90vw, 28rem);
   border-left: 1px solid var(--shell-border);
+  background: #ffffff;
   background: color-mix(in srgb, var(--shell-surface) 92%, var(--shell-background));
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18);
   padding: 1rem 0.8rem;
@@ -337,9 +339,18 @@ a {
 .shell-mobile-drawer-action-row {
   justify-content: space-between;
   border: 1px solid color-mix(in srgb, var(--shell-border) 78%, transparent);
+  background: #ffffff;
   background: color-mix(in srgb, var(--shell-surface) 92%, var(--shell-background));
   color: var(--shell-foreground);
   min-height: 2.65rem;
+}
+
+.dark .shell-mobile-drawer-panel {
+  background: #18181b;
+}
+
+.dark .shell-mobile-drawer-action-row {
+  background: #18181b;
 }
 
 .shell-mobile-drawer-action-row[data-hovered="true"],
