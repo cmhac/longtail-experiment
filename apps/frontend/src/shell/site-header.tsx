@@ -360,41 +360,41 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
               )}
             </div>
 
-            <Button
-              id="navbar-notifications-control-button"
-              className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} shell-navbar-notifications-control relative`}
-              data-testid="navbar-notifications-control"
-              aria-label={
-                hasHydrated && unreadNotificationCount > 0
-                  ? `Notifications (${unreadNotificationCount} unread)`
-                  : "Notifications"
-              }
-              aria-controls="navbar-notifications-dropdown"
-              aria-expanded={isNotificationsOpen ? "true" : "false"}
-              isIconOnly
-              size="sm"
-              variant="ghost"
-              onPress={() => {
-                setIsNotificationsOpen((previous) => !previous);
-              }}
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
-                <path
-                  d="M12 3a5 5 0 0 0-5 5v2.26c0 .66-.2 1.31-.56 1.86L5 14v1h14v-1l-1.44-1.88A3.2 3.2 0 0 1 17 10.26V8a5 5 0 0 0-5-5Zm0 19a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"
-                  fill="currentColor"
-                />
-              </svg>
-              {hasHydrated && unreadNotificationCount > 0 ? (
-                <span
-                  className="absolute top-1 right-1 min-w-[0.95rem] rounded-full bg-danger px-1 text-center text-[0.62rem] text-white leading-4"
-                  data-testid="navbar-notifications-badge"
-                >
-                  {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-                </span>
-              ) : null}
-            </Button>
-
             <div className="relative" data-testid="navbar-notifications-wrapper">
+              <Button
+                id="navbar-notifications-control-button"
+                className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} shell-navbar-notifications-control relative`}
+                data-testid="navbar-notifications-control"
+                aria-label={
+                  hasHydrated && unreadNotificationCount > 0
+                    ? `Notifications (${unreadNotificationCount} unread)`
+                    : "Notifications"
+                }
+                aria-controls="navbar-notifications-dropdown"
+                aria-expanded={isNotificationsOpen ? "true" : "false"}
+                isIconOnly
+                size="sm"
+                variant="ghost"
+                onPress={() => {
+                  setIsNotificationsOpen((previous) => !previous);
+                }}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
+                  <path
+                    d="M12 3a5 5 0 0 0-5 5v2.26c0 .66-.2 1.31-.56 1.86L5 14v1h14v-1l-1.44-1.88A3.2 3.2 0 0 1 17 10.26V8a5 5 0 0 0-5-5Zm0 19a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                {hasHydrated && unreadNotificationCount > 0 ? (
+                  <span
+                    className="absolute top-1 right-1 min-w-[0.95rem] rounded-full bg-danger px-1 text-center text-[0.62rem] text-white leading-4"
+                    data-testid="navbar-notifications-badge"
+                  >
+                    {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                  </span>
+                ) : null}
+              </Button>
+
               <NotificationsDropdown
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}

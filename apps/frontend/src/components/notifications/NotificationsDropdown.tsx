@@ -84,7 +84,7 @@ export const NotificationsDropdown = ({
     <Card
       id="navbar-notifications-dropdown"
       role="menu"
-      className="w-88 max-w-[calc(100vw-2rem)] rounded-xl border border-default-200 bg-content1 p-3 shadow-md"
+      className="absolute top-full right-0 z-[240] mt-2 w-88 max-w-[calc(100vw-2rem)] rounded-xl border border-default-200 bg-content1 p-3 shadow-md"
       data-testid="navbar-notifications-dropdown"
       variant="default"
     >
