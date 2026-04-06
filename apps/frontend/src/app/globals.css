@@ -158,7 +158,7 @@ a {
   flex: 0 0 auto;
 }
 
-.shell-navbar-mobile-drawer-trigger {
+.shell-navbar-icon-button.shell-navbar-mobile-drawer-trigger {
   display: none;
 }
 
@@ -566,12 +566,18 @@ a {
     display: none;
   }
 
-  .shell-navbar-mobile-drawer-trigger {
-    display: inline-flex;
+  .shell-navbar-icon-button.shell-navbar-mobile-drawer-trigger {
+    display: inline-flex !important;
   }
 
   .shell-navbar-utility-region {
     margin-left: auto;
+  }
+}
+
+@media (min-width: 1025px) {
+  .shell-navbar-icon-button.shell-navbar-mobile-drawer-trigger {
+    display: none !important;
   }
 }
 
