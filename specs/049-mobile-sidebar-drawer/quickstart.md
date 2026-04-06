@@ -21,12 +21,14 @@ Open the app in a browser and test using phone and small-tablet viewport sizes.
 ## 2) Verify drawer open/close baseline
 
 1. In activation range, confirm hamburger control is visible.
+   - Activation threshold: viewport widths <=1024px.
 2. Open drawer and confirm:
    - Right-side tray appears
    - Width is about 90% viewport
    - Background sliver remains visible and blurred
    - Background is not interactable
 3. Close drawer and confirm normal page interaction resumes.
+4. Resize above threshold (>1024px) and confirm the drawer trigger is unavailable.
 
 ## 3) Verify ordered rows and navigation behavior
 

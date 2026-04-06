@@ -11,10 +11,10 @@
 
 **Purpose**: Prepare feature scaffolding and test surfaces for mobile drawer work.
 
-- [ ] T001 Create feature test files `apps/frontend/tests/mobile-nav-drawer.test.tsx` and `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
-- [ ] T002 [P] Add shell drawer component module `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
-- [ ] T003 [P] Add shared drawer action component module `apps/frontend/src/components/shell/MobileNavDrawerAction.tsx`
-- [ ] T004 [P] Extend shell class-name constants for drawer hooks in `apps/frontend/src/theme/monochrome-theme.ts`
+- [X] T001 Create feature test files `apps/frontend/tests/mobile-nav-drawer.test.tsx` and `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T002 [P] Add shell drawer component module `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
+- [X] T003 [P] Add shared drawer action component module `apps/frontend/src/components/shell/MobileNavDrawerAction.tsx`
+- [X] T004 [P] Extend shell class-name constants for drawer hooks in `apps/frontend/src/theme/monochrome-theme.ts`
 
 ---
 
@@ -24,11 +24,11 @@
 
 **⚠️ CRITICAL**: No user story work starts until this phase is complete.
 
-- [ ] T005 Add responsive activation contract for drawer activation range (<=1024px active, >1024px inactive) in `apps/frontend/src/app/globals.css`
-- [ ] T006 [P] Add drawer state wiring scaffold and trigger control in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T007 [P] Add drawer menu configuration model (ordered rows + protected metadata) in `apps/frontend/src/shell/navbar-config.ts`
-- [ ] T008 Add baseline drawer render/open-close tests in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
-- [ ] T036 Add activation-threshold contract test coverage for <=1024px active and >1024px inactive behavior in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
+- [X] T005 Add responsive activation contract for drawer activation range (<=1024px active, >1024px inactive) in `apps/frontend/src/app/globals.css`
+- [X] T006 [P] Add drawer state wiring scaffold and trigger control in `apps/frontend/src/shell/site-header.tsx`
+- [X] T007 [P] Add drawer menu configuration model (ordered rows + protected metadata) in `apps/frontend/src/shell/navbar-config.ts`
+- [X] T008 Add baseline drawer render/open-close tests in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
+- [X] T036 Add activation-threshold contract test coverage for <=1024px active and >1024px inactive behavior in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
 
 **Checkpoint**: Shared shell foundation complete; user stories can proceed.
 
@@ -42,18 +42,18 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T009 [P] [US1] Add ordered-row and top-row logo/bell assertions in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
-- [ ] T010 [P] [US1] Add immediate-close-on-navigation interaction test in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
-- [ ] T011 [P] [US1] Add responsive shell contract assertions for drawer mode and desktop preservation in `apps/frontend/tests/shell-structure-contract.test.tsx`
+- [X] T009 [P] [US1] Add ordered-row and top-row logo/bell assertions in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
+- [X] T010 [P] [US1] Add immediate-close-on-navigation interaction test in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
+- [X] T011 [P] [US1] Add responsive shell contract assertions for drawer mode and desktop preservation in `apps/frontend/tests/shell-structure-contract.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Implement drawer layout and ordered primary row rendering in `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
-- [ ] T013 [P] [US1] Implement reusable drawer action row behavior in `apps/frontend/src/components/shell/MobileNavDrawerAction.tsx`
-- [ ] T014 [US1] Integrate drawer component with header trigger and navigation close behavior in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T015 [US1] Implement drawer visual behavior (~90% right tray, blur sliver, non-interactive backdrop) and preserve inactive behavior above 1024px in `apps/frontend/src/app/globals.css`
-- [ ] T016 [US1] Update navbar interaction tests for new small-screen navigation path in `apps/frontend/tests/navbar-interactions.test.tsx`
-- [ ] T037 [US1] Add repeated-interaction stability test (rapid open/close + navigation) in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
+- [X] T012 [P] [US1] Implement drawer layout and ordered primary row rendering in `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
+- [X] T013 [P] [US1] Implement reusable drawer action row behavior in `apps/frontend/src/components/shell/MobileNavDrawerAction.tsx`
+- [X] T014 [US1] Integrate drawer component with header trigger and navigation close behavior in `apps/frontend/src/shell/site-header.tsx`
+- [X] T015 [US1] Implement drawer visual behavior (~90% right tray, blur sliver, non-interactive backdrop) and preserve inactive behavior above 1024px in `apps/frontend/src/app/globals.css`
+- [X] T016 [US1] Update navbar interaction tests for new small-screen navigation path in `apps/frontend/tests/navbar-interactions.test.tsx`
+- [X] T037 [US1] Add repeated-interaction stability test (rapid open/close + navigation) in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
 
 **Checkpoint**: US1 is independently functional as MVP.
 
@@ -67,18 +67,18 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T017 [P] [US2] Add comparison counter consistency and zero-state tests in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
-- [ ] T018 [P] [US2] Add sign-out redirect-to-home behavior test in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
-- [ ] T019 [P] [US2] Add signed-out protected-action redirect-to-login tests in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T017 [P] [US2] Add comparison counter consistency and zero-state tests in `apps/frontend/tests/mobile-nav-drawer.test.tsx`
+- [X] T018 [P] [US2] Add sign-out redirect-to-home behavior test in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T019 [P] [US2] Add signed-out protected-action redirect-to-login tests in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Reuse comparison-state source and render counter in drawer comparison row in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T021 [US2] Reuse notifications bell entry behavior in drawer top row in `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
-- [ ] T022 [US2] Implement account/search/home/sources/datasets destination handlers in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T023 [US2] Implement sign-out action flow and redirect-to-home behavior for drawer footer in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T024 [US2] Implement signed-out protected-action redirect guard to `/login` in `apps/frontend/src/shell/site-header.tsx`
-- [ ] T038 [US2] Add notification loading-state and bell parity tests in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T020 [US2] Reuse comparison-state source and render counter in drawer comparison row in `apps/frontend/src/shell/site-header.tsx`
+- [X] T021 [US2] Reuse notifications bell entry behavior in drawer top row in `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
+- [X] T022 [US2] Implement account/search/home/sources/datasets destination handlers in `apps/frontend/src/shell/site-header.tsx`
+- [X] T023 [US2] Implement sign-out action flow and redirect-to-home behavior for drawer footer in `apps/frontend/src/shell/site-header.tsx`
+- [X] T024 [US2] Implement signed-out protected-action redirect guard to `/login` in `apps/frontend/src/shell/site-header.tsx`
+- [X] T038 [US2] Add notification loading-state and bell parity tests in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
 
 **Checkpoint**: US2 is independently functional and testable.
 
@@ -92,14 +92,14 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T025 [P] [US3] Add admin visibility and ordering tests for drawer footer in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
-- [ ] T026 [P] [US3] Add non-admin/signed-out admin-hidden tests in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
-- [ ] T027 [P] [US3] Add admin route navigation test from drawer footer in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T025 [P] [US3] Add admin visibility and ordering tests for drawer footer in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T026 [P] [US3] Add non-admin/signed-out admin-hidden tests in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
+- [X] T027 [P] [US3] Add admin route navigation test from drawer footer in `apps/frontend/tests/mobile-nav-drawer-auth.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Implement role-gated Admin footer action visibility in drawer rendering in `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
-- [ ] T029 [US3] Implement admin footer routing integration in `apps/frontend/src/shell/site-header.tsx`
+- [X] T028 [US3] Implement role-gated Admin footer action visibility in drawer rendering in `apps/frontend/src/components/shell/MobileNavDrawer.tsx`
+- [X] T029 [US3] Implement admin footer routing integration in `apps/frontend/src/shell/site-header.tsx`
 
 **Checkpoint**: US3 is independently functional and testable.
 
@@ -109,14 +109,14 @@
 
 **Purpose**: Final consistency, docs, and mandatory gate validation.
 
-- [ ] T030 [P] Align quickstart verification notes with implemented behavior in `specs/049-mobile-sidebar-drawer/quickstart.md`
-- [ ] T031 [P] Validate and update shell contract notes for any test-id/class changes in `specs/049-mobile-sidebar-drawer/contracts/mobile-sidebar-drawer-contract.md`
-- [ ] T032 Run frontend quality checks `pnpm --dir apps/frontend exec biome check .`, `pnpm --dir apps/frontend typecheck`, and `pnpm --dir apps/frontend test`
-- [ ] T033 Run repository stop gate `pnpm exec nx run-many -t test --all`
-- [ ] T034 Run repository coverage gate `pnpm exec nx run-many -t coverage --all`
-- [ ] T035 Run `pre-commit run --all-files` and resolve any failures
-- [ ] T039 [P] Update `AGENTS.md` with finalized mobile drawer implementation/tooling deltas if workflows or canonical commands changed
-- [ ] T040 [P] Update affected documentation for shell navigation behavior changes in `docs/` paths impacted by mobile header/navigation references
+- [X] T030 [P] Align quickstart verification notes with implemented behavior in `specs/049-mobile-sidebar-drawer/quickstart.md`
+- [X] T031 [P] Validate and update shell contract notes for any test-id/class changes in `specs/049-mobile-sidebar-drawer/contracts/mobile-sidebar-drawer-contract.md`
+- [X] T032 Run frontend quality checks `pnpm --dir apps/frontend exec biome check .`, `pnpm --dir apps/frontend typecheck`, and `pnpm --dir apps/frontend test`
+- [X] T033 Run repository stop gate `pnpm exec nx run-many -t test --all`
+- [X] T034 Run repository coverage gate `pnpm exec nx run-many -t coverage --all`
+- [X] T035 Run `pre-commit run --all-files` and resolve any failures
+- [X] T039 [P] Update `AGENTS.md` with finalized mobile drawer implementation/tooling deltas if workflows or canonical commands changed
+- [X] T040 [P] Update affected documentation for shell navigation behavior changes in `docs/` paths impacted by mobile header/navigation references
 
 ---
 

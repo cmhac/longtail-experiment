@@ -308,5 +308,6 @@ structure, toolchain, or canonical developer commands change.
   - Dataset detail trend presentation is chip-only and API-driven.
   - Frontend consumers must render from API-provided canonical descriptor payloads and must not perform client-side lookback weighting/ranking.
   - Observation-lookback snapshots and canonical descriptors are the primary trend contract; period span overlays are deprecated for product behavior.
+  - Mobile shell navigation now includes a drawer trigger path for viewports <=1024px, with ordered drawer rows and role-aware footer actions (`Admin` above `Sign out` for admin/owner only).
 
 <!-- MANUAL ADDITIONS END -->

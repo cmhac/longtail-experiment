@@ -9,6 +9,12 @@ import {
 } from "../src/components/discovery/comparison-state";
 import { SiteHeader } from "../src/shell/site-header";
 
+vi.mock("../src/lib/navigation-client", () => ({
+  navigateTo: vi.fn(),
+}));
+
+import { navigateTo } from "../src/lib/navigation-client";
+
 const { navigationState, routerPushMock } = vi.hoisted(() => {
   let searchParams = new URLSearchParams("q=");
 
@@ -34,6 +40,7 @@ afterEach(() => {
   window.localStorage.clear();
   routerPushMock.mockReset();
   navigationState.setSearchParams("");
+  vi.mocked(navigateTo).mockReset();
 });
 
 describe("navbar limited-scope interactions", () => {
@@ -110,5 +117,27 @@ describe("navbar limited-scope interactions", () => {
     expect(screen.getByTestId("navbar-comparison-link").getAttribute("aria-label")).toBe(
       "Comparison datasets selected: 2",
     );
+  });
+
+  it("uses mobile drawer trigger path for small-screen navigation", async () => {
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      writable: true,
+      value: 390,
+    });
+
+    render(<SiteHeader />);
+
+    fireEvent.click(screen.getByTestId("mobile-nav-drawer-trigger"));
+    await waitFor(() => {
+      expect(screen.getByTestId("mobile-nav-drawer-panel")).not.toBeNull();
+    });
+
+    fireEvent.click(screen.getByTestId("mobile-nav-drawer-action-home"));
+
+    expect(navigateTo).toHaveBeenCalledWith("/");
+    await waitFor(() => {
+      expect(screen.queryByTestId("mobile-nav-drawer-panel")).toBeNull();
+    });
   });
 });

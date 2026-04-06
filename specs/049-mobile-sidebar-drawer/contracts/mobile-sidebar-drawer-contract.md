@@ -8,6 +8,7 @@ Define the user-visible and testable behavior contract for the shared small-scre
 
 - Applies to pages rendered with shared site shell header.
 - Applies to phone and small-tablet viewport range.
+- Activation threshold is <=1024px; drawer remains inactive above 1024px.
 - Desktop navbar behavior remains unchanged.
 
 ## Drawer Entry Contract
