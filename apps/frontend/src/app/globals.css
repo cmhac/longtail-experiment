@@ -332,8 +332,23 @@ a {
 
 .shell-mobile-drawer-primary,
 .shell-mobile-drawer-footer {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+}
+
+.shell-mobile-drawer-primary {
+  gap: 0;
+  align-items: stretch;
+  align-content: flex-start;
+}
+
+.shell-mobile-drawer-primary > .shell-mobile-drawer-action-row + .shell-mobile-drawer-action-row {
+  margin-top: 0.35rem;
+}
+
+.shell-mobile-drawer-footer {
   gap: 0.5rem;
+  margin-top: auto;
 }
 
 .shell-mobile-drawer-action-row {
@@ -343,6 +358,7 @@ a {
   background: color-mix(in srgb, var(--shell-surface) 92%, var(--shell-background));
   color: var(--shell-foreground);
   min-height: 2.65rem;
+  margin: 0;
 }
 
 .dark .shell-mobile-drawer-panel {
