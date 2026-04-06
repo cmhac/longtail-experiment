@@ -15,8 +15,8 @@ Replace the current cluttered multi-row small-screen top navigation pattern with
 **Testing**: Vitest + Testing Library component/shell tests in `apps/frontend/tests`, plus repository mandatory gates (`pre-commit run --all-files`, `pnpm exec nx run-many -t test --all`, `pnpm exec nx run-many -t coverage --all`)  
 **Target Platform**: Web browsers in small-screen phone and small-tablet viewports; desktop behavior unchanged  
 **Project Type**: Nx monorepo frontend web-application slice (`apps/frontend`) with shared shell components  
-**Performance Goals**: Drawer open/close and item navigation interactions feel immediate in normal usage; no observable lag in header interactivity during drawer toggles  
-**Constraints**: Phone+small-tablet only activation; drawer width about 90% viewport; background blur + non-interactive backdrop while open; ordered rows fixed by spec; auth-protected taps from signed-out state redirect to `/login`; sign-out routes to `/`  
+**Performance Goals**: Drawer open/close state transition begins within 100ms of user input in manual validation, and destination taps complete drawer-close + navigation without visible UI freeze in normal local runtime checks  
+**Constraints**: Drawer activation range is <=1024px viewport width and remains disabled above 1024px; drawer width about 90% viewport; background blur + non-interactive backdrop while open; ordered rows fixed by spec; auth-protected taps from signed-out state redirect to `/login`; sign-out routes to `/`  
 **Scale/Scope**: Shared shell pages using `SiteHeader`; desktop navbar layout and non-mobile shell behavior remain unchanged
 
 ## Constitution Check
@@ -81,7 +81,7 @@ apps/frontend/
   - comparison counter source and update events
   - auth session loading, role visibility, and sign-out flow.
 - Lock mobile drawer UX decisions already clarified in spec:
-  - phone+small-tablet activation range
+  - drawer activation range (<=1024px)
   - right-side tray width about 90%
   - destination tap closes drawer immediately
   - sign-out redirects home
@@ -115,7 +115,7 @@ apps/frontend/
 
 #### Workstream C: Responsive styling and interaction contract
 
-1. Update shell responsive styles to replace current multi-row top-nav behavior with drawer trigger in phone+small-tablet range.
+1. Update shell responsive styles to replace current multi-row top-nav behavior with drawer trigger in drawer activation range (<=1024px).
 2. Implement right-side tray width (~90%), blurred visible background sliver, and non-interactive backdrop semantics.
 3. Preserve existing desktop layout and ordering contract.
 
@@ -143,7 +143,7 @@ apps/frontend/
 - Use existing `SiteHeader` state and utility integrations as source-of-truth; do not duplicate notification/comparison/auth logic.
 - Keep all repeated drawer UI patterns in shared components under `apps/frontend/src/components`.
 - Preserve existing shell class/test-id contracts unless explicitly updated in tests and contract docs.
-- Validate mobile behavior at multiple small-screen sizes within the clarified phone+small-tablet range.
+- Validate mobile behavior at multiple small-screen sizes within the drawer activation range (<=1024px).
 
 ## Post-Design Constitution Re-Check
 

@@ -48,6 +48,7 @@ As a signed-in user, I want account, comparison status, notifications access, an
 2. **Given** a signed-in user opens the drawer, **When** they tap Account, **Then** they are taken to the account settings page.
 3. **Given** a signed-in user opens the drawer, **When** they tap Sign out at the bottom section, **Then** their session is ended and they are redirected to the Home page in signed-out state.
 4. **Given** the drawer is open, **When** the user taps the bell icon in the top row, **Then** they can access notification behavior consistent with existing in-app notifications entry.
+5. **Given** the drawer is open and notification data changes, **When** the user views the bell row state, **Then** unread badge visibility and bell toggle behavior remain consistent with the existing header notification control.
 
 ---
 
@@ -100,6 +101,8 @@ As an admin user, I want the admin destination available in the drawer footer so
 - **FR-019**: The mobile drawer MUST be available from all pages that use the shared site shell.
 - **FR-020**: Existing desktop navigation behavior MUST remain unchanged outside the phone and small-tablet activation range.
 - **FR-021**: When a signed-out user selects an auth-protected drawer action, the system MUST redirect the user to the Login page.
+- **FR-022**: Drawer activation range MUST apply to viewport widths at or below 1024 CSS pixels and MUST remain disabled above 1024 CSS pixels.
+- **FR-023**: Notification bell behavior in the drawer MUST preserve existing bell control semantics, including unread badge visibility and toggle/open-close behavior.
 
 ### Key Entities _(include if feature involves data)_
 
@@ -117,6 +120,7 @@ As an admin user, I want the admin destination available in the drawer footer so
 - **SC-004**: In comparison-state regression checks, 100% of audited drawer renders show a comparison counter value consistent with existing comparison selection state.
 - **SC-005**: In sign-out flow validation, at least 99% of sign-out attempts triggered from the drawer complete successfully and land on the Home page in signed-out state.
 - **SC-006**: In interaction-stability testing, drawer open/close and navigation actions complete without broken or duplicated menu state in 100% of audited repeated-interaction scenarios.
+- **SC-007**: In responsive validation, drawer behavior activates for viewports <=1024px and remains inactive for viewports >1024px in 100% of audited checks.
 
 ## Assumptions
 
