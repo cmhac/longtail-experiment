@@ -31,6 +31,7 @@ interface SiteHeaderProps {
 }
 
 export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element => {
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -42,6 +43,10 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchControlRef = useRef<HTMLDivElement | null>(null);
   const tabs = resolveNavbarTabs(activeTab);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   useEffect(() => {
     const syncComparisonCount = (): void => {
@@ -233,7 +238,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
               className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} relative`}
               data-testid="navbar-notifications-control"
               aria-label={
-                unreadNotificationCount > 0
+                hasHydrated && unreadNotificationCount > 0
                   ? `Notifications (${unreadNotificationCount} unread)`
                   : "Notifications"
               }
@@ -252,7 +257,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                   fill="currentColor"
                 />
               </svg>
-              {unreadNotificationCount > 0 ? (
+              {hasHydrated && unreadNotificationCount > 0 ? (
                 <span
                   className="absolute top-1 right-1 min-w-[0.95rem] rounded-full bg-danger px-1 text-center text-[0.62rem] text-white leading-4"
                   data-testid="navbar-notifications-badge"
