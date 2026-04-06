@@ -18,6 +18,11 @@ import {
   clearAuthSessionState,
   loadAuthSessionState,
 } from "../lib/auth/session-state";
+import { AuthManagementApiError } from "../lib/api/auth-management-client";
+import {
+  fetchNotificationSummary,
+  requireNotificationSessionToken,
+} from "../lib/api/notification-client";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
 import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
 
@@ -71,6 +76,38 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
       window.removeEventListener("storage", syncAuthState);
     };
   }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const preloadUnreadSummary = async (): Promise<void> => {
+      const sessionToken = authSession?.sessionToken;
+      if (!sessionToken) {
+        setUnreadNotificationCount(0);
+        return;
+      }
+
+      try {
+        const token = await requireNotificationSessionToken(sessionToken);
+        const summary = await fetchNotificationSummary(token);
+        if (!isCancelled) {
+          setUnreadNotificationCount(summary.unread_count);
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+        if (error instanceof AuthManagementApiError && error.status === 401) {
+          setUnreadNotificationCount(0);
+        }
+      }
+    };
+
+    void preloadUnreadSummary();
+    return () => {
+      isCancelled = true;
+    };
+  }, [authSession?.sessionToken]);
 
   useEffect(() => {
     const handleDocumentPointerDown = (event: MouseEvent): void => {

@@ -104,12 +104,14 @@ describe("navbar notifications", () => {
 
     render(<SiteHeader />);
 
-    fireEvent.click(screen.getByTestId("navbar-notifications-control"));
-
     await waitFor(() => {
       expect(screen.getByTestId("navbar-notifications-badge").textContent).toBe("1");
     });
-    expect(screen.getByText("Trend reversed")).not.toBeNull();
+
+    fireEvent.click(screen.getByTestId("navbar-notifications-control"));
+    await waitFor(() => {
+      expect(screen.getByText("Trend reversed")).not.toBeNull();
+    });
 
     fireEvent.click(screen.getByTestId("navbar-notification-mark-read-notification-1"));
 
@@ -206,6 +208,11 @@ describe("navbar notifications", () => {
     asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
 
     render(<SiteHeader />);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("navbar-notifications-badge")).toBeNull();
+    });
+
     fireEvent.click(screen.getByTestId("navbar-notifications-control"));
 
     await waitFor(() => {
@@ -241,6 +248,11 @@ describe("navbar notifications", () => {
     asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
 
     render(<SiteHeader />);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("navbar-notifications-badge")).toBeNull();
+    });
+
     fireEvent.click(screen.getByTestId("navbar-notifications-control"));
 
     await waitFor(() => {
