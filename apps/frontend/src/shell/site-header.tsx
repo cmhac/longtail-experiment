@@ -212,6 +212,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                 </div>
               ) : (
                 <Button
+                  id="navbar-search-control-button"
                   className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} ${SHELL_NAVBAR_CLASS_NAMES.searchToggle}`}
                   data-testid="navbar-search-control"
                   aria-label="Search"
@@ -235,6 +236,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
             </div>
 
             <Button
+              id="navbar-notifications-control-button"
               className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} relative`}
               data-testid="navbar-notifications-control"
               aria-label={
@@ -276,6 +278,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
             </div>
 
             <Button
+              id="navbar-comparison-control-button"
               className={`shell-navbar-comparison-link${
                 comparisonCount > 0 && !hasComparisonStateError ? " is-active" : ""
               }`}
@@ -301,6 +304,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
 
             <div className="shell-navbar-profile-wrapper" ref={profileMenuRef}>
               <Button
+                id="navbar-profile-control-button"
                 className={SHELL_NAVBAR_CLASS_NAMES.iconButton}
                 data-testid="navbar-profile-control"
                 aria-label="Profile"
