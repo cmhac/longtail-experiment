@@ -560,7 +560,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
           }}
           onBellPress={() => {
             setIsMobileDrawerOpen(false);
-            setIsNotificationsOpen((previous) => !previous);
+            navigateToPath("/notifications");
           }}
           unreadNotificationCount={hasHydrated ? unreadNotificationCount : 0}
           primaryActions={drawerPrimaryActions}

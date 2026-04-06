@@ -256,7 +256,8 @@ describe("mobile nav drawer auth and role behaviors", () => {
 
     fireEvent.click(screen.getByTestId("mobile-nav-drawer-bell"));
     await waitFor(() => {
-      expect(screen.getByTestId("navbar-notifications-dropdown")).not.toBeNull();
+      expect(navigateTo).toHaveBeenCalledWith("/notifications");
     });
+    expect(screen.queryByTestId("navbar-notifications-dropdown")).toBeNull();
   });
 });
