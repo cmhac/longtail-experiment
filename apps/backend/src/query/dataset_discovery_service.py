@@ -124,9 +124,12 @@ def _build_paginated_payload(
 
 def _default_summary_canonical_descriptor() -> dict[str, Any]:
     return {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
+        "confidence_score": None,
+        "dominant_measure_family": "none",
         "strength": None,
         "selected_lookback_points": None,
         "observed_on": None,
@@ -139,9 +142,12 @@ def _default_observation_asof_descriptor(
     reason_code: str = "missing_observation_asof_descriptor",
 ) -> dict[str, Any]:
     return {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
+        "confidence_score": None,
+        "dominant_measure_family": "none",
         "strength": None,
         "selected_lookback_points": None,
         "observed_on": None,
@@ -253,8 +259,12 @@ def _resolve_observation_asof_descriptor(
                 observation_reported_at=observation_reported_at,
             )
         )
+    normalized_payload = dict(payload)
+    normalized_payload.setdefault("descriptor_version", "v2")
+    normalized_payload.setdefault("confidence_score", None)
+    normalized_payload.setdefault("dominant_measure_family", "none")
     try:
-        return ObservationAsOfTrendDescriptor.model_validate(payload).model_dump()
+        return ObservationAsOfTrendDescriptor.model_validate(normalized_payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
         raise ContractQueryError(
             "dataset_detail_observation_asof_payload_invalid:"
@@ -292,7 +302,11 @@ def _resolve_summary_canonical_descriptor(
         else _default_summary_canonical_descriptor()
     )
     try:
-        return SummaryCanonicalTrendDescriptor.model_validate(payload).model_dump()
+        normalized_payload = dict(payload)
+        normalized_payload.setdefault("descriptor_version", "v2")
+        normalized_payload.setdefault("confidence_score", None)
+        normalized_payload.setdefault("dominant_measure_family", "none")
+        return SummaryCanonicalTrendDescriptor.model_validate(normalized_payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
         raise ContractQueryError(f"dataset_summary_canonical_payload_invalid:{dataset_id}") from exc
 
@@ -1039,9 +1053,12 @@ class DatasetDiscoveryService:
 
     def _resolve_canonical_descriptor(self, *, dataset_id: str) -> dict[str, Any]:
         descriptor = CanonicalTrendDescriptor(
+            descriptor_version="v2",
             descriptor_state="unavailable",
             trend_label=None,
             direction=None,
+            confidence_score=None,
+            dominant_measure_family="none",
             strength=None,
             selected_lookback_points=None,
             observed_on=None,
@@ -1059,7 +1076,11 @@ class DatasetDiscoveryService:
             raise ContractQueryError("dataset_detail_canonical_payload_invalid")
 
         try:
-            return CanonicalTrendDescriptor.model_validate(raw_canonical).model_dump()
+            canonical_payload = dict(raw_canonical)
+            canonical_payload.setdefault("descriptor_version", "v2")
+            canonical_payload.setdefault("confidence_score", None)
+            canonical_payload.setdefault("dominant_measure_family", "none")
+            return CanonicalTrendDescriptor.model_validate(canonical_payload).model_dump()
         except (ValidationError, TypeError, ValueError) as exc:
             raise ContractQueryError("dataset_detail_canonical_payload_invalid") from exc
 
@@ -1077,7 +1098,35 @@ class DatasetDiscoveryService:
 
         try:
             return [
-                LookbackTrendSnapshot.model_validate(snapshot).model_dump()
+                LookbackTrendSnapshot.model_validate(
+                    {
+                        **dict(snapshot),
+                        "outcome_state": (
+                            dict(snapshot).get("outcome_state")
+                            if dict(snapshot).get("outcome_state") is not None
+                            else (
+                                "significant_trend"
+                                if dict(snapshot).get("applicability_state") == "applicable"
+                                and dict(snapshot).get("descriptor_state", "available")
+                                == "available"
+                                and dict(snapshot).get("direction") in {"up", "down"}
+                                else "no_significant_trend"
+                            )
+                        ),
+                        "descriptor_state": dict(snapshot).get("descriptor_state", "unavailable"),
+                        "confidence_score": dict(snapshot).get("confidence_score", None),
+                        "dominant_measure_family": dict(snapshot).get(
+                            "dominant_measure_family", None
+                        ),
+                        "theil_sen_slope": dict(snapshot).get("theil_sen_slope", None),
+                        "theil_sen_low_slope": dict(snapshot).get("theil_sen_low_slope", None),
+                        "theil_sen_high_slope": dict(snapshot).get("theil_sen_high_slope", None),
+                        "kendall_tau": dict(snapshot).get("kendall_tau", None),
+                        "kendall_p_value": dict(snapshot).get("kendall_p_value", None),
+                        "preprocessing": dict(snapshot).get("preprocessing", {}),
+                        "ols_diagnostics": dict(snapshot).get("ols_diagnostics", {}),
+                    }
+                ).model_dump()
                 for snapshot in raw_lookbacks
             ]
         except (ValidationError, TypeError, ValueError) as exc:

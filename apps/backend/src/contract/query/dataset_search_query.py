@@ -17,9 +17,12 @@ class SourceRef(BaseModel):
 class SummaryCanonicalTrendDescriptor(BaseModel):
     """Canonical trend descriptor payload for dataset summary/list responses."""
 
+    descriptor_version: Literal["v2"] = "v2"
     descriptor_state: Literal["available", "unavailable"]
     trend_label: str | None = Field(default=None, min_length=1)
-    direction: Literal["up", "down"] | None = None
+    direction: Literal["up", "down", "flat"] | None = None
+    confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"] = "none"
     strength: str | None = Field(default=None, min_length=1)
     selected_lookback_points: int | None = Field(default=None, ge=1)
     observed_on: str | None = Field(default=None, min_length=1)

@@ -69,3 +69,12 @@ class LookbackTrendEvidenceV2(BaseModel):
     preprocessing: PreprocessingMetadata
     ols_diagnostics: OlsDiagnostics
     reason_code: str | None = Field(default=None, min_length=1)
+
+
+class ObservationAsOfTrendV2Response(BaseModel):
+    """As-of trend payload for one dataset and as-of observation date."""
+
+    dataset_id: str = Field(min_length=1)
+    as_of_observed_on: str = Field(min_length=1)
+    canonical_trend_descriptor: CanonicalTrendDescriptorV2
+    lookback_trend_evidence: list[LookbackTrendEvidenceV2]

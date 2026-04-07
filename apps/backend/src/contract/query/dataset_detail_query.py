@@ -20,9 +20,12 @@ class DatasetObservationPoint(BaseModel):
 class CanonicalTrendDescriptor(BaseModel):
     """Canonical trend descriptor payload for dataset detail responses."""
 
+    descriptor_version: str = Field(default="v2", min_length=1)
     descriptor_state: str = Field(min_length=1)
     trend_label: str | None = Field(default=None, min_length=1)
     direction: str | None = Field(default=None, min_length=1)
+    confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    dominant_measure_family: str = Field(default="none", min_length=1)
     strength: str | None = Field(default=None, min_length=1)
     selected_lookback_points: int | None = Field(default=None, ge=1)
     observed_on: str | None = Field(default=None, min_length=1)
@@ -47,9 +50,12 @@ class CanonicalTrendDescriptor(BaseModel):
 class ObservationAsOfTrendDescriptor(BaseModel):
     """Observation-scoped trend descriptor payload for dataset detail responses."""
 
+    descriptor_version: str = Field(default="v2", min_length=1)
     descriptor_state: str = Field(min_length=1)
     trend_label: str | None = Field(default=None, min_length=1)
     direction: str | None = Field(default=None, min_length=1)
+    confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    dominant_measure_family: str = Field(default="none", min_length=1)
     strength: str | None = Field(default=None, min_length=1)
     selected_lookback_points: int | None = Field(default=None, ge=1)
     observed_on: str | None = Field(default=None, min_length=1)
@@ -76,9 +82,19 @@ class LookbackTrendSnapshot(BaseModel):
 
     lookback_points: int = Field(ge=1)
     applicability_state: str = Field(min_length=1)
+    descriptor_state: str = Field(default="unavailable", min_length=1)
     outcome_state: str | None = Field(default=None, min_length=1)
     trend_label: str | None = Field(default=None, min_length=1)
     direction: str | None = Field(default=None, min_length=1)
+    confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    dominant_measure_family: str | None = Field(default=None, min_length=1)
+    theil_sen_slope: float | None = None
+    theil_sen_low_slope: float | None = None
+    theil_sen_high_slope: float | None = None
+    kendall_tau: float | None = None
+    kendall_p_value: float | None = None
+    preprocessing: dict[str, object] = Field(default_factory=dict)
+    ols_diagnostics: dict[str, object] = Field(default_factory=dict)
     strength: str | None = Field(default=None, min_length=1)
     reason_code: str | None = Field(default=None, min_length=1)
 
@@ -92,7 +108,6 @@ class LookbackTrendSnapshot(BaseModel):
                 required_values = (
                     self.trend_label,
                     self.direction,
-                    self.strength,
                 )
                 if any(value is None for value in required_values):
                     raise ValueError("significant lookback snapshots must include trend fields")

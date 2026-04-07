@@ -10,6 +10,7 @@ def canonical_available_v2() -> dict[str, object]:
         "trend_label": "moderate_uptrend",
         "direction": "up",
         "confidence_score": 0.74,
+        "strength": "mild",
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
         "dominant_measure_family": "theil_sen",

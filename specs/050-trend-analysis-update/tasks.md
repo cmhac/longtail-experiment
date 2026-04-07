@@ -77,22 +77,22 @@
 
 ### Tests for User Story 2 (REQUIRED)
 
-- [ ] T027 [P] [US2] Add lookback applicability coverage tests across full catalog in `libs/trend_analysis/tests/test_lookback_applicability_catalog_v2.py`
-- [ ] T028 [P] [US2] Add as-of reproducibility and ordering tests in `apps/pipeline/tests/orchestration/test_asof_snapshot_reproducibility_v2.py`
-- [ ] T029 [P] [US2] Add backend as-of endpoint contract test for v2 evidence payload in `apps/backend/tests/contract/test_dataset_asof_trend_v2_contract.py`
-- [ ] T030 [P] [US2] Add backend detail endpoint evidence visibility test in `apps/backend/tests/contract/test_dataset_detail_trend_evidence_visibility_v2.py`
-- [ ] T054 [P] [US2] Add discovery endpoint parity contract matrix test (`datasets/search/recent/detail/as-of`) in `apps/backend/tests/contract/test_discovery_trend_v2_endpoint_parity.py`
-- [ ] T031 [P] [US2] Add frontend secondary evidence section rendering test in `apps/frontend/tests/dataset-detail-trend-evidence-v2.test.tsx`
+- [X] T027 [P] [US2] Add lookback applicability coverage tests across full catalog in `libs/trend_analysis/tests/test_lookback_applicability_catalog_v2.py`
+- [X] T028 [P] [US2] Add as-of reproducibility and ordering tests in `apps/pipeline/tests/orchestration/test_asof_snapshot_reproducibility_v2.py`
+- [X] T029 [P] [US2] Add backend as-of endpoint contract test for v2 evidence payload in `apps/backend/tests/contract/test_dataset_asof_trend_v2_contract.py`
+- [X] T030 [P] [US2] Add backend detail endpoint evidence visibility test in `apps/backend/tests/contract/test_dataset_detail_trend_evidence_visibility_v2.py`
+- [X] T054 [P] [US2] Add discovery endpoint parity contract matrix test (`datasets/search/recent/detail/as-of`) in `apps/backend/tests/contract/test_discovery_trend_v2_endpoint_parity.py`
+- [X] T031 [P] [US2] Add frontend secondary evidence section rendering test in `apps/frontend/tests/dataset-detail-trend-evidence-v2.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Persist per-lookback applicability reason and evidence fields in `apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py`
-- [ ] T033 [US2] Add change-point context metadata computation and tie-break hooks in `libs/trend_analysis/src/trend_analysis/arbitration.py`
-- [ ] T034 [US2] Add OLS diagnostics fields to detail/as-of query contracts in `apps/backend/src/contract/query/trend_descriptor_v2.py`
-- [ ] T035 [US2] Implement as-of v2 evidence response assembly in `apps/backend/src/query/discovery_service.py`
-- [ ] T036 [US2] Wire observation as-of v2 endpoint handling in `apps/backend/src/http_api_server.py`
-- [ ] T037 [US2] Update frontend API client for detail/as-of evidence payloads in `apps/frontend/src/lib/api/discovery-client.ts`
-- [ ] T038 [US2] Render OLS/evidence details in expandable section only in `apps/frontend/src/components/discovery/TrendEvidencePanel.tsx`
+- [X] T032 [US2] Persist per-lookback applicability reason and evidence fields in `apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py`
+- [X] T033 [US2] Add change-point context metadata computation and tie-break hooks in `libs/trend_analysis/src/trend_analysis/arbitration.py`
+- [X] T034 [US2] Add OLS diagnostics fields to detail/as-of query contracts in `apps/backend/src/contract/query/trend_descriptor_v2.py`
+- [X] T035 [US2] Implement as-of v2 evidence response assembly in `apps/backend/src/query/discovery_service.py`
+- [X] T036 [US2] Wire observation as-of v2 endpoint handling in `apps/backend/src/http_api_server.py`
+- [X] T037 [US2] Update frontend API client for detail/as-of evidence payloads in `apps/frontend/src/lib/api/discovery-client.ts`
+- [X] T038 [US2] Render OLS/evidence details in expandable section only in `apps/frontend/src/components/discovery/TrendEvidencePanel.tsx`
 
 **Checkpoint**: US2 is independently functional and testable.
 
