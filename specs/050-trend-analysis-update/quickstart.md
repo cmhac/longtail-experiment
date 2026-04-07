@@ -91,3 +91,27 @@ All commands must pass before commit or handoff.
   - `ruptures`
 - Do not introduce excluded stale packages:
   - `pymannkendall`, `mannkendall`, `kats`
+
+## 9. Hard cutover reset validation
+
+Use the local reset validator to enforce the v2-only baseline and verify that
+post-reset trend/notification rows are generated after reset time only.
+
+```bash
+bash tools/verification/spec050_trend_v2_reset_validation.sh
+```
+
+Optional custom ingest command:
+
+```bash
+SPEC050_RESET_INGEST_COMMAND="<your ingest command>" bash tools/verification/spec050_trend_v2_reset_validation.sh
+```
+
+Reference runbook: `docs/runbooks/trend-descriptor-v2-cutover.md`.
+
+## 10. Phase 6 output artifacts
+
+- Replay outcomes: `specs/050-trend-analysis-update/research/replay_comparison_results.md`
+- Manual verification log: `specs/050-trend-analysis-update/research/manual_verification_log.md`
+- Quality gate log: `specs/050-trend-analysis-update/research/quality_gate_results.md`
+- Daily seasonal-adjustment phase gate: `specs/050-trend-analysis-update/research/daily-seasonal-adjustment-phase-gate.md`

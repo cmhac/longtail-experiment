@@ -128,13 +128,13 @@
 
 **Purpose**: Final validation, documentation, and release hardening across all stories.
 
-- [ ] T047 [P] Update implementation notes and rollout checklist in `specs/050-trend-analysis-update/quickstart.md`
-- [ ] T048 [P] Record replay comparison outcomes against success criteria in `specs/050-trend-analysis-update/research/replay_comparison_results.md`
-- [ ] T049 [P] Document contract cutover and local reset procedure in `docs/runbooks/trend-descriptor-v2-cutover.md`
-- [ ] T050 Execute manual verification checklist and record evidence in `specs/050-trend-analysis-update/research/manual_verification_log.md`
-- [ ] T051 Run full quality gates and capture results in `specs/050-trend-analysis-update/research/quality_gate_results.md`
-- [ ] T057 [P] Define daily seasonal-adjustment future phase-gate criteria (divergence/event/contracts) in `specs/050-trend-analysis-update/research/daily-seasonal-adjustment-phase-gate.md`
-- [ ] T058 Implement and verify executable local reset validation script for v2 cutover in `tools/verification/spec050_trend_v2_reset_validation.sh`
+- [X] T047 [P] Update implementation notes and rollout checklist in `specs/050-trend-analysis-update/quickstart.md`
+- [X] T048 [P] Record replay comparison outcomes against success criteria in `specs/050-trend-analysis-update/research/replay_comparison_results.md`
+- [X] T049 [P] Document contract cutover and local reset procedure in `docs/runbooks/trend-descriptor-v2-cutover.md`
+- [X] T050 Execute manual verification checklist and record evidence in `specs/050-trend-analysis-update/research/manual_verification_log.md`
+- [X] T051 Run full quality gates and capture results in `specs/050-trend-analysis-update/research/quality_gate_results.md`
+- [X] T057 [P] Define daily seasonal-adjustment future phase-gate criteria (divergence/event/contracts) in `specs/050-trend-analysis-update/research/daily-seasonal-adjustment-phase-gate.md`
+- [X] T058 Implement and verify executable local reset validation script for v2 cutover in `tools/verification/spec050_trend_v2_reset_validation.sh`
 
 ---
 
