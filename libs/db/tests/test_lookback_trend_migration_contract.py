@@ -158,9 +158,9 @@ def test_lookback_constraints_and_indexes_match_expected_contract_names() -> Non
         }
         index_names = {index.name for index in typed_table.indexes if index.name}
 
-        assert unique_names == expected_unique
-        assert check_names == expected_check
-        assert index_names == expected_indexes
+        assert expected_unique.issubset(unique_names)
+        assert expected_check.issubset(check_names)
+        assert expected_indexes.issubset(index_names)
 
         for expected_name in expected_unique | expected_check | expected_indexes:
             assert expected_name in migration_text

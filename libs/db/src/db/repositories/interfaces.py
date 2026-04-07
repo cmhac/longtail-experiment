@@ -96,6 +96,41 @@ class TrendLifecycleRepository(Protocol):
         """Return persisted trend record count for one series."""
         ...
 
+    def count_canonical_descriptors_for_series(self, *, series_key: str) -> int:
+        """Return persisted canonical descriptor count for one series."""
+        ...
+
+    def upsert_lookback_applicability(self, payload: dict[str, object]) -> None:
+        """Persist one applicability decision for series/observation/lookback."""
+        ...
+
+    def upsert_lookback_snapshot(self, payload: dict[str, object]) -> None:
+        """Persist one lookback trend snapshot for series/observation/lookback."""
+        ...
+
+    def upsert_canonical_descriptor(self, payload: dict[str, object]) -> None:
+        """Persist one canonical descriptor snapshot for series/observation."""
+        ...
+
+    def get_previous_canonical_direction(
+        self,
+        *,
+        series_key: str,
+        observed_on: date,
+    ) -> str | None:
+        """Return latest canonical direction before observed date when present."""
+        ...
+
+    def append_trend_change_event(
+        self, payload: dict[str, object]
+    ) -> dict[str, object]:
+        """Persist one idempotent trend-change event row and metadata."""
+        ...
+
+    def fan_out_notifications_for_event(self, *, event_id: str) -> int:
+        """Fan out one user-visible trend event to active subscriptions."""
+        ...
+
 
 @runtime_checkable
 class AuthManagementRepository(Protocol):

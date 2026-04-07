@@ -24,14 +24,14 @@
 
 **⚠️ CRITICAL**: No user story implementation starts until this phase is complete.
 
-- [ ] T005 Add migration test for v2 descriptor schema changes in `libs/db/tests/test_trend_descriptor_v2_migration_contract.py`
-- [ ] T006 Implement v2 trend schema migration in `libs/db/alembic/versions/0016_trend_descriptor_v2_contract.py`
-- [ ] T007 [P] Update trend ORM models for `flat`, numeric confidence, and evidence fields in `libs/db/src/db/models/trends.py`
-- [ ] T008 [P] Update shared trend repository interfaces for v2 descriptors/snapshots in `libs/db/src/db/repositories/interfaces.py`
-- [ ] T009 Implement Postgres repository mappings for v2 persistence fields in `libs/db/src/db/repositories/postgres_trend_repository.py`
-- [ ] T010 [P] Add backend contract models for v2 canonical/evidence payloads in `apps/backend/src/contract/query/trend_descriptor_v2.py`
-- [ ] T011 [P] Add frontend API types for v2 canonical/evidence payloads in `apps/frontend/src/lib/api/trend-v2-types.ts`
-- [ ] T012 Validate baseline repository and contract plumbing with tests in `libs/db/tests/test_postgres_trend_repository_v2.py`
+- [X] T005 Add migration test for v2 descriptor schema changes in `libs/db/tests/test_trend_descriptor_v2_migration_contract.py`
+- [X] T006 Implement v2 trend schema migration in `libs/db/alembic/versions/0016_trend_descriptor_v2_contract.py`
+- [X] T007 [P] Update trend ORM models for `flat`, numeric confidence, and evidence fields in `libs/db/src/db/models/trends.py`
+- [X] T008 [P] Update shared trend repository interfaces for v2 descriptors/snapshots in `libs/db/src/db/repositories/interfaces.py`
+- [X] T009 Implement Postgres repository mappings for v2 persistence fields in `libs/db/src/db/repositories/postgres_trend_repository.py`
+- [X] T010 [P] Add backend contract models for v2 canonical/evidence payloads in `apps/backend/src/contract/query/trend_descriptor_v2.py`
+- [X] T011 [P] Add frontend API types for v2 canonical/evidence payloads in `apps/frontend/src/lib/api/trend-v2-types.ts`
+- [X] T012 Validate baseline repository and contract plumbing with tests in `libs/db/tests/test_postgres_trend_repository_v2.py`
 
 **Checkpoint**: Foundation ready; user stories can proceed.
 

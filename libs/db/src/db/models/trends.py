@@ -161,8 +161,16 @@ class TrendLookbackSnapshot(Base):
             name="ck_trend_lookback_snapshots_outcome_state",
         ),
         CheckConstraint(
-            "direction IS NULL OR direction IN ('up', 'down')",
+            "direction IS NULL OR direction IN ('up', 'down', 'flat')",
             name="ck_trend_lookback_snapshots_direction",
+        ),
+        CheckConstraint(
+            "descriptor_state IN ('available', 'unavailable')",
+            name="ck_trend_lookback_snapshots_descriptor_state",
+        ),
+        CheckConstraint(
+            "confidence_score IS NULL OR (confidence_score >= 0 AND confidence_score <= 1)",
+            name="ck_trend_lookback_snapshots_confidence_score",
         ),
         Index(
             "ix_trend_lookback_snapshots_series_observed_on",
@@ -183,8 +191,26 @@ class TrendLookbackSnapshot(Base):
     observed_on: Mapped[date] = mapped_column(Date, nullable=False)
     lookback_points: Mapped[int] = mapped_column(Integer, nullable=False)
     outcome_state: Mapped[str] = mapped_column(String(32), nullable=False)
+    descriptor_state: Mapped[str] = mapped_column(String(16), nullable=False)
     trend_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
     direction: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    confidence_score: Mapped[float | None] = mapped_column(nullable=True)
+    dominant_measure_family: Mapped[str | None] = mapped_column(
+        String(16), nullable=True
+    )
+    theil_sen_slope: Mapped[float | None] = mapped_column(nullable=True)
+    theil_sen_low_slope: Mapped[float | None] = mapped_column(nullable=True)
+    theil_sen_high_slope: Mapped[float | None] = mapped_column(nullable=True)
+    kendall_tau: Mapped[float | None] = mapped_column(nullable=True)
+    kendall_pvalue: Mapped[float | None] = mapped_column(nullable=True)
+    ols_slope: Mapped[float | None] = mapped_column(nullable=True)
+    ols_intercept: Mapped[float | None] = mapped_column(nullable=True)
+    ols_r_squared: Mapped[float | None] = mapped_column(nullable=True)
+    ols_pvalue: Mapped[float | None] = mapped_column(nullable=True)
+    preprocessing: Mapped[dict[str, object] | None] = mapped_column(
+        JSONB, nullable=True
+    )
+    reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     strength: Mapped[str | None] = mapped_column(String(32), nullable=True)
     seasonality_classification: Mapped[str | None] = mapped_column(
         String(32), nullable=True
@@ -215,8 +241,12 @@ class TrendCanonicalDescriptor(Base):
             name="ck_trend_canonical_descriptors_state",
         ),
         CheckConstraint(
-            "canonical_direction IS NULL OR canonical_direction IN ('up', 'down')",
+            "canonical_direction IS NULL OR canonical_direction IN ('up', 'down', 'flat')",
             name="ck_trend_canonical_descriptors_direction",
+        ),
+        CheckConstraint(
+            "confidence_score IS NULL OR (confidence_score >= 0 AND confidence_score <= 1)",
+            name="ck_trend_canonical_descriptors_confidence_score",
         ),
         CheckConstraint(
             "selected_lookback_points IS NULL OR selected_lookback_points > 0",
@@ -239,9 +269,25 @@ class TrendCanonicalDescriptor(Base):
         UUID(as_uuid=True), ForeignKey("observations.id"), nullable=False
     )
     observed_on: Mapped[date] = mapped_column(Date, nullable=False)
+    descriptor_version: Mapped[str] = mapped_column(String(8), nullable=False)
     descriptor_state: Mapped[str] = mapped_column(String(16), nullable=False)
     canonical_trend_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
     canonical_direction: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    confidence_score: Mapped[float | None] = mapped_column(nullable=True)
+    dominant_measure_family: Mapped[str | None] = mapped_column(
+        String(16), nullable=True
+    )
+    medium_horizon_weight: Mapped[float | None] = mapped_column(nullable=True)
+    short_horizon_weight: Mapped[float | None] = mapped_column(nullable=True)
+    long_horizon_weight: Mapped[float | None] = mapped_column(nullable=True)
+    preprocessing: Mapped[dict[str, object] | None] = mapped_column(
+        JSONB, nullable=True
+    )
+    ols_slope: Mapped[float | None] = mapped_column(nullable=True)
+    ols_intercept: Mapped[float | None] = mapped_column(nullable=True)
+    ols_r_squared: Mapped[float | None] = mapped_column(nullable=True)
+    ols_pvalue: Mapped[float | None] = mapped_column(nullable=True)
+    reason_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     canonical_strength: Mapped[str | None] = mapped_column(String(32), nullable=True)
     selected_lookback_points: Mapped[int | None] = mapped_column(Integer, nullable=True)
     weighting_version: Mapped[str] = mapped_column(String(64), nullable=False)

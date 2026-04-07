@@ -125,3 +125,23 @@ def test_count_trend_records_for_series_reads_scalar_count(monkeypatch) -> None:
 
     assert count == 3
     assert any("SELECT COUNT(*)" in sql for sql, _ in fake_connection.executed)
+
+
+def test_count_canonical_descriptors_for_series_reads_scalar_count(monkeypatch) -> None:
+    """Repository should return canonical descriptor count for one series key."""
+
+    fake_connection = _FakeConnection()
+    fake_engine = _FakeEngine(fake_connection)
+
+    monkeypatch.setattr(
+        "db.repositories.postgres_trend_repository.create_engine",
+        lambda *_args, **_kwargs: fake_engine,
+    )
+
+    repository = PostgresTrendRepository(database_url="postgresql+psycopg://unused")
+    count = repository.count_canonical_descriptors_for_series(series_key="SERIES.KEY")
+
+    assert count == 3
+    assert any(
+        "FROM trend_canonical_descriptors" in sql for sql, _ in fake_connection.executed
+    )
