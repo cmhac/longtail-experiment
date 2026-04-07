@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from typing import Any, cast
 
 
@@ -70,6 +70,35 @@ class InMemoryDatasetDiscoveryRepository:
             "reason_code": "missing_canonical_descriptor",
         }
 
+    def _has_recent_notification(self, *, dataset_id: str) -> bool:
+        latest_observed: list[date] = []
+        for row in self._observations:
+            if str(row.get("dataset_id", "")) != dataset_id:
+                continue
+            observed_on_value = row.get("observed_on")
+            observed_on = (
+                observed_on_value
+                if isinstance(observed_on_value, date)
+                else date.fromisoformat(str(observed_on_value))
+            )
+            latest_observed.append(observed_on)
+        latest_observed.sort(reverse=True)
+        window = set(latest_observed[:3])
+        if not window:
+            return False
+
+        for event in self._trend_events:
+            if str(event.get("dataset_id", "")) != dataset_id:
+                continue
+            start_period_value = event.get("start_period")
+            if isinstance(start_period_value, datetime):
+                observed_on = start_period_value.date()
+            else:
+                observed_on = date.fromisoformat(str(start_period_value))
+            if observed_on in window:
+                return True
+        return False
+
     def _apply_search(
         self,
         *,
@@ -99,6 +128,9 @@ class InMemoryDatasetDiscoveryRepository:
             projected.setdefault("geographic_scope", None)
             projected.setdefault("topic_tags", [])
             projected["canonical_trend_descriptor"] = self._summary_canonical_descriptor(
+                dataset_id=str(row.get("dataset_id", ""))
+            )
+            projected["has_recent_notification"] = self._has_recent_notification(
                 dataset_id=str(row.get("dataset_id", ""))
             )
             rows.append(projected)

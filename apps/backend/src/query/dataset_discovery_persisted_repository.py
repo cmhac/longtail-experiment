@@ -38,6 +38,54 @@ class PersistedDatasetDiscoveryRepository:
             return value.date().isoformat()
         return value.isoformat()
 
+    def _load_recent_notification_flags(self) -> dict[str, bool]:
+        """Return dataset-level flags for notifications in latest observation window."""
+        query = text(
+            """
+            WITH ranked_observations AS (
+                SELECT
+                    o.series_id,
+                    o.observed_on,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY o.series_id
+                        ORDER BY o.observed_on DESC, o.reported_at DESC, o.id DESC
+                    ) AS observation_rank
+                FROM observations o
+            ),
+            recent_observation_window AS (
+                SELECT
+                    series_id,
+                    observed_on
+                FROM ranked_observations
+                WHERE observation_rank <= 3
+            ),
+            recent_notification_series AS (
+                SELECT DISTINCT utn.data_series_id
+                FROM user_trend_notifications utn
+                JOIN trend_change_events tce ON tce.id = utn.event_id
+                JOIN recent_observation_window row_window
+                    ON row_window.series_id = utn.data_series_id
+                    AND row_window.observed_on = tce.effective_observed_on
+                WHERE utn.channel = 'in_app'
+                  AND utn.delivery_status = 'delivered'
+                  AND tce.visibility_classification = 'user_visible'
+            )
+            SELECT
+                ds.series_key AS dataset_id,
+                (rns.data_series_id IS NOT NULL) AS has_recent_notification
+            FROM data_series ds
+            LEFT JOIN recent_notification_series rns ON rns.data_series_id = ds.id
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query).mappings().all()
+
+        flags: dict[str, bool] = {}
+        for row in rows:
+            dataset_id = str(row["dataset_id"])
+            flags[dataset_id] = bool(row["has_recent_notification"])
+        return flags
+
     def _load_latest_summary_canonical_descriptors(self) -> dict[str, dict[str, object]]:
         """Return latest canonical descriptor projection keyed by dataset id."""
         query = text(
@@ -123,6 +171,7 @@ class PersistedDatasetDiscoveryRepository:
 
     def _load_dataset_rows(self) -> list[dict[str, object]]:
         summary_descriptors = self._load_latest_summary_canonical_descriptors()
+        recent_notification_flags = self._load_recent_notification_flags()
         query = text(
             """
             SELECT
@@ -197,6 +246,10 @@ class PersistedDatasetDiscoveryRepository:
                             "observed_on": None,
                             "reason_code": "missing_canonical_descriptor",
                         },
+                    ),
+                    "has_recent_notification": recent_notification_flags.get(
+                        str(row["dataset_id"]),
+                        False,
                     ),
                     "metadata": {
                         "metric_name": str(row["metric_name"]),
@@ -351,6 +404,7 @@ class PersistedDatasetDiscoveryRepository:
                     "geographic_scope": row.get("geographic_scope"),
                     "topic_tags": list(cast(list[object], row.get("topic_tags") or [])),
                     "latest_update_at": row.get("latest_update_at"),
+                    "has_recent_notification": bool(row.get("has_recent_notification", False)),
                     "canonical_trend_descriptor": dict(
                         cast(dict[str, object], row.get("canonical_trend_descriptor") or {})
                     ),

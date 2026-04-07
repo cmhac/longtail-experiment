@@ -49,6 +49,19 @@ class _FakeConnection:
         sql = str(statement)
         if "FROM data_series ds" in sql and "MAX(o.reported_at)" in sql:
             return _FakeResult(self._dataset_rows)
+        if "recent_observation_window" in sql and "has_recent_notification" in sql:
+            return _FakeResult(
+                [
+                    {
+                        "dataset_id": "INT.US.FEDFUNDS",
+                        "has_recent_notification": True,
+                    },
+                    {
+                        "dataset_id": "LABOR.US.UNRATE",
+                        "has_recent_notification": False,
+                    },
+                ]
+            )
         if "FROM observations o" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
@@ -352,6 +365,7 @@ def test_search_and_recent_are_persisted_and_sorted() -> None:
         "observed_on": "2026-02-01",
         "reason_code": None,
     }
+    assert rows[0]["has_recent_notification"] is True
     assert recent[0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert recent[0]["canonical_trend_descriptor"] == {
         "descriptor_state": "available",
@@ -362,6 +376,7 @@ def test_search_and_recent_are_persisted_and_sorted() -> None:
         "observed_on": "2026-02-01",
         "reason_code": None,
     }
+    assert recent[0]["has_recent_notification"] is True
 
 
 def test_catalog_detail_and_grouping_support_source_filtering() -> None:
@@ -392,6 +407,7 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
         "observed_on": "2026-02-01",
         "reason_code": None,
     }
+    assert catalog_rows[0]["has_recent_notification"] is True
     assert groups == [
         {
             "source": {"id": "fred", "name": "Federal Reserve Economic Data"},
@@ -401,6 +417,7 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
     ]
     assert detail is not None
     assert detail["dataset_id"] == "INT.US.FEDFUNDS"
+    assert detail["has_recent_notification"] is True
     assert missing is None
 
 
@@ -448,6 +465,7 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
         "observed_on": "2026-02-01",
         "reason_code": None,
     }
+    assert source_item["has_recent_notification"] is True
     assert source_detail["total_items"] == 1
     assert missing_source_detail is None
 
@@ -483,6 +501,7 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
         "observed_on": "2026-02-01",
         "reason_code": None,
     }
+    assert topic_item["has_recent_notification"] is True
     assert topic_detail["total_items"] == 1
     assert missing_topic_detail is None
 
@@ -505,6 +524,7 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
         "observed_on": "2026-02-01",
         "reason_code": None,
     }
+    assert geography_item["has_recent_notification"] is True
     assert geography_detail["total_items"] == 1
     assert missing_geography_detail is None
 

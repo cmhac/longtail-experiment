@@ -60,3 +60,4 @@ def test_recent_updates_include_action_links_per_item() -> None:
             "available",
             "unavailable",
         }
+        assert isinstance(first_item["has_recent_notification"], bool)

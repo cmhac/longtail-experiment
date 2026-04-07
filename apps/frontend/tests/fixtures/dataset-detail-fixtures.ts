@@ -66,6 +66,7 @@ export const buildDatasetDetailFixture = (
         attributes: {},
       },
     ],
+    has_recent_notification: true,
     canonical_trend_descriptor: {
       descriptor_state: "available",
       trend_label: "moderate_uptrend",

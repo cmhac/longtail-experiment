@@ -46,6 +46,7 @@ class _PersistedDetailRepoStub:
             "description": "Policy rate",
             "geographic_scope": "US",
             "topic_tags": ["interest rates"],
+            "has_recent_notification": True,
             "metadata": {},
         }
 
@@ -110,5 +111,6 @@ def test_detail_contract_uses_persisted_observations_and_sort_metadata() -> None
     ]
     assert payload["metadata"]["unit_type"] == "percent"
     assert payload["canonical_trend_descriptor"]["descriptor_state"] == "available"
+    assert payload["has_recent_notification"] is True
     assert payload["lookback_trend_snapshots"][0]["lookback_points"] == EXPECTED_LOOKBACK_POINTS
     assert payload["observation_sort"] == "observed_on_asc,reported_at_asc"

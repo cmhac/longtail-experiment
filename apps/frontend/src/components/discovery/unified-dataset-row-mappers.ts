@@ -48,6 +48,7 @@ export const toUnifiedRecentUpdatesRow = (item: DatasetRecentItem): UnifiedDatas
     tagPills: normalizeTags(item.topic_tags),
     title: item.title,
     updatedLabel: formatDate(item.latest_update_at),
+    hasRecentNotification: Boolean(item.has_recent_notification),
     ...(item.canonical_trend_descriptor
       ? { trendDescriptor: item.canonical_trend_descriptor }
       : {}),

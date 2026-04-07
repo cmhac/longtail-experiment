@@ -24,6 +24,7 @@ describe("RecentUpdatesFeed", () => {
     expect(markup).toContain('data-testid="unified-dataset-row"');
     expect(markup).toContain('data-testid="unified-dataset-row-title"');
     expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
+    expect(markup).toContain('data-testid="unified-dataset-row-recent-notification-chip"');
     expect(markup).toContain("EIA");
     expect(markup).toContain("Weekly update summary for editorial dataset 1.");
     expect(markup).toContain('data-testid="unified-dataset-row-pills"');
@@ -73,6 +74,17 @@ describe("RecentUpdatesFeed", () => {
     expect(markup).not.toContain("Geography:");
     expect(markup).not.toContain("Weekly update summary");
     expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
+    expect(markup).toContain('data-testid="unified-dataset-row-recent-notification-chip"');
+  });
+
+  it("hides recent notification chip when dataset has no recent notification", () => {
+    const item = {
+      ...makeEditorialFeedItem(1),
+      has_recent_notification: false,
+    };
+    const markup = renderMarkup(<RecentUpdatesFeed items={[item]} />);
+
+    expect(markup).not.toContain('data-testid="unified-dataset-row-recent-notification-chip"');
   });
 
   it("does not duplicate geography when description already contains it", () => {

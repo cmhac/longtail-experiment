@@ -560,6 +560,7 @@ class DatasetDiscoveryService:
                     "topic_tags": [str(tag) for tag in list(item.get("topic_tags") or [])],
                     "latest_update_at": item.get("latest_update_at"),
                     "canonical_trend_descriptor": canonical_trend_descriptor,
+                    "has_recent_notification": bool(item.get("has_recent_notification", False)),
                     "action_links": {
                         "view_table_href": f"/datasets/{quote(dataset_id, safe='')}",
                         "download_csv_href": f"/api/datasets/{quote(dataset_id, safe='')}.csv",
@@ -1013,6 +1014,7 @@ class DatasetDiscoveryService:
             **metadata_payload,
             "observations": normalized_observations,
             "canonical_trend_descriptor": canonical_descriptor,
+            "has_recent_notification": bool(metadata_payload.get("has_recent_notification", False)),
             "lookback_trend_snapshots": lookback_snapshots,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }

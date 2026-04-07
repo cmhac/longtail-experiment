@@ -44,6 +44,7 @@ export interface DatasetRecentItem {
   geographic_scope?: string | null;
   topic_tags: string[];
   latest_update_at: string;
+  has_recent_notification?: boolean;
   canonical_trend_descriptor?: CanonicalTrendDescriptor;
   action_links: {
     view_table_href: string;
@@ -105,6 +106,7 @@ export interface DatasetDetail {
   topic_tags: string[];
   metadata: Record<string, string | null>;
   observations: ObservationPoint[];
+  has_recent_notification?: boolean;
   canonical_trend_descriptor?: CanonicalTrendDescriptor;
   lookback_trend_snapshots?: LookbackTrendSnapshot[];
   observation_sort: string;
