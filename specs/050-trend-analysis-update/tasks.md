@@ -11,10 +11,10 @@
 
 **Purpose**: Prepare shared fixtures, benchmarks, and implementation scaffolding for spec 050.
 
-- [ ] T001 Create benchmark scenario manifest in `specs/050-trend-analysis-update/research/benchmark_scenarios.md`
-- [ ] T002 [P] Add trend-analysis test fixtures for noisy/flat/irregular/sub-daily series in `libs/trend_analysis/tests/fixtures/spec050_series.py`
-- [ ] T003 [P] Add backend contract fixture payloads for v2 descriptor/evidence shapes in `apps/backend/tests/fixtures/trend_v2_payloads.py`
-- [ ] T004 [P] Add frontend fixture payloads for v2 canonical/evidence states in `apps/frontend/tests/fixtures/trend-v2-fixtures.ts`
+- [X] T001 Create benchmark scenario manifest in `specs/050-trend-analysis-update/research/benchmark_scenarios.md`
+- [X] T002 [P] Add trend-analysis test fixtures for noisy/flat/irregular/sub-daily series in `libs/trend_analysis/tests/fixtures/spec050_series.py`
+- [X] T003 [P] Add backend contract fixture payloads for v2 descriptor/evidence shapes in `apps/backend/tests/fixtures/trend_v2_payloads.py`
+- [X] T004 [P] Add frontend fixture payloads for v2 canonical/evidence states in `apps/frontend/tests/fixtures/trend-v2-fixtures.ts`
 
 ---
 
