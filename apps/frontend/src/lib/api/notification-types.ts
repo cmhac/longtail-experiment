@@ -19,6 +19,7 @@ export interface NotificationListItem {
   body: string;
   previous_direction: NotificationDirection;
   current_direction: NotificationDirection;
+  confidence_score: number | null;
   effective_observed_on: string;
   destination_path: string;
   unread: boolean;

@@ -44,9 +44,12 @@ def test_dataset_detail_observations_default_unavailable_asof_descriptor_when_mi
     assert response["observations"][0]["as_of_trend_descriptor"]["descriptor_state"] == "available"
     assert response["observations"][1]["as_of_trend_descriptor"] == {
         "descriptor_state": "unavailable",
+        "descriptor_version": "v2",
         "trend_label": None,
         "direction": None,
         "strength": None,
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": None,
         "observed_on": None,
         "reason_code": "missing_observation_asof_descriptor",

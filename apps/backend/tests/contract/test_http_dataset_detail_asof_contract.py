@@ -102,9 +102,12 @@ def test_http_dataset_detail_serializes_observation_asof_descriptor_contract(
     assert all("as_of_trend_descriptor" in item for item in detail_payload["observations"])
     assert detail_payload["observations"][0]["as_of_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
         "strength": "mild",
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": 10,
         "observed_on": "2026-01-01",
         "reason_code": None,

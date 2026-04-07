@@ -86,10 +86,13 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
     const detail = await fetchDatasetDetail("UNRATE");
 
     expect(detail.observations[0]?.as_of_trend_descriptor).toEqual({
+      descriptor_version: "v2",
       descriptor_state: "available",
       trend_label: "moderate_sustained_downtrend",
       direction: "down",
       strength: "moderate",
+      confidence_score: null,
+      dominant_measure_family: "none",
       selected_lookback_points: 50,
       observed_on: "2026-03-08",
       reason_code: null,
@@ -130,10 +133,13 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
     const detail = await fetchDatasetDetail("UNRATE");
 
     expect(detail.observations[0]?.as_of_trend_descriptor).toEqual({
+      descriptor_version: "v2",
       descriptor_state: "unavailable",
       trend_label: null,
       direction: null,
       strength: null,
+      confidence_score: null,
+      dominant_measure_family: "none",
       selected_lookback_points: null,
       observed_on: null,
       reason_code: null,

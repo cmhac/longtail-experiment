@@ -30,6 +30,7 @@ class NotificationListItem(BaseModel):
     body: str = Field(min_length=1)
     previous_direction: Literal["up", "down"]
     current_direction: Literal["up", "down"]
+    confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
     effective_observed_on: str = Field(min_length=1)
     destination_path: str = Field(min_length=1)
     unread: bool

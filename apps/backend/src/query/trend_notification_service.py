@@ -18,6 +18,19 @@ from src.contract.query.trend_notification_query import (
     SubscriptionResponse,
 )
 
+NOTIFICATION_CONFIDENCE_SCORE_THRESHOLD = 0.70
+
+
+def _format_notification_body(
+    *, dataset_id: str, previous: str, current: str, confidence: float | None
+) -> str:
+    """Format direction-first notification copy with optional confidence detail."""
+
+    base = f"{dataset_id}: {previous} to {current}"
+    if confidence is None or confidence < NOTIFICATION_CONFIDENCE_SCORE_THRESHOLD:
+        return base
+    return f"{base} (confidence {confidence:.2f})"
+
 
 class TrendNotificationServiceRepository(Protocol):
     """Repository contract consumed by trend notification service workflows."""
@@ -93,6 +106,31 @@ class TrendNotificationService:
             cursor=cursor,
             unread_only=unread_only,
         )
+
+        raw_items = payload.get("items")
+        if isinstance(raw_items, list):
+            normalized_items: list[dict[str, object]] = []
+            for raw_item in raw_items:
+                if not isinstance(raw_item, dict):
+                    normalized_items.append({})
+                    continue
+                item = dict(raw_item)
+                dataset_id = str(item.get("dataset_id", ""))
+                previous = str(item.get("previous_direction", ""))
+                current = str(item.get("current_direction", ""))
+                confidence_raw = item.get("confidence_score")
+                confidence = (
+                    float(confidence_raw) if isinstance(confidence_raw, int | float) else None
+                )
+                item["body"] = _format_notification_body(
+                    dataset_id=dataset_id,
+                    previous=previous,
+                    current=current,
+                    confidence=confidence,
+                )
+                normalized_items.append(item)
+            payload = {**payload, "items": normalized_items}
+
         return NotificationListResponse.model_validate(payload)
 
     def get_unread_summary(self, *, user_id: str) -> NotificationSummaryResponse:

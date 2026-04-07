@@ -81,12 +81,16 @@ class PersistedTrendNotificationRepository:
                             utn.delivery_status,
                             tce.previous_direction,
                             tce.current_direction,
+                            tcd.confidence_score,
                             tce.effective_observed_on,
                             tce.processing_context,
                             tce.visibility_classification
                         FROM user_trend_notifications utn
                         JOIN trend_change_events tce ON tce.id = utn.event_id
                         JOIN data_series ds ON ds.id = utn.data_series_id
+                        LEFT JOIN trend_canonical_descriptors tcd
+                          ON tcd.data_series_id = tce.data_series_id
+                         AND tcd.observed_on = tce.effective_observed_on
                         WHERE {where_clause}
                         ORDER BY utn.delivered_at DESC, utn.id DESC
                         LIMIT :limit
@@ -116,6 +120,11 @@ class PersistedTrendNotificationRepository:
                     "body": str(row["body"]),
                     "previous_direction": str(row["previous_direction"]),
                     "current_direction": str(row["current_direction"]),
+                    "confidence_score": (
+                        float(row["confidence_score"])
+                        if row.get("confidence_score") is not None
+                        else None
+                    ),
                     "effective_observed_on": str(row["effective_observed_on"]),
                     "destination_path": str(row["destination_path"]),
                     "unread": bool(row["unread"]),

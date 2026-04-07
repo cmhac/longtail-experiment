@@ -64,10 +64,13 @@ def test_dataset_detail_includes_observation_asof_descriptor_fields_per_observat
     ).model_dump()
 
     asof_keys = {
+        "descriptor_version",
         "descriptor_state",
         "trend_label",
         "direction",
         "strength",
+        "confidence_score",
+        "dominant_measure_family",
         "selected_lookback_points",
         "observed_on",
         "reason_code",

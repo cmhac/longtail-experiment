@@ -150,6 +150,20 @@ class TrendLifecycleService:
             return ("historical_reprocessing", "audit_only")
         return ("incremental", "user_visible")
 
+    @staticmethod
+    def resolve_notification_direction(
+        *,
+        descriptor_state: str,
+        direction: str | None,
+    ) -> Literal["up", "down"] | None:
+        """Return directional-only notification signal from canonical descriptor fields."""
+
+        if descriptor_state != "available":
+            return None
+        if direction not in {"up", "down"}:
+            return None
+        return cast(Literal["up", "down"], direction)
+
     def apply_analysis_result(
         self,
         *,

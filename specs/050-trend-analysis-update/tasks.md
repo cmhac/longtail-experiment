@@ -106,19 +106,19 @@
 
 ### Tests for User Story 3 (REQUIRED)
 
-- [ ] T039 [P] [US3] Add transition eligibility tests for `up/down` only and `flat` exclusions in `apps/pipeline/tests/orchestration/test_trend_transition_eligibility_v2.py`
-- [ ] T040 [P] [US3] Add replay/backfill visibility and idempotency tests in `apps/pipeline/tests/orchestration/test_trend_transition_replay_idempotency_v2.py`
-- [ ] T041 [P] [US3] Add backend notification payload formatting threshold test in `apps/backend/tests/contract/test_notification_copy_confidence_threshold_v2.py`
-- [ ] T055 [P] [US3] Add backend contract test for `flat`/unavailable non-directional notification semantics in `apps/backend/tests/contract/test_notification_contract_flat_unavailable_v2.py`
-- [ ] T042 [P] [US3] Add frontend notification line rendering test for optional confidence detail in `apps/frontend/tests/notifications-confidence-copy-v2.test.tsx`
+- [X] T039 [P] [US3] Add transition eligibility tests for `up/down` only and `flat` exclusions in `apps/pipeline/tests/orchestration/test_trend_transition_eligibility_v2.py`
+- [X] T040 [P] [US3] Add replay/backfill visibility and idempotency tests in `apps/pipeline/tests/orchestration/test_trend_transition_replay_idempotency_v2.py`
+- [X] T041 [P] [US3] Add backend notification payload formatting threshold test in `apps/backend/tests/contract/test_notification_copy_confidence_threshold_v2.py`
+- [X] T055 [P] [US3] Add backend contract test for `flat`/unavailable non-directional notification semantics in `apps/backend/tests/contract/test_notification_contract_flat_unavailable_v2.py`
+- [X] T042 [P] [US3] Add frontend notification line rendering test for optional confidence detail in `apps/frontend/tests/notifications-confidence-copy-v2.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Update transition evaluator to ignore `flat`/unavailable descriptor transitions in `apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
-- [ ] T044 [US3] Keep replay/backfill visibility semantics aligned with v2 canonical transitions in `apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py`
-- [ ] T045 [US3] Update backend notification mapper for direction-first with confidence threshold in `apps/backend/src/query/trend_notification_service.py`
-- [ ] T046 [US3] Update frontend notification message formatter for optional numeric confidence in `apps/frontend/src/lib/notifications/notification-copy.ts`
-- [ ] T056 [US3] Define and wire `confidence_score >= 0.70` threshold constant in `apps/backend/src/query/trend_notification_service.py`
+- [X] T043 [US3] Update transition evaluator to ignore `flat`/unavailable descriptor transitions in `apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
+- [X] T044 [US3] Keep replay/backfill visibility semantics aligned with v2 canonical transitions in `apps/pipeline/src/orchestration/jobs/trend_lifecycle_service.py`
+- [X] T045 [US3] Update backend notification mapper for direction-first with confidence threshold in `apps/backend/src/query/trend_notification_service.py`
+- [X] T046 [US3] Update frontend notification message formatter for optional numeric confidence in `apps/frontend/src/lib/notifications/notification-copy.ts`
+- [X] T056 [US3] Define and wire `confidence_score >= 0.70` threshold constant in `apps/backend/src/query/trend_notification_service.py`
 
 **Checkpoint**: US3 is independently functional and testable.
 

@@ -50,7 +50,7 @@ def test_dataset_detail_invalid_lookback_snapshot_payload_raises_contract_error(
         datasets=datasets,
         observations=observations,
         lookback_snapshots_by_dataset={
-            "UNRATE": [{"lookback_points": 10, "applicability_state": "applicable"}]
+            "UNRATE": [{"lookback_points": "invalid", "applicability_state": "applicable"}]
         },
     )
     service = DatasetDiscoveryService(repository)

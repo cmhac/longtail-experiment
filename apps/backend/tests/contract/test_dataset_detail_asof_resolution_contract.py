@@ -57,9 +57,12 @@ def test_dataset_detail_prefers_latest_created_candidate_for_same_observation_co
 
     assert response["observations"][0]["as_of_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "strong_accelerating_downtrend",
         "direction": "down",
         "strength": "strong",
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": 50,
         "observed_on": "2026-01-01",
         "reason_code": None,

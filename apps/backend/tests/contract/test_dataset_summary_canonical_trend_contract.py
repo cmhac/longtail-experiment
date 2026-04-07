@@ -52,9 +52,12 @@ def test_search_summary_items_include_canonical_trend_descriptor() -> None:
     assert payload["items"]
     assert payload["items"][0]["canonical_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
         "strength": "mild",
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
         "reason_code": None,
@@ -78,9 +81,12 @@ def test_catalog_summary_items_include_canonical_trend_descriptor() -> None:
     assert payload["items"]
     assert payload["items"][0]["canonical_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
         "strength": "mild",
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
         "reason_code": None,
@@ -111,9 +117,12 @@ def test_source_topic_and_geography_summary_items_include_canonical_trend_descri
 
     expected_unrate_descriptor = {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
         "strength": "mild",
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
         "reason_code": None,

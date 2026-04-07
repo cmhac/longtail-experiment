@@ -27,6 +27,7 @@ class _RepoDouble:
                     "body": "PRICE.US.CPI: up to down",
                     "previous_direction": "up",
                     "current_direction": "down",
+                    "confidence_score": 0.74,
                     "effective_observed_on": "2026-01-01",
                     "destination_path": "/datasets/PRICE.US.CPI",
                     "unread": True,

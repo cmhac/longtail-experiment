@@ -45,9 +45,12 @@ def test_recent_dataset_items_include_canonical_trend_descriptor() -> None:
     by_dataset_id = {item["dataset_id"]: item for item in dataset_items}
     assert by_dataset_id["UNRATE"]["canonical_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
         "strength": "mild",
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
         "reason_code": None,
@@ -73,9 +76,12 @@ def test_recent_dataset_items_default_canonical_trend_descriptor_when_missing() 
     assert dataset_items
     assert dataset_items[0]["canonical_trend_descriptor"] == {
         "descriptor_state": "unavailable",
+        "descriptor_version": "v2",
         "trend_label": None,
         "direction": None,
         "strength": None,
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": None,
         "observed_on": None,
         "reason_code": "missing_canonical_descriptor",

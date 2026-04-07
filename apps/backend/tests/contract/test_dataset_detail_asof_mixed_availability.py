@@ -48,10 +48,13 @@ def test_dataset_detail_supports_mixed_available_and_unavailable_asof_states() -
 
     assert response["observations"][0]["as_of_trend_descriptor"]["descriptor_state"] == "available"
     assert response["observations"][1]["as_of_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
         "strength": None,
+        "confidence_score": None,
+        "dominant_measure_family": "none",
         "selected_lookback_points": None,
         "observed_on": None,
         "reason_code": "missing_observation_asof_descriptor",
@@ -89,10 +92,13 @@ def test_dataset_detail_sets_report_time_reason_when_candidates_after_report_tim
     ).model_dump()
 
     assert response["observations"][0]["as_of_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
         "strength": None,
+        "confidence_score": None,
+        "dominant_measure_family": "none",
         "selected_lookback_points": None,
         "observed_on": None,
         "reason_code": "observation_reported_before_candidate",
