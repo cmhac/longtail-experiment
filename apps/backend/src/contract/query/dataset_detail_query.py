@@ -111,6 +111,7 @@ class DatasetDetailQueryResult(BaseModel):
     metadata: dict[str, object] = Field(default_factory=dict)
     observations: list[DatasetObservationPoint] = Field(default_factory=list)
     canonical_trend_descriptor: CanonicalTrendDescriptor
+    has_recent_notification: bool = False
     lookback_trend_snapshots: list[LookbackTrendSnapshot] = Field(default_factory=list)
     observation_sort: str = Field(min_length=1)
 

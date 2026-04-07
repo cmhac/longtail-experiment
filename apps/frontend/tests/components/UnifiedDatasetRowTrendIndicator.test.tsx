@@ -24,11 +24,13 @@ describe("UnifiedDatasetRow trend indicator placement", () => {
           observed_on: "2026-03-01",
           reason_code: null,
         }}
+        hasRecentNotification
         updatedLabel="Mar 25, 2026"
       />,
     );
 
     expect(markup).toContain('data-testid="unified-dataset-row-trend-indicator"');
+    expect(markup).toContain('data-testid="unified-dataset-row-recent-notification-chip"');
     expect(markup).toContain('data-state="up"');
   });
 

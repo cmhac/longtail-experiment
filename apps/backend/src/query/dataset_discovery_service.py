@@ -560,6 +560,7 @@ class DatasetDiscoveryService:
                     "topic_tags": [str(tag) for tag in list(item.get("topic_tags") or [])],
                     "latest_update_at": item.get("latest_update_at"),
                     "canonical_trend_descriptor": canonical_trend_descriptor,
+                    "has_recent_notification": bool(item.get("has_recent_notification", False)),
                     "action_links": {
                         "view_table_href": f"/datasets/{quote(dataset_id, safe='')}",
                         "download_csv_href": f"/api/datasets/{quote(dataset_id, safe='')}.csv",
@@ -606,6 +607,8 @@ class DatasetDiscoveryService:
         raw_source = catalog_options.get("source_id")
         raw_category = catalog_options.get("category")
         raw_sort = catalog_options.get("sort")
+        raw_subscribed_only = catalog_options.get("subscribed_only")
+        raw_user_id = catalog_options.get("user_id")
 
         normalized_page = normalize_page(raw_page if isinstance(raw_page, int) else None)
         normalized_page_size = normalize_page_size(
@@ -618,6 +621,10 @@ class DatasetDiscoveryService:
             if isinstance(raw_sort, str) and raw_sort.strip()
             else "recency"
         )
+        subscribed_only = bool(raw_subscribed_only)
+        user_id = str(raw_user_id).strip() if isinstance(raw_user_id, str) else None
+        if subscribed_only and (user_id is None or user_id == ""):
+            raise ContractQueryError("auth_required")
         if normalized_sort not in CATALOG_SORT_KEYS:
             normalized_sort = "recency"
 
@@ -629,6 +636,8 @@ class DatasetDiscoveryService:
                 "sort": normalized_sort,
                 "page": normalized_page,
                 "page_size": normalized_page_size,
+                "subscribed_only": subscribed_only,
+                "user_id": user_id,
             },
         )
         if not isinstance(items, list) or not isinstance(total_items, int):
@@ -644,6 +653,8 @@ class DatasetDiscoveryService:
                     "sort": normalized_sort,
                     "page": normalized_page,
                     "page_size": normalized_page_size,
+                    "subscribed_only": subscribed_only,
+                    "user_id": user_id,
                 },
             )
             if not isinstance(items, list) or not isinstance(total_items, int):
@@ -653,7 +664,15 @@ class DatasetDiscoveryService:
         ]
         if len(projected) != len(items):
             raise ContractQueryError("Repository returned invalid catalog item")
-        aggregations = self._repository.list_catalog_aggregations(query_text=normalized_query)
+        aggregations = self._repository.list_catalog_aggregations(
+            query_text=normalized_query,
+            options={
+                "source_id": normalized_source,
+                "category": normalized_category,
+                "subscribed_only": subscribed_only,
+                "user_id": user_id,
+            },
+        )
         if not isinstance(aggregations, dict):
             raise ContractQueryError("Repository returned invalid catalog aggregations payload")
 
@@ -1013,6 +1032,7 @@ class DatasetDiscoveryService:
             **metadata_payload,
             "observations": normalized_observations,
             "canonical_trend_descriptor": canonical_descriptor,
+            "has_recent_notification": bool(metadata_payload.get("has_recent_notification", False)),
             "lookback_trend_snapshots": lookback_snapshots,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }

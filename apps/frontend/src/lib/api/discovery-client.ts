@@ -256,6 +256,7 @@ export const fetchDatasetCatalog = async (params: {
   groupBySource?: boolean;
   source?: string;
   category?: string;
+  subscribedOnly?: boolean;
   sort?: string;
   page?: number;
   pageSize?: number;
@@ -276,6 +277,10 @@ export const fetchDatasetCatalog = async (params: {
 
   if (params.category) {
     query.category = params.category;
+  }
+
+  if (params.subscribedOnly) {
+    query.subscribed_only = "true";
   }
 
   if (params.sort) {

@@ -24,11 +24,16 @@ describe("DatasetDetail trend indicator placement", () => {
     );
 
     const indicatorIndex = markup.indexOf('data-testid="dataset-detail-trend-indicator"');
+    const notificationChipIndex = markup.indexOf(
+      'data-testid="dataset-detail-recent-notification-chip"',
+    );
     const firstTagIndex = markup.indexOf('href="/geographies/');
 
     expect(indicatorIndex).toBeGreaterThan(-1);
+    expect(notificationChipIndex).toBeGreaterThan(-1);
     expect(firstTagIndex).toBeGreaterThan(-1);
     expect(indicatorIndex).toBeLessThan(firstTagIndex);
+    expect(notificationChipIndex).toBeLessThan(firstTagIndex);
     expect(markup).toContain('data-state="down"');
     expect(markup).not.toContain("Historical Trend");
   });

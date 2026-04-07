@@ -50,10 +50,35 @@ Dagit is available as a Docker Compose service in this stack. Use `docker compos
 4. Validate placeholder copy remains present in the main region:
    - `Feature content will appear here soon.`
 5. Run frontend quality checks before merge:
-   - `pnpm --dir apps/frontend lint`
-   - `pnpm --dir apps/frontend typecheck`
-   - `pnpm --dir apps/frontend test`
-   - `pnpm --dir apps/frontend coverage`
+    - `pnpm --dir apps/frontend lint`
+    - `pnpm --dir apps/frontend typecheck`
+    - `pnpm --dir apps/frontend test`
+    - `pnpm --dir apps/frontend coverage`
+
+## Mobile Drawer Verification (Feature 049)
+
+Use this flow to verify the mobile sidebar drawer behavior in local runtime.
+
+1. Start frontend runtime if needed:
+   - `pnpm --dir apps/frontend dev`
+2. Open the app and set viewport width to `1024px` or below.
+3. Confirm the drawer trigger appears and opens a right-side tray with blurred backdrop.
+4. Confirm row order in the drawer:
+   - Header row (`Longtail` + bell)
+   - `Account`
+   - `Comparison`
+   - `Search`
+   - `Home`
+   - `Sources`
+   - `Datasets`
+5. Confirm protected action routing for signed-out sessions:
+   - `Account` and `Comparison` redirect to `/login`.
+6. Confirm role-specific footer behavior:
+   - Admin/owner sessions show `Admin` above `Sign out`.
+   - Non-admin and signed-out sessions do not show `Admin`.
+7. Confirm sign-out behavior:
+   - `Sign out` redirects to `/` and clears local session state.
+8. Increase viewport to above `1024px` and confirm drawer trigger is inactive.
 
 ## Local DB Persistence Policy
 

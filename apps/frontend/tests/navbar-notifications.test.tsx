@@ -3,8 +3,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthManagementApiError } from "../src/lib/api/auth-management-client";
 import { NotificationsPageClient } from "../src/components/notifications/NotificationsPageClient";
+import { AuthManagementApiError } from "../src/lib/api/auth-management-client";
 import { SiteHeader } from "../src/shell/site-header";
 
 vi.mock("next/navigation", () => ({
@@ -23,14 +23,12 @@ vi.mock("../src/lib/api/notification-client", () => ({
   fetchNotificationSummary: vi.fn(),
   fetchNotificationList: vi.fn(),
   markNotificationRead: vi.fn(),
-  fetchNotificationSubscriptions: vi.fn(),
   markAllNotificationsRead: vi.fn(),
   markNotificationUnread: vi.fn(),
 }));
 
 import {
   fetchNotificationList,
-  fetchNotificationSubscriptions,
   fetchNotificationSummary,
   markAllNotificationsRead,
   markNotificationRead,
@@ -84,17 +82,18 @@ describe("navbar notifications", () => {
       items: state.items,
       pagination: { page_size: 5, has_more: false, next_cursor: null },
     }));
-    asMock(markNotificationRead).mockImplementation(async (_token: string, notificationId: string) => {
-      state.items = state.items.map((item) =>
-        item.notification_id === notificationId ? { ...item, unread: false } : item,
-      );
-      return {
-        notification_id: notificationId,
-        updated: true,
-        unread_count: state.items.filter((item) => item.unread).length,
-      };
-    });
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
+    asMock(markNotificationRead).mockImplementation(
+      async (_token: string, notificationId: string) => {
+        state.items = state.items.map((item) =>
+          item.notification_id === notificationId ? { ...item, unread: false } : item,
+        );
+        return {
+          notification_id: notificationId,
+          updated: true,
+          unread_count: state.items.filter((item) => item.unread).length,
+        };
+      },
+    );
     asMock(markAllNotificationsRead).mockResolvedValue({ updated_count: 0, unread_count: 0 });
     asMock(markNotificationUnread).mockResolvedValue({
       notification_id: "notification-1",
@@ -153,19 +152,18 @@ describe("navbar notifications", () => {
       items: state.items,
       pagination: { page_size: 50, has_more: false, next_cursor: null },
     }));
-    asMock(markNotificationRead).mockImplementation(async (_token: string, notificationId: string) => {
-      state.items = state.items.map((item) =>
-        item.notification_id === notificationId ? { ...item, unread: false } : item,
-      );
-      return {
-        notification_id: notificationId,
-        updated: true,
-        unread_count: state.items.filter((item) => item.unread).length,
-      };
-    });
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({
-      items: [{ dataset_id: "PRICE.US.CPI", subscribed_at: "2026-04-05T00:00:00+00:00", unsubscribed_at: null }],
-    });
+    asMock(markNotificationRead).mockImplementation(
+      async (_token: string, notificationId: string) => {
+        state.items = state.items.map((item) =>
+          item.notification_id === notificationId ? { ...item, unread: false } : item,
+        );
+        return {
+          notification_id: notificationId,
+          updated: true,
+          unread_count: state.items.filter((item) => item.unread).length,
+        };
+      },
+    );
     asMock(markAllNotificationsRead).mockResolvedValue({ updated_count: 0, unread_count: 0 });
     asMock(markNotificationUnread).mockResolvedValue({
       notification_id: "notification-1",
@@ -205,7 +203,6 @@ describe("navbar notifications", () => {
       items: [],
       pagination: { page_size: 5, has_more: false, next_cursor: null },
     });
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
 
     render(<SiteHeader />);
 
@@ -245,7 +242,6 @@ describe("navbar notifications", () => {
       items: [],
       pagination: { page_size: 5, has_more: false, next_cursor: null },
     });
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
 
     render(<SiteHeader />);
 

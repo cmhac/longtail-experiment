@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from typing import Any, cast
 
 
@@ -70,14 +70,46 @@ class InMemoryDatasetDiscoveryRepository:
             "reason_code": "missing_canonical_descriptor",
         }
 
+    def _has_recent_notification(self, *, dataset_id: str) -> bool:
+        latest_observed: list[date] = []
+        for row in self._observations:
+            if str(row.get("dataset_id", "")) != dataset_id:
+                continue
+            observed_on_value = row.get("observed_on")
+            observed_on = (
+                observed_on_value
+                if isinstance(observed_on_value, date)
+                else date.fromisoformat(str(observed_on_value))
+            )
+            latest_observed.append(observed_on)
+        latest_observed.sort(reverse=True)
+        window = set(latest_observed[:3])
+        if not window:
+            return False
+
+        for event in self._trend_events:
+            if str(event.get("dataset_id", "")) != dataset_id:
+                continue
+            start_period_value = event.get("start_period")
+            if isinstance(start_period_value, datetime):
+                observed_on = start_period_value.date()
+            else:
+                observed_on = date.fromisoformat(str(start_period_value))
+            if observed_on in window:
+                return True
+        return False
+
     def _apply_search(
         self,
         *,
         query_text: str | None,
         source_id: str | None = None,
         category: str | None = None,
+        subscribed_only: bool = False,
+        user_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """Filter and project dataset rows for search-like queries."""
+        del user_id
         normalized = (query_text or "").strip().lower()
         normalized_category = (category or "").strip().lower()
         rows: list[dict[str, Any]] = []
@@ -101,7 +133,12 @@ class InMemoryDatasetDiscoveryRepository:
             projected["canonical_trend_descriptor"] = self._summary_canonical_descriptor(
                 dataset_id=str(row.get("dataset_id", ""))
             )
+            projected["has_recent_notification"] = self._has_recent_notification(
+                dataset_id=str(row.get("dataset_id", ""))
+            )
             rows.append(projected)
+        if subscribed_only:
+            rows = rows[:1]
         rows.sort(
             key=lambda item: (
                 str(item.get("latest_update_at", "") or ""),
@@ -212,6 +249,8 @@ class InMemoryDatasetDiscoveryRepository:
             query_text=query_text,
             source_id=source_id if isinstance(source_id, str) else None,
             category=category if isinstance(category, str) else None,
+            subscribed_only=bool(options.get("subscribed_only", False)),
+            user_id=options.get("user_id") if isinstance(options.get("user_id"), str) else None,
         )
         if sort == "title_asc":
             rows.sort(
@@ -239,9 +278,33 @@ class InMemoryDatasetDiscoveryRepository:
             )
         return self._paginate(rows, page=page, page_size=page_size)
 
-    def list_catalog_aggregations(self, *, query_text: str | None) -> dict[str, Any]:
+    def list_catalog_aggregations(
+        self,
+        *,
+        query_text: str | None,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Return aggregate filter metadata across the catalog scope."""
-        rows = self._apply_search(query_text=query_text)
+        aggregation_options = options or {}
+        rows = self._apply_search(
+            query_text=query_text,
+            source_id=(
+                aggregation_options.get("source_id")
+                if isinstance(aggregation_options.get("source_id"), str)
+                else None
+            ),
+            category=(
+                aggregation_options.get("category")
+                if isinstance(aggregation_options.get("category"), str)
+                else None
+            ),
+            subscribed_only=bool(aggregation_options.get("subscribed_only", False)),
+            user_id=(
+                aggregation_options.get("user_id")
+                if isinstance(aggregation_options.get("user_id"), str)
+                else None
+            ),
+        )
         source_counts: dict[tuple[str, str], int] = {}
         category_counts: dict[str, int] = {}
 

@@ -52,6 +52,7 @@ def test_recent_dataset_items_include_canonical_trend_descriptor() -> None:
         "observed_on": "2026-03-01",
         "reason_code": None,
     }
+    assert isinstance(by_dataset_id["UNRATE"]["has_recent_notification"], bool)
 
 
 def test_recent_dataset_items_default_canonical_trend_descriptor_when_missing() -> None:
@@ -79,3 +80,4 @@ def test_recent_dataset_items_default_canonical_trend_descriptor_when_missing() 
         "observed_on": None,
         "reason_code": "missing_canonical_descriptor",
     }
+    assert isinstance(dataset_items[0]["has_recent_notification"], bool)

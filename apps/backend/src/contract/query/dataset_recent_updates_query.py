@@ -20,6 +20,7 @@ class DatasetRecentItem(DatasetSummary):
     """Recent item payload for homepage editorial feed rows."""
 
     item_type: Literal["dataset_update"] = "dataset_update"
+    has_recent_notification: bool = False
 
     action_links: DatasetRecentActionLinks
 

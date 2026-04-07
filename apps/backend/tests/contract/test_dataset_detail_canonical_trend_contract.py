@@ -50,6 +50,7 @@ def test_dataset_detail_includes_available_canonical_descriptor_when_present() -
         "observed_on": "2026-03-01",
         "reason_code": None,
     }
+    assert isinstance(response["has_recent_notification"], bool)
 
 
 def test_dataset_detail_defaults_to_unavailable_canonical_descriptor_when_missing() -> None:
@@ -76,3 +77,4 @@ def test_dataset_detail_defaults_to_unavailable_canonical_descriptor_when_missin
         "observed_on": None,
         "reason_code": "missing_canonical_descriptor",
     }
+    assert isinstance(response["has_recent_notification"], bool)

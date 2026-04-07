@@ -32,4 +32,5 @@ def test_detail_returns_metadata_and_observations() -> None:
     assert response["title"] == "Unemployment Rate"
     assert response["observations"]
     assert response["metadata"]["unit_type"] == "percent"
+    assert isinstance(response["has_recent_notification"], bool)
     assert response["observation_sort"] == "observed_on_asc,reported_at_asc"

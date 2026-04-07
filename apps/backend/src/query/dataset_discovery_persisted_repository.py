@@ -38,6 +38,54 @@ class PersistedDatasetDiscoveryRepository:
             return value.date().isoformat()
         return value.isoformat()
 
+    def _load_recent_notification_flags(self) -> dict[str, bool]:
+        """Return dataset-level flags for notifications in latest observation window."""
+        query = text(
+            """
+            WITH ranked_observations AS (
+                SELECT
+                    o.series_id,
+                    o.observed_on,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY o.series_id
+                        ORDER BY o.observed_on DESC, o.reported_at DESC, o.id DESC
+                    ) AS observation_rank
+                FROM observations o
+            ),
+            recent_observation_window AS (
+                SELECT
+                    series_id,
+                    observed_on
+                FROM ranked_observations
+                WHERE observation_rank <= 3
+            ),
+            recent_notification_series AS (
+                SELECT DISTINCT utn.data_series_id
+                FROM user_trend_notifications utn
+                JOIN trend_change_events tce ON tce.id = utn.event_id
+                JOIN recent_observation_window row_window
+                    ON row_window.series_id = utn.data_series_id
+                    AND row_window.observed_on = tce.effective_observed_on
+                WHERE utn.channel = 'in_app'
+                  AND utn.delivery_status = 'delivered'
+                  AND tce.visibility_classification = 'user_visible'
+            )
+            SELECT
+                ds.series_key AS dataset_id,
+                (rns.data_series_id IS NOT NULL) AS has_recent_notification
+            FROM data_series ds
+            LEFT JOIN recent_notification_series rns ON rns.data_series_id = ds.id
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query).mappings().all()
+
+        flags: dict[str, bool] = {}
+        for row in rows:
+            dataset_id = str(row["dataset_id"])
+            flags[dataset_id] = bool(row["has_recent_notification"])
+        return flags
+
     def _load_latest_summary_canonical_descriptors(self) -> dict[str, dict[str, object]]:
         """Return latest canonical descriptor projection keyed by dataset id."""
         query = text(
@@ -102,6 +150,21 @@ class PersistedDatasetDiscoveryRepository:
             }
         return descriptors
 
+    def _load_subscribed_dataset_ids(self, *, user_id: str) -> set[str]:
+        """Return canonical dataset ids followed by one user."""
+        query = text(
+            """
+            SELECT ds.series_key AS dataset_id
+            FROM user_dataset_subscriptions uds
+            JOIN data_series ds ON ds.id = uds.data_series_id
+            WHERE uds.user_id = CAST(:user_id AS uuid)
+              AND uds.unsubscribed_at IS NULL
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"user_id": user_id}).mappings().all()
+        return {str(row["dataset_id"]) for row in rows}
+
     @staticmethod
     def _normalize_text(row: dict[str, object]) -> str:
         tags = cast(list[object], row.get("topic_tags") or [])
@@ -123,6 +186,7 @@ class PersistedDatasetDiscoveryRepository:
 
     def _load_dataset_rows(self) -> list[dict[str, object]]:
         summary_descriptors = self._load_latest_summary_canonical_descriptors()
+        recent_notification_flags = self._load_recent_notification_flags()
         query = text(
             """
             SELECT
@@ -197,6 +261,10 @@ class PersistedDatasetDiscoveryRepository:
                             "observed_on": None,
                             "reason_code": "missing_canonical_descriptor",
                         },
+                    ),
+                    "has_recent_notification": recent_notification_flags.get(
+                        str(row["dataset_id"]),
+                        False,
                     ),
                     "metadata": {
                         "metric_name": str(row["metric_name"]),
@@ -293,12 +361,21 @@ class PersistedDatasetDiscoveryRepository:
         query_text: str | None,
         source_id: str | None,
         category: str | None = None,
+        subscribed_only: bool = False,
+        user_id: str | None = None,
     ) -> list[dict[str, object]]:
         normalized_query = (query_text or "").strip().lower()
         normalized_category = (category or "").strip().lower()
+        subscribed_dataset_ids: set[str] = set()
+        if subscribed_only:
+            if user_id is None:
+                return []
+            subscribed_dataset_ids = self._load_subscribed_dataset_ids(user_id=user_id)
         rows = self._load_dataset_rows()
         filtered: list[dict[str, object]] = []
         for row in rows:
+            if subscribed_only and str(row.get("dataset_id", "")) not in subscribed_dataset_ids:
+                continue
             if source_id is not None:
                 source = row.get("source")
                 source_payload: dict[str, object] = (
@@ -351,6 +428,7 @@ class PersistedDatasetDiscoveryRepository:
                     "geographic_scope": row.get("geographic_scope"),
                     "topic_tags": list(cast(list[object], row.get("topic_tags") or [])),
                     "latest_update_at": row.get("latest_update_at"),
+                    "has_recent_notification": bool(row.get("has_recent_notification", False)),
                     "canonical_trend_descriptor": dict(
                         cast(dict[str, object], row.get("canonical_trend_descriptor") or {})
                     ),
@@ -522,6 +600,8 @@ class PersistedDatasetDiscoveryRepository:
         """Return paginated catalog rows with source and text filtering."""
         source_id = options.get("source_id")
         category = options.get("category")
+        subscribed_only = bool(options.get("subscribed_only", False))
+        user_id = options.get("user_id")
         sort = str(options.get("sort", "recency")).strip().lower()
         raw_page = options.get("page")
         raw_page_size = options.get("page_size")
@@ -538,6 +618,8 @@ class PersistedDatasetDiscoveryRepository:
             query_text=query_text,
             source_id=normalized_source,
             category=normalized_category,
+            subscribed_only=subscribed_only,
+            user_id=str(user_id).strip() if isinstance(user_id, str) else None,
         )
         if sort == "title_asc":
             rows.sort(
@@ -565,9 +647,27 @@ class PersistedDatasetDiscoveryRepository:
             )
         return self._paginate(rows, page=page, page_size=page_size)
 
-    def list_catalog_aggregations(self, *, query_text: str | None) -> dict[str, object]:
+    def list_catalog_aggregations(
+        self,
+        *,
+        query_text: str | None,
+        options: Mapping[str, object] | None = None,
+    ) -> dict[str, object]:
         """Return aggregate filter metadata across the current catalog scope."""
-        rows = self._apply_search(query_text=query_text, source_id=None)
+        aggregation_options = options or {}
+        source_id = aggregation_options.get("source_id")
+        category = aggregation_options.get("category")
+        rows = self._apply_search(
+            query_text=query_text,
+            source_id=source_id if isinstance(source_id, str) else None,
+            category=category if isinstance(category, str) else None,
+            subscribed_only=bool(aggregation_options.get("subscribed_only", False)),
+            user_id=(
+                str(aggregation_options.get("user_id")).strip()
+                if isinstance(aggregation_options.get("user_id"), str)
+                else None
+            ),
+        )
         grouped_sources = self._group_rows_by_source(rows)
         category_counts: dict[str, int] = defaultdict(int)
 

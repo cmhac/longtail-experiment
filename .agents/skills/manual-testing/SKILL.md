@@ -30,6 +30,8 @@ Do not rely on tests and lint/type checks alone. Always execute real runtime beh
 5. Add or update automated tests for defects found during manual testing.
 6. Record what you ran and what you observed.
 7. For browser-driven UI flows, use the `use-chrome-browser` skill for Rodney-based interactions.
+8. For any UI change with visual impact, screenshot-based visual verification is mandatory and is a stop gate.
+9. Do not treat computed CSS styles, DOM state, or console output as sufficient proof of visual correctness without screenshot evidence.
 
 ## Required Manual Testing Loop
 
@@ -87,7 +89,12 @@ Do not rely on tests and lint/type checks alone. Always execute real runtime beh
    - Use Rodney lifecycle commands (`start`/`stop`) to keep sessions explicit and clean.
 5. Check browser console for runtime errors.
 6. Capture screenshots of impacted views and verify visual/interaction correctness.
-7. Validate loading, empty, and error states relevant to the change.
+7. Screenshot verification is mandatory for visual/UI work:
+   - capture a baseline view and the changed/interactive view(s),
+   - inspect the screenshot pixels for visual correctness (layering, opacity, spacing, colors, overflow, clipping),
+   - treat screenshot evidence as authoritative over inferred state from computed styles,
+   - if screenshot and computed styles disagree, file the issue as a visual regression and fix it.
+8. Validate loading, empty, and error states relevant to the change.
 
 ## Cross-Area Checks
 
@@ -107,7 +114,7 @@ Always include a concise manual testing record:
 1. Commands executed.
 2. Runtime surfaces exercised (services/endpoints/pages).
 3. Key observed outputs (logs, API responses, DB query results).
-4. Screenshot references for UI work.
+4. Screenshot references for UI work, including which visual assertions each screenshot validates.
 5. Defects found and how they were fixed.
 6. Confirmation that manual loop was completed before final quality gate completion.
 

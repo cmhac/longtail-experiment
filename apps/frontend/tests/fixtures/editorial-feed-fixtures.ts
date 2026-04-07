@@ -11,6 +11,7 @@ export const makeEditorialFeedItem = (index: number): DatasetRecentItem => {
     geographic_scope: "US",
     topic_tags: ["energy", "retail fuel prices"],
     latest_update_at: `2026-03-${String(25 - index).padStart(2, "0")}T00:00:00Z`,
+    has_recent_notification: index % 2 === 1,
     canonical_trend_descriptor: {
       descriptor_state: "available",
       trend_label: "sustained_uptrend",

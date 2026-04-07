@@ -17,17 +17,14 @@ export const GET = async (request: NextRequest): Promise<NextResponse> => {
   try {
     const backendBaseUrl = getDiscoveryApiBaseUrl();
     const query = request.nextUrl.searchParams.toString();
-    const response = await fetch(
-      `${backendBaseUrl}/api/notifications${query ? `?${query}` : ""}`,
-      {
-        method: "GET",
-        cache: "no-store",
-        headers: {
-          accept: "application/json",
-          ...forwardAuthHeader(request),
-        },
+    const response = await fetch(`${backendBaseUrl}/api/notifications${query ? `?${query}` : ""}`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "application/json",
+        ...forwardAuthHeader(request),
       },
-    );
+    });
     const body = await response.text();
     return new NextResponse(body, {
       status: response.status,

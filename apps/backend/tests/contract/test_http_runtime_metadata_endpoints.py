@@ -72,8 +72,10 @@ class _MetadataHttpRepoStub:
         del query_text, options
         return list(self._datasets), len(self._datasets)
 
-    def list_catalog_aggregations(self, *, query_text: str | None):
-        del query_text
+    def list_catalog_aggregations(
+        self, *, query_text: str | None, options: dict[str, object] | None = None
+    ):
+        del query_text, options
         return {"total_dataset_count": 2, "sources": [], "categories": []}
 
     def get_dataset_detail(self, *, dataset_id: str):

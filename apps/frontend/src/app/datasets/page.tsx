@@ -1,7 +1,9 @@
 import React from "react";
 import type { JSX } from "react";
+import { ClientScopedCatalogList } from "../../components/discovery/ClientScopedCatalogList";
 import {
   DatasetListControls,
+  type DatasetScopeMode,
   type DatasetSortMode,
 } from "../../components/discovery/DatasetListControls";
 import { DiscoveryListPageHeader } from "../../components/discovery/DiscoveryListPageHeader";
@@ -31,6 +33,8 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
   const params = searchParams ? await searchParams : undefined;
   const sourceFilter = normalizeParam(params?.source, "all");
   const categoryFilter = normalizeParam(params?.category, "all");
+  const scopeParam = normalizeParam(params?.scope, "all");
+  const scopeMode: DatasetScopeMode = scopeParam === "subscribed" ? "subscribed" : "all";
   const sortParam = normalizeParam(params?.sort, "recency") as DatasetSortMode;
   const sortMode: DatasetSortMode =
     sortParam === "title_asc" || sortParam === "title_desc" ? sortParam : "recency";
@@ -75,23 +79,37 @@ const CatalogPage = async ({ searchParams }: CatalogPageProps): Promise<JSX.Elem
         <DatasetListControls
           categoryOptions={categoryOptions}
           selectedCategory={categoryFilter}
+          selectedScope={scopeMode}
           selectedSort={sortMode}
           selectedSource={sourceFilter}
           sourceOptions={sourceOptions}
         />
 
-        <InfiniteCatalogList
-          emptyMessage="No datasets match the selected filters. Reset filters to see the full catalog."
-          initialItems={firstPage.items}
-          initialPage={firstPage.page}
-          initialTotalPages={firstPage.total_pages}
-          requestPath="/api/discovery/datasets"
-          requestQuery={{
-            ...(sortMode ? { sort: sortMode } : {}),
-            ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
-            ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
-          }}
-        />
+        {scopeMode === "subscribed" ? (
+          <ClientScopedCatalogList
+            emptyMessage="You are not following any datasets that match these filters yet."
+            requestPath="/api/discovery/datasets"
+            requestQuery={{
+              ...(sortMode ? { sort: sortMode } : {}),
+              ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
+              ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
+              subscribed_only: "true",
+            }}
+          />
+        ) : (
+          <InfiniteCatalogList
+            emptyMessage="No datasets match the selected filters. Reset filters to see the full catalog."
+            initialItems={firstPage.items}
+            initialPage={firstPage.page}
+            initialTotalPages={firstPage.total_pages}
+            requestPath="/api/discovery/datasets"
+            requestQuery={{
+              ...(sortMode ? { sort: sortMode } : {}),
+              ...(sourceFilter === "all" ? {} : { source: sourceFilter }),
+              ...(categoryFilter === "all" ? {} : { category: categoryFilter }),
+            }}
+          />
+        )}
       </SitePageFrame>
     );
   } catch {

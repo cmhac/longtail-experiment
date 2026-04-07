@@ -6,29 +6,56 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 import { UnifiedSearchSurface } from "../components/discovery/UnifiedSearchSurface";
-import { NotificationsDropdown } from "../components/notifications/NotificationsDropdown";
 import {
   COMPARISON_STATE_EVENT,
   ComparisonStateCorruptedError,
   getComparisonCount,
 } from "../components/discovery/comparison-state";
-import { logoutAccount } from "../lib/api/auth-management-client";
+import { NotificationsDropdown } from "../components/notifications/NotificationsDropdown";
+import {
+  type MobileDrawerPrimaryAction,
+  MobileNavDrawer,
+} from "../components/shell/MobileNavDrawer";
+import { AuthManagementApiError, logoutAccount } from "../lib/api/auth-management-client";
+import type { PrivilegeLevel } from "../lib/api/auth-management-types";
+import {
+  fetchNotificationSummary,
+  requireNotificationSessionToken,
+} from "../lib/api/notification-client";
 import {
   type AuthSessionState,
   clearAuthSessionState,
   loadAuthSessionState,
 } from "../lib/auth/session-state";
-import { AuthManagementApiError } from "../lib/api/auth-management-client";
-import {
-  fetchNotificationSummary,
-  requireNotificationSessionToken,
-} from "../lib/api/notification-client";
+import { navigateTo } from "../lib/navigation-client";
 import { SHELL_NAVBAR_CLASS_NAMES, SHELL_REGION_CLASS_NAMES } from "../theme/monochrome-theme";
-import { type NavbarTabKey, resolveNavbarTabs } from "./navbar-config";
+import {
+  MOBILE_DRAWER_MEDIA_QUERY,
+  MOBILE_DRAWER_PRIMARY_ITEMS,
+  type NavbarTabKey,
+  isMobileDrawerViewportWidth,
+  resolveNavbarTabs,
+} from "./navbar-config";
 
 interface SiteHeaderProps {
   activeTab?: NavbarTabKey;
 }
+
+const isAdminPrivilege = (privilegeLevel: PrivilegeLevel | null): boolean => {
+  return privilegeLevel === "admin" || privilegeLevel === "owner";
+};
+
+const evaluateMobileDrawerEnabled = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  if (typeof window.matchMedia === "function") {
+    return window.matchMedia(MOBILE_DRAWER_MEDIA_QUERY).matches;
+  }
+
+  return isMobileDrawerViewportWidth(window.innerWidth);
+};
 
 export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element => {
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -40,9 +67,73 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
   const [authSession, setAuthSession] = useState<AuthSessionState | null>(null);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isMobileDrawerEnabled, setIsMobileDrawerEnabled] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchControlRef = useRef<HTMLDivElement | null>(null);
   const tabs = resolveNavbarTabs(activeTab);
+
+  const privilegeLevel = authSession?.user?.privilege_level ?? null;
+  const canAccessAdmin = isAdminPrivilege(privilegeLevel);
+  const comparisonCountDisplay = hasComparisonStateError ? "!" : `${comparisonCount}`;
+
+  const navigateToPath = (path: string): void => {
+    navigateTo(path);
+  };
+
+  const closeDrawerAndNavigate = (destination: string): void => {
+    setIsMobileDrawerOpen(false);
+    navigateToPath(destination);
+  };
+
+  const handleDrawerDestinationPress = (destination: string, isProtected: boolean): void => {
+    if (isProtected && !authSession?.sessionToken) {
+      closeDrawerAndNavigate("/login");
+      return;
+    }
+    closeDrawerAndNavigate(destination);
+  };
+
+  const handleSignOut = async (): Promise<void> => {
+    if (isSigningOut) {
+      return;
+    }
+
+    setIsProfileMenuOpen(false);
+    setIsMobileDrawerOpen(false);
+
+    if (!authSession?.sessionToken) {
+      navigateToPath("/");
+      return;
+    }
+
+    setIsSigningOut(true);
+    try {
+      await logoutAccount(authSession.sessionToken);
+    } catch {
+      // ignore logout failures and clear client session state regardless
+    } finally {
+      clearAuthSessionState();
+      setAuthSession(null);
+      setIsSigningOut(false);
+      setIsNotificationsOpen(false);
+      setIsSearchExpanded(false);
+      navigateToPath("/");
+    }
+  };
+
+  const drawerPrimaryActions: readonly MobileDrawerPrimaryAction[] =
+    MOBILE_DRAWER_PRIMARY_ITEMS.map((item) => {
+      return {
+        key: item.key,
+        label: item.label,
+        testId: `mobile-nav-drawer-action-${item.key}`,
+        ...(item.key === "comparison" ? { countValue: comparisonCountDisplay } : {}),
+        onPress: () => {
+          handleDrawerDestinationPress(item.destination, item.isProtected);
+        },
+      };
+    });
 
   useEffect(() => {
     setHasHydrated(true);
@@ -113,6 +204,40 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
       isCancelled = true;
     };
   }, [authSession?.sessionToken]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const update = (): void => {
+      setIsMobileDrawerEnabled(evaluateMobileDrawerEnabled());
+    };
+
+    update();
+
+    window.addEventListener("resize", update);
+
+    const mediaQuery =
+      typeof window.matchMedia === "function" ? window.matchMedia(MOBILE_DRAWER_MEDIA_QUERY) : null;
+
+    const handleChange = (): void => {
+      update();
+    };
+
+    mediaQuery?.addEventListener("change", handleChange);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      mediaQuery?.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileDrawerEnabled) {
+      setIsMobileDrawerOpen(false);
+    }
+  }, [isMobileDrawerEnabled]);
 
   useEffect(() => {
     const handleDocumentPointerDown = (event: MouseEvent): void => {
@@ -235,41 +360,41 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
               )}
             </div>
 
-            <Button
-              id="navbar-notifications-control-button"
-              className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} relative`}
-              data-testid="navbar-notifications-control"
-              aria-label={
-                hasHydrated && unreadNotificationCount > 0
-                  ? `Notifications (${unreadNotificationCount} unread)`
-                  : "Notifications"
-              }
-              aria-controls="navbar-notifications-dropdown"
-              aria-expanded={isNotificationsOpen ? "true" : "false"}
-              isIconOnly
-              size="sm"
-              variant="ghost"
-              onPress={() => {
-                setIsNotificationsOpen((previous) => !previous);
-              }}
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
-                <path
-                  d="M12 3a5 5 0 0 0-5 5v2.26c0 .66-.2 1.31-.56 1.86L5 14v1h14v-1l-1.44-1.88A3.2 3.2 0 0 1 17 10.26V8a5 5 0 0 0-5-5Zm0 19a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"
-                  fill="currentColor"
-                />
-              </svg>
-              {hasHydrated && unreadNotificationCount > 0 ? (
-                <span
-                  className="absolute top-1 right-1 min-w-[0.95rem] rounded-full bg-danger px-1 text-center text-[0.62rem] text-white leading-4"
-                  data-testid="navbar-notifications-badge"
-                >
-                  {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-                </span>
-              ) : null}
-            </Button>
-
             <div className="relative" data-testid="navbar-notifications-wrapper">
+              <Button
+                id="navbar-notifications-control-button"
+                className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} shell-navbar-notifications-control relative`}
+                data-testid="navbar-notifications-control"
+                aria-label={
+                  hasHydrated && unreadNotificationCount > 0
+                    ? `Notifications (${unreadNotificationCount} unread)`
+                    : "Notifications"
+                }
+                aria-controls="navbar-notifications-dropdown"
+                aria-expanded={isNotificationsOpen ? "true" : "false"}
+                isIconOnly
+                size="sm"
+                variant="ghost"
+                onPress={() => {
+                  setIsNotificationsOpen((previous) => !previous);
+                }}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
+                  <path
+                    d="M12 3a5 5 0 0 0-5 5v2.26c0 .66-.2 1.31-.56 1.86L5 14v1h14v-1l-1.44-1.88A3.2 3.2 0 0 1 17 10.26V8a5 5 0 0 0-5-5Zm0 19a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                {hasHydrated && unreadNotificationCount > 0 ? (
+                  <span
+                    className="absolute top-1 right-1 min-w-[0.95rem] rounded-full bg-danger px-1 text-center text-[0.62rem] text-white leading-4"
+                    data-testid="navbar-notifications-badge"
+                  >
+                    {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                  </span>
+                ) : null}
+              </Button>
+
               <NotificationsDropdown
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}
@@ -291,14 +416,12 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
               size="sm"
               variant="ghost"
               onPress={() => {
-                if (typeof window !== "undefined") {
-                  window.location.assign("/comparison");
-                }
+                navigateToPath("/comparison");
               }}
             >
               <span className="shell-navbar-comparison-label">Compare</span>
               <span className="shell-navbar-comparison-count" data-testid="navbar-comparison-count">
-                {hasComparisonStateError ? "!" : comparisonCount}
+                {comparisonCountDisplay}
               </span>
             </Button>
 
@@ -333,15 +456,14 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                   data-testid="navbar-profile-dropdown"
                   variant="default"
                 >
-                  {authSession ? (
+                  {authSession?.user ? (
                     <div className="grid gap-2 p-3" data-testid="header-auth-signed-in">
                       <p className="text-default-600 text-xs" data-testid="header-auth-email">
                         {authSession.user.email}
                       </p>
-                      {authSession.user.privilege_level === "admin" ||
-                      authSession.user.privilege_level === "owner" ? (
+                      {canAccessAdmin ? (
                         <p className="text-default-500 text-xs" data-testid="header-auth-role-chip">
-                          {authSession.user.privilege_level === "owner" ? "Owner" : "Admin"}
+                          {privilegeLevel === "owner" ? "Owner" : "Admin"}
                         </p>
                       ) : null}
                       <Button
@@ -352,15 +474,12 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                         variant="outline"
                         onPress={() => {
                           setIsProfileMenuOpen(false);
-                          if (typeof window !== "undefined") {
-                            window.location.assign("/settings");
-                          }
+                          navigateToPath("/settings");
                         }}
                       >
                         Account
                       </Button>
-                      {authSession.user.privilege_level === "admin" ||
-                      authSession.user.privilege_level === "owner" ? (
+                      {canAccessAdmin ? (
                         <Button
                           className="justify-center border border-default-300 bg-default-100 text-foreground dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
                           data-testid="header-auth-admin-button"
@@ -369,9 +488,7 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                           variant="outline"
                           onPress={() => {
                             setIsProfileMenuOpen(false);
-                            if (typeof window !== "undefined") {
-                              window.location.assign("/admin");
-                            }
+                            navigateToPath("/admin");
                           }}
                         >
                           Admin
@@ -384,24 +501,8 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                         isDisabled={isSigningOut}
                         size="sm"
                         variant="danger-soft"
-                        onPress={async () => {
-                          if (isSigningOut) {
-                            return;
-                          }
-                          setIsSigningOut(true);
-                          try {
-                            await logoutAccount(authSession.sessionToken);
-                          } catch {
-                            // ignore logout failures and clear client session state regardless
-                          } finally {
-                            clearAuthSessionState();
-                            setAuthSession(null);
-                            setIsSigningOut(false);
-                            setIsProfileMenuOpen(false);
-                            if (typeof window !== "undefined") {
-                              window.location.assign("/");
-                            }
-                          }
+                        onPress={() => {
+                          void handleSignOut();
                         }}
                       >
                         Sign out
@@ -420,8 +521,60 @@ export const SiteHeader = ({ activeTab = "home" }: SiteHeaderProps): JSX.Element
                 </Card>
               ) : null}
             </div>
+
+            <Button
+              id="mobile-nav-drawer-trigger-button"
+              className={`${SHELL_NAVBAR_CLASS_NAMES.iconButton} ${SHELL_NAVBAR_CLASS_NAMES.mobileDrawerTrigger}`}
+              data-testid="mobile-nav-drawer-trigger"
+              aria-label="Open navigation menu"
+              aria-controls="mobile-nav-drawer-panel"
+              aria-expanded={isMobileDrawerOpen ? "true" : "false"}
+              isDisabled={!isMobileDrawerEnabled}
+              isIconOnly
+              size="sm"
+              variant="ghost"
+              onPress={() => {
+                if (!isMobileDrawerEnabled) {
+                  return;
+                }
+                setIsSearchExpanded(false);
+                setIsProfileMenuOpen(false);
+                setIsNotificationsOpen(false);
+                setIsMobileDrawerOpen((previous) => !previous);
+              }}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" role="img">
+                <path
+                  d="M4 6.5h16v2H4v-2Zm0 4.75h16v2H4v-2Zm0 4.75h16v2H4v-2Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </Button>
           </div>
         </nav>
+
+        <MobileNavDrawer
+          isOpen={isMobileDrawerOpen && isMobileDrawerEnabled}
+          onClose={() => {
+            setIsMobileDrawerOpen(false);
+          }}
+          onBellPress={() => {
+            setIsMobileDrawerOpen(false);
+            navigateToPath("/notifications");
+          }}
+          unreadNotificationCount={hasHydrated ? unreadNotificationCount : 0}
+          primaryActions={drawerPrimaryActions}
+          onSignOutPress={() => {
+            void handleSignOut();
+          }}
+          onAdminPress={() => {
+            handleDrawerDestinationPress("/admin", true);
+          }}
+          canAccessAdmin={canAccessAdmin}
+          isSigningOut={isSigningOut}
+          authStatus={authSession ? "signed_in" : "signed_out"}
+          privilegeLevel={privilegeLevel}
+        />
       </Card>
     </header>
   );

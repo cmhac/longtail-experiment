@@ -43,8 +43,10 @@ class _PersistedCatalogRepoStub:
             }
         ], 1
 
-    def list_catalog_aggregations(self, *, query_text: str | None):
-        del query_text
+    def list_catalog_aggregations(
+        self, *, query_text: str | None, options: dict[str, object] | None = None
+    ):
+        del query_text, options
         return {
             "total_dataset_count": 1,
             "sources": [{"source": {"id": "fred", "name": "FRED"}, "dataset_count": 1}],

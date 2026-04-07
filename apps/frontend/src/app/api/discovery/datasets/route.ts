@@ -15,12 +15,14 @@ export const GET = async (request: NextRequest): Promise<NextResponse> => {
     const backendBaseUrl = getDiscoveryApiBaseUrl();
     const query = request.nextUrl.searchParams.toString();
     const target = `${backendBaseUrl}/api/datasets${query ? `?${query}` : ""}`;
+    const authorization = request.headers.get("authorization");
 
     const response = await fetch(target, {
       method: "GET",
       cache: "no-store",
       headers: {
         accept: "application/json",
+        ...(authorization ? { authorization } : {}),
       },
     });
 

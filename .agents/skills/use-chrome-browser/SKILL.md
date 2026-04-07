@@ -44,6 +44,7 @@ Use this skill when a task requires real browser behavior, such as:
    - `1`: check/assert condition failed
    - `2`: command/runtime error
 5. Always clean up with `uvx rodney stop` when done.
+6. For UI visual validation, screenshots are required evidence and must be reviewed directly.
 
 ## Required Workflow
 
@@ -59,9 +60,14 @@ Use this skill when a task requires real browser behavior, such as:
    - interactions: `click`, `input`, `select`, `submit`, `hover`, `focus`, `file`
    - checks: `exists`, `visible`, `assert`, `count`, `ax-find`
 5. Capture artifacts when useful:
-   - `screenshot`, `screenshot-el`, `pdf`, `html`
-6. Stop session:
-   - `uvx rodney stop`
+    - `screenshot`, `screenshot-el`, `pdf`, `html`
+6. For visual component validation, screenshots are not optional:
+   - capture screenshots for every impacted visual state (at minimum: initial state + changed state),
+   - manually inspect screenshot output for layering/background/contrast/spacing/overflow defects,
+   - do not sign off visual correctness from computed styles alone,
+   - when computed styles and screenshot appearance disagree, treat the screenshot as source of truth and report/fix the regression.
+7. Stop session:
+    - `uvx rodney stop`
 
 ## Session Scope Rules
 
@@ -136,6 +142,6 @@ uvx rodney stop
 Before ending browser work:
 
 1. Required interactions and assertions were executed.
-2. Any needed artifacts (screenshots/PDF/HTML snippets) were captured.
+2. For visual/UI validation, screenshots of all impacted states were captured and visually reviewed.
 3. Browser session was closed with `uvx rodney stop`.
 4. Report includes commands run and key observed outcomes.

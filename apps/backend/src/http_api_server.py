@@ -452,6 +452,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         *, path: str, error: ContractQueryError
     ) -> tuple[HTTPStatus, dict[str, object]]:
         code = str(error)
+        if code == "auth_required":
+            return HTTPStatus.UNAUTHORIZED, unauthorized_error().model_dump()
         not_found_payloads: dict[str, Callable[[str], dict[str, object]]] = {
             "dataset_not_found": lambda value: dataset_not_found_error(value).model_dump(),
             "topic_not_found": lambda value: topic_not_found_error(value).model_dump(),
@@ -549,7 +551,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         query: dict[str, list[str]],
         service: TrendNotificationService,
     ) -> tuple[HTTPStatus, dict[str, object]] | None:
-        principal = self._resolve_auth_principal(self.auth_service)
+        auth_service = self.auth_service
+        if auth_service is None:
+            raise ContractQueryError("auth_required")
+        principal = self._resolve_auth_principal(auth_service)
         user_id = str(principal["user_id"])
 
         if path == "/api/notifications":
@@ -587,7 +592,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         path: str,
         service: TrendNotificationService,
     ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
-        principal = self._resolve_auth_principal(self.auth_service)
+        auth_service = self.auth_service
+        if auth_service is None:
+            raise ContractQueryError("auth_required")
+        principal = self._resolve_auth_principal(auth_service)
         user_id = str(principal["user_id"])
 
         if path == "/api/notifications/mark-all-read":
@@ -626,7 +634,10 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         path: str,
         service: TrendNotificationService,
     ) -> tuple[HTTPStatus, dict[str, object] | None] | None:
-        principal = self._resolve_auth_principal(self.auth_service)
+        auth_service = self.auth_service
+        if auth_service is None:
+            raise ContractQueryError("auth_required")
+        principal = self._resolve_auth_principal(auth_service)
         user_id = str(principal["user_id"])
 
         if path.startswith("/api/notifications/subscriptions/"):
@@ -773,6 +784,14 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         source_id = query.get("source", [None])[0] or query.get("source_id", [None])[0]
         category = query.get("category", [None])[0]
         sort = query.get("sort", [None])[0]
+        subscribed_only_value = str(query.get("subscribed_only", ["false"])[0]).strip().lower()
+        subscribed_only = subscribed_only_value in {"1", "true", "yes", "on"}
+        user_id: str | None = None
+        if subscribed_only:
+            if self.auth_service is None:
+                raise ContractQueryError("auth_required")
+            principal = self._resolve_auth_principal(self.auth_service)
+            user_id = str(principal["user_id"])
         page = _optional_int_query_param(query, "page")
         page_size = _optional_int_query_param(query, "page_size")
         group_by_source = query.get("group_by_source", ["false"])[0].lower() == "true"
@@ -785,6 +804,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             page=page,
             page_size=page_size,
             group_by_source=group_by_source,
+            subscribed_only=subscribed_only,
+            user_id=user_id,
         ).model_dump()
 
     def _handle_detail(

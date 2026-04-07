@@ -115,6 +115,16 @@ describe("shell structure contract", () => {
     expect(markup).toContain('data-testid="navbar-search-control"');
     expect(markup).toContain('data-testid="navbar-notifications-control"');
     expect(markup).toContain('data-testid="navbar-profile-control"');
+    expect(markup).toContain('data-testid="mobile-nav-drawer-trigger"');
+  });
+
+  it("asserts mobile drawer shell markers exist while desktop tabs are preserved", async () => {
+    const markup = await renderHomePage();
+
+    expect(markup).toContain('data-testid="mobile-nav-drawer-trigger"');
+    expect(markup).toContain('data-testid="navbar-tab-home"');
+    expect(markup).toContain('data-testid="navbar-tab-sources"');
+    expect(markup).toContain('data-testid="navbar-tab-datasets"');
   });
 
   it("asserts main discovery region presence and text", async () => {

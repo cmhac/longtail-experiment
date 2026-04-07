@@ -1,12 +1,12 @@
 import React from "react";
 import type { JSX } from "react";
-import { NotificationsPageClient } from "../../components/notifications/NotificationsPageClient";
 import {
   PageHeaderKicker,
   PageHeaderSubtitle,
   PageHeaderTitle,
   PageHeaderWrapper,
 } from "../../components/discovery/PageHeader";
+import { NotificationsPageClient } from "../../components/notifications/NotificationsPageClient";
 import { SitePageFrame } from "../../shell/site-page-frame";
 
 const NotificationsPage = (): JSX.Element => {
@@ -21,7 +21,7 @@ const NotificationsPage = (): JSX.Element => {
           <PageHeaderKicker>Notification Center</PageHeaderKicker>
           <PageHeaderTitle>Notifications</PageHeaderTitle>
           <PageHeaderSubtitle>
-            Review trend reversal alerts, manage read state, and track followed datasets.
+            Review trend reversal alerts and manage read state.
           </PageHeaderSubtitle>
         </div>
       </PageHeaderWrapper>

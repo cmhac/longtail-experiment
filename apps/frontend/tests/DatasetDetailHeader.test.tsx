@@ -40,4 +40,14 @@ describe("DatasetDetailHeader", () => {
     expect(markup).toContain("Add to Comparison");
     expect(markup).not.toContain("Share");
   });
+
+  it("shows recent notification chip only when flagged", () => {
+    const withChip = renderMarkup(<DatasetDetailHeader data={baseDataset} />);
+    const withoutChip = renderMarkup(
+      <DatasetDetailHeader data={{ ...baseDataset, has_recent_notification: false }} />,
+    );
+
+    expect(withChip).toContain('data-testid="dataset-detail-recent-notification-chip"');
+    expect(withoutChip).not.toContain('data-testid="dataset-detail-recent-notification-chip"');
+  });
 });

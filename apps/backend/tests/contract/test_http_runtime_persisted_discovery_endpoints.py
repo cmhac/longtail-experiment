@@ -74,14 +74,20 @@ class _PersistedHttpRepoStub:
         del query_text
         source_id = options.get("source_id")
         category = options.get("category")
+        subscribed_only = bool(options.get("subscribed_only", False))
+        user_id = options.get("user_id")
         if source_id not in (None, "fred"):
             return [], 0
         if category not in (None, "interest rates"):
             return [], 0
+        if subscribed_only and user_id != "stub-user-id":
+            return [], 0
         return [self._dataset], 1
 
-    def list_catalog_aggregations(self, *, query_text: str | None):
-        del query_text
+    def list_catalog_aggregations(
+        self, *, query_text: str | None, options: dict[str, object] | None = None
+    ):
+        del query_text, options
         return {
             "total_dataset_count": 1,
             "sources": [{"source": {"id": "fred", "name": "FRED"}, "dataset_count": 1}],
@@ -219,3 +225,16 @@ def test_http_runtime_suggestions_reject_invalid_limit(http_server: tuple[str, i
     assert exc_info.value.code == HTTPStatus.BAD_REQUEST
     payload = json.loads(exc_info.value.read().decode("utf-8"))
     assert payload["error"]["code"] == "invalid_request"
+
+
+def test_http_runtime_subscribed_only_catalog_requires_auth(
+    http_server: tuple[str, int],
+) -> None:
+    host, port = http_server
+
+    with pytest.raises(HTTPError) as exc_info:
+        urlopen(f"http://{host}:{port}/api/datasets?subscribed_only=true", timeout=5)  # noqa: S310
+
+    assert exc_info.value.code == HTTPStatus.UNAUTHORIZED
+    payload = json.loads(exc_info.value.read().decode("utf-8"))
+    assert payload["error"]["code"] == "unauthorized"

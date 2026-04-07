@@ -79,6 +79,7 @@ describe("datasets page", () => {
     expect(markup).toContain('data-testid="dataset-source-filter"');
     expect(markup).toContain('data-testid="dataset-category-filter"');
     expect(markup).toContain('data-testid="dataset-sort-control"');
+    expect(markup).toContain('data-testid="dataset-scope-control"');
     expect(markup).toContain('data-testid="dataset-filter-left-group"');
     expect(markup).toContain('data-testid="dataset-sort-right-group"');
     expect(markup).toContain("dataset-list-controls-surface");
@@ -355,6 +356,19 @@ describe("datasets page", () => {
       category: "energy",
       sort: "title_asc",
     });
+  });
+
+  it("renders followed scope loader when subscribed view mode is selected", async () => {
+    mockCatalogResponse();
+
+    const element = await CatalogPage({
+      searchParams: Promise.resolve({ scope: "subscribed" }),
+    });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain('data-testid="dataset-scope-control"');
+    expect(markup).toContain('data-testid="dataset-scope-loading"');
+    expect(markup).toContain("Loading followed datasets");
   });
 
   it("starts from page one even when a page query is present", async () => {

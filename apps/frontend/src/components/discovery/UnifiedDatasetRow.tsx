@@ -1,3 +1,4 @@
+import { Chip } from "@heroui/react";
 import Link from "next/link";
 import React from "react";
 import type { JSX } from "react";
@@ -17,6 +18,7 @@ export interface UnifiedDatasetRowProps {
   emphasizedPills?: string[];
   interactionMode: "row_link" | "title_link";
   trendDescriptor?: CanonicalTrendDescriptor | undefined;
+  hasRecentNotification?: boolean;
 }
 
 export const UnifiedDatasetRow = ({
@@ -29,6 +31,7 @@ export const UnifiedDatasetRow = ({
   tagPills,
   title,
   trendDescriptor,
+  hasRecentNotification = false,
   updatedLabel,
 }: UnifiedDatasetRowProps): JSX.Element => {
   void datasetId;
@@ -50,13 +53,25 @@ export const UnifiedDatasetRow = ({
               {title}
             </Link>
           </DiscoveryFeedList.Title>
-          {trendDescriptor ? (
-            <DatasetTrendIndicator
-              className="justify-self-end pt-1 max-[720px]:justify-self-start max-[720px]:pt-0"
-              descriptor={trendDescriptor}
-              testId="unified-dataset-row-trend-indicator"
-            />
-          ) : null}
+          <div className="flex items-center justify-end gap-2 justify-self-end pt-1 max-[720px]:justify-self-start max-[720px]:pt-0">
+            {trendDescriptor ? (
+              <DatasetTrendIndicator
+                descriptor={trendDescriptor}
+                testId="unified-dataset-row-trend-indicator"
+              />
+            ) : null}
+            {hasRecentNotification ? (
+              <Chip
+                color="warning"
+                size="sm"
+                variant="soft"
+                className="text-[0.72rem]"
+                data-testid="unified-dataset-row-recent-notification-chip"
+              >
+                Recent alert
+              </Chip>
+            ) : null}
+          </div>
         </div>
         {summaryText ? (
           <DiscoveryFeedList.Subtitle>{summaryText}</DiscoveryFeedList.Subtitle>

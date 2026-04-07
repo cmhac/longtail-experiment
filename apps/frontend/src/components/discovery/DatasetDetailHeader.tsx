@@ -1,3 +1,4 @@
+import { Chip } from "@heroui/react";
 import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
@@ -43,6 +44,17 @@ export const DatasetDetailHeader = ({ data }: DatasetDetailHeaderProps): JSX.Ele
               descriptor={data.canonical_trend_descriptor}
               testId="dataset-detail-trend-indicator"
             />
+          ) : null}
+          {data.has_recent_notification ? (
+            <Chip
+              color="warning"
+              size="sm"
+              variant="soft"
+              className="text-[0.72rem]"
+              data-testid="dataset-detail-recent-notification-chip"
+            >
+              Recent alert
+            </Chip>
           ) : null}
           <TagPillGroup
             emphasizedPills={data.geographic_scope ? [data.geographic_scope] : []}
