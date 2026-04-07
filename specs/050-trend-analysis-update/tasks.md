@@ -45,25 +45,25 @@
 
 ### Tests for User Story 1 (REQUIRED)
 
-- [ ] T013 [P] [US1] Add Theil-Sen and confidence modifier unit tests in `libs/trend_analysis/tests/test_scoring_theilsen_kendall.py`
-- [ ] T014 [P] [US1] Add EWMA + cadence seasonal routing unit tests in `libs/trend_analysis/tests/test_preprocessing_and_seasonal_adjustment.py`
-- [ ] T015 [P] [US1] Add canonical arbitration weighting and rejection precedence tests in `libs/trend_analysis/tests/test_canonical_arbitration_v2.py`
-- [ ] T052 [P] [US1] Add deterministic tie-break activation threshold tests (`<= 0.05` confidence gap) in `libs/trend_analysis/tests/test_canonical_tiebreak_threshold_v2.py`
-- [ ] T016 [P] [US1] Add pipeline integration test for current canonical v2 output in `apps/pipeline/tests/orchestration/test_trend_runtime_processor_current_v2.py`
-- [ ] T017 [P] [US1] Add backend contract test for summary/detail canonical v2 shape in `apps/backend/tests/contract/test_discovery_trend_v2_current_contract.py`
-- [ ] T018 [P] [US1] Add frontend trend-chip state test for `up/down/flat/unavailable` in `apps/frontend/tests/discovery-trend-chip-v2.test.tsx`
+- [X] T013 [P] [US1] Add Theil-Sen and confidence modifier unit tests in `libs/trend_analysis/tests/test_scoring_theilsen_kendall.py`
+- [X] T014 [P] [US1] Add EWMA + cadence seasonal routing unit tests in `libs/trend_analysis/tests/test_preprocessing_and_seasonal_adjustment.py`
+- [X] T015 [P] [US1] Add canonical arbitration weighting and rejection precedence tests in `libs/trend_analysis/tests/test_canonical_arbitration_v2.py`
+- [X] T052 [P] [US1] Add deterministic tie-break activation threshold tests (`<= 0.05` confidence gap) in `libs/trend_analysis/tests/test_canonical_tiebreak_threshold_v2.py`
+- [X] T016 [P] [US1] Add pipeline integration test for current canonical v2 output in `apps/pipeline/tests/orchestration/test_trend_runtime_processor_current_v2.py`
+- [X] T017 [P] [US1] Add backend contract test for summary/detail canonical v2 shape in `apps/backend/tests/contract/test_discovery_trend_v2_current_contract.py`
+- [X] T018 [P] [US1] Add frontend trend-chip state test for `up/down/flat/unavailable` in `apps/frontend/tests/discovery-trend-chip-v2.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Implement EWMA preprocessing metadata pipeline in `libs/trend_analysis/src/trend_analysis/preprocessing.py`
-- [ ] T020 [P] [US1] Implement Theil-Sen + Kendall-based scoring in `libs/trend_analysis/src/trend_analysis/scoring.py`
-- [ ] T021 [P] [US1] Implement STL/MSTL cadence routing and fallback logic in `libs/trend_analysis/src/trend_analysis/seasonal_adjustment.py`
-- [ ] T022 [US1] Implement weighted canonical arbitration with explicit `flat` support in `libs/trend_analysis/src/trend_analysis/arbitration.py`
-- [ ] T053 [US1] Implement explicit tie-break threshold constant and arbitration guardrail in `libs/trend_analysis/src/trend_analysis/arbitration.py`
-- [ ] T023 [US1] Integrate v2 scoring/arbitration into runtime processing flow in `apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
-- [ ] T024 [US1] Propagate current canonical v2 fields through backend discovery query service in `apps/backend/src/query/discovery_service.py`
-- [ ] T025 [US1] Update frontend trend descriptor normalizer for current views in `apps/frontend/src/lib/api/discovery-normalizers.ts`
-- [ ] T026 [US1] Update primary trend chip rendering states for v2 semantics in `apps/frontend/src/components/discovery/TrendDirectionChip.tsx`
+- [X] T019 [P] [US1] Implement EWMA preprocessing metadata pipeline in `libs/trend_analysis/src/trend_analysis/preprocessing.py`
+- [X] T020 [P] [US1] Implement Theil-Sen + Kendall-based scoring in `libs/trend_analysis/src/trend_analysis/scoring.py`
+- [X] T021 [P] [US1] Implement STL/MSTL cadence routing and fallback logic in `libs/trend_analysis/src/trend_analysis/seasonal_adjustment.py`
+- [X] T022 [US1] Implement weighted canonical arbitration with explicit `flat` support in `libs/trend_analysis/src/trend_analysis/arbitration.py`
+- [X] T053 [US1] Implement explicit tie-break threshold constant and arbitration guardrail in `libs/trend_analysis/src/trend_analysis/arbitration.py`
+- [X] T023 [US1] Integrate v2 scoring/arbitration into runtime processing flow in `apps/pipeline/src/orchestration/jobs/trend_runtime_processor.py`
+- [X] T024 [US1] Propagate current canonical v2 fields through backend discovery query service in `apps/backend/src/query/discovery_service.py`
+- [X] T025 [US1] Update frontend trend descriptor normalizer for current views in `apps/frontend/src/lib/api/discovery-normalizers.ts`
+- [X] T026 [US1] Update primary trend chip rendering states for v2 semantics in `apps/frontend/src/components/discovery/TrendDirectionChip.tsx`
 
 **Checkpoint**: US1 is independently functional and testable.
 

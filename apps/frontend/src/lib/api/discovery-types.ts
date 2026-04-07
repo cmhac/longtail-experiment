@@ -115,9 +115,12 @@ export interface DatasetDetail {
 export type LookbackPoints = 1 | 2 | 3 | 4 | 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 
 export interface CanonicalTrendDescriptor {
+  descriptor_version?: "v2";
   descriptor_state: "available" | "unavailable";
   trend_label: string | null;
-  direction: "up" | "down" | null;
+  direction: "up" | "down" | "flat" | null;
+  confidence_score?: number | null;
+  dominant_measure_family?: "theil_sen" | "mixed" | "none";
   strength: string | null;
   selected_lookback_points: LookbackPoints | null;
   observed_on: string | null;

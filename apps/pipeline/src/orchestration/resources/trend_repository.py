@@ -50,8 +50,22 @@ class LookbackSnapshotInsert(TypedDict):
     observation_id: str | None
     lookback_points: int
     outcome_state: Literal["significant_trend", "no_significant_trend"]
+    descriptor_state: Literal["available", "unavailable"]
     trend_label: str | None
-    direction: Literal["up", "down"] | None
+    direction: Literal["up", "down", "flat"] | None
+    confidence_score: float | None
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"]
+    theil_sen_slope: float | None
+    theil_sen_low_slope: float | None
+    theil_sen_high_slope: float | None
+    kendall_tau: float | None
+    kendall_pvalue: float | None
+    ols_slope: float | None
+    ols_intercept: float | None
+    ols_r_squared: float | None
+    ols_pvalue: float | None
+    preprocessing: dict[str, object] | None
+    reason_code: str | None
     strength: str | None
     seasonality_classification: str | None
     analysis_version: str
@@ -63,9 +77,21 @@ class CanonicalDescriptorInsert(TypedDict):
     series_key: str
     observed_on: date
     observation_id: str | None
+    descriptor_version: Literal["v2"]
     descriptor_state: Literal["available", "unavailable"]
     canonical_trend_label: str | None
-    canonical_direction: Literal["up", "down"] | None
+    canonical_direction: Literal["up", "down", "flat"] | None
+    confidence_score: float | None
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"]
+    medium_horizon_weight: float | None
+    short_horizon_weight: float | None
+    long_horizon_weight: float | None
+    preprocessing: dict[str, object] | None
+    ols_slope: float | None
+    ols_intercept: float | None
+    ols_r_squared: float | None
+    ols_pvalue: float | None
+    reason_code: str | None
     canonical_strength: str | None
     selected_lookback_points: int | None
     weighting_version: str

@@ -21,6 +21,28 @@ CanonicalDescriptorState = Literal["available", "unavailable"]
 
 
 @dataclass(frozen=True)
+class PreprocessingMetadata:
+    """Preprocessing metadata for one evaluated lookback."""
+
+    smoothing_method: Literal["ewma", "none"]
+    smoothing_parameters: dict[str, object]
+    seasonal_adjustment_method: Literal["stl", "mstl", "none"]
+    seasonal_periods: tuple[int, ...]
+    seasonal_reliability_state: Literal["reliable", "fallback_non_adjusted", "not_applicable"]
+    preprocess_version: str
+
+
+@dataclass(frozen=True)
+class OlsDiagnostics:
+    """Supplementary linear diagnostics for one lookback."""
+
+    slope: float | None
+    intercept: float | None
+    r_squared: float | None
+    p_value: float | None
+
+
+@dataclass(frozen=True)
 class TrendSignature:
     """Persisted signature dimensions used for lifecycle continuity checks."""
 
@@ -60,9 +82,20 @@ class LookbackTrendSnapshotResult:
     outcome_state: LookbackOutcomeState
     analysis_version: str
     trend_label: str | None
-    direction: Literal["up", "down"] | None
+    descriptor_state: Literal["available", "unavailable"]
+    direction: Literal["up", "down", "flat"] | None
+    confidence_score: float | None
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"]
+    theil_sen_slope: float | None
+    theil_sen_low_slope: float | None
+    theil_sen_high_slope: float | None
+    kendall_tau: float | None
+    kendall_pvalue: float | None
+    preprocessing: PreprocessingMetadata
+    ols_diagnostics: OlsDiagnostics
     strength: Literal["mild", "strong"] | None
     seasonality_classification: Literal["seasonal", "non_seasonal"] | None
+    reason_code: str | None
     reason: str
 
 
@@ -70,10 +103,18 @@ class LookbackTrendSnapshotResult:
 class CanonicalTrendDescriptorResult:
     """Weighted canonical descriptor derived from applicable lookback snapshots."""
 
+    descriptor_version: Literal["v2"]
     descriptor_state: CanonicalDescriptorState
     weighting_version: str
     trend_label: str | None
-    direction: Literal["up", "down"] | None
+    direction: Literal["up", "down", "flat"] | None
+    confidence_score: float | None
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"]
+    medium_horizon_weight: float | None
+    short_horizon_weight: float | None
+    long_horizon_weight: float | None
+    preprocessing: PreprocessingMetadata | None
+    ols_diagnostics: OlsDiagnostics | None
     strength: Literal["mild", "strong"] | None
     selected_lookback_points: int | None
     reason_code: str | None
@@ -168,29 +209,73 @@ def build_lookback_snapshot_result(
     lookback_points: int,
     outcome_state: LookbackOutcomeState,
     trend_label: str | None,
-    direction: Literal["up", "down"] | None,
+    descriptor_state: Literal["available", "unavailable"] = "available",
+    direction: Literal["up", "down", "flat"] | None,
+    confidence_score: float | None = None,
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"] = "none",
+    theil_sen_slope: float | None = None,
+    theil_sen_low_slope: float | None = None,
+    theil_sen_high_slope: float | None = None,
+    kendall_tau: float | None = None,
+    kendall_pvalue: float | None = None,
+    preprocessing: PreprocessingMetadata | None = None,
+    ols_diagnostics: OlsDiagnostics | None = None,
     strength: Literal["mild", "strong"] | None,
     seasonality_classification: Literal["seasonal", "non_seasonal"] | None,
+    reason_code: str | None = None,
     reason: str,
 ) -> LookbackTrendSnapshotResult:
     """Build one typed lookback snapshot result."""
+    resolved_preprocessing = preprocessing or PreprocessingMetadata(
+        smoothing_method="none",
+        smoothing_parameters={},
+        seasonal_adjustment_method="none",
+        seasonal_periods=(),
+        seasonal_reliability_state="not_applicable",
+        preprocess_version=LIBRARY_VERSION,
+    )
+    resolved_ols = ols_diagnostics or OlsDiagnostics(
+        slope=None,
+        intercept=None,
+        r_squared=None,
+        p_value=None,
+    )
     return LookbackTrendSnapshotResult(
         lookback_points=lookback_points,
         outcome_state=outcome_state,
         analysis_version=LIBRARY_VERSION,
         trend_label=trend_label,
+        descriptor_state=descriptor_state,
         direction=direction,
+        confidence_score=confidence_score,
+        dominant_measure_family=dominant_measure_family,
+        theil_sen_slope=theil_sen_slope,
+        theil_sen_low_slope=theil_sen_low_slope,
+        theil_sen_high_slope=theil_sen_high_slope,
+        kendall_tau=kendall_tau,
+        kendall_pvalue=kendall_pvalue,
+        preprocessing=resolved_preprocessing,
+        ols_diagnostics=resolved_ols,
         strength=strength,
         seasonality_classification=seasonality_classification,
+        reason_code=reason_code,
         reason=reason,
     )
 
 
 def build_canonical_descriptor(
     *,
+    descriptor_version: Literal["v2"] = "v2",
     descriptor_state: CanonicalDescriptorState,
     trend_label: str | None,
-    direction: Literal["up", "down"] | None,
+    direction: Literal["up", "down", "flat"] | None,
+    confidence_score: float | None = None,
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"] = "none",
+    medium_horizon_weight: float | None = None,
+    short_horizon_weight: float | None = None,
+    long_horizon_weight: float | None = None,
+    preprocessing: PreprocessingMetadata | None = None,
+    ols_diagnostics: OlsDiagnostics | None = None,
     strength: Literal["mild", "strong"] | None,
     selected_lookback_points: int | None,
     reason_code: str | None,
@@ -198,10 +283,18 @@ def build_canonical_descriptor(
 ) -> CanonicalTrendDescriptorResult:
     """Build canonical descriptor with version metadata."""
     return CanonicalTrendDescriptorResult(
+        descriptor_version=descriptor_version,
         descriptor_state=descriptor_state,
         weighting_version=CANONICAL_WEIGHTING_VERSION,
         trend_label=trend_label,
         direction=direction,
+        confidence_score=confidence_score,
+        dominant_measure_family=dominant_measure_family,
+        medium_horizon_weight=medium_horizon_weight,
+        short_horizon_weight=short_horizon_weight,
+        long_horizon_weight=long_horizon_weight,
+        preprocessing=preprocessing,
+        ols_diagnostics=ols_diagnostics,
         strength=strength,
         selected_lookback_points=selected_lookback_points,
         reason_code=reason_code,

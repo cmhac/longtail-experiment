@@ -14,6 +14,10 @@ dependencies = [
     "structlog>=24.4.0",
     "dagster-webserver>=1.12.20",
     "polars[calamine]>=1.0.0",
+    "pandas>=2.2.0",
+    "scipy>=1.14.0",
+    "statsmodels>=0.14.0",
+    "ruptures>=1.1.9",
 ]
 
 [dependency-groups]

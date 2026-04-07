@@ -95,9 +95,12 @@ const isLookbackPoints = (
 };
 
 const defaultCanonicalTrendDescriptor = (): CanonicalTrendDescriptor => ({
+  descriptor_version: "v2",
   descriptor_state: "unavailable" as const,
   trend_label: null,
   direction: null,
+  confidence_score: null,
+  dominant_measure_family: "none",
   strength: null,
   selected_lookback_points: null,
   observed_on: null,
@@ -105,9 +108,12 @@ const defaultCanonicalTrendDescriptor = (): CanonicalTrendDescriptor => ({
 });
 
 const defaultObservationAsOfTrendDescriptor = (): CanonicalTrendDescriptor => ({
+  descriptor_version: "v2",
   descriptor_state: "unavailable" as const,
   trend_label: null,
   direction: null,
+  confidence_score: null,
+  dominant_measure_family: "none",
   strength: null,
   selected_lookback_points: null,
   observed_on: null,
@@ -123,10 +129,20 @@ const normalizeSummaryCanonicalTrendDescriptor = (
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
   return {
+    descriptor_version: payload.descriptor_version === "v2" ? "v2" : "v2",
     descriptor_state: state === "available" || state === "unavailable" ? state : "unavailable",
     trend_label: typeof payload.trend_label === "string" ? payload.trend_label : null,
     direction:
-      payload.direction === "up" || payload.direction === "down" ? payload.direction : null,
+      payload.direction === "up" || payload.direction === "down" || payload.direction === "flat"
+        ? payload.direction
+        : null,
+    confidence_score: typeof payload.confidence_score === "number" ? payload.confidence_score : null,
+    dominant_measure_family:
+      payload.dominant_measure_family === "theil_sen" ||
+      payload.dominant_measure_family === "mixed" ||
+      payload.dominant_measure_family === "none"
+        ? payload.dominant_measure_family
+        : "none",
     strength: typeof payload.strength === "string" ? payload.strength : null,
     selected_lookback_points: isLookbackPoints(payload.selected_lookback_points)
       ? payload.selected_lookback_points
@@ -143,10 +159,20 @@ const normalizeObservationAsOfTrendDescriptor = (descriptor: unknown): Canonical
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
   return {
+    descriptor_version: payload.descriptor_version === "v2" ? "v2" : "v2",
     descriptor_state: state === "available" || state === "unavailable" ? state : "unavailable",
     trend_label: typeof payload.trend_label === "string" ? payload.trend_label : null,
     direction:
-      payload.direction === "up" || payload.direction === "down" ? payload.direction : null,
+      payload.direction === "up" || payload.direction === "down" || payload.direction === "flat"
+        ? payload.direction
+        : null,
+    confidence_score: typeof payload.confidence_score === "number" ? payload.confidence_score : null,
+    dominant_measure_family:
+      payload.dominant_measure_family === "theil_sen" ||
+      payload.dominant_measure_family === "mixed" ||
+      payload.dominant_measure_family === "none"
+        ? payload.dominant_measure_family
+        : "none",
     strength: typeof payload.strength === "string" ? payload.strength : null,
     selected_lookback_points: isLookbackPoints(payload.selected_lookback_points)
       ? payload.selected_lookback_points
