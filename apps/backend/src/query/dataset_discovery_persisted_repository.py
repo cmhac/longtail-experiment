@@ -150,6 +150,21 @@ class PersistedDatasetDiscoveryRepository:
             }
         return descriptors
 
+    def _load_subscribed_dataset_ids(self, *, user_id: str) -> set[str]:
+        """Return canonical dataset ids followed by one user."""
+        query = text(
+            """
+            SELECT ds.series_key AS dataset_id
+            FROM user_dataset_subscriptions uds
+            JOIN data_series ds ON ds.id = uds.data_series_id
+            WHERE uds.user_id = CAST(:user_id AS uuid)
+              AND uds.unsubscribed_at IS NULL
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(query, {"user_id": user_id}).mappings().all()
+        return {str(row["dataset_id"]) for row in rows}
+
     @staticmethod
     def _normalize_text(row: dict[str, object]) -> str:
         tags = cast(list[object], row.get("topic_tags") or [])
@@ -346,12 +361,21 @@ class PersistedDatasetDiscoveryRepository:
         query_text: str | None,
         source_id: str | None,
         category: str | None = None,
+        subscribed_only: bool = False,
+        user_id: str | None = None,
     ) -> list[dict[str, object]]:
         normalized_query = (query_text or "").strip().lower()
         normalized_category = (category or "").strip().lower()
+        subscribed_dataset_ids: set[str] = set()
+        if subscribed_only:
+            if user_id is None:
+                return []
+            subscribed_dataset_ids = self._load_subscribed_dataset_ids(user_id=user_id)
         rows = self._load_dataset_rows()
         filtered: list[dict[str, object]] = []
         for row in rows:
+            if subscribed_only and str(row.get("dataset_id", "")) not in subscribed_dataset_ids:
+                continue
             if source_id is not None:
                 source = row.get("source")
                 source_payload: dict[str, object] = (
@@ -576,6 +600,8 @@ class PersistedDatasetDiscoveryRepository:
         """Return paginated catalog rows with source and text filtering."""
         source_id = options.get("source_id")
         category = options.get("category")
+        subscribed_only = bool(options.get("subscribed_only", False))
+        user_id = options.get("user_id")
         sort = str(options.get("sort", "recency")).strip().lower()
         raw_page = options.get("page")
         raw_page_size = options.get("page_size")
@@ -592,6 +618,8 @@ class PersistedDatasetDiscoveryRepository:
             query_text=query_text,
             source_id=normalized_source,
             category=normalized_category,
+            subscribed_only=subscribed_only,
+            user_id=str(user_id).strip() if isinstance(user_id, str) else None,
         )
         if sort == "title_asc":
             rows.sort(
@@ -619,9 +647,27 @@ class PersistedDatasetDiscoveryRepository:
             )
         return self._paginate(rows, page=page, page_size=page_size)
 
-    def list_catalog_aggregations(self, *, query_text: str | None) -> dict[str, object]:
+    def list_catalog_aggregations(
+        self,
+        *,
+        query_text: str | None,
+        options: Mapping[str, object] | None = None,
+    ) -> dict[str, object]:
         """Return aggregate filter metadata across the current catalog scope."""
-        rows = self._apply_search(query_text=query_text, source_id=None)
+        aggregation_options = options or {}
+        source_id = aggregation_options.get("source_id")
+        category = aggregation_options.get("category")
+        rows = self._apply_search(
+            query_text=query_text,
+            source_id=source_id if isinstance(source_id, str) else None,
+            category=category if isinstance(category, str) else None,
+            subscribed_only=bool(aggregation_options.get("subscribed_only", False)),
+            user_id=(
+                str(aggregation_options.get("user_id")).strip()
+                if isinstance(aggregation_options.get("user_id"), str)
+                else None
+            ),
+        )
         grouped_sources = self._group_rows_by_source(rows)
         category_counts: dict[str, int] = defaultdict(int)
 

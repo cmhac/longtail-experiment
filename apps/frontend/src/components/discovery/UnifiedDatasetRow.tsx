@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Chip } from "@heroui/react";
+import Link from "next/link";
 import React from "react";
 import type { JSX } from "react";
 import type { CanonicalTrendDescriptor } from "../../lib/api/discovery-types";

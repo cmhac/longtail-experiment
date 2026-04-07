@@ -8,7 +8,6 @@ import type { JSX } from "react";
 import { AuthManagementApiError } from "../../lib/api/auth-management-client";
 import {
   fetchNotificationList,
-  fetchNotificationSubscriptions,
   fetchNotificationSummary,
   markAllNotificationsRead,
   markNotificationRead,
@@ -25,7 +24,6 @@ export const NotificationsPageClient = (): JSX.Element => {
   const [items, setItems] = useState<NotificationListItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [subscriptions, setSubscriptions] = useState<string[]>([]);
 
   const visibleItems = useMemo(() => {
     if (!showUnreadOnly) {
@@ -43,17 +41,15 @@ export const NotificationsPageClient = (): JSX.Element => {
       try {
         const state = loadAuthSessionState();
         const token = await requireNotificationSessionToken(state?.sessionToken);
-        const [summary, listing, subscriptionPayload] = await Promise.all([
+        const [summary, listing] = await Promise.all([
           fetchNotificationSummary(token),
           fetchNotificationList(token, { pageSize: 50, unreadOnly: false }),
-          fetchNotificationSubscriptions(token),
         ]);
         if (isCancelled) {
           return;
         }
         setUnreadCount(summary.unread_count);
         setItems(listing.items);
-        setSubscriptions(subscriptionPayload.items.map((item) => item.dataset_id));
       } catch (error) {
         if (isCancelled) {
           return;
@@ -206,30 +202,16 @@ export const NotificationsPageClient = (): JSX.Element => {
                   )}
                 </div>
               </div>
-              <Link href={item.destination_path} className="mt-2 inline-block text-primary text-xs hover:underline">
+              <Link
+                href={item.destination_path}
+                className="mt-2 inline-block text-primary text-xs hover:underline"
+              >
                 View dataset
               </Link>
             </li>
           ))}
         </ul>
       )}
-
-      <section className="grid gap-2" data-testid="notifications-subscriptions-section">
-        <h2 className="font-medium text-sm">Your followed datasets</h2>
-        {subscriptions.length === 0 ? (
-          <p className="text-default-500 text-xs" data-testid="notifications-subscriptions-empty">
-            No followed datasets yet.
-          </p>
-        ) : (
-          <ul className="grid gap-1" data-testid="notifications-subscriptions-list">
-            {subscriptions.map((datasetId) => (
-              <li key={datasetId} className="text-default-600 text-xs">
-                {datasetId}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   );
 };

@@ -1,7 +1,4 @@
-import {
-  AuthManagementApiError,
-  fetchCurrentSessions,
-} from "./auth-management-client";
+import { AuthManagementApiError, fetchCurrentSessions } from "./auth-management-client";
 import type {
   CreateSubscriptionRequest,
   DeleteSubscriptionResponse,
@@ -99,14 +96,11 @@ export const fetchNotificationList = async (
   }
 
   const query = searchParams.toString();
-  const response = await fetch(
-    createUrl(`/api/notifications${query ? `?${query}` : ""}`),
-    {
-      method: "GET",
-      headers: withAuthHeaders(sessionToken),
-      cache: "no-store",
-    },
-  );
+  const response = await fetch(createUrl(`/api/notifications${query ? `?${query}` : ""}`), {
+    method: "GET",
+    headers: withAuthHeaders(sessionToken),
+    cache: "no-store",
+  });
   return parseResponse<NotificationListResponse>(response);
 };
 

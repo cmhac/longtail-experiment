@@ -13,7 +13,6 @@ vi.mock("../src/lib/api/notification-client", () => ({
   requireNotificationSessionToken: vi.fn(async (token?: string) => token ?? "session-1"),
   fetchNotificationSummary: vi.fn(),
   fetchNotificationList: vi.fn(),
-  fetchNotificationSubscriptions: vi.fn(),
   markAllNotificationsRead: vi.fn(),
   markNotificationRead: vi.fn(),
   markNotificationUnread: vi.fn(),
@@ -21,7 +20,6 @@ vi.mock("../src/lib/api/notification-client", () => ({
 
 import {
   fetchNotificationList,
-  fetchNotificationSubscriptions,
   fetchNotificationSummary,
   markAllNotificationsRead,
   markNotificationRead,
@@ -74,23 +72,26 @@ describe("notifications page", () => {
       items: state.items,
       pagination: { page_size: 50, has_more: false, next_cursor: null },
     }));
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
     asMock(markAllNotificationsRead).mockImplementation(async () => {
       state.items = state.items.map((item) => ({ ...item, unread: false }));
       return { updated_count: 1, unread_count: 0 };
     });
-    asMock(markNotificationRead).mockImplementation(async (_token: string, notificationId: string) => {
-      state.items = state.items.map((item) =>
-        item.notification_id === notificationId ? { ...item, unread: false } : item,
-      );
-      return { notification_id: notificationId, updated: true, unread_count: 0 };
-    });
-    asMock(markNotificationUnread).mockImplementation(async (_token: string, notificationId: string) => {
-      state.items = state.items.map((item) =>
-        item.notification_id === notificationId ? { ...item, unread: true } : item,
-      );
-      return { notification_id: notificationId, updated: true, unread_count: 1 };
-    });
+    asMock(markNotificationRead).mockImplementation(
+      async (_token: string, notificationId: string) => {
+        state.items = state.items.map((item) =>
+          item.notification_id === notificationId ? { ...item, unread: false } : item,
+        );
+        return { notification_id: notificationId, updated: true, unread_count: 0 };
+      },
+    );
+    asMock(markNotificationUnread).mockImplementation(
+      async (_token: string, notificationId: string) => {
+        state.items = state.items.map((item) =>
+          item.notification_id === notificationId ? { ...item, unread: true } : item,
+        );
+        return { notification_id: notificationId, updated: true, unread_count: 1 };
+      },
+    );
 
     render(<NotificationsPageClient />);
 
@@ -162,7 +163,6 @@ describe("notifications page", () => {
       items: state.items,
       pagination: { page_size: 50, has_more: false, next_cursor: null },
     }));
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({ items: [] });
     asMock(markAllNotificationsRead).mockImplementation(async () => {
       state.items = state.items.map((item) => ({ ...item, unread: false }));
       return { updated_count: 1, unread_count: 0 };
@@ -196,46 +196,6 @@ describe("notifications page", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("notifications-unread-count").textContent).toContain("Unread: 0");
-    });
-  });
-
-  it("shows followed dataset subscriptions section", async () => {
-    asMock(fetchNotificationSummary).mockResolvedValue({
-      unread_count: 0,
-      last_notification_at: null,
-      generated_at: "2026-04-05T00:00:00+00:00",
-    });
-    asMock(fetchNotificationList).mockResolvedValue({
-      items: [],
-      pagination: { page_size: 50, has_more: false, next_cursor: null },
-    });
-    asMock(fetchNotificationSubscriptions).mockResolvedValue({
-      items: [
-        {
-          dataset_id: "PRICE.US.CPI",
-          subscribed_at: "2026-04-05T00:00:00+00:00",
-          unsubscribed_at: null,
-        },
-      ],
-    });
-    asMock(markAllNotificationsRead).mockResolvedValue({ updated_count: 0, unread_count: 0 });
-    asMock(markNotificationRead).mockResolvedValue({
-      notification_id: "notification-1",
-      updated: true,
-      unread_count: 0,
-    });
-    asMock(markNotificationUnread).mockResolvedValue({
-      notification_id: "notification-1",
-      updated: true,
-      unread_count: 1,
-    });
-
-    render(<NotificationsPageClient />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("notifications-subscriptions-list").textContent).toContain(
-        "PRICE.US.CPI",
-      );
     });
   });
 });

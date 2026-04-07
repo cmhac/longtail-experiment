@@ -1,5 +1,5 @@
-import React from "react";
 import { Chip } from "@heroui/react";
+import React from "react";
 import type { JSX } from "react";
 import type { DatasetDetail } from "../../lib/api/discovery-types";
 import { NotificationSubscriptionControl } from "../notifications/NotificationSubscriptionControl";

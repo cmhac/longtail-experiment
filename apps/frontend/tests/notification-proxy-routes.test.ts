@@ -1,18 +1,16 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET as getNotifications } from "../src/app/api/notifications/route";
-import { POST as postMarkAllRead } from "../src/app/api/notifications/mark-all-read/route";
 import { POST as postMarkRead } from "../src/app/api/notifications/[notificationId]/mark-read/route";
 import { POST as postMarkUnread } from "../src/app/api/notifications/[notificationId]/mark-unread/route";
-import { GET as getSummary } from "../src/app/api/notifications/summary/route";
-import {
-  DELETE as deleteSubscription,
-} from "../src/app/api/notifications/subscriptions/[datasetId]/route";
+import { POST as postMarkAllRead } from "../src/app/api/notifications/mark-all-read/route";
+import { GET as getNotifications } from "../src/app/api/notifications/route";
+import { DELETE as deleteSubscription } from "../src/app/api/notifications/subscriptions/[datasetId]/route";
 import {
   GET as getSubscriptions,
   POST as postSubscriptions,
 } from "../src/app/api/notifications/subscriptions/route";
+import { GET as getSummary } from "../src/app/api/notifications/summary/route";
 
 const originalDiscoveryApiBaseUrl = process.env.DISCOVERY_API_BASE_URL;
 
@@ -39,16 +37,22 @@ describe("notification proxy routes", () => {
     const fetchSpy = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
-        new Response('{"items":[],"pagination":{"page_size":25,"has_more":false,"next_cursor":null}}', {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
+        new Response(
+          '{"items":[],"pagination":{"page_size":25,"has_more":false,"next_cursor":null}}',
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
       )
       .mockResolvedValueOnce(
-        new Response('{"unread_count":0,"last_notification_at":null,"generated_at":"2026-04-06T00:00:00+00:00"}', {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
+        new Response(
+          '{"unread_count":0,"last_notification_at":null,"generated_at":"2026-04-06T00:00:00+00:00"}',
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
       );
 
     const listResponse = await getNotifications(
@@ -149,10 +153,13 @@ describe("notification proxy routes", () => {
         }),
       )
       .mockResolvedValueOnce(
-        new Response('{"dataset_id":"PRICE.US.CPI","subscribed_at":"2026-04-06T00:00:00+00:00","created":true}', {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
+        new Response(
+          '{"dataset_id":"PRICE.US.CPI","subscribed_at":"2026-04-06T00:00:00+00:00","created":true}',
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
       )
       .mockResolvedValueOnce(
         new Response('{"dataset_id":"PRICE.US.CPI","removed":true}', {
@@ -211,17 +218,25 @@ describe("notification proxy routes", () => {
 
     process.env.DISCOVERY_API_BASE_URL = "";
 
-    const listResponse = await getNotifications(new NextRequest("http://localhost/api/notifications"));
-    const summaryResponse = await getSummary(new NextRequest("http://localhost/api/notifications/summary"));
+    const listResponse = await getNotifications(
+      new NextRequest("http://localhost/api/notifications"),
+    );
+    const summaryResponse = await getSummary(
+      new NextRequest("http://localhost/api/notifications/summary"),
+    );
     const markAllResponse = await postMarkAllRead(
       new NextRequest("http://localhost/api/notifications/mark-all-read", { method: "POST" }),
     );
     const markReadResponse = await postMarkRead(
-      new NextRequest("http://localhost/api/notifications/notification-1/mark-read", { method: "POST" }),
+      new NextRequest("http://localhost/api/notifications/notification-1/mark-read", {
+        method: "POST",
+      }),
       { params: Promise.resolve({ notificationId: "notification-1" }) },
     );
     const markUnreadResponse = await postMarkUnread(
-      new NextRequest("http://localhost/api/notifications/notification-1/mark-unread", { method: "POST" }),
+      new NextRequest("http://localhost/api/notifications/notification-1/mark-unread", {
+        method: "POST",
+      }),
       { params: Promise.resolve({ notificationId: "notification-1" }) },
     );
     const getSubsResponse = await getSubscriptions(

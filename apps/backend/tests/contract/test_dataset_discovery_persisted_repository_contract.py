@@ -62,6 +62,12 @@ class _FakeConnection:
                     },
                 ]
             )
+        if "FROM user_dataset_subscriptions uds" in sql and "CAST(:user_id AS uuid)" in sql:
+            return _FakeResult(
+                [
+                    {"dataset_id": "INT.US.FEDFUNDS"},
+                ]
+            )
         if "FROM observations o" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
@@ -527,6 +533,26 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
     assert geography_item["has_recent_notification"] is True
     assert geography_detail["total_items"] == 1
     assert missing_geography_detail is None
+
+
+def test_catalog_can_filter_to_subscribed_datasets() -> None:
+    repository = _build_repository()
+
+    rows, total = repository.list_catalog_datasets(
+        query_text=None,
+        options={
+            "source_id": None,
+            "category": None,
+            "sort": "recency",
+            "page": 1,
+            "page_size": 20,
+            "subscribed_only": True,
+            "user_id": "00000000-0000-0000-0000-000000000001",
+        },
+    )
+
+    assert total == 1
+    assert rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
 
 
 def test_source_topic_and_geography_detail_pagination_is_stable() -> None:

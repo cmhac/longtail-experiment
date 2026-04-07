@@ -15,6 +15,7 @@ interface InfiniteCatalogListProps {
   emptyMessage: string;
   requestPath: string;
   requestQuery?: Record<string, string>;
+  authorizationToken?: string;
 }
 
 interface PaginatedItemsPayload {
@@ -41,6 +42,7 @@ export const InfiniteCatalogList = ({
   emptyMessage,
   requestPath,
   requestQuery,
+  authorizationToken,
 }: InfiniteCatalogListProps): JSX.Element => {
   const [items, setItems] = useState(initialItems);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -79,6 +81,7 @@ export const InfiniteCatalogList = ({
       cache: "no-store",
       headers: {
         accept: "application/json",
+        ...(authorizationToken ? { authorization: `Bearer ${authorizationToken}` } : {}),
       },
     })
       .then(async (response) => {
@@ -98,7 +101,7 @@ export const InfiniteCatalogList = ({
       .finally(() => {
         setLoading(false);
       });
-  }, [currentPage, hasMore, loading, requestPath, stableQuery]);
+  }, [authorizationToken, currentPage, hasMore, loading, requestPath, stableQuery]);
 
   const sentinelRef = useInfiniteScrollObserver({
     enabled: hasMore && !loading,

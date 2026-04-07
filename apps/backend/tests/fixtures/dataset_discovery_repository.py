@@ -105,8 +105,11 @@ class InMemoryDatasetDiscoveryRepository:
         query_text: str | None,
         source_id: str | None = None,
         category: str | None = None,
+        subscribed_only: bool = False,
+        user_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """Filter and project dataset rows for search-like queries."""
+        del user_id
         normalized = (query_text or "").strip().lower()
         normalized_category = (category or "").strip().lower()
         rows: list[dict[str, Any]] = []
@@ -134,6 +137,8 @@ class InMemoryDatasetDiscoveryRepository:
                 dataset_id=str(row.get("dataset_id", ""))
             )
             rows.append(projected)
+        if subscribed_only:
+            rows = rows[:1]
         rows.sort(
             key=lambda item: (
                 str(item.get("latest_update_at", "") or ""),
@@ -244,6 +249,8 @@ class InMemoryDatasetDiscoveryRepository:
             query_text=query_text,
             source_id=source_id if isinstance(source_id, str) else None,
             category=category if isinstance(category, str) else None,
+            subscribed_only=bool(options.get("subscribed_only", False)),
+            user_id=options.get("user_id") if isinstance(options.get("user_id"), str) else None,
         )
         if sort == "title_asc":
             rows.sort(
@@ -271,9 +278,33 @@ class InMemoryDatasetDiscoveryRepository:
             )
         return self._paginate(rows, page=page, page_size=page_size)
 
-    def list_catalog_aggregations(self, *, query_text: str | None) -> dict[str, Any]:
+    def list_catalog_aggregations(
+        self,
+        *,
+        query_text: str | None,
+        options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Return aggregate filter metadata across the catalog scope."""
-        rows = self._apply_search(query_text=query_text)
+        aggregation_options = options or {}
+        rows = self._apply_search(
+            query_text=query_text,
+            source_id=(
+                aggregation_options.get("source_id")
+                if isinstance(aggregation_options.get("source_id"), str)
+                else None
+            ),
+            category=(
+                aggregation_options.get("category")
+                if isinstance(aggregation_options.get("category"), str)
+                else None
+            ),
+            subscribed_only=bool(aggregation_options.get("subscribed_only", False)),
+            user_id=(
+                aggregation_options.get("user_id")
+                if isinstance(aggregation_options.get("user_id"), str)
+                else None
+            ),
+        )
         source_counts: dict[tuple[str, str], int] = {}
         category_counts: dict[str, int] = {}
 

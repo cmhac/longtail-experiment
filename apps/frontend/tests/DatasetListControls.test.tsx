@@ -60,6 +60,31 @@ vi.mock("@heroui/react", () => {
   const Input = ({ children, ...props }: { children?: React.ReactNode }) => (
     <div {...props}>{children}</div>
   );
+  const Switch = ({
+    children,
+    "data-testid": dataTestId,
+    isSelected,
+    onChange,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    "data-testid"?: string;
+    isSelected?: boolean;
+    onChange?: (selected: boolean) => void;
+  }) => (
+    <label {...props}>
+      <input
+        checked={Boolean(isSelected)}
+        data-testid={String(dataTestId ?? "dataset-switch")}
+        onChange={(event) => onChange?.(event.target.checked)}
+        type="checkbox"
+      />
+      <span>{children}</span>
+    </label>
+  );
+  Switch.Control = ({ children }: { children?: React.ReactNode }) => <span>{children}</span>;
+  Switch.Thumb = () => <span data-testid="dataset-scope-thumb" />;
+  Switch.Content = ({ children }: { children?: React.ReactNode }) => <span>{children}</span>;
   const ListBox = ({ children, ...props }: { children: React.ReactNode }) => (
     <div {...props}>{children}</div>
   );
@@ -82,6 +107,7 @@ vi.mock("@heroui/react", () => {
   return {
     ComboBox,
     Input,
+    Switch,
     ListBox,
     ListBoxItem,
   };
@@ -115,6 +141,7 @@ const renderControls = (): void => {
         { label: "energy", value: "energy" },
       ]}
       selectedCategory="all"
+      selectedScope="all"
       selectedSort="recency"
       selectedSource="all"
       sourceOptions={[
@@ -147,6 +174,7 @@ describe("DatasetListControls", () => {
     expect(screen.getByTestId("dataset-source-filter")).toBeTruthy();
     expect(screen.getByTestId("dataset-category-filter")).toBeTruthy();
     expect(screen.getByTestId("dataset-sort-control")).toBeTruthy();
+    expect(screen.getByTestId("dataset-scope-control")).toBeTruthy();
     expect((screen.getByTestId("dataset-source-filter-input") as HTMLInputElement).value).toBe(
       "All Sources",
     );
@@ -156,6 +184,7 @@ describe("DatasetListControls", () => {
     expect((screen.getByTestId("dataset-sort-control-input") as HTMLInputElement).value).toBe(
       "Recency",
     );
+    expect(screen.getByTestId("dataset-scope-control")).not.toBeNull();
   });
 
   it("shows preselected values in combobox inputs", () => {
@@ -166,6 +195,7 @@ describe("DatasetListControls", () => {
           { label: "energy", value: "energy" },
         ]}
         selectedCategory="energy"
+        selectedScope="subscribed"
         selectedSort="title_desc"
         selectedSource="eia"
         sourceOptions={[
@@ -184,6 +214,15 @@ describe("DatasetListControls", () => {
     expect((screen.getByTestId("dataset-sort-control-input") as HTMLInputElement).value).toBe(
       "Title (Z-A)",
     );
+    expect((screen.getByTestId("dataset-scope-control") as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("updates scope query param on selection", () => {
+    renderControls();
+
+    fireEvent.click(screen.getByTestId("dataset-scope-control"));
+
+    expect(routerReplaceMock).toHaveBeenCalledWith("/datasets?scope=subscribed");
   });
 
   it("updates source filter query param on selection", () => {
@@ -214,6 +253,7 @@ describe("DatasetListControls", () => {
           { label: "energy", value: "energy" },
         ]}
         selectedCategory="all"
+        selectedScope="all"
         selectedSort="title_asc"
         selectedSource="eia"
         sourceOptions={[
@@ -259,6 +299,7 @@ describe("DatasetListControls", () => {
           { label: "energy", value: "energy" },
         ]}
         selectedCategory="all"
+        selectedScope="all"
         selectedSort="recency"
         selectedSource="eia"
         sourceOptions={[
@@ -286,6 +327,7 @@ describe("DatasetListControls", () => {
           { label: "energy", value: "energy" },
         ]}
         selectedCategory="all"
+        selectedScope="all"
         selectedSort="recency"
         selectedSource="eia"
         sourceOptions={[
@@ -335,6 +377,7 @@ describe("DatasetListControls", () => {
           { label: "energy", value: "energy" },
         ]}
         selectedCategory="all"
+        selectedScope="all"
         selectedSort="recency"
         selectedSource="all"
         sourceOptions={[

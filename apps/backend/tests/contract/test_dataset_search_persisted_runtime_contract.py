@@ -53,8 +53,10 @@ class _PersistedRepoStub:
         del query_text, options
         return self._items, len(self._items)
 
-    def list_catalog_aggregations(self, *, query_text: str | None):
-        del query_text
+    def list_catalog_aggregations(
+        self, *, query_text: str | None, options: dict[str, object] | None = None
+    ):
+        del query_text, options
         return {"total_dataset_count": 1, "sources": [], "categories": []}
 
     def get_dataset_detail(self, *, dataset_id: str):

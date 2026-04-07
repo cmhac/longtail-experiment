@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict, Unpack, cast
+from typing import Any, NotRequired, TypedDict, Unpack, cast
 
 from src.contract.query.dataset_catalog_query import DatasetCatalogResponse
 
@@ -20,6 +20,8 @@ class DatasetCatalogQueryParams(TypedDict):
     page: int | None
     page_size: int | None
     group_by_source: bool
+    subscribed_only: NotRequired[bool]
+    user_id: NotRequired[str | None]
 
 
 def execute_dataset_catalog(
@@ -34,6 +36,8 @@ def execute_dataset_catalog(
     page = query.get("page")
     page_size = query.get("page_size")
     group_by_source = query.get("group_by_source", False)
+    subscribed_only = query.get("subscribed_only", False)
+    user_id = query.get("user_id")
 
     payload = service.list_catalog(
         query_text=query_text,
@@ -43,6 +47,8 @@ def execute_dataset_catalog(
             "sort": sort,
             "page": page,
             "page_size": page_size,
+            "subscribed_only": subscribed_only,
+            "user_id": user_id,
         },
         group_by_source=group_by_source,
     )

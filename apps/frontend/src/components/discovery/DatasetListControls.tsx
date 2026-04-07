@@ -1,11 +1,12 @@
 "use client";
 
-import { ComboBox, Input, ListBox, ListBoxItem } from "@heroui/react";
+import { ComboBox, Input, ListBox, ListBoxItem, Switch } from "@heroui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import type { JSX } from "react";
 
 export type DatasetSortMode = "recency" | "title_asc" | "title_desc";
+export type DatasetScopeMode = "all" | "subscribed";
 
 interface FilterOption {
   value: string;
@@ -18,11 +19,13 @@ interface DatasetListControlsProps {
   selectedSource: string;
   selectedCategory: string;
   selectedSort: DatasetSortMode;
+  selectedScope: DatasetScopeMode;
 }
 
 const DEFAULT_SOURCE = "all";
 const DEFAULT_CATEGORY = "all";
 const DEFAULT_SORT: DatasetSortMode = "recency";
+const DEFAULT_SCOPE: DatasetScopeMode = "all";
 
 interface ComboBoxControlProps {
   id: string;
@@ -52,6 +55,7 @@ export const DatasetListControls = ({
   selectedSource,
   selectedCategory,
   selectedSort,
+  selectedScope,
 }: DatasetListControlsProps): JSX.Element => {
   const sortOptions: FilterOption[] = [
     { value: "recency", label: "Recency" },
@@ -224,17 +228,36 @@ export const DatasetListControls = ({
         className="dataset-list-controls-right-group ml-auto flex flex-none items-end gap-[0.8rem] max-[720px]:ml-0 max-[720px]:w-full max-[720px]:flex-wrap max-[720px]:justify-start"
         data-testid="dataset-sort-right-group"
       >
-        {renderComboBox({
-          id: "dataset-sort-control",
-          label: "Sort By",
-          options: sortOptions,
-          inputValue: sortInputValue,
-          selectedValue: selectedSort,
-          testId: "dataset-sort-control",
-          noMatchLabel: "No matching sort modes",
-          onInputChange: setSortInputValue,
-          onSelect: (value) => applyParam("sort", value, DEFAULT_SORT),
-        })}
+        <div className="grid min-w-0 gap-2">
+          {renderComboBox({
+            id: "dataset-sort-control",
+            label: "Sort By",
+            options: sortOptions,
+            inputValue: sortInputValue,
+            selectedValue: selectedSort,
+            testId: "dataset-sort-control",
+            noMatchLabel: "No matching sort modes",
+            onInputChange: setSortInputValue,
+            onSelect: (value) => applyParam("sort", value, DEFAULT_SORT),
+          })}
+
+          <div className="mt-1.5 flex justify-start px-1" data-testid="dataset-scope-control-row">
+            <Switch
+              aria-label="Show followed datasets only"
+              data-testid="dataset-scope-control"
+              isSelected={selectedScope === "subscribed"}
+              onChange={(isSelected: boolean) =>
+                applyParam("scope", isSelected ? "subscribed" : "all", DEFAULT_SCOPE)
+              }
+              size="sm"
+            >
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+              <Switch.Content>Followed only</Switch.Content>
+            </Switch>
+          </div>
+        </div>
       </div>
     </section>
   );

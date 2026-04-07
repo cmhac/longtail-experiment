@@ -3,9 +3,9 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthManagementApiError } from "../src/lib/api/auth-management-client";
 import { DatasetDetailHeader } from "../src/components/discovery/DatasetDetailHeader";
 import { NotificationSubscriptionControl } from "../src/components/notifications/NotificationSubscriptionControl";
+import { AuthManagementApiError } from "../src/lib/api/auth-management-client";
 import { buildDatasetDetailFixture } from "./fixtures/dataset-detail-fixtures";
 import { renderMarkup } from "./test-utils";
 
@@ -56,7 +56,9 @@ describe("dataset detail notification subscription control", () => {
       removed: true,
     });
 
-    render(<NotificationSubscriptionControl datasetId="PRICE.US.CPI" initiallySubscribed={false} />);
+    render(
+      <NotificationSubscriptionControl datasetId="PRICE.US.CPI" initiallySubscribed={false} />,
+    );
 
     const toggle = screen.getByTestId("notification-subscription-toggle");
     expect(toggle.textContent).toContain("Follow Alerts");
@@ -100,7 +102,9 @@ describe("dataset detail notification subscription control", () => {
       removed: true,
     });
 
-    render(<NotificationSubscriptionControl datasetId="PRICE.US.CPI" initiallySubscribed={false} />);
+    render(
+      <NotificationSubscriptionControl datasetId="PRICE.US.CPI" initiallySubscribed={false} />,
+    );
 
     fireEvent.click(screen.getByTestId("notification-subscription-toggle"));
 

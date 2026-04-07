@@ -2,9 +2,9 @@
 
 import { Button } from "@heroui/react";
 import React from "react";
-import { createPortal } from "react-dom";
 import type { JSX } from "react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { PrivilegeLevel } from "../../lib/api/auth-management-types";
 import { SHELL_NAVBAR_CLASS_NAMES } from "../../theme/monochrome-theme";
 import { MobileNavDrawerAction } from "./MobileNavDrawerAction";
