@@ -57,13 +57,17 @@ export const toUnifiedRecentUpdatesRow = (item: DatasetRecentItem): UnifiedDatas
 };
 
 export const toUnifiedTrendUpdatesRow = (item: TrendRecentItem): UnifiedDatasetRowProps => {
+  const confidenceSummary =
+    typeof item.confidence_score === "number"
+      ? `confidence ${(item.confidence_score * 100).toFixed(0)}%`
+      : "confidence unavailable";
   return {
     datasetId: item.dataset_id,
     destinationHref: `/datasets/${encodeURIComponent(item.dataset_id)}`,
     emphasizedPills: [item.direction.toUpperCase()],
     interactionMode: "row_link",
     sourceLabel: "TREND EVENT",
-    summaryText: item.strength,
+    summaryText: confidenceSummary,
     tagPills: [item.source.name, `Start ${item.start_period}`],
     title: item.title,
     updatedLabel: formatDate(item.latest_update_at),

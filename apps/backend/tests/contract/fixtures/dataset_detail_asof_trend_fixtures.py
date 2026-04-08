@@ -12,12 +12,14 @@ def build_observation_asof_available_descriptor(
 ) -> dict[str, Any]:
     """Return one valid available observation-level as-of descriptor."""
     return {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.73,
         "selected_lookback_points": selected_lookback_points,
         "observed_on": observed_on,
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
 
@@ -28,11 +30,13 @@ def build_observation_asof_unavailable_descriptor(
 ) -> dict[str, Any]:
     """Return one valid unavailable observation-level as-of descriptor."""
     return {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
-        "strength": None,
+        "confidence_score": None,
         "selected_lookback_points": None,
         "observed_on": None,
+        "dominant_measure_family": "none",
         "reason_code": reason_code,
     }

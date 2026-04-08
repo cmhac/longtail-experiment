@@ -98,7 +98,7 @@ describe("discovery client summary canonical descriptor mapping", () => {
               descriptor_state: "available",
               trend_label: "strong_sustained_uptrend",
               direction: "up",
-              strength: "strong",
+              confidence_score: 0.85,
               selected_lookback_points: 100,
               observed_on: "2026-03-24",
               reason_code: null,

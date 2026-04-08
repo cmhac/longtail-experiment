@@ -3,10 +3,10 @@
 import React from "react";
 import type { JSX } from "react";
 
-import type { LookbackTrendSnapshot } from "../../lib/api/discovery-types";
+import type { LookbackTrendEvidence } from "../../lib/api/discovery-types";
 
 interface TrendEvidencePanelProps {
-  snapshots: LookbackTrendSnapshot[];
+  snapshots: LookbackTrendEvidence[];
   testId?: string;
 }
 

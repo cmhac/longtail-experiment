@@ -25,5 +25,5 @@ def test_dataset_detail_includes_lookback_evidence_fields_for_v2() -> None:
 
     response = service.get_dataset_detail(dataset_id="UNRATE", from_date=None, to_date=None)
     assert response["canonical_trend_descriptor"]["descriptor_version"] == "v2"
-    assert len(response["lookback_trend_snapshots"]) >= 1
-    assert "theil_sen_slope" in response["lookback_trend_snapshots"][0]
+    assert len(response["lookback_trend_evidence"]) >= 1
+    assert "theil_sen_slope" in response["lookback_trend_evidence"][0]

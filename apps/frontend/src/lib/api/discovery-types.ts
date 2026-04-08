@@ -58,7 +58,7 @@ export interface TrendRecentItem {
   source: SourceRef;
   title: string;
   direction: "up" | "down";
-  strength: string;
+  confidence_score: number | null;
   start_period: string;
   latest_update_at: string;
   action_links: {
@@ -108,33 +108,63 @@ export interface DatasetDetail {
   observations: ObservationPoint[];
   has_recent_notification?: boolean;
   canonical_trend_descriptor?: CanonicalTrendDescriptor;
-  lookback_trend_snapshots?: LookbackTrendSnapshot[];
+  lookback_trend_evidence?: LookbackTrendEvidence[];
   observation_sort: string;
 }
 
 export type LookbackPoints = 1 | 2 | 3 | 4 | 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 
 export interface CanonicalTrendDescriptor {
-  descriptor_version?: "v2";
+  descriptor_version: "v2";
   descriptor_state: "available" | "unavailable";
   trend_label: string | null;
   direction: "up" | "down" | "flat" | null;
-  confidence_score?: number | null;
-  dominant_measure_family?: "theil_sen" | "mixed" | "none";
-  strength: string | null;
+  confidence_score: number | null;
+  dominant_measure_family: "theil_sen" | "mixed" | "none";
   selected_lookback_points: LookbackPoints | null;
   observed_on: string | null;
   reason_code: string | null;
 }
 
-export interface LookbackTrendSnapshot {
+export interface TrendV2Preprocessing {
+  smoothing_method: "ewma" | "none";
+  smoothing_parameters: Record<string, unknown>;
+  seasonal_adjustment_method: "stl" | "mstl" | "none";
+  seasonal_periods: number[];
+  seasonal_reliability_state: "reliable" | "fallback_non_adjusted" | "not_applicable";
+  preprocess_version: string;
+}
+
+export interface TrendV2OlsDiagnostics {
+  slope: number | null;
+  intercept: number | null;
+  r_squared: number | null;
+  p_value: number | null;
+}
+
+export interface LookbackTrendEvidence {
   lookback_points: LookbackPoints;
   applicability_state: "applicable" | "inapplicable";
-  outcome_state: "significant_trend" | "no_significant_trend" | null;
+  descriptor_state: "available" | "unavailable";
   trend_label: string | null;
-  direction: "up" | "down" | null;
-  strength: string | null;
+  direction: "up" | "down" | "flat" | null;
+  confidence_score: number | null;
+  dominant_measure_family: "theil_sen" | "mixed" | "none" | null;
+  theil_sen_slope: number | null;
+  theil_sen_low_slope: number | null;
+  theil_sen_high_slope: number | null;
+  kendall_tau: number | null;
+  kendall_p_value: number | null;
+  preprocessing: TrendV2Preprocessing;
+  ols_diagnostics: TrendV2OlsDiagnostics;
   reason_code: string | null;
+}
+
+export interface DatasetAsOfTrendResponse {
+  dataset_id: string;
+  as_of_observed_on: string;
+  canonical_trend_descriptor: CanonicalTrendDescriptor;
+  lookback_trend_evidence: LookbackTrendEvidence[];
 }
 
 export interface DatasetSearchResponse {

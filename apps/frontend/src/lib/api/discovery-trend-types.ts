@@ -1,7 +1,7 @@
-import type { CanonicalTrendDescriptor, LookbackTrendSnapshot } from "./discovery-types";
+import type { CanonicalTrendDescriptor, LookbackTrendEvidence } from "./discovery-types";
 
 export type DatasetDetailTrendDescriptor = CanonicalTrendDescriptor;
-export type DatasetDetailLookbackSnapshot = LookbackTrendSnapshot;
+export type DatasetDetailLookbackSnapshot = LookbackTrendEvidence;
 
 export interface TrendFeedItem {
   item_type: "trend_event";
@@ -9,7 +9,7 @@ export interface TrendFeedItem {
   source: { id: string; name: string };
   title: string;
   direction: "up" | "down";
-  strength: string;
+  confidence_score: number | null;
   start_period: string;
   latest_update_at: string;
   action_links: {

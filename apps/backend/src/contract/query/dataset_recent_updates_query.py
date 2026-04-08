@@ -33,7 +33,7 @@ class TrendRecentItem(BaseModel):
     source: dict[str, str] = Field(default_factory=dict)
     title: str = Field(min_length=1)
     direction: str = Field(min_length=1)
-    strength: str = Field(min_length=1)
+    confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
     start_period: str = Field(min_length=1)
     latest_update_at: str = Field(min_length=1)
     action_links: DatasetRecentActionLinks

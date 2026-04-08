@@ -15,7 +15,7 @@ describe("TrendFeedItem", () => {
             source: { id: "bls", name: "BLS" },
             title: "Unemployment trend",
             direction: "down",
-            strength: "mild",
+            confidence_score: 0.55,
             start_period: "2026-03-01",
             latest_update_at: "2026-03-01",
             action_links: {

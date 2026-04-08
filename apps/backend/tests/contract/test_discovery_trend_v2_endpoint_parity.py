@@ -26,6 +26,10 @@ def test_discovery_endpoints_share_v2_canonical_shape() -> None:
     search_payload = service.search_datasets(query_text=None, page=1, page_size=10)
     recent_payload = service.list_recent_updates(limit=5)
     detail_payload = service.get_dataset_detail(dataset_id="UNRATE", from_date=None, to_date=None)
+    asof_payload = service.get_dataset_as_of_trend(
+        dataset_id="UNRATE",
+        as_of_observed_on="2026-03-01",
+    )
 
     assert search_payload["items"][0]["canonical_trend_descriptor"]["descriptor_version"] == "v2"
     dataset_updates = [
@@ -33,3 +37,5 @@ def test_discovery_endpoints_share_v2_canonical_shape() -> None:
     ]
     assert dataset_updates[0]["canonical_trend_descriptor"]["descriptor_version"] == "v2"
     assert detail_payload["canonical_trend_descriptor"]["descriptor_version"] == "v2"
+    assert asof_payload["canonical_trend_descriptor"]["descriptor_version"] == "v2"
+    assert len(asof_payload["lookback_trend_evidence"]) >= 1

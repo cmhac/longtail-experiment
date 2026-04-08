@@ -23,7 +23,6 @@ class SummaryCanonicalTrendDescriptor(BaseModel):
     direction: Literal["up", "down", "flat"] | None = None
     confidence_score: float | None = Field(default=None, ge=0.0, le=1.0)
     dominant_measure_family: Literal["theil_sen", "mixed", "none"] = "none"
-    strength: str | None = Field(default=None, min_length=1)
     selected_lookback_points: int | None = Field(default=None, ge=1)
     observed_on: str | None = Field(default=None, min_length=1)
     reason_code: str | None = Field(default=None, min_length=1)

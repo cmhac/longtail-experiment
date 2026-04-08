@@ -1,6 +1,7 @@
 import type {
   ApiErrorEnvelope,
   CanonicalTrendDescriptor,
+  DatasetAsOfTrendResponse,
   DatasetCatalogResponse,
   DatasetDetail,
   DatasetRecentUpdatesResponse,
@@ -101,7 +102,6 @@ const defaultCanonicalTrendDescriptor = (): CanonicalTrendDescriptor => ({
   direction: null,
   confidence_score: null,
   dominant_measure_family: "none",
-  strength: null,
   selected_lookback_points: null,
   observed_on: null,
   reason_code: "missing_canonical_descriptor",
@@ -114,7 +114,6 @@ const defaultObservationAsOfTrendDescriptor = (): CanonicalTrendDescriptor => ({
   direction: null,
   confidence_score: null,
   dominant_measure_family: "none",
-  strength: null,
   selected_lookback_points: null,
   observed_on: null,
   reason_code: "missing_observation_asof_descriptor",
@@ -128,22 +127,31 @@ const normalizeSummaryCanonicalTrendDescriptor = (
   }
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
+  const descriptorState =
+    state === "available" || state === "unavailable" ? state : "unavailable";
+  const confidenceCandidate =
+    typeof payload.confidence_score === "number" &&
+    Number.isFinite(payload.confidence_score) &&
+    payload.confidence_score >= 0 &&
+    payload.confidence_score <= 1
+      ? payload.confidence_score
+      : null;
   return {
     descriptor_version: payload.descriptor_version === "v2" ? "v2" : "v2",
-    descriptor_state: state === "available" || state === "unavailable" ? state : "unavailable",
+    descriptor_state: descriptorState,
     trend_label: typeof payload.trend_label === "string" ? payload.trend_label : null,
     direction:
-      payload.direction === "up" || payload.direction === "down" || payload.direction === "flat"
+      descriptorState === "available" &&
+      (payload.direction === "up" || payload.direction === "down" || payload.direction === "flat")
         ? payload.direction
         : null,
-    confidence_score: typeof payload.confidence_score === "number" ? payload.confidence_score : null,
+    confidence_score: descriptorState === "available" ? confidenceCandidate : null,
     dominant_measure_family:
       payload.dominant_measure_family === "theil_sen" ||
       payload.dominant_measure_family === "mixed" ||
       payload.dominant_measure_family === "none"
         ? payload.dominant_measure_family
         : "none",
-    strength: typeof payload.strength === "string" ? payload.strength : null,
     selected_lookback_points: isLookbackPoints(payload.selected_lookback_points)
       ? payload.selected_lookback_points
       : null,
@@ -158,22 +166,31 @@ const normalizeObservationAsOfTrendDescriptor = (descriptor: unknown): Canonical
   }
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
+  const descriptorState =
+    state === "available" || state === "unavailable" ? state : "unavailable";
+  const confidenceCandidate =
+    typeof payload.confidence_score === "number" &&
+    Number.isFinite(payload.confidence_score) &&
+    payload.confidence_score >= 0 &&
+    payload.confidence_score <= 1
+      ? payload.confidence_score
+      : null;
   return {
     descriptor_version: payload.descriptor_version === "v2" ? "v2" : "v2",
-    descriptor_state: state === "available" || state === "unavailable" ? state : "unavailable",
+    descriptor_state: descriptorState,
     trend_label: typeof payload.trend_label === "string" ? payload.trend_label : null,
     direction:
-      payload.direction === "up" || payload.direction === "down" || payload.direction === "flat"
+      descriptorState === "available" &&
+      (payload.direction === "up" || payload.direction === "down" || payload.direction === "flat")
         ? payload.direction
         : null,
-    confidence_score: typeof payload.confidence_score === "number" ? payload.confidence_score : null,
+    confidence_score: descriptorState === "available" ? confidenceCandidate : null,
     dominant_measure_family:
       payload.dominant_measure_family === "theil_sen" ||
       payload.dominant_measure_family === "mixed" ||
       payload.dominant_measure_family === "none"
         ? payload.dominant_measure_family
         : "none",
-    strength: typeof payload.strength === "string" ? payload.strength : null,
     selected_lookback_points: isLookbackPoints(payload.selected_lookback_points)
       ? payload.selected_lookback_points
       : null,
@@ -336,7 +353,26 @@ export const fetchDatasetDetail = async (datasetId: string): Promise<DatasetDeta
         observation.as_of_trend_descriptor,
       ),
     })),
-    lookback_trend_snapshots: payload.lookback_trend_snapshots ?? [],
+    lookback_trend_evidence: payload.lookback_trend_evidence ?? [],
+  };
+};
+
+export const fetchDatasetDetailAsOfTrend = async (
+  datasetId: string,
+  asOfObservedOn: string,
+): Promise<DatasetAsOfTrendResponse> => {
+  const response = await fetch(
+    createUrl(`/api/datasets/${encodeURIComponent(datasetId)}/observations/as-of`, {
+      as_of_observed_on: asOfObservedOn,
+    }),
+  );
+  const payload = await parseResponse<DatasetAsOfTrendResponse>(response);
+  return {
+    ...payload,
+    canonical_trend_descriptor: normalizeObservationAsOfTrendDescriptor(
+      payload.canonical_trend_descriptor,
+    ),
+    lookback_trend_evidence: payload.lookback_trend_evidence ?? [],
   };
 };
 

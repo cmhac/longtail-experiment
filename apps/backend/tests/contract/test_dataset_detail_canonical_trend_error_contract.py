@@ -25,8 +25,15 @@ def test_dataset_detail_invalid_canonical_payload_raises_contract_error() -> Non
         observations=observations,
         canonical_trends_by_dataset={
             "UNRATE": {
+                "descriptor_version": "v2",
                 "descriptor_state": "available",
                 "trend_label": "mild_sustained_downtrend",
+                "direction": "down",
+                "confidence_score": 0.81,
+                "selected_lookback_points": 25,
+                "observed_on": "2026-01-01",
+                "dominant_measure_family": "invalid-family",
+                "reason_code": None,
             }
         },
     )
@@ -44,7 +51,7 @@ def test_dataset_detail_invalid_canonical_payload_raises_contract_error() -> Non
         )
 
 
-def test_dataset_detail_invalid_lookback_snapshot_payload_raises_contract_error() -> None:
+def test_dataset_detail_invalid_lookback_evidence_payload_raises_contract_error() -> None:
     datasets, observations = build_discovery_rows()
     repository = InMemoryDatasetDiscoveryRepository(
         datasets=datasets,
@@ -56,7 +63,7 @@ def test_dataset_detail_invalid_lookback_snapshot_payload_raises_contract_error(
     service = DatasetDiscoveryService(repository)
 
     with pytest.raises(
-        ContractQueryError, match="dataset_detail_lookback_snapshot_payload_invalid"
+        ContractQueryError, match="dataset_detail_lookback_evidence_payload_invalid"
     ):
         execute_dataset_detail(
             service,

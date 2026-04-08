@@ -26,7 +26,7 @@ def test_recent_updates_contract_accepts_trend_event_items() -> None:
                 "source": {"id": "bls", "name": "BLS"},
                 "title": "Unemployment Trend",
                 "direction": "down",
-                "strength": "mild",
+                "confidence_score": 0.64,
                 "start_period": "2026-03-01",
             }
         ],

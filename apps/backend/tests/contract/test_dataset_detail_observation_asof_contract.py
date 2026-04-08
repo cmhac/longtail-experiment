@@ -47,7 +47,6 @@ def test_dataset_detail_observations_default_unavailable_asof_descriptor_when_mi
         "descriptor_version": "v2",
         "trend_label": None,
         "direction": None,
-        "strength": None,
         "dominant_measure_family": "none",
         "confidence_score": None,
         "selected_lookback_points": None,
@@ -60,8 +59,15 @@ def test_dataset_detail_invalid_observation_asof_payload_raises_contract_error()
     datasets, observations = build_discovery_rows()
     seeded_observations = [dict(observation) for observation in observations]
     seeded_observations[0]["as_of_trend_descriptor"] = {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
+        "direction": "down",
+        "confidence_score": 0.81,
+        "selected_lookback_points": 25,
+        "observed_on": "2026-01-01",
+        "dominant_measure_family": "invalid-family",
+        "reason_code": None,
     }
     repository = InMemoryDatasetDiscoveryRepository(
         datasets=datasets,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from copy import deepcopy
 from datetime import date, datetime
 from typing import Any, cast
 
@@ -61,12 +62,14 @@ class InMemoryDatasetDiscoveryRepository:
         if isinstance(payload, dict):
             return dict(payload)
         return {
+            "descriptor_version": "v2",
             "descriptor_state": "unavailable",
             "trend_label": None,
             "direction": None,
-            "strength": None,
+            "confidence_score": None,
             "selected_lookback_points": None,
             "observed_on": None,
+            "dominant_measure_family": "none",
             "reason_code": "missing_canonical_descriptor",
         }
 
@@ -349,9 +352,36 @@ class InMemoryDatasetDiscoveryRepository:
         payload = self._canonical_trends_by_dataset.get(dataset_id)
         return dict(payload) if isinstance(payload, dict) else None
 
-    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, Any]]:
-        """Return pre-seeded lookback snapshots for one dataset identifier."""
-        return list(self._lookback_snapshots_by_dataset.get(dataset_id, []))
+    def list_dataset_lookback_evidence(self, *, dataset_id: str) -> list[dict[str, Any]]:
+        """Return pre-seeded lookback evidence for one dataset identifier."""
+        return deepcopy(self._lookback_snapshots_by_dataset.get(dataset_id, []))
+
+    def get_canonical_descriptor_for_observed_on(
+        self,
+        *,
+        dataset_id: str,
+        observed_on: date,
+    ) -> dict[str, Any] | None:
+        payload = self._canonical_trends_by_dataset.get(dataset_id)
+        if not isinstance(payload, dict):
+            return None
+        if str(payload.get("observed_on", "")) != observed_on.isoformat():
+            return None
+        return deepcopy(payload)
+
+    def list_lookback_evidence_for_observed_on(
+        self,
+        *,
+        dataset_id: str,
+        observed_on: date,
+    ) -> list[dict[str, Any]]:
+        rows = self._lookback_snapshots_by_dataset.get(dataset_id, [])
+        return [
+            deepcopy(row)
+            for row in rows
+            if str(row.get("observed_on", observed_on.isoformat())) == observed_on.isoformat()
+            or "observed_on" not in row
+        ]
 
     def list_sources(self) -> list[dict[str, Any]]:
         """Return unique sources with dataset counts."""

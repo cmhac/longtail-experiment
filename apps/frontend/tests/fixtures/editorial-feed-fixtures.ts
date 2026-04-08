@@ -16,7 +16,7 @@ export const makeEditorialFeedItem = (index: number): DatasetRecentItem => {
       descriptor_state: "available",
       trend_label: "sustained_uptrend",
       direction: "up",
-      strength: "moderate",
+      confidence_score: 0.62,
       selected_lookback_points: 25,
       observed_on: "2026-03-01",
       reason_code: null,

@@ -73,25 +73,47 @@ class _PersistedDetailRepoStub:
     def get_latest_dataset_canonical_trend_descriptor(self, *, dataset_id: str):
         assert dataset_id == "INT.US.FEDFUNDS"
         return {
+            "descriptor_version": "v2",
             "descriptor_state": "available",
             "trend_label": "mild_sustained_downtrend",
             "direction": "down",
-            "strength": "mild",
+            "confidence_score": 0.64,
             "selected_lookback_points": 25,
             "observed_on": "2026-02-01",
+            "dominant_measure_family": "theil_sen",
             "reason_code": None,
         }
 
-    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str):
+    def list_dataset_lookback_evidence(self, *, dataset_id: str):
         assert dataset_id == "INT.US.FEDFUNDS"
         return [
             {
                 "lookback_points": 25,
                 "applicability_state": "applicable",
-                "outcome_state": "significant_trend",
+                "descriptor_state": "available",
                 "trend_label": "mild_sustained_downtrend",
                 "direction": "down",
-                "strength": "mild",
+                "confidence_score": 0.64,
+                "dominant_measure_family": "theil_sen",
+                "theil_sen_slope": -0.1,
+                "theil_sen_low_slope": -0.2,
+                "theil_sen_high_slope": -0.05,
+                "kendall_tau": -0.41,
+                "kendall_p_value": 0.01,
+                "preprocessing": {
+                    "smoothing_method": "none",
+                    "smoothing_parameters": {},
+                    "seasonal_adjustment_method": "none",
+                    "seasonal_periods": [],
+                    "seasonal_reliability_state": "not_applicable",
+                    "preprocess_version": "v2",
+                },
+                "ols_diagnostics": {
+                    "slope": -0.09,
+                    "intercept": 4.7,
+                    "r_squared": 0.55,
+                    "p_value": 0.02,
+                },
                 "reason_code": None,
             }
         ]
@@ -114,5 +136,5 @@ def test_detail_contract_uses_persisted_observations_and_sort_metadata() -> None
     assert payload["metadata"]["unit_type"] == "percent"
     assert payload["canonical_trend_descriptor"]["descriptor_state"] == "available"
     assert payload["has_recent_notification"] is True
-    assert payload["lookback_trend_snapshots"][0]["lookback_points"] == EXPECTED_LOOKBACK_POINTS
+    assert payload["lookback_trend_evidence"][0]["lookback_points"] == EXPECTED_LOOKBACK_POINTS
     assert payload["observation_sort"] == "observed_on_asc,reported_at_asc"

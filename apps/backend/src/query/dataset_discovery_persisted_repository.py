@@ -38,6 +38,24 @@ class PersistedDatasetDiscoveryRepository:
             return value.date().isoformat()
         return value.isoformat()
 
+    @staticmethod
+    def _optional_nonempty_text(value: object) -> str | None:
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        return normalized if normalized else None
+
+    @staticmethod
+    def _normalize_preprocessing_payload(value: object) -> dict[str, object]:
+        payload = dict(cast(dict[str, object], value or {}))
+        payload.setdefault("smoothing_method", "none")
+        payload.setdefault("smoothing_parameters", {})
+        payload.setdefault("seasonal_adjustment_method", "none")
+        payload.setdefault("seasonal_periods", [])
+        payload.setdefault("seasonal_reliability_state", "not_applicable")
+        payload.setdefault("preprocess_version", "v2")
+        return payload
+
     def _load_recent_notification_flags(self) -> dict[str, bool]:
         """Return dataset-level flags for notifications in latest observation window."""
         query = text(
@@ -93,13 +111,15 @@ class PersistedDatasetDiscoveryRepository:
             WITH ranked_descriptors AS (
                 SELECT
                     ds.series_key AS dataset_id,
+                    tcd.descriptor_version AS descriptor_version,
                     tcd.descriptor_state AS descriptor_state,
                     tcd.canonical_trend_label AS trend_label,
                     tcd.canonical_direction AS direction,
-                    tcd.canonical_strength AS strength,
+                    tcd.confidence_score AS confidence_score,
                     tcd.selected_lookback_points AS selected_lookback_points,
                     tcd.observed_on AS observed_on,
-                    tcd.weighting_trace ->> 'reason_code' AS reason_code,
+                    tcd.dominant_measure_family AS dominant_measure_family,
+                    tcd.reason_code AS reason_code,
                     ROW_NUMBER() OVER (
                         PARTITION BY ds.series_key
                         ORDER BY tcd.observed_on DESC, tcd.created_at DESC
@@ -109,12 +129,14 @@ class PersistedDatasetDiscoveryRepository:
             )
             SELECT
                 dataset_id,
+                descriptor_version,
                 descriptor_state,
                 trend_label,
                 direction,
-                strength,
+                confidence_score,
                 selected_lookback_points,
                 observed_on,
+                dominant_measure_family,
                 reason_code
             FROM ranked_descriptors
             WHERE descriptor_rank = 1
@@ -132,21 +154,21 @@ class PersistedDatasetDiscoveryRepository:
             else:
                 observed_on_value = str(observed_on) if observed_on is not None else None
             descriptors[dataset_id] = {
+                "descriptor_version": str(row["descriptor_version"]),
                 "descriptor_state": str(row["descriptor_state"]),
-                "trend_label": (
-                    str(row["trend_label"]) if row["trend_label"] is not None else None
-                ),
+                "trend_label": self._optional_nonempty_text(row["trend_label"]),
                 "direction": str(row["direction"]) if row["direction"] is not None else None,
-                "strength": str(row["strength"]) if row["strength"] is not None else None,
+                "confidence_score": (
+                    float(row["confidence_score"]) if row["confidence_score"] is not None else None
+                ),
                 "selected_lookback_points": (
                     int(row["selected_lookback_points"])
                     if row["selected_lookback_points"] is not None
                     else None
                 ),
                 "observed_on": observed_on_value,
-                "reason_code": (
-                    str(row["reason_code"]) if row["reason_code"] is not None else None
-                ),
+                "dominant_measure_family": str(row["dominant_measure_family"]),
+                "reason_code": self._optional_nonempty_text(row["reason_code"]),
             }
         return descriptors
 
@@ -253,12 +275,14 @@ class PersistedDatasetDiscoveryRepository:
                     "canonical_trend_descriptor": summary_descriptors.get(
                         str(row["dataset_id"]),
                         {
+                            "descriptor_version": "v2",
                             "descriptor_state": "unavailable",
                             "trend_label": None,
                             "direction": None,
-                            "strength": None,
+                            "confidence_score": None,
                             "selected_lookback_points": None,
                             "observed_on": None,
+                            "dominant_measure_family": "none",
                             "reason_code": "missing_canonical_descriptor",
                         },
                     ),
@@ -446,11 +470,14 @@ class PersistedDatasetDiscoveryRepository:
                 sp.title AS source_title,
                 ds.title AS title,
                 tr.direction AS direction,
-                tr.strength AS strength,
+                tcd.confidence_score AS confidence_score,
                 tr.start_period AS start_period
             FROM trend_records tr
             JOIN data_series ds ON ds.id = tr.data_series_id
             JOIN source_profiles sp ON sp.id = ds.source_profile_id
+            LEFT JOIN trend_canonical_descriptors tcd
+              ON tcd.data_series_id = tr.data_series_id
+             AND tcd.observed_on = tr.start_period
             ORDER BY tr.start_period DESC, ds.series_key ASC
             LIMIT :limit
             """
@@ -472,7 +499,11 @@ class PersistedDatasetDiscoveryRepository:
                     },
                     "title": str(row["title"]),
                     "direction": str(row["direction"]),
-                    "strength": str(row["strength"]),
+                    "confidence_score": (
+                        float(row["confidence_score"])
+                        if row["confidence_score"] is not None
+                        else None
+                    ),
                     "start_period": start_period,
                 }
             )
@@ -839,13 +870,15 @@ class PersistedDatasetDiscoveryRepository:
         query = text(
             """
             SELECT
+                tcd.descriptor_version AS descriptor_version,
                 tcd.descriptor_state AS descriptor_state,
                 tcd.canonical_trend_label AS trend_label,
                 tcd.canonical_direction AS direction,
-                tcd.canonical_strength AS strength,
+                tcd.confidence_score AS confidence_score,
                 tcd.selected_lookback_points AS selected_lookback_points,
                 tcd.observed_on AS observed_on,
-                tcd.weighting_trace ->> 'reason_code' AS reason_code
+                tcd.dominant_measure_family AS dominant_measure_family,
+                tcd.reason_code AS reason_code
             FROM trend_canonical_descriptors tcd
             JOIN data_series ds ON ds.id = tcd.data_series_id
             WHERE ds.series_key = :dataset_id
@@ -864,21 +897,25 @@ class PersistedDatasetDiscoveryRepository:
         else:
             observed_on_value = str(observed_on) if observed_on is not None else None
         return {
+            "descriptor_version": str(row["descriptor_version"]),
             "descriptor_state": str(row["descriptor_state"]),
-            "trend_label": (str(row["trend_label"]) if row["trend_label"] is not None else None),
+            "trend_label": self._optional_nonempty_text(row["trend_label"]),
             "direction": str(row["direction"]) if row["direction"] is not None else None,
-            "strength": str(row["strength"]) if row["strength"] is not None else None,
+            "confidence_score": (
+                float(row["confidence_score"]) if row["confidence_score"] is not None else None
+            ),
             "selected_lookback_points": (
                 int(row["selected_lookback_points"])
                 if row["selected_lookback_points"] is not None
                 else None
             ),
             "observed_on": observed_on_value,
-            "reason_code": (str(row["reason_code"]) if row["reason_code"] is not None else None),
+            "dominant_measure_family": str(row["dominant_measure_family"]),
+            "reason_code": self._optional_nonempty_text(row["reason_code"]),
         }
 
-    def list_dataset_lookback_trend_snapshots(self, *, dataset_id: str) -> list[dict[str, object]]:
-        """Return latest lookback evaluations and snapshots for dataset detail rendering."""
+    def list_dataset_lookback_evidence(self, *, dataset_id: str) -> list[dict[str, object]]:
+        """Return latest lookback evidence rows for dataset detail rendering."""
         query = text(
             """
             WITH latest_observation AS (
@@ -894,10 +931,23 @@ class PersistedDatasetDiscoveryRepository:
             SELECT
                 tle.lookback_points AS lookback_points,
                 tle.applicability_state AS applicability_state,
-                tls.outcome_state AS outcome_state,
+                COALESCE(tls.descriptor_state, 'unavailable') AS descriptor_state,
                 tls.trend_label AS trend_label,
                 tls.direction AS direction,
-                tls.strength AS strength,
+                tls.confidence_score AS confidence_score,
+                tls.dominant_measure_family AS dominant_measure_family,
+                tls.theil_sen_slope AS theil_sen_slope,
+                tls.theil_sen_low_slope AS theil_sen_low_slope,
+                tls.theil_sen_high_slope AS theil_sen_high_slope,
+                tls.kendall_tau AS kendall_tau,
+                tls.kendall_pvalue AS kendall_p_value,
+                COALESCE(tls.preprocessing, '{}'::jsonb) AS preprocessing,
+                jsonb_build_object(
+                    'slope', tls.ols_slope,
+                    'intercept', tls.ols_intercept,
+                    'r_squared', tls.ols_r_squared,
+                    'p_value', tls.ols_pvalue
+                ) AS ols_diagnostics,
                 tle.reason_code AS reason_code
             FROM trend_lookback_evaluations tle
             JOIN latest_observation lo
@@ -917,17 +967,39 @@ class PersistedDatasetDiscoveryRepository:
             {
                 "lookback_points": int(row["lookback_points"]),
                 "applicability_state": str(row["applicability_state"]),
-                "outcome_state": (
-                    str(row["outcome_state"]) if row["outcome_state"] is not None else None
-                ),
-                "trend_label": (
-                    str(row["trend_label"]) if row["trend_label"] is not None else None
-                ),
+                "descriptor_state": str(row["descriptor_state"]),
+                "trend_label": self._optional_nonempty_text(row["trend_label"]),
                 "direction": str(row["direction"]) if row["direction"] is not None else None,
-                "strength": str(row["strength"]) if row["strength"] is not None else None,
-                "reason_code": (
-                    str(row["reason_code"]) if row["reason_code"] is not None else None
+                "confidence_score": (
+                    float(row["confidence_score"]) if row["confidence_score"] is not None else None
                 ),
+                "dominant_measure_family": (
+                    str(row["dominant_measure_family"])
+                    if row["dominant_measure_family"] is not None
+                    else "none"
+                ),
+                "theil_sen_slope": (
+                    float(row["theil_sen_slope"]) if row["theil_sen_slope"] is not None else None
+                ),
+                "theil_sen_low_slope": (
+                    float(row["theil_sen_low_slope"])
+                    if row["theil_sen_low_slope"] is not None
+                    else None
+                ),
+                "theil_sen_high_slope": (
+                    float(row["theil_sen_high_slope"])
+                    if row["theil_sen_high_slope"] is not None
+                    else None
+                ),
+                "kendall_tau": (
+                    float(row["kendall_tau"]) if row["kendall_tau"] is not None else None
+                ),
+                "kendall_p_value": (
+                    float(row["kendall_p_value"]) if row["kendall_p_value"] is not None else None
+                ),
+                "preprocessing": self._normalize_preprocessing_payload(row["preprocessing"]),
+                "ols_diagnostics": dict(cast(dict[str, object], row["ols_diagnostics"] or {})),
+                "reason_code": self._optional_nonempty_text(row["reason_code"]),
             }
             for row in rows
         ]
@@ -968,12 +1040,14 @@ class PersistedDatasetDiscoveryRepository:
                 tcd.observed_on AS candidate_observed_on,
                 candidate_observation.reported_at AS candidate_reported_at,
                 tcd.created_at AS candidate_created_at,
+                tcd.descriptor_version AS descriptor_version,
                 tcd.descriptor_state AS descriptor_state,
                 tcd.canonical_trend_label AS trend_label,
                 tcd.canonical_direction AS direction,
-                tcd.canonical_strength AS strength,
+                tcd.confidence_score AS confidence_score,
                 tcd.selected_lookback_points AS selected_lookback_points,
-                tcd.weighting_trace ->> 'reason_code' AS reason_code
+                tcd.dominant_measure_family AS dominant_measure_family,
+                tcd.reason_code AS reason_code
             FROM trend_canonical_descriptors tcd
             JOIN data_series ds ON ds.id = tcd.data_series_id
                         LEFT JOIN observations candidate_observation
@@ -1023,20 +1097,17 @@ class PersistedDatasetDiscoveryRepository:
 
             candidates_by_observed_on[observed_on_value].append(
                 {
+                    "descriptor_version": str(candidate_row["descriptor_version"]),
                     "descriptor_state": str(candidate_row["descriptor_state"]),
-                    "trend_label": (
-                        str(candidate_row["trend_label"])
-                        if candidate_row["trend_label"] is not None
-                        else None
-                    ),
+                    "trend_label": self._optional_nonempty_text(candidate_row["trend_label"]),
                     "direction": (
                         str(candidate_row["direction"])
                         if candidate_row["direction"] is not None
                         else None
                     ),
-                    "strength": (
-                        str(candidate_row["strength"])
-                        if candidate_row["strength"] is not None
+                    "confidence_score": (
+                        float(candidate_row["confidence_score"])
+                        if candidate_row["confidence_score"] is not None
                         else None
                     ),
                     "selected_lookback_points": (
@@ -1045,11 +1116,12 @@ class PersistedDatasetDiscoveryRepository:
                         else None
                     ),
                     "observed_on": observed_on_value,
-                    "reason_code": (
-                        str(candidate_row["reason_code"])
-                        if candidate_row["reason_code"] is not None
-                        else None
+                    "dominant_measure_family": (
+                        str(candidate_row["dominant_measure_family"])
+                        if candidate_row["dominant_measure_family"] is not None
+                        else "none"
                     ),
+                    "reason_code": self._optional_nonempty_text(candidate_row["reason_code"]),
                     "_candidate_reported_at": self._iso_datetime(
                         cast(datetime | None, candidate_row["candidate_reported_at"])
                     )
@@ -1106,6 +1178,165 @@ class PersistedDatasetDiscoveryRepository:
                 }
             )
         return projected
+
+    def get_canonical_descriptor_for_observed_on(
+        self,
+        *,
+        dataset_id: str,
+        observed_on: date,
+    ) -> dict[str, object] | None:
+        """Return canonical descriptor for one dataset and as-of observed date."""
+        query = text(
+            """
+            SELECT
+                tcd.descriptor_version AS descriptor_version,
+                tcd.descriptor_state AS descriptor_state,
+                tcd.canonical_trend_label AS trend_label,
+                tcd.canonical_direction AS direction,
+                tcd.confidence_score AS confidence_score,
+                tcd.selected_lookback_points AS selected_lookback_points,
+                tcd.observed_on AS observed_on,
+                tcd.dominant_measure_family AS dominant_measure_family,
+                tcd.reason_code AS reason_code
+            FROM trend_canonical_descriptors tcd
+            JOIN data_series ds ON ds.id = tcd.data_series_id
+            WHERE ds.series_key = :dataset_id
+              AND tcd.observed_on = CAST(:observed_on AS date)
+            ORDER BY tcd.created_at DESC
+            LIMIT 1
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = (
+                connection.execute(
+                    query,
+                    {"dataset_id": dataset_id, "observed_on": observed_on},
+                )
+                .mappings()
+                .all()
+            )
+
+        if not rows:
+            return None
+        row = rows[0]
+        return {
+            "descriptor_version": str(row["descriptor_version"]),
+            "descriptor_state": str(row["descriptor_state"]),
+            "trend_label": self._optional_nonempty_text(row["trend_label"]),
+            "direction": str(row["direction"]) if row["direction"] is not None else None,
+            "confidence_score": (
+                float(row["confidence_score"]) if row["confidence_score"] is not None else None
+            ),
+            "selected_lookback_points": (
+                int(row["selected_lookback_points"])
+                if row["selected_lookback_points"] is not None
+                else None
+            ),
+            "observed_on": self._iso_date(cast(date | datetime | None, row["observed_on"])),
+            "dominant_measure_family": str(row["dominant_measure_family"]),
+            "reason_code": self._optional_nonempty_text(row["reason_code"]),
+        }
+
+    def list_lookback_evidence_for_observed_on(
+        self,
+        *,
+        dataset_id: str,
+        observed_on: date,
+    ) -> list[dict[str, object]]:
+        """Return lookback evidence rows for one dataset and as-of observed date."""
+        query = text(
+            """
+            WITH target_observation AS (
+                SELECT tcd.data_series_id, tcd.observation_id
+                FROM trend_canonical_descriptors tcd
+                JOIN data_series ds ON ds.id = tcd.data_series_id
+                WHERE ds.series_key = :dataset_id
+                  AND tcd.observed_on = CAST(:observed_on AS date)
+                ORDER BY tcd.created_at DESC
+                LIMIT 1
+            )
+            SELECT
+                tle.lookback_points AS lookback_points,
+                tle.applicability_state AS applicability_state,
+                COALESCE(tls.descriptor_state, 'unavailable') AS descriptor_state,
+                tls.trend_label AS trend_label,
+                tls.direction AS direction,
+                tls.confidence_score AS confidence_score,
+                tls.dominant_measure_family AS dominant_measure_family,
+                tls.theil_sen_slope AS theil_sen_slope,
+                tls.theil_sen_low_slope AS theil_sen_low_slope,
+                tls.theil_sen_high_slope AS theil_sen_high_slope,
+                tls.kendall_tau AS kendall_tau,
+                tls.kendall_pvalue AS kendall_p_value,
+                COALESCE(tls.preprocessing, '{}'::jsonb) AS preprocessing,
+                jsonb_build_object(
+                    'slope', tls.ols_slope,
+                    'intercept', tls.ols_intercept,
+                    'r_squared', tls.ols_r_squared,
+                    'p_value', tls.ols_pvalue
+                ) AS ols_diagnostics,
+                tle.reason_code AS reason_code
+            FROM trend_lookback_evaluations tle
+            JOIN target_observation target
+              ON target.data_series_id = tle.data_series_id
+             AND target.observation_id = tle.observation_id
+            LEFT JOIN trend_lookback_snapshots tls
+              ON tls.data_series_id = tle.data_series_id
+             AND tls.observation_id = tle.observation_id
+             AND tls.lookback_points = tle.lookback_points
+            ORDER BY tle.lookback_points ASC
+            """
+        )
+        with self._engine.connect() as connection:
+            rows = (
+                connection.execute(
+                    query,
+                    {"dataset_id": dataset_id, "observed_on": observed_on},
+                )
+                .mappings()
+                .all()
+            )
+
+        return [
+            {
+                "lookback_points": int(row["lookback_points"]),
+                "applicability_state": str(row["applicability_state"]),
+                "descriptor_state": str(row["descriptor_state"]),
+                "trend_label": self._optional_nonempty_text(row["trend_label"]),
+                "direction": str(row["direction"]) if row["direction"] is not None else None,
+                "confidence_score": (
+                    float(row["confidence_score"]) if row["confidence_score"] is not None else None
+                ),
+                "dominant_measure_family": (
+                    str(row["dominant_measure_family"])
+                    if row["dominant_measure_family"] is not None
+                    else "none"
+                ),
+                "theil_sen_slope": (
+                    float(row["theil_sen_slope"]) if row["theil_sen_slope"] is not None else None
+                ),
+                "theil_sen_low_slope": (
+                    float(row["theil_sen_low_slope"])
+                    if row["theil_sen_low_slope"] is not None
+                    else None
+                ),
+                "theil_sen_high_slope": (
+                    float(row["theil_sen_high_slope"])
+                    if row["theil_sen_high_slope"] is not None
+                    else None
+                ),
+                "kendall_tau": (
+                    float(row["kendall_tau"]) if row["kendall_tau"] is not None else None
+                ),
+                "kendall_p_value": (
+                    float(row["kendall_p_value"]) if row["kendall_p_value"] is not None else None
+                ),
+                "preprocessing": self._normalize_preprocessing_payload(row["preprocessing"]),
+                "ols_diagnostics": dict(cast(dict[str, object], row["ols_diagnostics"] or {})),
+                "reason_code": self._optional_nonempty_text(row["reason_code"]),
+            }
+            for row in rows
+        ]
 
     def group_catalog_by_source(self, rows: list[dict[str, object]]) -> list[dict[str, object]]:
         """Group catalog rows by source for grouped catalog responses."""
