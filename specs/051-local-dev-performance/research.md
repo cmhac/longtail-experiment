@@ -48,3 +48,65 @@
   - Introduce a new detail endpoint contract for performance mode: rejected due to unnecessary migration complexity.
 
 No unresolved technical clarifications remain for planning.
+
+## Baseline Measurement Notes (Template + Captured Sample)
+
+### Representative fixed sample (exactly 9 datasets)
+
+- Small history (3)
+  - `LABOR.US.NYFED.RECENT_COLLEGE_GRAD_UNEMPLOYMENT` (~432 observations)
+  - `LABOR.US.NYFED.RECENT_COLLEGE_GRAD_UNDEREMPLOYMENT` (~432 observations)
+  - `INT.US.FEDFUNDS` (~861 observations)
+- Medium history (3)
+  - `ENERGY.US.RETAIL_GASOLINE.SCA` (~1351 observations)
+  - `ENERGY.US.ONHIGHWAY_DIESEL.SCA` (~1606 observations)
+  - `ENERGY.US.ONHIGHWAY_DIESEL.R50` (~1673 observations)
+- Large history (3)
+  - `ENERGY.US.RETAIL_GASOLINE.R40` (~1770 observations)
+  - `ENERGY.US.RETAIL_GASOLINE.NUS` (~1854 observations)
+  - `ENERGY.US.GASREGW` (~1854 observations)
+
+### Baseline note template
+
+| Dataset ID | Size Bucket | Run Type | Samples | Median (ms) | P95 (ms) | Observation Count | Notes |
+|------------|-------------|----------|---------|-------------|----------|-------------------|-------|
+| `<dataset_id>` | small/medium/large | baseline/after | `10` | `<value>` | `<value>` | `<value>` | `<notes>` |
+
+## US1 Evidence (Detail metadata path optimization)
+
+- Repository detail lookup now uses dataset-scoped SQL (`WHERE ds.series_key = :dataset_id`) in `get_dataset_detail` instead of loading/scanning full catalog rows.
+- Local post-change timing sample (10 calls each):
+
+| Dataset ID | Size Bucket | Run Type | Samples | Median (ms) | P95 (ms) | Observation Count | Notes |
+|------------|-------------|----------|---------|-------------|----------|-------------------|-------|
+| `ENERGY.US.ONHIGHWAY_DIESEL.SCA` | medium | after | 10 | 436.57 | 508.83 | 1606 | `observation_sort` preserved (`observed_on_asc,reported_at_asc`) |
+| `ENERGY.US.ONHIGHWAY_DIESEL.R50` | medium | after | 10 | 406.82 | 449.15 | 1673 | contract shape unchanged |
+
+## US2 Evidence (As-of candidate path invariants)
+
+- Candidate assembly is now scoped by observation id in SQL and keyed by `observation_id` in repository mapping to avoid cross-observation in-memory filtering.
+- Contract/integration checks confirm:
+  - as-of candidate selection still picks the latest valid candidate per observation,
+  - canonical descriptor payload shape remains unchanged,
+  - lookback evidence semantics remain unchanged.
+
+## US3 Evidence (Runtime overhead stability)
+
+- HTTP server startup now caches expected Alembic head resolution once (`_cached_expected_revision`) and reuses a shared schema-checked engine builder (`_make_checked_engine`) across discovery/auth/notification services.
+- Safety behavior is preserved (schema readiness checks still execute before service initialization).
+
+## SC-004 Error-Rate/Behavior Parity Results
+
+| Surface | Before | After | Result |
+|---------|--------|-------|--------|
+| Dataset detail not found (`dataset_not_found`) | expected 404 | observed 404 | PASS |
+| Detail invalid request validation | expected 400 | observed 400 | PASS |
+| Detail page client error fallback | expected `ErrorState` render | observed unchanged | PASS |
+| Catalog/search/source/topic/geography routes | no contract regressions | no contract regressions | PASS |
+
+## Stop-Gate Execution Log
+
+- Pre-commit gate: `uvx pre-commit run --all-files` -> PASS
+  - Note: plain `pre-commit run --all-files` was unavailable in this shell (`pre-commit: command not found`), so `uvx` was used to execute the same hook set.
+- Full test gate: `pnpm exec nx run-many -t test --all` -> PASS
+- Full coverage gate: `pnpm exec nx run-many -t coverage --all` -> PASS

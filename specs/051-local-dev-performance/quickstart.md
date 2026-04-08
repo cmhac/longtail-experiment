@@ -22,6 +22,22 @@
    - related endpoint spot-checks (catalog/search/source/topic/geography).
 3. Record baseline data in feature notes for SC-001/SC-002/SC-003 comparison.
 
+### Repeatable timing capture helper
+
+- Use this command to gather comparable local timings for one dataset detail endpoint:
+  `python3 - <<'PY'\nimport json,time,urllib.request\nbase='http://127.0.0.1:18081'\ndataset_id='ENERGY.US.ONHIGHWAY_DIESEL.SCA'\nsamples=[]\nfor _ in range(10):\n    start=time.perf_counter()\n    with urllib.request.urlopen(f"{base}/api/datasets/{dataset_id}", timeout=10) as r:\n        payload=json.loads(r.read().decode())\n    samples.append((time.perf_counter()-start)*1000)\nsamples.sort()\nprint({'dataset_id':dataset_id,'median_ms':round(samples[len(samples)//2],2),'p95_ms':round(samples[int(len(samples)*0.95)-1],2),'sample_count':len(samples),'obs_count':len(payload.get('observations',[]))})\nPY`
+
+### Backend detail-path verification commands
+
+1. `uv run --project apps/backend pytest --no-cov apps/backend/tests/contract/test_dataset_detail_targeted_metadata_contract.py`
+2. `uv run --project apps/backend pytest --no-cov apps/backend/tests/contract/test_dataset_detail_scope_scaling_contract.py`
+3. `uv run --project apps/backend pytest --no-cov apps/backend/tests/integration/test_dataset_detail_local_runtime_latency.py apps/backend/tests/integration/test_dataset_detail_local_latency_improvement.py`
+
+### Frontend detail-page verification commands
+
+1. `pnpm --dir apps/frontend test tests/app/dataset-detail-local-load.test.tsx`
+2. `pnpm --dir apps/frontend test tests/app/dataset-detail-trend-error-state.test.tsx`
+
 ## 3. Red/green implementation sequence
 
 1. Add failing backend tests for dataset detail retrieval scope and behavioral invariants.
@@ -51,3 +67,14 @@ All commands must pass before commit or handoff.
 - Verified local detail-page timing improvements aligned to success criteria.
 - Passing backend and frontend automated tests covering changed behavior.
 - No regressions in related discovery endpoint behavior.
+
+## 7. End-to-end verification runbook
+
+1. Restart stack: `docker compose down && docker compose up -d`
+2. Check readiness: `docker compose ps`
+3. Validate backend health: `python3 - <<'PY'\nimport urllib.request\nprint(urllib.request.urlopen('http://127.0.0.1:18081/api/health', timeout=10).read().decode())\nPY`
+4. Capture detail timings using the repeatable helper for at least two datasets.
+5. Run stop gates in order:
+   - `pre-commit run --all-files`
+   - `pnpm exec nx run-many -t test --all`
+   - `pnpm exec nx run-many -t coverage --all`

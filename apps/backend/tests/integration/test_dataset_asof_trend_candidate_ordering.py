@@ -54,6 +54,7 @@ class _FakeConnection:
             return _FakeResult(
                 [
                     {
+                        "observation_id": 101,
                         "candidate_observed_on": "2026-02-01",
                         "candidate_reported_at": "2026-02-20T00:00:00Z",
                         "candidate_created_at": "2026-02-21T00:00:00Z",
@@ -67,6 +68,21 @@ class _FakeConnection:
                         "reason_code": None,
                     },
                     {
+                        "observation_id": 100,
+                        "candidate_observed_on": "2026-02-01",
+                        "candidate_reported_at": "2026-02-10T00:00:00Z",
+                        "candidate_created_at": "2026-02-11T00:00:00Z",
+                        "descriptor_version": "v2",
+                        "descriptor_state": "available",
+                        "trend_label": "mild_sustained_downtrend",
+                        "direction": "down",
+                        "confidence_score": 0.64,
+                        "selected_lookback_points": 25,
+                        "dominant_measure_family": "theil_sen",
+                        "reason_code": None,
+                    },
+                    {
+                        "observation_id": 101,
                         "candidate_observed_on": "2026-02-01",
                         "candidate_reported_at": "2026-02-10T00:00:00Z",
                         "candidate_created_at": "2026-02-11T00:00:00Z",

@@ -23,10 +23,12 @@ describe("dataset detail trend payload error state", () => {
     vi.spyOn(discoveryClient, "fetchDatasetDetail").mockResolvedValue(
       buildDatasetDetailFixture({
         canonical_trend_descriptor: {
+          descriptor_version: "v2",
           descriptor_state: "unavailable",
           trend_label: null,
           direction: null,
           confidence_score: null,
+          dominant_measure_family: "none",
           selected_lookback_points: null,
           observed_on: null,
           reason_code: "no_applicable_lookbacks",
@@ -41,5 +43,17 @@ describe("dataset detail trend payload error state", () => {
     expect(markup).toContain('data-testid="observations-chart"');
     expect(markup).toContain('data-testid="dataset-detail-trend-indicator"');
     expect(markup).toContain('data-state="unavailable"');
+  });
+
+  it("preserves error-state parity for server-side detail failures", async () => {
+    vi.spyOn(discoveryClient, "fetchDatasetDetail").mockRejectedValue({
+      status: 500,
+      code: "internal_error",
+    });
+
+    const element = await DatasetDetailPage({ params: Promise.resolve({ id: "UNRATE" }) });
+    const markup = renderMarkup(element);
+
+    expect(markup).toContain("Unable to load data. Please try again.");
   });
 });

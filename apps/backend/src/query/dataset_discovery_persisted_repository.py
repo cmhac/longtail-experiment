@@ -302,6 +302,43 @@ class PersistedDatasetDiscoveryRepository:
             )
         return projected
 
+    def _load_recent_notification_flag_for_dataset(self, *, dataset_id: str) -> bool:
+        """Return notification flag for one dataset id."""
+        query = text(
+            """
+            WITH target_series AS (
+                SELECT id
+                FROM data_series
+                WHERE series_key = :dataset_id
+                LIMIT 1
+            ),
+            recent_observation_window AS (
+                SELECT o.observed_on
+                FROM observations o
+                JOIN target_series ts ON ts.id = o.series_id
+                ORDER BY o.observed_on DESC, o.reported_at DESC, o.id DESC
+                LIMIT 3
+            )
+            SELECT EXISTS (
+                SELECT 1
+                FROM user_trend_notifications utn
+                JOIN trend_change_events tce ON tce.id = utn.event_id
+                JOIN target_series ts ON ts.id = utn.data_series_id
+                WHERE utn.channel = 'in_app'
+                  AND utn.delivery_status = 'delivered'
+                  AND tce.visibility_classification = 'user_visible'
+                  AND tce.effective_observed_on IN (
+                      SELECT observed_on FROM recent_observation_window
+                  )
+            ) AS has_recent_notification
+            """
+        )
+        with self._engine.connect() as connection:
+            row = connection.execute(query, {"dataset_id": dataset_id}).mappings().one_or_none()
+        if row is None:
+            return False
+        return bool(row["has_recent_notification"])
+
     def _group_rows_by_source(
         self, rows: list[dict[str, object]]
     ) -> dict[tuple[str, str, str], list[dict[str, object]]]:
@@ -857,11 +894,95 @@ class PersistedDatasetDiscoveryRepository:
 
     def get_dataset_detail(self, *, dataset_id: str) -> dict[str, object] | None:
         """Return one dataset metadata payload by canonical dataset id."""
-        rows = self._load_dataset_rows()
-        for row in rows:
-            if str(row.get("dataset_id", "")) == dataset_id:
-                return row
-        return None
+        query = text(
+            """
+            SELECT
+                ds.series_key AS dataset_id,
+                sp.source_key AS source_key,
+                sp.source_name AS source_name,
+                sp.title AS source_title,
+                sp.description AS source_description,
+                sp.source_type AS source_type,
+                ds.metric_name AS metric_name,
+                ds.title AS title,
+                ds.description AS description,
+                ds.geographic_scope AS geographic_scope,
+                COALESCE(
+                    ARRAY_AGG(DISTINCT tt.tag_name ORDER BY tt.tag_name)
+                        FILTER (WHERE tt.tag_name IS NOT NULL),
+                    ARRAY[]::text[]
+                ) AS topic_tags,
+                MAX(o.reported_at) AS latest_update_at
+            FROM data_series ds
+            JOIN source_profiles sp ON sp.id = ds.source_profile_id
+            LEFT JOIN data_series_topic_tags dstt ON dstt.data_series_id = ds.id
+            LEFT JOIN topic_tags tt ON tt.id = dstt.topic_tag_id
+            LEFT JOIN observations o ON o.series_id = ds.id
+            WHERE ds.series_key = :dataset_id
+            GROUP BY
+                ds.id,
+                ds.series_key,
+                sp.source_key,
+                sp.source_name,
+                sp.title,
+                sp.description,
+                sp.source_type,
+                ds.metric_name,
+                ds.title,
+                ds.description,
+                ds.geographic_scope
+            """
+        )
+        with self._engine.connect() as connection:
+            row = connection.execute(query, {"dataset_id": dataset_id}).mappings().one_or_none()
+        if row is None:
+            return None
+
+        source_key = str(row["source_key"])
+        source_title = str(row["source_title"])
+        canonical_descriptor = self.get_latest_dataset_canonical_trend_descriptor(
+            dataset_id=dataset_id
+        )
+        return {
+            "dataset_id": str(row["dataset_id"]),
+            "source": {
+                "id": source_key,
+                "name": source_title,
+            },
+            "title": str(row["title"]),
+            "description": str(row["description"]) if row["description"] is not None else None,
+            "geographic_scope": (
+                str(row["geographic_scope"]) if row["geographic_scope"] is not None else None
+            ),
+            "topic_tags": [str(tag) for tag in (row["topic_tags"] or [])],
+            "latest_update_at": self._iso_datetime(row["latest_update_at"]),
+            "canonical_trend_descriptor": (
+                canonical_descriptor
+                if canonical_descriptor is not None
+                else {
+                    "descriptor_version": "v2",
+                    "descriptor_state": "unavailable",
+                    "trend_label": None,
+                    "direction": None,
+                    "confidence_score": None,
+                    "selected_lookback_points": None,
+                    "observed_on": None,
+                    "dominant_measure_family": "none",
+                    "reason_code": "missing_canonical_descriptor",
+                }
+            ),
+            "has_recent_notification": self._load_recent_notification_flag_for_dataset(
+                dataset_id=dataset_id
+            ),
+            "metadata": {
+                "metric_name": str(row["metric_name"]),
+                "source_key": source_key,
+                "source_name": str(row["source_name"]),
+                "source_title": source_title,
+                "source_description": str(row["source_description"]),
+                "source_type": str(row["source_type"]),
+            },
+        }
 
     def get_latest_dataset_canonical_trend_descriptor(
         self, *, dataset_id: str
@@ -1037,6 +1158,7 @@ class PersistedDatasetDiscoveryRepository:
         candidate_query = text(
             """
             SELECT
+                o.id AS observation_id,
                 tcd.observed_on AS candidate_observed_on,
                 candidate_observation.reported_at AS candidate_reported_at,
                 tcd.created_at AS candidate_created_at,
@@ -1050,18 +1172,25 @@ class PersistedDatasetDiscoveryRepository:
                 tcd.reason_code AS reason_code
             FROM trend_canonical_descriptors tcd
             JOIN data_series ds ON ds.id = tcd.data_series_id
-                        LEFT JOIN observations candidate_observation
-                                ON candidate_observation.id = tcd.observation_id
+            JOIN observations o ON o.series_id = ds.id
+            LEFT JOIN observations candidate_observation
+                ON candidate_observation.id = tcd.observation_id
             WHERE ds.series_key = :dataset_id
-                            AND (
-                                CAST(:from_date AS date) IS NULL
-                                OR tcd.observed_on >= CAST(:from_date AS date)
-                            )
-                            AND (
-                                CAST(:to_date AS date) IS NULL
-                                OR tcd.observed_on <= CAST(:to_date AS date)
-                            )
+              AND tcd.observed_on = o.observed_on
+              AND (
+                  candidate_observation.reported_at IS NULL
+                  OR candidate_observation.reported_at <= o.reported_at
+              )
+              AND (
+                  CAST(:from_date AS date) IS NULL
+                  OR o.observed_on >= CAST(:from_date AS date)
+              )
+              AND (
+                  CAST(:to_date AS date) IS NULL
+                  OR o.observed_on <= CAST(:to_date AS date)
+              )
             ORDER BY
+                o.id ASC,
                 tcd.observed_on ASC,
                 candidate_observation.reported_at DESC NULLS LAST,
                 tcd.created_at DESC
@@ -1081,8 +1210,9 @@ class PersistedDatasetDiscoveryRepository:
                 .all()
             )
 
-        candidates_by_observed_on: dict[str, list[dict[str, object]]] = defaultdict(list)
+        candidates_by_observation_id: dict[int, list[dict[str, object]]] = defaultdict(list)
         for candidate_row in candidate_rows:
+            observation_id = int(candidate_row["observation_id"])
             candidate_observed_on = candidate_row["candidate_observed_on"]
             if isinstance(candidate_observed_on, (date, datetime)):
                 observed_on_value = self._iso_date(
@@ -1095,7 +1225,7 @@ class PersistedDatasetDiscoveryRepository:
             if observed_on_value is None:
                 continue
 
-            candidates_by_observed_on[observed_on_value].append(
+            candidates_by_observation_id[observation_id].append(
                 {
                     "descriptor_version": str(candidate_row["descriptor_version"]),
                     "descriptor_state": str(candidate_row["descriptor_state"]),
@@ -1157,17 +1287,8 @@ class PersistedDatasetDiscoveryRepository:
                 if isinstance(reported_at_value, datetime)
                 else str(reported_at_value)
             )
-            observation_reported_at_key = str(observation_reported_at or "")
-            candidate_pool = candidates_by_observed_on.get(observed_on_value, [])
-            observation_candidates = [
-                candidate
-                for candidate in candidate_pool
-                if (
-                    candidate.get("_candidate_reported_at") is None
-                    or str(candidate.get("_candidate_reported_at") or "")
-                    <= observation_reported_at_key
-                )
-            ]
+            observation_id = int(row["id"])
+            observation_candidates = candidates_by_observation_id.get(observation_id, [])
             projected.append(
                 {
                     "observed_on": observed_on_value,

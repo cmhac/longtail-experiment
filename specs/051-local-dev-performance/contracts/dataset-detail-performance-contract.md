@@ -41,3 +41,11 @@ Behavioral and non-functional contract for existing dataset detail and related d
 - Baseline and post-change measurement log for dataset detail page loads.
 - Automated test results covering detail contract and adjacent endpoint regression.
 - Local runtime verification notes from unified Docker Compose environment.
+
+## Contract Invariants Checklist
+
+- [x] Dataset detail response shape remains compatible with existing frontend consumers.
+- [x] Dataset-not-found and invalid-request behavior remains unchanged.
+- [x] Canonical descriptor and lookback evidence semantics remain unchanged.
+- [x] Observation ordering semantics remain `observed_on_asc,reported_at_asc`.
+- [x] No regressions in catalog/search/source/topic/geography endpoint behavior.

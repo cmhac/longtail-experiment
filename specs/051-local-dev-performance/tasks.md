@@ -11,11 +11,11 @@
 
 **Purpose**: Establish measurement and validation scaffolding used by all stories.
 
-- [ ] T001 Create local detail performance sample dataset list and baseline note template in `specs/051-local-dev-performance/research.md`
-- [ ] T002 Add repeatable local timing capture helper notes in `specs/051-local-dev-performance/quickstart.md`
-- [ ] T003 [P] Add backend detail-path verification command list to `specs/051-local-dev-performance/quickstart.md`
-- [ ] T004 [P] Add frontend detail-page verification command list to `specs/051-local-dev-performance/quickstart.md`
-- [ ] T005 [P] Confirm contract invariants checklist in `specs/051-local-dev-performance/contracts/dataset-detail-performance-contract.md`
+- [X] T001 Create local detail performance sample dataset list and baseline note template in `specs/051-local-dev-performance/research.md`
+- [X] T002 Add repeatable local timing capture helper notes in `specs/051-local-dev-performance/quickstart.md`
+- [X] T003 [P] Add backend detail-path verification command list to `specs/051-local-dev-performance/quickstart.md`
+- [X] T004 [P] Add frontend detail-page verification command list to `specs/051-local-dev-performance/quickstart.md`
+- [X] T005 [P] Confirm contract invariants checklist in `specs/051-local-dev-performance/contracts/dataset-detail-performance-contract.md`
 
 ---
 
@@ -25,13 +25,13 @@
 
 **CRITICAL**: No user story implementation starts until this phase is complete.
 
-- [ ] T006 Add failing backend contract test for dataset-detail response shape invariance in `apps/backend/tests/contract/test_dataset_detail_performance_contract.py`
-- [ ] T007 [P] Add failing backend contract test for dataset-detail not-found/error invariance in `apps/backend/tests/contract/test_dataset_detail_performance_errors.py`
-- [ ] T008 [P] Add failing backend integration test for repeated detail requests timing envelope in `apps/backend/tests/integration/test_dataset_detail_local_runtime_latency.py`
-- [ ] T009 Add shared backend fixture helpers for detail request timing capture in `apps/backend/tests/contract/fixtures/dataset_detail_performance_fixtures.py`
-- [ ] T010 [P] Add frontend integration test harness for detail-page loading-state duration assertions in `apps/frontend/tests/app/dataset-detail-local-load.test.tsx`
-- [ ] T011 Document baseline measurement results section in `specs/051-local-dev-performance/research.md`
-- [ ] T012 Define fixed representative sample in `specs/051-local-dev-performance/research.md` as exactly 9 datasets (3 small, 3 medium, 3 large observation histories)
+- [X] T006 Add failing backend contract test for dataset-detail response shape invariance in `apps/backend/tests/contract/test_dataset_detail_performance_contract.py`
+- [X] T007 [P] Add failing backend contract test for dataset-detail not-found/error invariance in `apps/backend/tests/contract/test_dataset_detail_performance_errors.py`
+- [X] T008 [P] Add failing backend integration test for repeated detail requests timing envelope in `apps/backend/tests/integration/test_dataset_detail_local_runtime_latency.py`
+- [X] T009 Add shared backend fixture helpers for detail request timing capture in `apps/backend/tests/contract/fixtures/dataset_detail_performance_fixtures.py`
+- [X] T010 [P] Add frontend integration test harness for detail-page loading-state duration assertions in `apps/frontend/tests/app/dataset-detail-local-load.test.tsx`
+- [X] T011 Document baseline measurement results section in `specs/051-local-dev-performance/research.md`
+- [X] T012 Define fixed representative sample in `specs/051-local-dev-performance/research.md` as exactly 9 datasets (3 small, 3 medium, 3 large observation histories)
 
 **Checkpoint**: Foundational tests and baseline harness are ready.
 
@@ -45,17 +45,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Add failing backend contract test asserting dataset-scoped detail metadata retrieval behavior in `apps/backend/tests/contract/test_dataset_detail_targeted_metadata_contract.py`
-- [ ] T014 [P] [US1] Add failing backend integration test for median detail endpoint latency improvement in `apps/backend/tests/integration/test_dataset_detail_local_latency_improvement.py`
-- [ ] T015 [P] [US1] Add failing frontend test for reduced loading-state dwell on detail route in `apps/frontend/tests/app/dataset-detail-local-load.test.tsx`
+- [X] T013 [P] [US1] Add failing backend contract test asserting dataset-scoped detail metadata retrieval behavior in `apps/backend/tests/contract/test_dataset_detail_targeted_metadata_contract.py`
+- [X] T014 [P] [US1] Add failing backend integration test for median detail endpoint latency improvement in `apps/backend/tests/integration/test_dataset_detail_local_latency_improvement.py`
+- [X] T015 [P] [US1] Add failing frontend test for reduced loading-state dwell on detail route in `apps/frontend/tests/app/dataset-detail-local-load.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Implement dataset-targeted detail metadata query path in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
-- [ ] T017 [US1] Replace full-catalog scan usage for detail lookup in `apps/backend/src/query/dataset_discovery_service.py`
-- [ ] T018 [US1] Preserve detail payload compatibility validation in `apps/backend/src/query/dataset_detail_query.py`
-- [ ] T019 [US1] Keep frontend detail route behavior unchanged while using faster backend response in `apps/frontend/src/app/datasets/[id]/page.tsx`
-- [ ] T020 [US1] Update local baseline-vs-after timing evidence for US1 in `specs/051-local-dev-performance/research.md`
+- [X] T016 [US1] Implement dataset-targeted detail metadata query path in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
+- [X] T017 [US1] Replace full-catalog scan usage for detail lookup in `apps/backend/src/query/dataset_discovery_service.py`
+- [X] T018 [US1] Preserve detail payload compatibility validation in `apps/backend/src/query/dataset_detail_query.py`
+- [X] T019 [US1] Keep frontend detail route behavior unchanged while using faster backend response in `apps/frontend/src/app/datasets/[id]/page.tsx`
+- [X] T020 [US1] Update local baseline-vs-after timing evidence for US1 in `specs/051-local-dev-performance/research.md`
 
 **Checkpoint**: US1 delivers fast, stable local detail-page loading for MVP scope.
 
@@ -69,16 +69,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T021 [P] [US2] Add failing backend contract test for detail-path scaling with dataset scope in `apps/backend/tests/contract/test_dataset_detail_scope_scaling_contract.py`
-- [ ] T022 [P] [US2] Add failing backend contract test for as-of descriptor mapping correctness under optimized candidate selection in `apps/backend/tests/contract/test_dataset_detail_asof_candidate_contract.py`
-- [ ] T023 [P] [US2] Add failing backend integration test for unchanged canonical and lookback evidence semantics in `apps/backend/tests/integration/test_dataset_detail_trend_evidence_invariance.py`
+- [X] T021 [P] [US2] Add failing backend contract test for detail-path scaling with dataset scope in `apps/backend/tests/contract/test_dataset_detail_scope_scaling_contract.py`
+- [X] T022 [P] [US2] Add failing backend contract test for as-of descriptor mapping correctness under optimized candidate selection in `apps/backend/tests/contract/test_dataset_detail_asof_candidate_contract.py`
+- [X] T023 [P] [US2] Add failing backend integration test for unchanged canonical and lookback evidence semantics in `apps/backend/tests/integration/test_dataset_detail_trend_evidence_invariance.py`
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Optimize as-of trend candidate assembly/filtering path in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
-- [ ] T025 [US2] Keep canonical descriptor and lookback evidence resolution invariants in `apps/backend/src/query/dataset_discovery_service.py`
-- [ ] T026 [US2] Verify detail contract mapping invariants in `apps/backend/src/contract/query/dataset_discovery_contracts.py`
-- [ ] T027 [US2] Record US2 before/after response-path verification notes in `specs/051-local-dev-performance/research.md`
+- [X] T024 [US2] Optimize as-of trend candidate assembly/filtering path in `apps/backend/src/query/dataset_discovery_persisted_repository.py`
+- [X] T025 [US2] Keep canonical descriptor and lookback evidence resolution invariants in `apps/backend/src/query/dataset_discovery_service.py`
+- [X] T026 [US2] Verify detail contract mapping invariants in `apps/backend/src/contract/query/dataset_discovery_contracts.py`
+- [X] T027 [US2] Record US2 before/after response-path verification notes in `specs/051-local-dev-performance/research.md`
 
 **Checkpoint**: US2 ensures backend detail assembly is scoped and contract-safe.
 
@@ -92,15 +92,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Add failing backend integration test for repeated detail request runtime stability in `apps/backend/tests/integration/test_dataset_detail_repeated_request_stability.py`
-- [ ] T029 [P] [US3] Add failing backend contract test ensuring schema readiness safety behavior remains intact in `apps/backend/tests/contract/test_http_runtime_detail_safety_guards.py`
+- [X] T028 [P] [US3] Add failing backend integration test for repeated detail request runtime stability in `apps/backend/tests/integration/test_dataset_detail_repeated_request_stability.py`
+- [X] T029 [P] [US3] Add failing backend contract test ensuring schema readiness safety behavior remains intact in `apps/backend/tests/contract/test_http_runtime_detail_safety_guards.py`
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Reduce avoidable local request setup overhead in backend service construction path in `apps/backend/src/http_api_server.py`
-- [ ] T031 [US3] Ensure detail query entrypoint behavior stays unchanged after runtime optimization in `apps/backend/src/query/dataset_detail_query.py`
-- [ ] T032 [US3] Validate frontend discovery client compatibility with optimized local runtime behavior in `apps/frontend/src/lib/api/discovery-client.ts`
-- [ ] T033 [US3] Record repeated-load local runtime verification evidence in `specs/051-local-dev-performance/research.md`
+- [X] T030 [US3] Reduce avoidable local request setup overhead in backend service construction path in `apps/backend/src/http_api_server.py`
+- [X] T031 [US3] Ensure detail query entrypoint behavior stays unchanged after runtime optimization in `apps/backend/src/query/dataset_detail_query.py`
+- [X] T032 [US3] Validate frontend discovery client compatibility with optimized local runtime behavior in `apps/frontend/src/lib/api/discovery-client.ts`
+- [X] T033 [US3] Record repeated-load local runtime verification evidence in `specs/051-local-dev-performance/research.md`
 
 **Checkpoint**: US3 provides stable repeated-request performance in local runtime.
 
@@ -110,13 +110,13 @@
 
 **Purpose**: Final regression protection, documentation, and quality gates across all stories.
 
-- [ ] T034 [P] Add regression contract test for catalog/search/source/topic/geography non-regression in `apps/backend/tests/contract/test_discovery_endpoint_performance_regression_guard.py`
-- [ ] T035 [P] Add frontend regression test covering detail page error-state parity in `apps/frontend/tests/app/dataset-detail-trend-error-state.test.tsx`
-- [ ] T036 Add explicit SC-004 before/after error-rate measurement task and results table in `specs/051-local-dev-performance/research.md`
-- [ ] T037 Update end-to-end verification procedure and expected outputs in `specs/051-local-dev-performance/quickstart.md`
-- [ ] T038 Run pre-commit stop gate (`pre-commit run --all-files`) and record result in `specs/051-local-dev-performance/research.md`
-- [ ] T039 Run full repository test stop gate command and record result in `specs/051-local-dev-performance/research.md`
-- [ ] T040 Run full repository coverage stop gate command and record result in `specs/051-local-dev-performance/research.md`
+- [X] T034 [P] Add regression contract test for catalog/search/source/topic/geography non-regression in `apps/backend/tests/contract/test_discovery_endpoint_performance_regression_guard.py`
+- [X] T035 [P] Add frontend regression test covering detail page error-state parity in `apps/frontend/tests/app/dataset-detail-trend-error-state.test.tsx`
+- [X] T036 Add explicit SC-004 before/after error-rate measurement task and results table in `specs/051-local-dev-performance/research.md`
+- [X] T037 Update end-to-end verification procedure and expected outputs in `specs/051-local-dev-performance/quickstart.md`
+- [X] T038 Run pre-commit stop gate (`pre-commit run --all-files`) and record result in `specs/051-local-dev-performance/research.md`
+- [X] T039 Run full repository test stop gate command and record result in `specs/051-local-dev-performance/research.md`
+- [X] T040 Run full repository coverage stop gate command and record result in `specs/051-local-dev-performance/research.md`
 
 ---
 
