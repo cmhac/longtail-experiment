@@ -15,7 +15,6 @@ def test_trend_repository_uses_cast_for_optional_observation_id() -> None:
 
 def test_trend_repository_includes_notification_sql_paths() -> None:
     """Notification SQL statements should exist in Postgres trend repository."""
-
     source = Path(
         "apps/pipeline/src/orchestration/resources/postgres_trend_repository.py"
     ).read_text(encoding="utf-8")
@@ -25,3 +24,15 @@ def test_trend_repository_includes_notification_sql_paths() -> None:
     assert "INSERT INTO user_trend_notifications" in source
     assert "ON CONFLICT (event_id, user_id) DO NOTHING" in source
     assert "ua.account_status = 'active'" in source
+
+
+def test_trend_repository_includes_v2_descriptor_columns() -> None:
+    """Canonical and lookback writes should include required v2 descriptor fields."""
+    source = Path(
+        "apps/pipeline/src/orchestration/resources/postgres_trend_repository.py"
+    ).read_text(encoding="utf-8")
+
+    assert "descriptor_version" in source
+    assert "confidence_score" in source
+    assert "dominant_measure_family" in source
+    assert "CAST(:preprocessing AS JSONB)" in source

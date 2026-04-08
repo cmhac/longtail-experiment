@@ -11,12 +11,12 @@ from urllib.parse import quote
 from pydantic import ValidationError
 
 from src.contract.errors import ContractQueryError
-from src.contract.query.dataset_detail_query import (
-    CanonicalTrendDescriptor,
-    LookbackTrendSnapshot,
-    ObservationAsOfTrendDescriptor,
-)
+from src.contract.query.dataset_detail_query import DatasetDetailResponse
 from src.contract.query.dataset_search_query import SummaryCanonicalTrendDescriptor
+from src.contract.query.trend_descriptor_v2 import (
+    CanonicalTrendDescriptorV2,
+    LookbackTrendEvidenceV2,
+)
 
 from .dataset_discovery_validators import (
     normalize_page,
@@ -124,29 +124,101 @@ def _build_paginated_payload(
 
 def _default_summary_canonical_descriptor() -> dict[str, Any]:
     return {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
-        "strength": None,
+        "confidence_score": None,
+        "dominant_measure_family": "none",
         "selected_lookback_points": None,
         "observed_on": None,
         "reason_code": "missing_canonical_descriptor",
     }
 
 
-def _default_observation_asof_descriptor(
-    *,
-    reason_code: str = "missing_observation_asof_descriptor",
-) -> dict[str, Any]:
+def _default_detail_observation_asof_descriptor(*, reason_code: str) -> dict[str, Any]:
     return {
+        "descriptor_version": "v2",
         "descriptor_state": "unavailable",
         "trend_label": None,
         "direction": None,
-        "strength": None,
+        "confidence_score": None,
         "selected_lookback_points": None,
         "observed_on": None,
+        "dominant_measure_family": "none",
         "reason_code": reason_code,
     }
+
+
+def _default_detail_lookback_evidence(*, lookback_points: int, reason_code: str) -> dict[str, Any]:
+    return {
+        "lookback_points": lookback_points,
+        "applicability_state": "inapplicable",
+        "descriptor_state": "unavailable",
+        "trend_label": None,
+        "direction": None,
+        "confidence_score": None,
+        "dominant_measure_family": "none",
+        "theil_sen_slope": None,
+        "theil_sen_low_slope": None,
+        "theil_sen_high_slope": None,
+        "kendall_tau": None,
+        "kendall_p_value": None,
+        "preprocessing": {
+            "smoothing_method": "none",
+            "smoothing_parameters": {},
+            "seasonal_adjustment_method": "none",
+            "seasonal_periods": [],
+            "seasonal_reliability_state": "not_applicable",
+            "preprocess_version": "v2",
+        },
+        "ols_diagnostics": {
+            "slope": None,
+            "intercept": None,
+            "r_squared": None,
+            "p_value": None,
+        },
+        "reason_code": reason_code,
+    }
+
+
+def _normalize_canonical_descriptor_payload(
+    *,
+    raw_descriptor: object,
+    error_code: str,
+    default_reason_code: str,
+) -> dict[str, Any]:
+    payload = (
+        raw_descriptor
+        if isinstance(raw_descriptor, dict)
+        else _default_detail_observation_asof_descriptor(reason_code=default_reason_code)
+    )
+    normalized_payload = dict(payload)
+    normalized_payload.setdefault("descriptor_version", "v2")
+    normalized_payload.setdefault("dominant_measure_family", "none")
+    try:
+        return CanonicalTrendDescriptorV2.model_validate(normalized_payload).model_dump()
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise ContractQueryError(error_code) from exc
+
+
+def _normalize_lookback_evidence(
+    *,
+    raw_lookbacks: object,
+    error_code: str,
+) -> list[dict[str, Any]]:
+    if not isinstance(raw_lookbacks, list):
+        raise ContractQueryError(error_code)
+    if not all(isinstance(snapshot, dict) for snapshot in raw_lookbacks):
+        raise ContractQueryError(error_code)
+
+    try:
+        return [
+            LookbackTrendEvidenceV2.model_validate(dict(snapshot)).model_dump()
+            for snapshot in raw_lookbacks
+        ]
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise ContractQueryError(error_code) from exc
 
 
 def _parse_iso_datetime(value: object) -> datetime | None:
@@ -246,7 +318,7 @@ def _resolve_observation_asof_descriptor(
     elif isinstance(raw_descriptor, dict):
         payload = cast(dict[str, Any], raw_descriptor)
     else:
-        payload = _default_observation_asof_descriptor(
+        payload = _default_detail_observation_asof_descriptor(
             reason_code=_resolve_unavailable_observation_asof_reason(
                 raw_descriptor=raw_descriptor,
                 raw_candidates=raw_candidates,
@@ -254,12 +326,16 @@ def _resolve_observation_asof_descriptor(
             )
         )
     try:
-        return ObservationAsOfTrendDescriptor.model_validate(payload).model_dump()
-    except (ValidationError, TypeError, ValueError) as exc:
-        raise ContractQueryError(
-            "dataset_detail_observation_asof_payload_invalid:"
-            f"{dataset_id}:{observation_observed_on}"
-        ) from exc
+        return _normalize_canonical_descriptor_payload(
+            raw_descriptor=payload,
+            error_code=(
+                "dataset_detail_observation_asof_payload_invalid:"
+                f"{dataset_id}:{observation_observed_on}"
+            ),
+            default_reason_code="missing_observation_asof_descriptor",
+        )
+    except ContractQueryError:
+        raise
 
 
 def _map_detail_observations_with_asof_descriptors(
@@ -292,7 +368,11 @@ def _resolve_summary_canonical_descriptor(
         else _default_summary_canonical_descriptor()
     )
     try:
-        return SummaryCanonicalTrendDescriptor.model_validate(payload).model_dump()
+        normalized_payload = dict(payload)
+        normalized_payload.setdefault("descriptor_version", "v2")
+        normalized_payload.setdefault("confidence_score", None)
+        normalized_payload.setdefault("dominant_measure_family", "none")
+        return SummaryCanonicalTrendDescriptor.model_validate(normalized_payload).model_dump()
     except (ValidationError, TypeError, ValueError) as exc:
         raise ContractQueryError(f"dataset_summary_canonical_payload_invalid:{dataset_id}") from exc
 
@@ -350,6 +430,13 @@ def _project_recent_trend_items(
         if not isinstance(start_period, str) or start_period.strip() == "":
             raise ContractQueryError("Repository returned trend item without start_period")
 
+        raw_confidence = item.get("confidence_score")
+        confidence_score = (
+            float(cast(float | int, raw_confidence))
+            if isinstance(raw_confidence, (float, int))
+            else None
+        )
+
         trend_projected.append(
             {
                 "item_type": "trend_event",
@@ -360,7 +447,7 @@ def _project_recent_trend_items(
                 },
                 "title": str(item.get("title", "")).strip(),
                 "direction": str(item.get("direction", "")).strip().lower(),
-                "strength": str(item.get("strength", "")).strip().lower(),
+                "confidence_score": confidence_score,
                 "start_period": start_period,
                 "latest_update_at": start_period,
                 "action_links": {
@@ -1022,63 +1109,135 @@ class DatasetDiscoveryService:
         metadata_payload["metadata"] = metadata_fields
 
         canonical_descriptor = self._resolve_canonical_descriptor(dataset_id=normalized_dataset_id)
-        lookback_snapshots = self._resolve_lookback_snapshots(dataset_id=normalized_dataset_id)
+        lookback_evidence = self._resolve_lookback_evidence(dataset_id=normalized_dataset_id)
         normalized_observations = _map_detail_observations_with_asof_descriptors(
             observations=observations,
             dataset_id=normalized_dataset_id,
         )
 
-        return {
+        payload = {
             **metadata_payload,
             "observations": normalized_observations,
             "canonical_trend_descriptor": canonical_descriptor,
             "has_recent_notification": bool(metadata_payload.get("has_recent_notification", False)),
-            "lookback_trend_snapshots": lookback_snapshots,
+            "lookback_trend_evidence": lookback_evidence,
             "observation_sort": "observed_on_asc,reported_at_asc",
         }
+        return DatasetDetailResponse.model_validate(payload).model_dump()
 
     def _resolve_canonical_descriptor(self, *, dataset_id: str) -> dict[str, Any]:
-        descriptor = CanonicalTrendDescriptor(
-            descriptor_state="unavailable",
-            trend_label=None,
-            direction=None,
-            strength=None,
-            selected_lookback_points=None,
-            observed_on=None,
-            reason_code="missing_canonical_descriptor",
-        ).model_dump()
+        descriptor = _default_summary_canonical_descriptor()
         if not hasattr(self._repository, "get_latest_dataset_canonical_trend_descriptor"):
-            return descriptor
+            return _normalize_canonical_descriptor_payload(
+                raw_descriptor=descriptor,
+                error_code="dataset_detail_canonical_payload_invalid",
+                default_reason_code="missing_canonical_descriptor",
+            )
 
         raw_canonical = self._repository.get_latest_dataset_canonical_trend_descriptor(
             dataset_id=dataset_id
         )
-        if raw_canonical is None:
-            return descriptor
-        if not isinstance(raw_canonical, dict):
-            raise ContractQueryError("dataset_detail_canonical_payload_invalid")
+        return _normalize_canonical_descriptor_payload(
+            raw_descriptor=(descriptor if raw_canonical is None else raw_canonical),
+            error_code="dataset_detail_canonical_payload_invalid",
+            default_reason_code="missing_canonical_descriptor",
+        )
 
-        try:
-            return CanonicalTrendDescriptor.model_validate(raw_canonical).model_dump()
-        except (ValidationError, TypeError, ValueError) as exc:
-            raise ContractQueryError("dataset_detail_canonical_payload_invalid") from exc
-
-    def _resolve_lookback_snapshots(self, *, dataset_id: str) -> list[dict[str, Any]]:
-        if not hasattr(self._repository, "list_dataset_lookback_trend_snapshots"):
+    def _resolve_lookback_evidence(self, *, dataset_id: str) -> list[dict[str, Any]]:
+        if not hasattr(self._repository, "list_dataset_lookback_evidence"):
             return []
 
-        raw_lookbacks = self._repository.list_dataset_lookback_trend_snapshots(
-            dataset_id=dataset_id
+        raw_lookbacks = self._repository.list_dataset_lookback_evidence(dataset_id=dataset_id)
+        if raw_lookbacks is None or raw_lookbacks == []:
+            return []
+        return _normalize_lookback_evidence(
+            raw_lookbacks=raw_lookbacks,
+            error_code="dataset_detail_lookback_evidence_payload_invalid",
         )
-        if not isinstance(raw_lookbacks, list):
-            raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
-        if not all(isinstance(snapshot, dict) for snapshot in raw_lookbacks):
-            raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid")
 
-        try:
-            return [
-                LookbackTrendSnapshot.model_validate(snapshot).model_dump()
-                for snapshot in raw_lookbacks
+    def get_dataset_as_of_trend(
+        self,
+        *,
+        dataset_id: str,
+        as_of_observed_on: str,
+    ) -> dict[str, Any]:
+        """Return one dataset as-of trend descriptor plus lookback evidence payload."""
+        normalized_dataset_id = dataset_id.strip()
+        if not normalized_dataset_id:
+            raise ContractQueryError("dataset_id must be provided")
+
+        as_of_date = parse_optional_date(as_of_observed_on, field_name="as_of_observed_on")
+        if as_of_date is None:
+            raise ContractQueryError("as_of_observed_on must be provided")
+        as_of_date_value = as_of_date.isoformat()
+
+        if not hasattr(self._repository, "get_dataset_detail"):
+            raise ContractQueryError("Repository does not provide get_dataset_detail")
+        if self._repository.get_dataset_detail(dataset_id=normalized_dataset_id) is None:
+            raise ContractQueryError("dataset_not_found")
+
+        if not hasattr(self._repository, "get_canonical_descriptor_for_observed_on"):
+            raise ContractQueryError(
+                "Repository does not provide get_canonical_descriptor_for_observed_on"
+            )
+        if not hasattr(self._repository, "list_lookback_evidence_for_observed_on"):
+            raise ContractQueryError(
+                "Repository does not provide list_lookback_evidence_for_observed_on"
+            )
+
+        raw_canonical = self._repository.get_canonical_descriptor_for_observed_on(
+            dataset_id=normalized_dataset_id,
+            observed_on=as_of_date,
+        )
+        canonical = _normalize_canonical_descriptor_payload(
+            raw_descriptor=(
+                raw_canonical
+                if raw_canonical is not None
+                else _default_detail_observation_asof_descriptor(
+                    reason_code="missing_observation_asof_descriptor"
+                )
+            ),
+            error_code="dataset_asof_canonical_payload_invalid",
+            default_reason_code="missing_observation_asof_descriptor",
+        )
+
+        raw_lookbacks = self._repository.list_lookback_evidence_for_observed_on(
+            dataset_id=normalized_dataset_id,
+            observed_on=as_of_date,
+        )
+        lookback_evidence = (
+            []
+            if raw_lookbacks in (None, [])
+            else _normalize_lookback_evidence(
+                raw_lookbacks=raw_lookbacks,
+                error_code="dataset_asof_lookback_evidence_payload_invalid",
+            )
+        )
+
+        if not lookback_evidence:
+            lookback_evidence = [
+                _default_detail_lookback_evidence(
+                    lookback_points=point,
+                    reason_code="missing_observation_asof_descriptor",
+                )
+                for point in (1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500, 1000)
             ]
-        except (ValidationError, TypeError, ValueError) as exc:
-            raise ContractQueryError("dataset_detail_lookback_snapshot_payload_invalid") from exc
+
+        return {
+            "dataset_id": normalized_dataset_id,
+            "as_of_observed_on": as_of_date_value,
+            "canonical_trend_descriptor": canonical,
+            "lookback_trend_evidence": lookback_evidence,
+        }
+
+    def get_dataset_detail_as_of_trend(
+        self,
+        *,
+        dataset_id: str,
+        as_of_observed_on: str,
+    ) -> dict[str, Any]:
+        """Expose as-of trend payload for HTTP endpoint wiring."""
+        return self.get_dataset_as_of_trend(
+            dataset_id=dataset_id,
+            as_of_observed_on=as_of_observed_on,
+        )

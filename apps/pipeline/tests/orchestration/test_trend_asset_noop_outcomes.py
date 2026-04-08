@@ -35,6 +35,17 @@ class FakeLookbackSnapshot:
     strength: str | None
     seasonality_classification: str | None
     analysis_version: str
+    descriptor_state: str = "unavailable"
+    confidence_score: float | None = None
+    dominant_measure_family: str = "none"
+    theil_sen_slope: float | None = None
+    theil_sen_low_slope: float | None = None
+    theil_sen_high_slope: float | None = None
+    kendall_tau: float | None = None
+    kendall_pvalue: float | None = None
+    preprocessing: dict[str, object] | None = None
+    ols_diagnostics: object | None = None
+    reason_code: str | None = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +59,15 @@ class FakeCanonicalResult:
     strength: str | None
     selected_lookback_points: int | None
     weighting_trace: dict[str, object] | None
+    descriptor_version: str = "v2"
+    confidence_score: float | None = None
+    dominant_measure_family: str = "none"
+    medium_horizon_weight: float | None = None
+    short_horizon_weight: float | None = None
+    long_horizon_weight: float | None = None
+    preprocessing: dict[str, object] | None = None
+    ols_diagnostics: object | None = None
+    reason_code: str | None = None
 
 
 @dataclass(frozen=True)
@@ -73,7 +93,7 @@ class FakeLookbackEvaluation:
     cadence_decision: object
 
 
-class FakeTrendRepository(TrendRepository):
+class FakeTrendRepository:
     """Collect repository writes for assertion-friendly lifecycle tests."""
 
     def __init__(self, *, fail_snapshot_writes: bool = False) -> None:
@@ -109,7 +129,7 @@ class FakeTrendRepository(TrendRepository):
 def test_no_significant_lookbacks_still_persist_with_unavailable_canonical() -> None:
     """No-significant lookback state should persist and return applied metadata."""
     repository = FakeTrendRepository()
-    service = TrendLifecycleService(repository=repository)
+    service = TrendLifecycleService(repository=cast(TrendRepository, repository))
     evaluation = FakeLookbackEvaluation(
         applicability=(
             FakeLookbackApplicability(
@@ -169,7 +189,7 @@ def test_no_significant_lookbacks_still_persist_with_unavailable_canonical() -> 
 def test_snapshot_write_failure_returns_partial_applied() -> None:
     """Snapshot write errors should not block canonical writes for same observation."""
     repository = FakeTrendRepository(fail_snapshot_writes=True)
-    service = TrendLifecycleService(repository=repository)
+    service = TrendLifecycleService(repository=cast(TrendRepository, repository))
     evaluation = FakeLookbackEvaluation(
         applicability=(
             FakeLookbackApplicability(

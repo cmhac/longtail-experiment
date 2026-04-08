@@ -24,10 +24,12 @@ class _PersistedRepoStub:
                 "topic_tags": ["federal reserve", "interest rates"],
                 "latest_update_at": "2026-03-06T00:00:00+00:00",
                 "canonical_trend_descriptor": {
+                    "descriptor_version": "v2",
                     "descriptor_state": "available",
                     "trend_label": "mild_sustained_downtrend",
                     "direction": "down",
-                    "strength": "mild",
+                    "confidence_score": 0.64,
+                    "dominant_measure_family": "theil_sen",
                     "selected_lookback_points": 25,
                     "observed_on": "2026-03-06",
                     "reason_code": None,

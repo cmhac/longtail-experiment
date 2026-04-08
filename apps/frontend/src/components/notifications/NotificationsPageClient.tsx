@@ -16,6 +16,7 @@ import {
 } from "../../lib/api/notification-client";
 import type { NotificationListItem } from "../../lib/api/notification-types";
 import { loadAuthSessionState } from "../../lib/auth/session-state";
+import { formatNotificationBody } from "../../lib/notifications/notification-copy";
 
 export const NotificationsPageClient = (): JSX.Element => {
   const [isLoading, setIsLoading] = useState(true);
@@ -146,7 +147,7 @@ export const NotificationsPageClient = (): JSX.Element => {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-medium text-sm">{item.title}</p>
-                  <p className="text-default-500 text-xs">{item.body}</p>
+                  <p className="text-default-500 text-xs">{formatNotificationBody(item)}</p>
                 </div>
                 <div className="flex gap-1">
                   {item.unread ? (

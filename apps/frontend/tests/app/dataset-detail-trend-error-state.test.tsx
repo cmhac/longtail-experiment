@@ -26,7 +26,7 @@ describe("dataset detail trend payload error state", () => {
           descriptor_state: "unavailable",
           trend_label: null,
           direction: null,
-          strength: null,
+          confidence_score: null,
           selected_lookback_points: null,
           observed_on: null,
           reason_code: "no_applicable_lookbacks",

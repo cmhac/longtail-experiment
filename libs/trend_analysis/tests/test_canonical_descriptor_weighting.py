@@ -22,7 +22,7 @@ def test_canonical_descriptor_prefers_recent_strong_signal() -> None:
 
     canonical = result.canonical_descriptor
     assert canonical.descriptor_state == "available"
-    assert canonical.selected_lookback_points == 1
+    assert canonical.selected_lookback_points == 2
     assert canonical.direction == "up"
     assert canonical.weighting_version == CANONICAL_WEIGHTING_VERSION
 

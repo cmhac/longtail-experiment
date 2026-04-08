@@ -70,6 +70,7 @@ class _ConnectionDouble:
                 "delivery_status": "delivered",
                 "previous_direction": "up",
                 "current_direction": "down",
+                "confidence_score": 0.74,
                 "effective_observed_on": "2026-01-01",
                 "processing_context": "incremental",
                 "visibility_classification": "user_visible",

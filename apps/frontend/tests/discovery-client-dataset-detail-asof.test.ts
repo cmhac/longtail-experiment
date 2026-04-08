@@ -69,10 +69,12 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
             reported_at: "2026-03-09T00:00:00Z",
             attributes: {},
             as_of_trend_descriptor: {
+              descriptor_version: "v2",
               descriptor_state: "available",
               trend_label: "moderate_sustained_downtrend",
               direction: "down",
-              strength: "moderate",
+              confidence_score: 0.62,
+              dominant_measure_family: "theil_sen",
               selected_lookback_points: 50,
               observed_on: "2026-03-08",
               reason_code: null,
@@ -86,10 +88,12 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
     const detail = await fetchDatasetDetail("UNRATE");
 
     expect(detail.observations[0]?.as_of_trend_descriptor).toEqual({
+      descriptor_version: "v2",
       descriptor_state: "available",
       trend_label: "moderate_sustained_downtrend",
       direction: "down",
-      strength: "moderate",
+      confidence_score: 0.62,
+      dominant_measure_family: "theil_sen",
       selected_lookback_points: 50,
       observed_on: "2026-03-08",
       reason_code: null,
@@ -113,10 +117,12 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
             reported_at: "2026-03-16T00:00:00Z",
             attributes: {},
             as_of_trend_descriptor: {
+              descriptor_version: "v2",
               descriptor_state: "not-a-state",
               trend_label: 12,
               direction: "sideways",
-              strength: 4,
+              confidence_score: 4,
+              dominant_measure_family: "???",
               selected_lookback_points: 999,
               observed_on: 3,
               reason_code: 7,
@@ -130,10 +136,12 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
     const detail = await fetchDatasetDetail("UNRATE");
 
     expect(detail.observations[0]?.as_of_trend_descriptor).toEqual({
+      descriptor_version: "v2",
       descriptor_state: "unavailable",
       trend_label: null,
       direction: null,
-      strength: null,
+      confidence_score: null,
+      dominant_measure_family: "none",
       selected_lookback_points: null,
       observed_on: null,
       reason_code: null,
@@ -157,10 +165,12 @@ describe("discovery client dataset detail as-of descriptor mapping", () => {
             reported_at: "2026-03-23T00:00:00Z",
             attributes: {},
             as_of_trend_descriptor: {
+              descriptor_version: "v2",
               descriptor_state: "unavailable",
               trend_label: null,
               direction: null,
-              strength: null,
+              confidence_score: null,
+              dominant_measure_family: "none",
               selected_lookback_points: null,
               observed_on: null,
               reason_code: "no_historical_candidate",

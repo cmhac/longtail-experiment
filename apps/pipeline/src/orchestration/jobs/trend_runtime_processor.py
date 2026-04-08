@@ -139,8 +139,9 @@ class TrendRuntimeProcessor:
             apply_results.append(apply_result)
 
             canonical = evaluation.canonical_descriptor
-            current_direction = (
-                canonical.direction if canonical.descriptor_state == "available" else None
+            current_direction = self._lifecycle_service.resolve_notification_direction(
+                descriptor_state=canonical.descriptor_state,
+                direction=canonical.direction,
             )
             processing_context, visibility_classification = (
                 self._lifecycle_service.classify_notification_visibility(

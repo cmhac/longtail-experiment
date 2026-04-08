@@ -22,10 +22,12 @@ def test_dataset_detail_includes_available_canonical_descriptor_when_present() -
         observations=observations,
         canonical_trends_by_dataset={
             "UNRATE": {
+                "descriptor_version": "v2",
                 "descriptor_state": "available",
                 "trend_label": "mild_sustained_downtrend",
                 "direction": "down",
-                "strength": "mild",
+                "confidence_score": 0.74,
+                "dominant_measure_family": "theil_sen",
                 "selected_lookback_points": 25,
                 "observed_on": "2026-03-01",
                 "reason_code": None,
@@ -43,9 +45,11 @@ def test_dataset_detail_includes_available_canonical_descriptor_when_present() -
 
     assert response["canonical_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "dominant_measure_family": "theil_sen",
+        "confidence_score": 0.74,
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
         "reason_code": None,
@@ -70,9 +74,11 @@ def test_dataset_detail_defaults_to_unavailable_canonical_descriptor_when_missin
 
     assert response["canonical_trend_descriptor"] == {
         "descriptor_state": "unavailable",
+        "descriptor_version": "v2",
         "trend_label": None,
         "direction": None,
-        "strength": None,
+        "dominant_measure_family": "none",
+        "confidence_score": None,
         "selected_lookback_points": None,
         "observed_on": None,
         "reason_code": "missing_canonical_descriptor",

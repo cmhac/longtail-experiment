@@ -60,6 +60,17 @@ class FakeLookbackSnapshot:
     strength: str | None
     seasonality_classification: str | None
     analysis_version: str
+    descriptor_state: str = "available"
+    confidence_score: float | None = None
+    dominant_measure_family: str = "none"
+    theil_sen_slope: float | None = None
+    theil_sen_low_slope: float | None = None
+    theil_sen_high_slope: float | None = None
+    kendall_tau: float | None = None
+    kendall_pvalue: float | None = None
+    preprocessing: dict[str, object] | None = None
+    ols_diagnostics: object | None = None
+    reason_code: str | None = None
 
 
 @dataclass(frozen=True)
@@ -73,9 +84,18 @@ class FakeCanonicalResult:
     strength: str | None
     selected_lookback_points: int | None
     weighting_trace: dict[str, object] | None
+    descriptor_version: str = "v2"
+    confidence_score: float | None = None
+    dominant_measure_family: str = "none"
+    medium_horizon_weight: float | None = None
+    short_horizon_weight: float | None = None
+    long_horizon_weight: float | None = None
+    preprocessing: dict[str, object] | None = None
+    ols_diagnostics: object | None = None
+    reason_code: str | None = None
 
 
-class FakeTrendRepository(TrendRepository):
+class FakeTrendRepository:
     """Collect repository writes for idempotency assertions."""
 
     def __init__(self) -> None:
@@ -111,7 +131,7 @@ class FakeTrendRepository(TrendRepository):
 def test_retry_with_unchanged_state_is_idempotent_and_writes_nothing() -> None:
     """Repeated processing for unchanged lookback state must upsert same logical rows."""
     repository = FakeTrendRepository()
-    service = TrendLifecycleService(repository=repository)
+    service = TrendLifecycleService(repository=cast(TrendRepository, repository))
 
     evaluation = FakeLookbackEvaluation(
         applicability=(

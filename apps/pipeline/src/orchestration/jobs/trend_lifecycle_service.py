@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Literal, Protocol, cast
 
-from ..resources.trend_repository import TrendRepository
+from ..resources.trend_repository import (
+    CanonicalDescriptorInsert,
+    LookbackSnapshotInsert,
+    TrendRepository,
+)
 from .trend_transition_logic import (
     PersistedTrendSignature,
     TrendAnalysisResultLike,
@@ -78,21 +82,41 @@ class LookbackSnapshotLike(Protocol):
 
     lookback_points: int
     outcome_state: Literal["significant_trend", "no_significant_trend"]
+    descriptor_state: Literal["available", "unavailable"]
     trend_label: str | None
-    direction: Literal["up", "down"] | None
+    direction: Literal["up", "down", "flat"] | None
+    confidence_score: float | None
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"]
+    theil_sen_slope: float | None
+    theil_sen_low_slope: float | None
+    theil_sen_high_slope: float | None
+    kendall_tau: float | None
+    kendall_pvalue: float | None
+    preprocessing: object
+    ols_diagnostics: object
     strength: str | None
     seasonality_classification: str | None
+    reason_code: str | None
     analysis_version: str
 
 
 class CanonicalDescriptorLike(Protocol):
     """Structural canonical descriptor item."""
 
+    descriptor_version: Literal["v2"]
     descriptor_state: Literal["available", "unavailable"]
     trend_label: str | None
-    direction: Literal["up", "down"] | None
+    direction: Literal["up", "down", "flat"] | None
+    confidence_score: float | None
+    dominant_measure_family: Literal["theil_sen", "mixed", "none"]
+    medium_horizon_weight: float | None
+    short_horizon_weight: float | None
+    long_horizon_weight: float | None
+    preprocessing: object
+    ols_diagnostics: object
     strength: str | None
     selected_lookback_points: int | None
+    reason_code: str | None
     weighting_version: str
     weighting_trace: dict[str, object] | None
 
@@ -125,6 +149,20 @@ class TrendLifecycleService:
         if run_full_backfill:
             return ("historical_reprocessing", "audit_only")
         return ("incremental", "user_visible")
+
+    @staticmethod
+    def resolve_notification_direction(
+        *,
+        descriptor_state: str,
+        direction: str | None,
+    ) -> Literal["up", "down"] | None:
+        """Return directional-only notification signal from canonical descriptor fields."""
+
+        if descriptor_state != "available":
+            return None
+        if direction not in {"up", "down"}:
+            return None
+        return cast(Literal["up", "down"], direction)
 
     def apply_analysis_result(
         self,
@@ -268,40 +306,100 @@ class TrendLifecycleService:
 
         for snapshot in snapshots:
             try:
-                self._repository.upsert_lookback_snapshot(
-                    {
-                        "series_key": series_key,
-                        "observed_on": observed_on,
-                        "observation_id": observation_id,
-                        "lookback_points": snapshot.lookback_points,
-                        "outcome_state": snapshot.outcome_state,
-                        "trend_label": snapshot.trend_label,
-                        "direction": snapshot.direction,
-                        "strength": snapshot.strength,
-                        "seasonality_classification": snapshot.seasonality_classification,
-                        "analysis_version": snapshot.analysis_version,
-                    }
-                )
+                snapshot_preprocessing_payload: dict[str, object] | None
+                if hasattr(snapshot.preprocessing, "__dict__"):
+                    snapshot_preprocessing_payload = cast(
+                        dict[str, object], snapshot.preprocessing.__dict__
+                    )
+                elif isinstance(snapshot.preprocessing, dict):
+                    snapshot_preprocessing_payload = cast(dict[str, object], snapshot.preprocessing)
+                else:
+                    snapshot_preprocessing_payload = None
+
+                snapshot_payload: LookbackSnapshotInsert = {
+                    "series_key": series_key,
+                    "observed_on": observed_on,
+                    "observation_id": observation_id,
+                    "lookback_points": snapshot.lookback_points,
+                    "outcome_state": snapshot.outcome_state,
+                    "descriptor_state": snapshot.descriptor_state,
+                    "trend_label": snapshot.trend_label,
+                    "direction": snapshot.direction,
+                    "confidence_score": snapshot.confidence_score,
+                    "dominant_measure_family": snapshot.dominant_measure_family,
+                    "theil_sen_slope": snapshot.theil_sen_slope,
+                    "theil_sen_low_slope": snapshot.theil_sen_low_slope,
+                    "theil_sen_high_slope": snapshot.theil_sen_high_slope,
+                    "kendall_tau": snapshot.kendall_tau,
+                    "kendall_pvalue": snapshot.kendall_pvalue,
+                    "preprocessing": snapshot_preprocessing_payload,
+                    "ols_slope": getattr(snapshot.ols_diagnostics, "slope", None),
+                    "ols_intercept": getattr(snapshot.ols_diagnostics, "intercept", None),
+                    "ols_r_squared": getattr(snapshot.ols_diagnostics, "r_squared", None),
+                    "ols_pvalue": getattr(snapshot.ols_diagnostics, "p_value", None),
+                    "reason_code": snapshot.reason_code,
+                    "strength": snapshot.strength,
+                    "seasonality_classification": snapshot.seasonality_classification,
+                    "analysis_version": snapshot.analysis_version,
+                }
+                self._repository.upsert_lookback_snapshot(snapshot_payload)
             except Exception as exc:  # pragma: no cover - failure isolation boundary
                 # Intentionally isolate per-lookback write failures so remaining
                 # lookbacks and canonical descriptor still persist for this series.
                 if first_snapshot_error is None:
                     first_snapshot_error = exc
 
-        self._repository.upsert_canonical_descriptor(
-            {
-                "series_key": series_key,
-                "observed_on": observed_on,
-                "observation_id": observation_id,
-                "descriptor_state": canonical.descriptor_state,
-                "canonical_trend_label": canonical.trend_label,
-                "canonical_direction": canonical.direction,
-                "canonical_strength": canonical.strength,
-                "selected_lookback_points": canonical.selected_lookback_points,
-                "weighting_version": canonical.weighting_version,
-                "weighting_trace": canonical.weighting_trace,
-            }
-        )
+        canonical_preprocessing_payload: dict[str, object] | None
+        if canonical.preprocessing is not None and hasattr(canonical.preprocessing, "__dict__"):
+            canonical_preprocessing_payload = cast(
+                dict[str, object], canonical.preprocessing.__dict__
+            )
+        elif isinstance(canonical.preprocessing, dict):
+            canonical_preprocessing_payload = cast(dict[str, object], canonical.preprocessing)
+        else:
+            canonical_preprocessing_payload = None
+
+        canonical_payload: CanonicalDescriptorInsert = {
+            "series_key": series_key,
+            "observed_on": observed_on,
+            "observation_id": observation_id,
+            "descriptor_version": canonical.descriptor_version,
+            "descriptor_state": canonical.descriptor_state,
+            "canonical_trend_label": canonical.trend_label,
+            "canonical_direction": canonical.direction,
+            "confidence_score": canonical.confidence_score,
+            "dominant_measure_family": canonical.dominant_measure_family,
+            "medium_horizon_weight": canonical.medium_horizon_weight,
+            "short_horizon_weight": canonical.short_horizon_weight,
+            "long_horizon_weight": canonical.long_horizon_weight,
+            "preprocessing": canonical_preprocessing_payload,
+            "ols_slope": (
+                None
+                if canonical.ols_diagnostics is None
+                else getattr(canonical.ols_diagnostics, "slope", None)
+            ),
+            "ols_intercept": (
+                None
+                if canonical.ols_diagnostics is None
+                else getattr(canonical.ols_diagnostics, "intercept", None)
+            ),
+            "ols_r_squared": (
+                None
+                if canonical.ols_diagnostics is None
+                else getattr(canonical.ols_diagnostics, "r_squared", None)
+            ),
+            "ols_pvalue": (
+                None
+                if canonical.ols_diagnostics is None
+                else getattr(canonical.ols_diagnostics, "p_value", None)
+            ),
+            "reason_code": canonical.reason_code,
+            "canonical_strength": canonical.strength,
+            "selected_lookback_points": canonical.selected_lookback_points,
+            "weighting_version": canonical.weighting_version,
+            "weighting_trace": canonical.weighting_trace,
+        }
+        self._repository.upsert_canonical_descriptor(canonical_payload)
 
         if first_snapshot_error is not None:
             return TrendLookbackApplyResult(

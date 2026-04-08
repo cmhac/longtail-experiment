@@ -31,12 +31,14 @@ def test_dataset_detail_includes_observation_asof_descriptor_fields_per_observat
         observations=seeded_observations,
         canonical_trends_by_dataset={
             "UNRATE": {
+                "descriptor_version": "v2",
                 "descriptor_state": "available",
                 "trend_label": "mild_sustained_downtrend",
                 "direction": "down",
-                "strength": "mild",
+                "confidence_score": 0.73,
                 "selected_lookback_points": lookback_points,
                 "observed_on": "2026-02-01",
+                "dominant_measure_family": "theil_sen",
                 "reason_code": None,
             }
         },
@@ -45,10 +47,30 @@ def test_dataset_detail_includes_observation_asof_descriptor_fields_per_observat
                 {
                     "lookback_points": lookback_points,
                     "applicability_state": "applicable",
-                    "outcome_state": "significant_trend",
+                    "descriptor_state": "available",
                     "trend_label": "mild_sustained_downtrend",
                     "direction": "down",
-                    "strength": "mild",
+                    "confidence_score": 0.73,
+                    "dominant_measure_family": "theil_sen",
+                    "theil_sen_slope": -0.1,
+                    "theil_sen_low_slope": -0.2,
+                    "theil_sen_high_slope": -0.05,
+                    "kendall_tau": -0.41,
+                    "kendall_p_value": 0.01,
+                    "preprocessing": {
+                        "smoothing_method": "none",
+                        "smoothing_parameters": {},
+                        "seasonal_adjustment_method": "none",
+                        "seasonal_periods": [],
+                        "seasonal_reliability_state": "not_applicable",
+                        "preprocess_version": "v2",
+                    },
+                    "ols_diagnostics": {
+                        "slope": -0.09,
+                        "intercept": 4.7,
+                        "r_squared": 0.55,
+                        "p_value": 0.02,
+                    },
                     "reason_code": None,
                 }
             ]
@@ -64,10 +86,12 @@ def test_dataset_detail_includes_observation_asof_descriptor_fields_per_observat
     ).model_dump()
 
     asof_keys = {
+        "descriptor_version",
         "descriptor_state",
         "trend_label",
         "direction",
-        "strength",
+        "confidence_score",
+        "dominant_measure_family",
         "selected_lookback_points",
         "observed_on",
         "reason_code",
@@ -82,4 +106,4 @@ def test_dataset_detail_includes_observation_asof_descriptor_fields_per_observat
         response["observations"][1]["as_of_trend_descriptor"]["descriptor_state"] == "unavailable"
     )
     assert response["canonical_trend_descriptor"]["descriptor_state"] == "available"
-    assert response["lookback_trend_snapshots"][0]["lookback_points"] == lookback_points
+    assert response["lookback_trend_evidence"][0]["lookback_points"] == lookback_points

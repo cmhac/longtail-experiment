@@ -46,6 +46,7 @@ from src.contract.query.source_discovery_contracts import source_not_found_error
 from src.query.auth_management_persisted_repository import PersistedAuthManagementRepository
 from src.query.auth_management_service import AuthManagementService
 from src.query.dataset_catalog_query import execute_dataset_catalog
+from src.query.dataset_asof_trend_query import execute_dataset_asof_trend
 from src.query.dataset_detail_query import execute_dataset_detail
 from src.query.dataset_discovery_persisted_repository import (
     PersistedDatasetDiscoveryRepository,
@@ -641,7 +642,7 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         user_id = str(principal["user_id"])
 
         if path.startswith("/api/notifications/subscriptions/"):
-            dataset_id = path.split("/")[-1]
+            dataset_id = path.rsplit("/", maxsplit=1)[-1]
             response = service.delete_subscription(user_id=user_id, dataset_id=dataset_id)
             return HTTPStatus.OK, response.model_dump()
 
@@ -655,11 +656,11 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
     ) -> bool:
         if self.notification_service is None or self.auth_service is None:
             return False
-        if not (
-            path == "/api/notifications"
-            or path == "/api/notifications/summary"
-            or path == "/api/notifications/subscriptions"
-        ):
+        if path not in {
+            "/api/notifications",
+            "/api/notifications/summary",
+            "/api/notifications/subscriptions",
+        }:
             return False
 
         try:
@@ -822,6 +823,22 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             to_date=query.get("to_date", [None])[0],
         ).model_dump()
 
+    def _handle_observation_asof(
+        self,
+        parsed_path: str,
+        query: dict[str, list[str]],
+        service: DatasetDiscoveryService,
+    ) -> dict[str, object]:
+        dataset_id = parsed_path.split("/", maxsplit=5)[3]
+        as_of_observed_on = query.get("as_of_observed_on", [None])[0]
+        if as_of_observed_on is None:
+            raise ContractQueryError("as_of_observed_on must be provided")
+        return execute_dataset_asof_trend(
+            service,
+            dataset_id=dataset_id,
+            as_of_observed_on=as_of_observed_on,
+        ).model_dump()
+
     def _handle_source_list(self, service: DatasetDiscoveryService) -> dict[str, object]:
         return execute_source_list(service).model_dump()
 
@@ -932,6 +949,8 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
             return HTTPStatus.OK, self._handle_topic_detail(path, query, service)
         if path.startswith("/api/geographies/"):
             return HTTPStatus.OK, self._handle_geography_detail(path, query, service)
+        if path.endswith("/observations/as-of") and path.startswith("/api/datasets/"):
+            return HTTPStatus.OK, self._handle_observation_asof(path, query, service)
         if path.startswith("/api/datasets/"):
             return HTTPStatus.OK, self._handle_detail(path, query, service)
         return HTTPStatus.NOT_FOUND, {

@@ -39,19 +39,59 @@ class _FakeConnection:
                     {
                         "lookback_points": 10,
                         "applicability_state": "applicable",
-                        "outcome_state": "significant_trend",
+                        "descriptor_state": "available",
                         "trend_label": "mild_sustained_downtrend",
                         "direction": "down",
-                        "strength": "mild",
+                        "confidence_score": 0.64,
+                        "dominant_measure_family": "theil_sen",
+                        "theil_sen_slope": -0.1,
+                        "theil_sen_low_slope": -0.2,
+                        "theil_sen_high_slope": -0.05,
+                        "kendall_tau": -0.41,
+                        "kendall_p_value": 0.01,
+                        "preprocessing": {
+                            "smoothing_method": "none",
+                            "smoothing_parameters": {},
+                            "seasonal_adjustment_method": "none",
+                            "seasonal_periods": [],
+                            "seasonal_reliability_state": "not_applicable",
+                            "preprocess_version": "v2",
+                        },
+                        "ols_diagnostics": {
+                            "slope": -0.09,
+                            "intercept": 4.7,
+                            "r_squared": 0.55,
+                            "p_value": 0.02,
+                        },
                         "reason_code": None,
                     },
                     {
                         "lookback_points": 500,
                         "applicability_state": "inapplicable",
-                        "outcome_state": None,
+                        "descriptor_state": "unavailable",
                         "trend_label": None,
                         "direction": None,
-                        "strength": None,
+                        "confidence_score": None,
+                        "dominant_measure_family": "none",
+                        "theil_sen_slope": None,
+                        "theil_sen_low_slope": None,
+                        "theil_sen_high_slope": None,
+                        "kendall_tau": None,
+                        "kendall_p_value": None,
+                        "preprocessing": {
+                            "smoothing_method": "none",
+                            "smoothing_parameters": {},
+                            "seasonal_adjustment_method": "none",
+                            "seasonal_periods": [],
+                            "seasonal_reliability_state": "not_applicable",
+                            "preprocess_version": "v2",
+                        },
+                        "ols_diagnostics": {
+                            "slope": None,
+                            "intercept": None,
+                            "r_squared": None,
+                            "p_value": None,
+                        },
                         "reason_code": "insufficient_history",
                     },
                 ]
@@ -62,12 +102,14 @@ class _FakeConnection:
             return _FakeResult(
                 [
                     {
+                        "descriptor_version": "v2",
                         "descriptor_state": "available",
                         "trend_label": "mild_sustained_downtrend",
                         "direction": "down",
-                        "strength": "mild",
+                        "confidence_score": 0.64,
                         "selected_lookback_points": 25,
                         "observed_on": "2026-03-01",
+                        "dominant_measure_family": "theil_sen",
                         "reason_code": None,
                     }
                 ]
@@ -93,12 +135,14 @@ def test_repository_reads_latest_canonical_descriptor_projection() -> None:
     payload = repository.get_latest_dataset_canonical_trend_descriptor(dataset_id="UNRATE")
 
     assert payload == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-03-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
 
@@ -127,29 +171,69 @@ def test_repository_returns_none_when_no_canonical_descriptor_exists() -> None:
     assert payload is None
 
 
-def test_repository_reads_lookback_snapshot_projection_for_latest_observation() -> None:
-    """Repository should return lookback snapshots for latest evaluated observation."""
+def test_repository_reads_lookback_evidence_projection_for_latest_observation() -> None:
+    """Repository should return lookback evidence for latest evaluated observation."""
     repository = PersistedDatasetDiscoveryRepository(engine=_FakeEngine())  # type: ignore[arg-type]
 
-    payload = repository.list_dataset_lookback_trend_snapshots(dataset_id="UNRATE")
+    payload = repository.list_dataset_lookback_evidence(dataset_id="UNRATE")
 
     assert payload == [
         {
             "lookback_points": 10,
             "applicability_state": "applicable",
-            "outcome_state": "significant_trend",
+            "descriptor_state": "available",
             "trend_label": "mild_sustained_downtrend",
             "direction": "down",
-            "strength": "mild",
+            "confidence_score": 0.64,
+            "dominant_measure_family": "theil_sen",
+            "theil_sen_slope": -0.1,
+            "theil_sen_low_slope": -0.2,
+            "theil_sen_high_slope": -0.05,
+            "kendall_tau": -0.41,
+            "kendall_p_value": 0.01,
+            "preprocessing": {
+                "smoothing_method": "none",
+                "smoothing_parameters": {},
+                "seasonal_adjustment_method": "none",
+                "seasonal_periods": [],
+                "seasonal_reliability_state": "not_applicable",
+                "preprocess_version": "v2",
+            },
+            "ols_diagnostics": {
+                "slope": -0.09,
+                "intercept": 4.7,
+                "r_squared": 0.55,
+                "p_value": 0.02,
+            },
             "reason_code": None,
         },
         {
             "lookback_points": 500,
             "applicability_state": "inapplicable",
-            "outcome_state": None,
+            "descriptor_state": "unavailable",
             "trend_label": None,
             "direction": None,
-            "strength": None,
+            "confidence_score": None,
+            "dominant_measure_family": "none",
+            "theil_sen_slope": None,
+            "theil_sen_low_slope": None,
+            "theil_sen_high_slope": None,
+            "kendall_tau": None,
+            "kendall_p_value": None,
+            "preprocessing": {
+                "smoothing_method": "none",
+                "smoothing_parameters": {},
+                "seasonal_adjustment_method": "none",
+                "seasonal_periods": [],
+                "seasonal_reliability_state": "not_applicable",
+                "preprocess_version": "v2",
+            },
+            "ols_diagnostics": {
+                "slope": None,
+                "intercept": None,
+                "r_squared": None,
+                "p_value": None,
+            },
             "reason_code": "insufficient_history",
         },
     ]

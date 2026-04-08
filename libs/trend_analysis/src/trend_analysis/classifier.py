@@ -7,7 +7,10 @@ from datetime import date
 from typing import Literal
 
 from .cadence import CadenceInferenceError, infer_cadence, infer_cadence_decision
+from .arbitration import compute_canonical_descriptor_v2
 from .models import (
+    OlsDiagnostics,
+    PreprocessingMetadata,
     CanonicalTrendDescriptorResult,
     LookbackTrendSnapshotResult,
     MultiLookbackEvaluationResult,
@@ -19,6 +22,9 @@ from .models import (
     build_lookback_snapshot_result,
     build_result,
 )
+from .preprocessing import apply_ewma
+from .scoring import score_window
+from .seasonal_adjustment import seasonal_method_for_cadence
 
 MIN_REQUIRED_OBSERVATIONS = 6
 SIGNIFICANT_RELATIVE_CHANGE = 0.05
@@ -170,21 +176,50 @@ def _evaluate_lookback(
             None,
         )
 
-    change_ratio = _lookback_relative_change(observations, lookback_points=lookback_points)
-    absolute_change_ratio = abs(change_ratio)
-    if absolute_change_ratio < SIGNIFICANT_RELATIVE_CHANGE:
+    window = observations[-(lookback_points + 1) :]
+    smoothed_values, preprocessing = apply_ewma([point[1] for point in window])
+    seasonal_method = seasonal_method_for_cadence(cadence)
+    if seasonal_method != "none":
+        preprocessing = PreprocessingMetadata(
+            smoothing_method=preprocessing.smoothing_method,
+            smoothing_parameters=preprocessing.smoothing_parameters,
+            seasonal_adjustment_method=seasonal_method,
+            seasonal_periods=(7,) if cadence == "weekly" else (12,),
+            seasonal_reliability_state="reliable",
+            preprocess_version=preprocessing.preprocess_version,
+        )
+    score = score_window(smoothed_values)
+
+    if score.direction == "flat":
         snapshot = build_lookback_snapshot_result(
             lookback_points=lookback_points,
             outcome_state="no_significant_trend",
+            descriptor_state="available",
             trend_label=None,
-            direction=None,
+            direction="flat",
+            confidence_score=score.confidence_score,
+            dominant_measure_family="theil_sen",
+            theil_sen_slope=score.theil_sen_slope,
+            theil_sen_low_slope=score.theil_sen_low_slope,
+            theil_sen_high_slope=score.theil_sen_high_slope,
+            kendall_tau=score.kendall_tau,
+            kendall_pvalue=score.kendall_pvalue,
+            preprocessing=preprocessing,
+            ols_diagnostics=OlsDiagnostics(
+                slope=score.theil_sen_slope,
+                intercept=window[0][1],
+                r_squared=None,
+                p_value=None,
+            ),
             strength=None,
             seasonality_classification=None,
+            reason_code="flat_signal",
             reason="change remains below significant threshold",
         )
     else:
-        direction = "up" if change_ratio > 0 else "down"
-        strength = "strong" if absolute_change_ratio >= STRONG_RELATIVE_CHANGE else "mild"
+        direction = score.direction
+        magnitude = abs(score.theil_sen_slope)
+        strength = "strong" if magnitude >= STRONG_RELATIVE_CHANGE else "mild"
         seasonality = _seasonality_classification(
             cadence=cadence,
             observation_count=lookback_points + 1,
@@ -192,10 +227,26 @@ def _evaluate_lookback(
         snapshot = build_lookback_snapshot_result(
             lookback_points=lookback_points,
             outcome_state="significant_trend",
+            descriptor_state="available",
             trend_label=_trend_label(direction, strength),
             direction=direction,
+            confidence_score=score.confidence_score,
+            dominant_measure_family="theil_sen",
+            theil_sen_slope=score.theil_sen_slope,
+            theil_sen_low_slope=score.theil_sen_low_slope,
+            theil_sen_high_slope=score.theil_sen_high_slope,
+            kendall_tau=score.kendall_tau,
+            kendall_pvalue=score.kendall_pvalue,
+            preprocessing=preprocessing,
+            ols_diagnostics=OlsDiagnostics(
+                slope=score.theil_sen_slope,
+                intercept=window[0][1],
+                r_squared=None,
+                p_value=None,
+            ),
             strength=strength,
             seasonality_classification=seasonality,
+            reason_code=None,
             reason=f"{cadence} cadence evaluation over {lookback_points + 1} points",
         )
 
@@ -214,41 +265,7 @@ def compute_canonical_descriptor(
     snapshots: Sequence[LookbackTrendSnapshotResult],
 ) -> CanonicalTrendDescriptorResult:
     """Compute deterministic canonical descriptor from lookback snapshot results."""
-    significant_candidates: list[LookbackTrendSnapshotResult] = [
-        snapshot for snapshot in snapshots if snapshot.outcome_state == "significant_trend"
-    ]
-    if not significant_candidates:
-        return build_canonical_descriptor(
-            descriptor_state="unavailable",
-            trend_label=None,
-            direction=None,
-            strength=None,
-            selected_lookback_points=None,
-            reason_code="no_significant_trend",
-            weighting_trace={"selected": None, "candidates": {}},
-        )
-
-    scored: list[tuple[float, int, LookbackTrendSnapshotResult]] = []
-    for candidate in significant_candidates:
-        lookback_points = candidate.lookback_points
-        strength = candidate.strength or "mild"
-        score = (1.0 / float(lookback_points)) * STRENGTH_WEIGHT_MULTIPLIER.get(strength, 1.0)
-        scored.append((score, lookback_points, candidate))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    _, selected_lookback, selected = scored[0]
-
-    return build_canonical_descriptor(
-        descriptor_state="available",
-        trend_label=selected.trend_label,
-        direction=selected.direction,
-        strength=selected.strength,
-        selected_lookback_points=selected_lookback,
-        reason_code=None,
-        weighting_trace={
-            "selected": selected_lookback,
-            "candidates": {str(lookback): score for score, lookback, _candidate in scored},
-        },
-    )
+    return compute_canonical_descriptor_v2(list(snapshots))
 
 
 def evaluate_multi_lookbacks(

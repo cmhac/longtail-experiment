@@ -63,23 +63,45 @@ describe("discovery types", () => {
       topic_tags: [],
       metadata: {},
       observations: [],
-      canonical_trend_descriptor: {
-        descriptor_state: "available",
-        trend_label: "strong_sustained_uptrend",
-        direction: "up",
-        strength: "strong",
-        selected_lookback_points: 100,
-        observed_on: "2026-03-01",
-        reason_code: null,
-      },
-      lookback_trend_snapshots: [
+        canonical_trend_descriptor: {
+          descriptor_version: "v2",
+          descriptor_state: "available",
+          trend_label: "strong_sustained_uptrend",
+          direction: "up",
+          confidence_score: 0.91,
+          dominant_measure_family: "theil_sen",
+          selected_lookback_points: 100,
+          observed_on: "2026-03-01",
+          reason_code: null,
+        },
+      lookback_trend_evidence: [
         {
           lookback_points: 100,
           applicability_state: "applicable",
-          outcome_state: "significant_trend",
+          descriptor_state: "available",
           trend_label: "strong_sustained_uptrend",
           direction: "up",
-          strength: "strong",
+          confidence_score: 0.91,
+          dominant_measure_family: "theil_sen",
+          theil_sen_slope: 1.2,
+          theil_sen_low_slope: 1.0,
+          theil_sen_high_slope: 1.4,
+          kendall_tau: 0.81,
+          kendall_p_value: 0.01,
+          preprocessing: {
+            smoothing_method: "ewma",
+            smoothing_parameters: { halflife: 3 },
+            seasonal_adjustment_method: "none",
+            seasonal_periods: [],
+            seasonal_reliability_state: "not_applicable",
+            preprocess_version: "v2",
+          },
+          ols_diagnostics: {
+            slope: 1.1,
+            intercept: 50.0,
+            r_squared: 0.72,
+            p_value: 0.03,
+          },
           reason_code: null,
         },
       ],
@@ -87,7 +109,7 @@ describe("discovery types", () => {
     };
 
     expect(detailPayload.canonical_trend_descriptor?.descriptor_state).toBe("available");
-    expect(detailPayload.lookback_trend_snapshots?.[0]?.lookback_points).toBe(100);
+    expect(detailPayload.lookback_trend_evidence?.[0]?.lookback_points).toBe(100);
   });
 
   it("preserves required arrays for items, groups, tags, and observations", () => {

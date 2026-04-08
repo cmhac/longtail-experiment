@@ -41,10 +41,12 @@ def http_server() -> Iterator[tuple[str, int]]:
             observations=seeded_observations,
             canonical_trends_by_dataset={
                 "UNRATE": {
+                    "descriptor_version": "v2",
                     "descriptor_state": "available",
                     "trend_label": "mild_sustained_downtrend",
                     "direction": "down",
-                    "strength": "mild",
+                    "confidence_score": 0.72,
+                    "dominant_measure_family": "theil_sen",
                     "selected_lookback_points": 25,
                     "observed_on": "2026-02-01",
                     "reason_code": None,
@@ -55,10 +57,30 @@ def http_server() -> Iterator[tuple[str, int]]:
                     {
                         "lookback_points": 25,
                         "applicability_state": "applicable",
-                        "outcome_state": "significant_trend",
+                        "descriptor_state": "available",
                         "trend_label": "mild_sustained_downtrend",
                         "direction": "down",
-                        "strength": "mild",
+                        "confidence_score": 0.72,
+                        "dominant_measure_family": "theil_sen",
+                        "theil_sen_slope": -0.11,
+                        "theil_sen_low_slope": -0.14,
+                        "theil_sen_high_slope": -0.08,
+                        "kendall_tau": -0.62,
+                        "kendall_p_value": 0.03,
+                        "preprocessing": {
+                            "smoothing_method": "ewma",
+                            "smoothing_parameters": {"halflife": 3},
+                            "seasonal_adjustment_method": "none",
+                            "seasonal_periods": [],
+                            "seasonal_reliability_state": "not_applicable",
+                            "preprocess_version": "v2",
+                        },
+                        "ols_diagnostics": {
+                            "slope": -0.1,
+                            "intercept": 4.0,
+                            "r_squared": 0.55,
+                            "p_value": 0.04,
+                        },
                         "reason_code": None,
                     }
                 ]
@@ -98,13 +120,15 @@ def test_http_dataset_detail_serializes_observation_asof_descriptor_contract(
 
     assert detail_payload["dataset_id"] == "UNRATE"
     assert "canonical_trend_descriptor" in detail_payload
-    assert "lookback_trend_snapshots" in detail_payload
+    assert "lookback_trend_evidence" in detail_payload
     assert all("as_of_trend_descriptor" in item for item in detail_payload["observations"])
     assert detail_payload["observations"][0]["as_of_trend_descriptor"] == {
         "descriptor_state": "available",
+        "descriptor_version": "v2",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "dominant_measure_family": "theil_sen",
+        "confidence_score": 0.73,
         "selected_lookback_points": 10,
         "observed_on": "2026-01-01",
         "reason_code": None,

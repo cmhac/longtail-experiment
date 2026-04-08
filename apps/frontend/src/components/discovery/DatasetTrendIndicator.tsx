@@ -12,7 +12,7 @@ interface DatasetTrendIndicatorProps {
   testId?: string;
 }
 
-type IndicatorState = "up" | "down" | "unavailable";
+type IndicatorState = "up" | "down" | "flat" | "unavailable";
 
 interface IndicatorContent {
   glyph: string;
@@ -43,8 +43,17 @@ const getIndicatorContent = (descriptor?: CanonicalTrendDescriptor): IndicatorCo
 
   if (
     descriptor.descriptor_state === "available" &&
-    (descriptor.direction === "up" || descriptor.direction === "down")
+    (descriptor.direction === "up" || descriptor.direction === "down" || descriptor.direction === "flat")
   ) {
+    if (descriptor.direction === "flat") {
+      return {
+        glyph: "→",
+        label: "Flat trend",
+        state: "flat",
+        chipColor: "default",
+        accentClassName: "text-(--shell-muted)",
+      };
+    }
     return descriptor.direction === "up"
       ? {
           glyph: "↑",

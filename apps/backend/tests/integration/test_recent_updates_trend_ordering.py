@@ -25,7 +25,7 @@ def test_unified_recent_feed_orders_by_event_timestamp_with_trends() -> None:
                 "source": {"id": "bls", "name": "BLS"},
                 "title": "Unemployment Trend",
                 "direction": "down",
-                "strength": "mild",
+                "confidence_score": 0.64,
                 "start_period": "2026-03-01",
             }
         ],

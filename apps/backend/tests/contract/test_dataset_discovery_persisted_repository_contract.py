@@ -116,12 +116,14 @@ class _FakeConnection:
                 rows = [
                     {
                         "dataset_id": row["dataset_id"],
+                        "descriptor_version": row["descriptor_version"],
                         "descriptor_state": row["descriptor_state"],
                         "trend_label": row["trend_label"],
                         "direction": row["direction"],
-                        "strength": row["strength"],
+                        "confidence_score": row["confidence_score"],
                         "selected_lookback_points": row["selected_lookback_points"],
                         "observed_on": row["observed_on"],
+                        "dominant_measure_family": row["dominant_measure_family"],
                         "reason_code": row["reason_code"],
                     }
                     for row in self._canonical_descriptor_rows
@@ -147,11 +149,13 @@ class _FakeConnection:
                             "candidate_observed_on": observed_on,
                             "candidate_reported_at": datetime(2026, 2, 4, tzinfo=timezone.utc),
                             "candidate_created_at": row["created_at"],
+                            "descriptor_version": row["descriptor_version"],
                             "descriptor_state": row["descriptor_state"],
                             "trend_label": row["trend_label"],
                             "direction": row["direction"],
-                            "strength": row["strength"],
+                            "confidence_score": row["confidence_score"],
                             "selected_lookback_points": row["selected_lookback_points"],
+                            "dominant_measure_family": row["dominant_measure_family"],
                             "reason_code": row["reason_code"],
                         }
                     )
@@ -188,19 +192,59 @@ class _FakeConnection:
                     {
                         "lookback_points": 10,
                         "applicability_state": "applicable",
-                        "outcome_state": "significant_trend",
+                        "descriptor_state": "available",
                         "trend_label": "mild_sustained_downtrend",
                         "direction": "down",
-                        "strength": "mild",
+                        "confidence_score": 0.64,
+                        "dominant_measure_family": "theil_sen",
+                        "theil_sen_slope": -0.1,
+                        "theil_sen_low_slope": -0.2,
+                        "theil_sen_high_slope": -0.05,
+                        "kendall_tau": -0.41,
+                        "kendall_p_value": 0.01,
+                        "preprocessing": {
+                            "smoothing_method": "none",
+                            "smoothing_parameters": {},
+                            "seasonal_adjustment_method": "none",
+                            "seasonal_periods": [],
+                            "seasonal_reliability_state": "not_applicable",
+                            "preprocess_version": "v2",
+                        },
+                        "ols_diagnostics": {
+                            "slope": -0.09,
+                            "intercept": 4.7,
+                            "r_squared": 0.55,
+                            "p_value": 0.02,
+                        },
                         "reason_code": None,
                     },
                     {
                         "lookback_points": 500,
                         "applicability_state": "inapplicable",
-                        "outcome_state": None,
+                        "descriptor_state": "unavailable",
                         "trend_label": None,
                         "direction": None,
-                        "strength": None,
+                        "confidence_score": None,
+                        "dominant_measure_family": "none",
+                        "theil_sen_slope": None,
+                        "theil_sen_low_slope": None,
+                        "theil_sen_high_slope": None,
+                        "kendall_tau": None,
+                        "kendall_p_value": None,
+                        "preprocessing": {
+                            "smoothing_method": "none",
+                            "smoothing_parameters": {},
+                            "seasonal_adjustment_method": "none",
+                            "seasonal_periods": [],
+                            "seasonal_reliability_state": "not_applicable",
+                            "preprocess_version": "v2",
+                        },
+                        "ols_diagnostics": {
+                            "slope": None,
+                            "intercept": None,
+                            "r_squared": None,
+                            "p_value": None,
+                        },
                         "reason_code": "insufficient_history",
                     },
                 ]
@@ -292,7 +336,7 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "source_title": "Federal Reserve Economic Data",
             "title": "Effective Federal Funds Rate",
             "direction": "down",
-            "strength": "mild",
+            "confidence_score": 0.64,
             "trend_label": "mild_sustained_downtrend",
             "seasonality_classification": "none",
             "start_period": datetime(2026, 1, 1, tzinfo=timezone.utc),
@@ -306,7 +350,7 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "source_title": "Bureau of Labor Statistics",
             "title": "Unemployment Rate",
             "direction": "up",
-            "strength": "strong",
+            "confidence_score": 0.88,
             "trend_label": "strong_sustained_uptrend",
             "seasonality_classification": "none",
             "start_period": datetime(2026, 2, 1, tzinfo=timezone.utc),
@@ -318,23 +362,27 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
     canonical_descriptor_rows = [
         {
             "dataset_id": "INT.US.FEDFUNDS",
+            "descriptor_version": "v2",
             "descriptor_state": "available",
             "trend_label": "mild_sustained_downtrend",
             "direction": "down",
-            "strength": "mild",
+            "confidence_score": 0.64,
             "selected_lookback_points": 25,
             "observed_on": date(2026, 2, 1),
+            "dominant_measure_family": "theil_sen",
             "reason_code": None,
             "created_at": datetime(2026, 1, 2, tzinfo=timezone.utc),
         },
         {
             "dataset_id": "LABOR.US.UNRATE",
+            "descriptor_version": "v2",
             "descriptor_state": "available",
             "trend_label": "strong_sustained_uptrend",
             "direction": "up",
-            "strength": "strong",
+            "confidence_score": 0.88,
             "selected_lookback_points": 10,
             "observed_on": date(2026, 2, 1),
+            "dominant_measure_family": "theil_sen",
             "reason_code": None,
             "created_at": datetime(2026, 2, 2, tzinfo=timezone.utc),
         },
@@ -363,23 +411,27 @@ def test_search_and_recent_are_persisted_and_sorted() -> None:
     metadata = cast(dict[str, Any], rows[0]["metadata"])
     assert metadata["source_type"] == "external"
     assert rows[0]["canonical_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
     assert rows[0]["has_recent_notification"] is True
     assert recent[0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert recent[0]["canonical_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
     assert recent[0]["has_recent_notification"] is True
@@ -405,12 +457,14 @@ def test_catalog_detail_and_grouping_support_source_filtering() -> None:
     assert total_items == 1
     assert catalog_rows[0]["dataset_id"] == "INT.US.FEDFUNDS"
     assert catalog_rows[0]["canonical_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
     assert catalog_rows[0]["has_recent_notification"] is True
@@ -463,12 +517,14 @@ def test_source_list_and_detail_use_persisted_source_projection() -> None:
     ]
     source_item = cast(list[dict[str, Any]], source_detail["items"])[0]
     assert source_item["canonical_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
     assert source_item["has_recent_notification"] is True
@@ -499,12 +555,14 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
     ]
     topic_item = cast(list[dict[str, Any]], topic_detail["items"])[0]
     assert topic_item["canonical_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
     assert topic_item["has_recent_notification"] is True
@@ -522,12 +580,14 @@ def test_topic_and_geography_detail_use_persisted_metadata_projection() -> None:
     ] == ["INT.US.FEDFUNDS"]
     geography_item = cast(list[dict[str, Any]], geography_detail["items"])[0]
     assert geography_item["canonical_trend_descriptor"] == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
     assert geography_item["has_recent_notification"] is True
@@ -629,7 +689,7 @@ def test_recent_trend_events_projection_uses_persisted_rows() -> None:
             },
             "title": "Unemployment Rate",
             "direction": "up",
-            "strength": "strong",
+            "confidence_score": 0.88,
             "start_period": "2026-02-01",
         }
     ]
@@ -643,11 +703,13 @@ def test_dataset_canonical_descriptor_projection_uses_latest_descriptor_row() ->
     )
 
     assert descriptor == {
+        "descriptor_version": "v2",
         "descriptor_state": "available",
         "trend_label": "mild_sustained_downtrend",
         "direction": "down",
-        "strength": "mild",
+        "confidence_score": 0.64,
         "selected_lookback_points": 25,
         "observed_on": "2026-02-01",
+        "dominant_measure_family": "theil_sen",
         "reason_code": None,
     }
