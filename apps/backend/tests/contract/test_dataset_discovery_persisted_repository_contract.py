@@ -26,6 +26,11 @@ class _FakeResult:
     def all(self) -> list[dict[str, Any]]:
         return self._rows
 
+    def one_or_none(self) -> dict[str, Any] | None:
+        if not self._rows:
+            return None
+        return self._rows[0]
+
 
 class _FakeConnection:
     def __init__(
@@ -48,6 +53,16 @@ class _FakeConnection:
     ) -> _FakeResult:
         sql = str(statement)
         if "FROM data_series ds" in sql and "MAX(o.reported_at)" in sql:
+            if "WHERE ds.series_key = :dataset_id" in sql:
+                params = parameters or {}
+                dataset_id = str(params.get("dataset_id", ""))
+                return _FakeResult(
+                    [
+                        row
+                        for row in self._dataset_rows
+                        if str(row.get("dataset_id", "")) == dataset_id
+                    ]
+                )
             return _FakeResult(self._dataset_rows)
         if "recent_observation_window" in sql and "has_recent_notification" in sql:
             return _FakeResult(
@@ -68,7 +83,7 @@ class _FakeConnection:
                     {"dataset_id": "INT.US.FEDFUNDS"},
                 ]
             )
-        if "FROM observations o" in sql:
+        if "SELECT o.id, o.observed_on, o.value, o.reported_at, o.attributes" in sql:
             params = parameters or {}
             dataset_id = str(params.get("dataset_id", ""))
             from_date = params.get("from_date")
@@ -144,21 +159,29 @@ class _FakeConnection:
                         continue
                     if to_date is not None and observed_on > to_date:
                         continue
-                    rows.append(
-                        {
-                            "candidate_observed_on": observed_on,
-                            "candidate_reported_at": datetime(2026, 2, 4, tzinfo=timezone.utc),
-                            "candidate_created_at": row["created_at"],
-                            "descriptor_version": row["descriptor_version"],
-                            "descriptor_state": row["descriptor_state"],
-                            "trend_label": row["trend_label"],
-                            "direction": row["direction"],
-                            "confidence_score": row["confidence_score"],
-                            "selected_lookback_points": row["selected_lookback_points"],
-                            "dominant_measure_family": row["dominant_measure_family"],
-                            "reason_code": row["reason_code"],
-                        }
-                    )
+                    matching_observations = [
+                        observation
+                        for observation in self._observation_rows
+                        if str(observation.get("dataset_id", "")) == dataset_id
+                        and observation.get("observed_on") == observed_on
+                    ]
+                    for observation in matching_observations:
+                        rows.append(
+                            {
+                                "observation_id": int(observation["id"]),
+                                "candidate_observed_on": observed_on,
+                                "candidate_reported_at": observation["reported_at"],
+                                "candidate_created_at": row["created_at"],
+                                "descriptor_version": row["descriptor_version"],
+                                "descriptor_state": row["descriptor_state"],
+                                "trend_label": row["trend_label"],
+                                "direction": row["direction"],
+                                "confidence_score": row["confidence_score"],
+                                "selected_lookback_points": row["selected_lookback_points"],
+                                "dominant_measure_family": row["dominant_measure_family"],
+                                "reason_code": row["reason_code"],
+                            }
+                        )
                 rows.sort(
                     key=lambda row: (
                         row["candidate_observed_on"],
@@ -315,6 +338,7 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
     ]
     observation_rows = [
         {
+            "id": 1,
             "dataset_id": "INT.US.FEDFUNDS",
             "observed_on": date(2026, 1, 1),
             "value": 4.33,
@@ -322,6 +346,7 @@ def _build_repository() -> PersistedDatasetDiscoveryRepository:
             "attributes": None,
         },
         {
+            "id": 2,
             "dataset_id": "INT.US.FEDFUNDS",
             "observed_on": date(2026, 1, 2),
             "value": 4.35,

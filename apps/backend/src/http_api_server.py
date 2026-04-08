@@ -7,6 +7,7 @@ import csv
 import json
 import os
 from collections.abc import Callable, Mapping
+from functools import lru_cache
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
@@ -29,11 +30,6 @@ from src.contract.query.auth_management_query import (
     unauthorized_error,
     validation_error,
 )
-from src.contract.query.trend_notification_query import (
-    notification_not_found_error,
-    notification_unauthorized_error,
-    notification_validation_error,
-)
 from src.contract.query.dataset_discovery_contracts import (
     dataset_not_found_error,
     invalid_request_error,
@@ -43,10 +39,15 @@ from src.contract.query.metadata_discovery_contracts import (
     topic_not_found_error,
 )
 from src.contract.query.source_discovery_contracts import source_not_found_error
+from src.contract.query.trend_notification_query import (
+    notification_not_found_error,
+    notification_unauthorized_error,
+    notification_validation_error,
+)
 from src.query.auth_management_persisted_repository import PersistedAuthManagementRepository
 from src.query.auth_management_service import AuthManagementService
-from src.query.dataset_catalog_query import execute_dataset_catalog
 from src.query.dataset_asof_trend_query import execute_dataset_asof_trend
+from src.query.dataset_catalog_query import execute_dataset_catalog
 from src.query.dataset_detail_query import execute_dataset_detail
 from src.query.dataset_discovery_persisted_repository import (
     PersistedDatasetDiscoveryRepository,
@@ -59,11 +60,11 @@ from src.query.dataset_search_summary_query import execute_search_summary
 from src.query.geography_detail_query import execute_geography_detail
 from src.query.source_detail_query import execute_source_detail
 from src.query.source_list_query import execute_source_list
+from src.query.topic_detail_query import execute_topic_detail
 from src.query.trend_notification_persisted_repository import (
     PersistedTrendNotificationRepository,
 )
 from src.query.trend_notification_service import TrendNotificationService
-from src.query.topic_detail_query import execute_topic_detail
 
 
 def _env_value(environment: Mapping[str, str], key: str, default: str) -> str:
@@ -140,29 +141,35 @@ def _optional_int_query_param(query: dict[str, list[str]], key: str) -> int | No
     return int(value)
 
 
-def _make_service() -> DatasetDiscoveryService:
-    expected_revision = _resolve_expected_revision(environment=os.environ)
+@lru_cache(maxsize=1)
+def _cached_expected_revision() -> str:
+    """Cache resolved expected Alembic revision for local runtime startup."""
+    return _resolve_expected_revision(environment=os.environ)
+
+
+def _make_checked_engine() -> Any:
+    """Create an engine and enforce schema readiness once per service bootstrap."""
+    expected_revision = _cached_expected_revision()
     database_url = _resolve_database_url(environment=os.environ)
     engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
     _require_schema_readiness(engine=engine, expected_revision=expected_revision)
+    return engine
+
+
+def _make_service() -> DatasetDiscoveryService:
+    engine = _make_checked_engine()
     repository = PersistedDatasetDiscoveryRepository(engine=engine)
     return DatasetDiscoveryService(repository)
 
 
 def _make_auth_service() -> AuthManagementService:
-    expected_revision = _resolve_expected_revision(environment=os.environ)
-    database_url = _resolve_database_url(environment=os.environ)
-    engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
-    _require_schema_readiness(engine=engine, expected_revision=expected_revision)
+    engine = _make_checked_engine()
     repository = PersistedAuthManagementRepository(engine=engine)
     return AuthManagementService(repository=repository)
 
 
 def _make_notification_service() -> TrendNotificationService:
-    expected_revision = _resolve_expected_revision(environment=os.environ)
-    database_url = _resolve_database_url(environment=os.environ)
-    engine = create_engine(database_url, pool_pre_ping=True, poolclass=NullPool)
-    _require_schema_readiness(engine=engine, expected_revision=expected_revision)
+    engine = _make_checked_engine()
     repository = PersistedTrendNotificationRepository(engine=engine)
     return TrendNotificationService(repository=repository)
 
@@ -942,20 +949,24 @@ class DatasetApiHandler(BaseHTTPRequestHandler):
         }
 
         if path in exact_routes:
-            return HTTPStatus.OK, exact_routes[path]()
+            payload = exact_routes[path]()
+            return HTTPStatus.OK, payload
+
         if path.startswith("/api/sources/"):
-            return HTTPStatus.OK, self._handle_source_detail(path, query, service)
-        if path.startswith("/api/topics/"):
-            return HTTPStatus.OK, self._handle_topic_detail(path, query, service)
-        if path.startswith("/api/geographies/"):
-            return HTTPStatus.OK, self._handle_geography_detail(path, query, service)
-        if path.endswith("/observations/as-of") and path.startswith("/api/datasets/"):
-            return HTTPStatus.OK, self._handle_observation_asof(path, query, service)
-        if path.startswith("/api/datasets/"):
-            return HTTPStatus.OK, self._handle_detail(path, query, service)
-        return HTTPStatus.NOT_FOUND, {
-            "error": {"code": "not_found", "message": "Endpoint not found"}
-        }
+            payload = self._handle_source_detail(path, query, service)
+        elif path.startswith("/api/topics/"):
+            payload = self._handle_topic_detail(path, query, service)
+        elif path.startswith("/api/geographies/"):
+            payload = self._handle_geography_detail(path, query, service)
+        elif path.endswith("/observations/as-of") and path.startswith("/api/datasets/"):
+            payload = self._handle_observation_asof(path, query, service)
+        elif path.startswith("/api/datasets/"):
+            payload = self._handle_detail(path, query, service)
+        else:
+            return HTTPStatus.NOT_FOUND, {
+                "error": {"code": "not_found", "message": "Endpoint not found"}
+            }
+        return HTTPStatus.OK, payload
 
     def do_GET(self) -> None:
         """Handle read-only dataset discovery API requests."""
