@@ -1,6 +1,6 @@
 # longtail-experiment Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-07
+Auto-generated from all feature plans. Last updated: 2026-04-08
 
 ## Active Technologies
 - Python 3.12 (backend/pipeline/libs), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Pydantic 2.x, Dagster 1.x, existing discovery query/service contracts, existing trend-analysis library and canonical descriptor persistence, HeroUI 3, Tailwind utilities, Vitest, pytest, Ruff, Ty, Biome (044-multi-horizon-trends)
@@ -21,6 +21,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-07
 - Browser-local comparison state + existing auth session persistence (no new persistence introduced) (049-mobile-sidebar-drawer)
 - Python 3.12 (libs/pipeline/backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster 1.x runtime orchestration, SciPy, pandas, statsmodels, ruptures, HeroUI 3 (`@heroui/react`), Recharts, pytest, Ruff, Ty, Vitest, Biome (050-trend-analysis-update)
 - PostgreSQL 16 via shared `libs/db` migration/model authority (`trend_*`, `observations`, notification/event tables) (050-trend-analysis-update)
+- Python 3.12 (backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Pydantic 2.x contracts, HeroUI 3 (`@heroui/react`), Recharts, Nx + pnpm + uv (051-local-dev-performance)
+- PostgreSQL 16 (discovery and trend persistence tables via `libs/db`) (051-local-dev-performance)
 
 - TypeScript 5.x + React 19 (Next.js 15 App Router), Python 3.12 backend query layer, existing pipeline contracts/persistence semantics + Existing discovery API client/types, Next.js routing primitives, existing shell/layout tokens, backend dataset discovery service/repository surfaces (032-source-pages)
 - Existing PostgreSQL 16 discovery metadata in `source_profiles`, `data_series`, `topic_tags`, and `observations`; no new datastore expected (032-source-pages)
@@ -288,9 +290,9 @@ If you discover any test failures or coverage reductions, you MUST fix them befo
 <!-- —use python -c or a temporary script for library code and edge cases, curl to explore JSON endpoints, and Playwright or a browser automation CLI for interactive web UI flows, including screenshots to confirm visual details. Actively probe normal paths, edge cases, startup behavior, and obvious failure modes; if you find a bug, fix it using red/green test-driven development (TDD) so the issue is captured in permanent automated tests. Keep a concise record of what you tested, the exact commands you ran, outputs observed, and any screenshots or notes that demonstrate the feature working end to end.” This closely follows Simon Willison’s guidance that coding agents should execute what they write, use manual testing in addition to automated tests, use browser automation for web interfaces, and document the testing process with command/output artifacts. -->
 
 ## Recent Changes
+- 051-local-dev-performance: Added Python 3.12 (backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Pydantic 2.x contracts, HeroUI 3 (`@heroui/react`), Recharts, Nx + pnpm + uv
 - 050-trend-analysis-update: Added Python 3.12 (libs/pipeline/backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster 1.x runtime orchestration, SciPy, pandas, statsmodels, ruptures, HeroUI 3 (`@heroui/react`), Recharts, pytest, Ruff, Ty, Vitest, Biome
 - 049-mobile-sidebar-drawer: Added TypeScript 5.x + React 19 + Next.js 15 App Router + `@heroui/react`, Tailwind CSS v4 utilities, existing shell theme classes, existing auth/session and notification/comparison client utilities
-- 048-trend-change-notifications: Added Python 3.12 (libs, pipeline, backend), TypeScript 5.x + React 19 + Next.js 15 App Router (frontend) + SQLAlchemy 2.x, Alembic, Pydantic 2.x, Dagster runtime orchestration, HeroUI 3 (`@heroui/react`), Tailwind utilities, existing auth/session and discovery client contracts, pytest, Ruff, Ty, Vitest, Biome
 
 
   PostgreSQL datasets, using SQLAlchemy repositories in `libs/db` and Pydantic contracts
