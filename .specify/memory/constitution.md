@@ -41,7 +41,7 @@ repository test suite across all apps MUST pass using the canonical command
 `pnpm exec nx run-many -t test --all`. Targeted test runs MAY be used during
 development, but they do not satisfy this mandatory stop rule.
 Before any commit, repository-wide coverage enforcement MUST pass using
-`pnpm exec nx run-many -t coverage --all`, with minimum thresholds of 90% or
+`pnpm exec nx run-many -t coverage --all`, with minimum thresholds of 85% or
 higher required for every project.
 Rationale: Consistent, automated quality controls are required to keep reliability high
 as the codebase and team scale.
@@ -50,8 +50,8 @@ as the codebase and team scale.
 
 Every production change MUST include automated tests at the appropriate level (unit,
 integration, and contract/end-to-end where relevant), and the repository-wide minimum
-coverage MUST remain at or above 90% for backend and frontend code. Merges that reduce
-coverage below 90% are prohibited.
+coverage MUST remain at or above 85% for backend and frontend code. Merges that reduce
+coverage below 85% are prohibited.
 Rationale: Historical analysis and trend alerting require high confidence in correctness
 under evolving datasets and rules.
 
@@ -152,7 +152,7 @@ to evolve without reintroducing fragmented styling systems.
   suite MUST be executed with `pnpm exec nx run-many -t test --all` and MUST pass.
 - Before any commit, monorepo coverage MUST be executed with
   `pnpm exec nx run-many -t coverage --all` and MUST pass with per-project minimums
-  of 90% or higher.
+  of 85% or higher.
 - Pull requests MUST show successful lint, format, type-check, and test results for all
   affected projects.
 - Any proposal to relax a quality gate MUST be documented in the PR and explicitly

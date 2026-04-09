@@ -1,5 +1,7 @@
 """US1 tests for trend notification service idempotent behavior."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys
@@ -11,6 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_notification_service import TrendNotificationService
 from src.orchestration.resources.trend_repository import TrendRepository
+
+_EXPECTED_FAN_OUT_COUNT = 2
 
 
 class _FakeTrendRepository:
@@ -73,7 +77,7 @@ def test_retry_idempotency_uses_single_reversal_event_fingerprint() -> None:
     assert second.inserted is False
     assert first.event_id == second.event_id
     assert len(repository.events_by_fingerprint) == 1
-    assert len(repository.fan_out_calls) == 2
+    assert len(repository.fan_out_calls) == _EXPECTED_FAN_OUT_COUNT
 
 
 def test_non_reversal_outcomes_do_not_persist_events() -> None:

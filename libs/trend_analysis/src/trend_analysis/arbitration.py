@@ -13,17 +13,26 @@ from .models import (
 TIEBREAK_CONFIDENCE_GAP_THRESHOLD = 0.05
 
 
+_SHORT_HORIZON_MAX = 10
+_MEDIUM_HORIZON_MAX = 100
+
+
 @dataclass(frozen=True)
 class ArbitrationWeights:
+    """Configuration for horizon-based weighting in canonical arbitration."""
+
     short_horizon_weight: float = 0.25
     medium_horizon_weight: float = 0.60
     long_horizon_weight: float = 0.15
 
 
+_DEFAULT_WEIGHTS = ArbitrationWeights()
+
+
 def _horizon_bucket(lookback_points: int) -> str:
-    if lookback_points <= 10:
+    if lookback_points <= _SHORT_HORIZON_MAX:
         return "short"
-    if lookback_points <= 100:
+    if lookback_points <= _MEDIUM_HORIZON_MAX:
         return "medium"
     return "long"
 
@@ -40,10 +49,9 @@ def _weight_for(snapshot: LookbackTrendSnapshotResult, weights: ArbitrationWeigh
 def compute_canonical_descriptor_v2(
     snapshots: list[LookbackTrendSnapshotResult],
     *,
-    weights: ArbitrationWeights = ArbitrationWeights(),
+    weights: ArbitrationWeights = _DEFAULT_WEIGHTS,
 ) -> CanonicalTrendDescriptorResult:
     """Select canonical descriptor from applicable lookback snapshots."""
-
     available = [
         snapshot
         for snapshot in snapshots

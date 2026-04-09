@@ -23,6 +23,7 @@ class TrendNotificationService:
     """Detect canonical up/down reversals and persist notification events."""
 
     def __init__(self, *, repository: TrendRepository) -> None:
+        """Initialize with a trend repository for persistence operations."""
         self._repository = repository
 
     def process_canonical_transition(
@@ -35,7 +36,6 @@ class TrendNotificationService:
         visibility_classification: Literal["user_visible", "audit_only"],
     ) -> TrendNotificationApplyResult:
         """Persist one reversal event when prior/current canonical directions qualify."""
-
         if current_direction not in {"up", "down"}:
             return TrendNotificationApplyResult(
                 outcome_reason_code="direction_unavailable",

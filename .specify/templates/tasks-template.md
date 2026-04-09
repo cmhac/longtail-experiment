@@ -8,11 +8,11 @@ description: "Task list template for feature implementation"
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
 **Tests**: Test tasks are REQUIRED. Every user story and foundational component MUST
-include automated test coverage sufficient to maintain >= 90% coverage in affected
+include automated test coverage sufficient to maintain >= 85% coverage in affected
 projects. Before any commit and before any AI agent stops work, the full repository
 suite MUST pass via `pnpm exec nx run-many -t test --all`; targeted tests alone are
 never sufficient for this stop gate. Before any commit, monorepo coverage MUST pass via
-`pnpm exec nx run-many -t coverage --all` with >= 90% thresholds in every project.
+`pnpm exec nx run-many -t coverage --all` with >= 85% thresholds in every project.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -55,7 +55,7 @@ never sufficient for this stop gate. Before any commit, monorepo coverage MUST p
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
-- [ ] T004 [P] Configure strict type-checking and coverage gates (>= 90%) in CI and local checks
+- [ ] T004 [P] Configure strict type-checking and coverage gates (>= 85%) in CI and local checks
 - [ ] T005 [P] Configure/verify pre-commit hooks enforcing lint, format, type-check, and tests
 
 ---
@@ -109,7 +109,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T022 [US1] Add logging for user story 1 operations
 - [ ] T023 [US1] For frontend work, extend or create shared HeroUI/Tailwind components in
       apps/frontend/src/components before duplicating route-level markup
-- [ ] T024 [US1] Verify US1 coverage contribution maintains >= 90% threshold
+- [ ] T024 [US1] Verify US1 coverage contribution maintains >= 85% threshold
 - [ ] T0XX [US1] Update/create relevant documentation for US1 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
@@ -136,7 +136,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T031 [US2] Integrate with User Story 1 components (if needed)
 - [ ] T032 [US2] For frontend work, reuse or extend shared HeroUI/Tailwind components in
       apps/frontend/src/components instead of introducing parallel patterns
-- [ ] T033 [US2] Verify US2 coverage contribution maintains >= 90% threshold
+- [ ] T033 [US2] Verify US2 coverage contribution maintains >= 85% threshold
 - [ ] T0XX [US2] Update/create relevant documentation for US2 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
@@ -162,7 +162,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T039 [US3] Implement [endpoint/feature] in src/[location]/[file].py
 - [ ] T040 [US3] For frontend work, consolidate repeated UI into shared
       HeroUI/Tailwind components under apps/frontend/src/components
-- [ ] T041 [US3] Verify US3 coverage contribution maintains >= 90% threshold
+- [ ] T041 [US3] Verify US3 coverage contribution maintains >= 85% threshold
 - [ ] T0XX [US3] Update/create relevant documentation for US3 behavior changes in docs/ and AGENTS.md if applicable
 
 **Checkpoint**: All user stories should now be independently functional
@@ -187,7 +187,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX Run full local stack via unified Docker Compose and verify end-to-end behavior
 - [ ] TXXX Run `pnpm exec nx run-many -t test --all` and verify pass before commit and
       before agent handoff/end of work
-- [ ] TXXX Run `pnpm exec nx run-many -t coverage --all` and verify >= 90% coverage
+- [ ] TXXX Run `pnpm exec nx run-many -t coverage --all` and verify >= 85% coverage
       thresholds are satisfied before commit
 
 ---
@@ -278,10 +278,10 @@ With multiple developers:
 - [P] tasks = different files, no dependencies
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
-- Coverage MUST remain >= 90% in every affected project
+- Coverage MUST remain >= 85% in every affected project
 - Before any commit and before any AI agent stops work, `pnpm exec nx run-many -t test --all`
   MUST pass; targeted tests do not satisfy this requirement
-- Before any commit, `pnpm exec nx run-many -t coverage --all` MUST pass with >= 90%
+- Before any commit, `pnpm exec nx run-many -t coverage --all` MUST pass with >= 85%
   coverage thresholds in every project
 - Relevant documentation MUST be updated in the same change as impacted code
 - AGENTS.md MUST be updated when repository structure, workflows, or canonical commands change

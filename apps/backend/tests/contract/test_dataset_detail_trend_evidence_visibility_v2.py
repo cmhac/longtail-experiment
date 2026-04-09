@@ -1,5 +1,7 @@
 """US2 contract test for detail endpoint evidence visibility semantics."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys

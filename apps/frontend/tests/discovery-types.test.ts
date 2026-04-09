@@ -63,17 +63,17 @@ describe("discovery types", () => {
       topic_tags: [],
       metadata: {},
       observations: [],
-        canonical_trend_descriptor: {
-          descriptor_version: "v2",
-          descriptor_state: "available",
-          trend_label: "strong_sustained_uptrend",
-          direction: "up",
-          confidence_score: 0.91,
-          dominant_measure_family: "theil_sen",
-          selected_lookback_points: 100,
-          observed_on: "2026-03-01",
-          reason_code: null,
-        },
+      canonical_trend_descriptor: {
+        descriptor_version: "v2",
+        descriptor_state: "available",
+        trend_label: "strong_sustained_uptrend",
+        direction: "up",
+        confidence_score: 0.91,
+        dominant_measure_family: "theil_sen",
+        selected_lookback_points: 100,
+        observed_on: "2026-03-01",
+        reason_code: null,
+      },
       lookback_trend_evidence: [
         {
           lookback_points: 100,

@@ -1,7 +1,7 @@
 """Backend query package exports."""
 
-from .dataset_catalog_query import execute_dataset_catalog
 from .dataset_asof_trend_query import execute_dataset_asof_trend
+from .dataset_catalog_query import execute_dataset_catalog
 from .dataset_detail_query import execute_dataset_detail
 from .dataset_discovery_service import DatasetDiscoveryService
 from .dataset_recent_updates_query import execute_recent_updates

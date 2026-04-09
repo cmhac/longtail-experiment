@@ -1,5 +1,7 @@
 """US2 endpoint parity checks for v2 canonical and evidence payload surfaces."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys

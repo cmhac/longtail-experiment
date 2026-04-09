@@ -1,17 +1,23 @@
 """US3 contract tests for flat/unavailable non-directional notification semantics."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import cast
 from uuid import uuid4
 
-from src.query.trend_notification_service import TrendNotificationService
+from src.query.trend_notification_service import (
+    TrendNotificationService,
+    TrendNotificationServiceRepository,
+)
 
 
 class _RepoDouble:
     def __init__(self) -> None:
         now = datetime.now(tz=UTC).isoformat()
-        self.payload = {
+        self.payload: dict[str, object] = {
             "items": [
                 {
                     "notification_id": str(uuid4()),
@@ -45,12 +51,49 @@ class _RepoDouble:
         unread_only: bool,
     ) -> dict[str, object]:
         del user_id, page_size, cursor, unread_only
-        return self.payload
+        return dict(self.payload)
+
+    def get_unread_summary(self, *, user_id: str) -> dict[str, object]:
+        del user_id
+        return {
+            "unread_count": 1,
+            "last_notification_at": None,
+            "generated_at": datetime.now(tz=UTC).isoformat(),
+        }
+
+    def mark_notification_read(self, *, user_id: str, notification_id: str) -> bool:
+        del user_id, notification_id
+        return True
+
+    def mark_notification_unread(self, *, user_id: str, notification_id: str) -> bool:
+        del user_id, notification_id
+        return True
+
+    def mark_all_notifications_read(self, *, user_id: str) -> int:
+        del user_id
+        return 0
+
+    def list_active_subscriptions(self, *, user_id: str) -> list[dict[str, object]]:
+        del user_id
+        return []
+
+    def create_or_reactivate_subscription(
+        self,
+        *,
+        user_id: str,
+        dataset_id: str,
+    ) -> dict[str, object] | None:
+        del user_id, dataset_id
+        return None
+
+    def remove_active_subscription(self, *, user_id: str, dataset_id: str) -> bool:
+        del user_id, dataset_id
+        return False
 
 
 def test_notification_contract_remains_directional_without_flat_or_unavailable_states() -> None:
     repo = _RepoDouble()
-    service = TrendNotificationService(repository=repo)
+    service = TrendNotificationService(repository=cast(TrendNotificationServiceRepository, repo))
 
     listing = service.list_notifications(
         user_id=str(uuid4()),

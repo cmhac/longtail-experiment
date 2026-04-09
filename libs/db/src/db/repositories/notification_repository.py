@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
-from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import Engine, text

@@ -19,10 +19,12 @@ describe("ObservationsChartTooltip as-of trend chip", () => {
           {
             payload: {
               asOfTrendDescriptor: {
+                descriptor_version: "v2",
                 descriptor_state: "available",
                 trend_label: "strong_sustained_uptrend",
                 direction: "up",
                 confidence_score: 0.85,
+                dominant_measure_family: "theil_sen",
                 selected_lookback_points: 100,
                 observed_on: "2026-03-01",
                 reason_code: null,
@@ -53,10 +55,12 @@ describe("ObservationsChartTooltip as-of trend chip", () => {
           {
             payload: {
               asOfTrendDescriptor: {
+                descriptor_version: "v2",
                 descriptor_state: "available",
                 trend_label: "moderate_sustained_downtrend",
                 direction: "down",
                 confidence_score: 0.62,
+                dominant_measure_family: "theil_sen",
                 selected_lookback_points: 50,
                 observed_on: "2026-03-08",
                 reason_code: null,

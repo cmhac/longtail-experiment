@@ -1,5 +1,7 @@
 """US3 tests for replay/backfill visibility and idempotent event behavior."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys

@@ -9,10 +9,12 @@ describe("DatasetTrendIndicator", () => {
     const markup = renderMarkup(
       <DatasetTrendIndicator
         descriptor={{
+          descriptor_version: "v2",
           descriptor_state: "available",
           trend_label: "sustained_uptrend",
           direction: "up",
           confidence_score: 0.85,
+          dominant_measure_family: "theil_sen",
           selected_lookback_points: 50,
           observed_on: "2026-03-01",
           reason_code: null,
@@ -30,10 +32,12 @@ describe("DatasetTrendIndicator", () => {
     const markup = renderMarkup(
       <DatasetTrendIndicator
         descriptor={{
+          descriptor_version: "v2",
           descriptor_state: "available",
           trend_label: "sustained_downtrend",
           direction: "down",
           confidence_score: 0.62,
+          dominant_measure_family: "theil_sen",
           selected_lookback_points: 25,
           observed_on: "2026-03-01",
           reason_code: null,
@@ -50,10 +54,12 @@ describe("DatasetTrendIndicator", () => {
     const markup = renderMarkup(
       <DatasetTrendIndicator
         descriptor={{
+          descriptor_version: "v2",
           descriptor_state: "unavailable",
           trend_label: null,
           direction: null,
           confidence_score: null,
+          dominant_measure_family: "none",
           selected_lookback_points: null,
           observed_on: null,
           reason_code: "no_applicable_lookbacks",

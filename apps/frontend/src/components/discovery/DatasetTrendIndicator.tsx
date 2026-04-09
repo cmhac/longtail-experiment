@@ -43,7 +43,9 @@ const getIndicatorContent = (descriptor?: CanonicalTrendDescriptor): IndicatorCo
 
   if (
     descriptor.descriptor_state === "available" &&
-    (descriptor.direction === "up" || descriptor.direction === "down" || descriptor.direction === "flat")
+    (descriptor.direction === "up" ||
+      descriptor.direction === "down" ||
+      descriptor.direction === "flat")
   ) {
     if (descriptor.direction === "flat") {
       return {

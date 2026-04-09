@@ -1,12 +1,17 @@
 """US3 contract tests for confidence-threshold notification copy formatting."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import cast
 from uuid import uuid4
 
-from src.query.trend_notification_service import TrendNotificationService
+from src.query.trend_notification_service import (
+    TrendNotificationService,
+    TrendNotificationServiceRepository,
+)
 
 
 class _RepoDouble:
@@ -46,12 +51,49 @@ class _RepoDouble:
         unread_only: bool,
     ) -> dict[str, object]:
         del user_id, page_size, cursor, unread_only
-        return self.payload
+        return dict(self.payload)
+
+    def get_unread_summary(self, *, user_id: str) -> dict[str, object]:
+        del user_id
+        return {
+            "unread_count": 1,
+            "last_notification_at": None,
+            "generated_at": datetime.now(tz=UTC).isoformat(),
+        }
+
+    def mark_notification_read(self, *, user_id: str, notification_id: str) -> bool:
+        del user_id, notification_id
+        return True
+
+    def mark_notification_unread(self, *, user_id: str, notification_id: str) -> bool:
+        del user_id, notification_id
+        return True
+
+    def mark_all_notifications_read(self, *, user_id: str) -> int:
+        del user_id
+        return 0
+
+    def list_active_subscriptions(self, *, user_id: str) -> list[dict[str, object]]:
+        del user_id
+        return []
+
+    def create_or_reactivate_subscription(
+        self,
+        *,
+        user_id: str,
+        dataset_id: str,
+    ) -> dict[str, object] | None:
+        del user_id, dataset_id
+        return None
+
+    def remove_active_subscription(self, *, user_id: str, dataset_id: str) -> bool:
+        del user_id, dataset_id
+        return False
 
 
 def test_notification_body_includes_confidence_when_threshold_met() -> None:
     repo = _RepoDouble()
-    service = TrendNotificationService(repository=repo)
+    service = TrendNotificationService(repository=cast(TrendNotificationServiceRepository, repo))
 
     response = service.list_notifications(
         user_id=str(uuid4()),
@@ -67,7 +109,7 @@ def test_notification_body_omits_confidence_when_below_threshold() -> None:
     repo = _RepoDouble()
     items = cast(list[dict[str, object]], repo.payload["items"])
     items[0]["confidence_score"] = 0.69
-    service = TrendNotificationService(repository=repo)
+    service = TrendNotificationService(repository=cast(TrendNotificationServiceRepository, repo))
 
     response = service.list_notifications(
         user_id=str(uuid4()),

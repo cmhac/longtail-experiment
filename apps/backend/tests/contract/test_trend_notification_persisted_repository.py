@@ -1,5 +1,7 @@
 """Unit coverage for persisted notification repository adapter methods."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 from collections.abc import Iterator
@@ -13,6 +15,9 @@ from sqlalchemy import Engine
 from src.query.trend_notification_persisted_repository import (
     PersistedTrendNotificationRepository,
 )
+
+_EXPECTED_UNREAD_COUNT = 2
+_EXPECTED_MARK_ALL_COUNT = 3
 
 
 class _Result:
@@ -94,7 +99,7 @@ class _ConnectionDouble:
         self.existing_inactive_subscription: dict[str, object] | None = None
         self.remove_rowcount = 1
 
-    def execute(self, statement: object, params: dict[str, object] | None = None) -> _Result:
+    def execute(self, statement: object, params: dict[str, object] | None = None) -> _Result:  # noqa: PLR0911
         sql = str(statement)
         self.executed.append((sql, params))
 
@@ -180,13 +185,13 @@ def test_notification_persisted_repository_paths() -> None:
 
     assert len(cast(list[dict[str, object]], listed["items"])) == 1
     assert cast(dict[str, object], listed["pagination"])["has_more"] is False
-    assert summary["unread_count"] == 2
+    assert summary["unread_count"] == _EXPECTED_UNREAD_COUNT
     assert mark_read is True
     assert mark_unread is True
-    assert mark_all == 3
+    assert mark_all == _EXPECTED_MARK_ALL_COUNT
     assert subscriptions[0]["dataset_id"] == "PRICE.US.CPI"
     assert created is not None
-    assert cast(dict[str, object], created)["created"] is True
+    assert created["created"] is True
     assert removed is True
 
 

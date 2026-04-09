@@ -17,7 +17,6 @@ def apply_ewma(
     values: list[float], *, halflife: float = 3.0
 ) -> tuple[list[float], PreprocessingMetadata]:
     """Apply default EWMA smoothing and return v2 preprocessing metadata."""
-
     series = pd.Series(values, dtype="float64")
     smoothed = series.ewm(halflife=halflife, adjust=False, ignore_na=True, min_periods=1).mean()
     metadata = PreprocessingMetadata(

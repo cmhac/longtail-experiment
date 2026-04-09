@@ -127,8 +127,7 @@ const normalizeSummaryCanonicalTrendDescriptor = (
   }
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
-  const descriptorState =
-    state === "available" || state === "unavailable" ? state : "unavailable";
+  const descriptorState = state === "available" || state === "unavailable" ? state : "unavailable";
   const confidenceCandidate =
     typeof payload.confidence_score === "number" &&
     Number.isFinite(payload.confidence_score) &&
@@ -166,8 +165,7 @@ const normalizeObservationAsOfTrendDescriptor = (descriptor: unknown): Canonical
   }
   const payload = descriptor as Record<string, unknown>;
   const state = payload.descriptor_state;
-  const descriptorState =
-    state === "available" || state === "unavailable" ? state : "unavailable";
+  const descriptorState = state === "available" || state === "unavailable" ? state : "unavailable";
   const confidenceCandidate =
     typeof payload.confidence_score === "number" &&
     Number.isFinite(payload.confidence_score) &&

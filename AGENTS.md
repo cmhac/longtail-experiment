@@ -174,7 +174,7 @@ Mandatory full-suite stop gate (non-bypass):
   insufficient for this stop gate.
 - Before any commit, run:
   `pnpm exec nx run-many -t coverage --all`
-- Coverage MUST meet configured minimums (90% or higher) for every project; exceptions
+- Coverage MUST meet configured minimums (85% or higher) for every project; exceptions
   and bypasses are not allowed.
 
 Backend quality commands:

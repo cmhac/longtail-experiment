@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from uuid import UUID
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import Engine, text
 
@@ -13,6 +12,7 @@ class PersistedTrendNotificationRepository:
     """Read/write trend notifications from PostgreSQL runtime storage."""
 
     def __init__(self, *, engine: Engine) -> None:
+        """Initialize with a SQLAlchemy engine for database access."""
         self._engine = engine
 
     def _resolve_series_id(self, *, dataset_id: str) -> UUID | None:
@@ -43,7 +43,6 @@ class PersistedTrendNotificationRepository:
         unread_only: bool,
     ) -> dict[str, object]:
         """Return one newest-first paginated notification payload."""
-
         conditions = ["utn.user_id = :user_id"]
         params: dict[str, object] = {
             "user_id": UUID(user_id),
@@ -150,7 +149,6 @@ class PersistedTrendNotificationRepository:
 
     def get_unread_summary(self, *, user_id: str) -> dict[str, object]:
         """Return unread summary payload for one user."""
-
         with self._engine.begin() as connection:
             row = (
                 connection.execute(
@@ -185,7 +183,6 @@ class PersistedTrendNotificationRepository:
 
     def mark_notification_read(self, *, user_id: str, notification_id: str) -> bool:
         """Mark one notification read for one user."""
-
         with self._engine.begin() as connection:
             row = connection.execute(
                 text(
@@ -209,7 +206,6 @@ class PersistedTrendNotificationRepository:
 
     def mark_notification_unread(self, *, user_id: str, notification_id: str) -> bool:
         """Mark one notification unread for one user."""
-
         with self._engine.begin() as connection:
             row = connection.execute(
                 text(
@@ -233,7 +229,6 @@ class PersistedTrendNotificationRepository:
 
     def mark_all_notifications_read(self, *, user_id: str) -> int:
         """Mark all unread notifications read for one user."""
-
         with self._engine.begin() as connection:
             rows = connection.execute(
                 text(
@@ -252,7 +247,6 @@ class PersistedTrendNotificationRepository:
 
     def list_active_subscriptions(self, *, user_id: str) -> list[dict[str, object]]:
         """Return active dataset subscriptions for one user."""
-
         with self._engine.begin() as connection:
             rows = (
                 connection.execute(
@@ -291,7 +285,6 @@ class PersistedTrendNotificationRepository:
         dataset_id: str,
     ) -> dict[str, object] | None:
         """Create or reactivate one dataset subscription."""
-
         now = datetime.now(tz=UTC)
         series_id = self._resolve_series_id(dataset_id=dataset_id)
         if series_id is None:
@@ -406,7 +399,6 @@ class PersistedTrendNotificationRepository:
 
     def remove_active_subscription(self, *, user_id: str, dataset_id: str) -> bool:
         """Remove one active dataset subscription when present."""
-
         now = datetime.now(tz=UTC)
         series_id = self._resolve_series_id(dataset_id=dataset_id)
         if series_id is None:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -11,13 +10,15 @@ import pytest
 from src.contract.errors import ContractQueryError
 from src.query.trend_notification_service import TrendNotificationService
 
+_EXPECTED_UNREAD_COUNT = 5
+
 
 class _RepoDouble:
     def __init__(self) -> None:
         now = datetime.now(tz=UTC).isoformat()
         notification_id = str(uuid4())
         event_id = str(uuid4())
-        self.list_payload = {
+        self.list_payload: dict[str, object] = {
             "items": [
                 {
                     "notification_id": notification_id,
@@ -45,12 +46,12 @@ class _RepoDouble:
                 "next_cursor": None,
             },
         }
-        self.summary_payload = {
+        self.summary_payload: dict[str, object] = {
             "unread_count": 1,
             "last_notification_at": now,
             "generated_at": now,
         }
-        self.subscription_rows = [
+        self.subscription_rows: list[dict[str, object]] = [
             {
                 "dataset_id": "PRICE.US.CPI",
                 "subscribed_at": now,
@@ -120,7 +121,6 @@ def _service_and_repo() -> tuple[TrendNotificationService, _RepoDouble]:
 
 def test_service_list_summary_and_mutation_paths() -> None:
     """Service should return valid list/summary and read-state mutation payloads."""
-
     service, repo = _service_and_repo()
 
     listing = service.list_notifications(
@@ -149,7 +149,6 @@ def test_service_list_summary_and_mutation_paths() -> None:
 
 def test_service_supports_subscription_lifecycle_paths() -> None:
     """Service should list/create/delete user-owned subscriptions."""
-
     service, _repo = _service_and_repo()
 
     listed = service.list_subscriptions(user_id=str(uuid4()))
@@ -163,7 +162,6 @@ def test_service_supports_subscription_lifecycle_paths() -> None:
 
 def test_service_rejects_out_of_contract_inputs_and_missing_rows() -> None:
     """Service should raise contract errors for invalid input and missing rows."""
-
     service, repo = _service_and_repo()
 
     with pytest.raises(ContractQueryError, match="page_size must be between 1 and 100"):
@@ -201,18 +199,22 @@ def test_service_rejects_out_of_contract_inputs_and_missing_rows() -> None:
 
 def test_service_list_ordering_and_unread_summary_fields_pass_through() -> None:
     """Service should preserve repository ordering and summary field values."""
-
     service, repo = _service_and_repo()
     now = datetime.now(tz=UTC).isoformat()
+    base_item = repo.list_payload["items"]
+    assert isinstance(base_item, list)
+    first_item = base_item[0]
+    assert isinstance(first_item, dict)
+
     repo.list_payload = {
         "items": [
             {
-                **repo.list_payload["items"][0],
+                **first_item,
                 "notification_id": str(uuid4()),
                 "delivered_at": now,
             },
             {
-                **repo.list_payload["items"][0],
+                **first_item,
                 "notification_id": str(uuid4()),
                 "delivered_at": "2025-01-01T00:00:00+00:00",
             },
@@ -240,13 +242,12 @@ def test_service_list_ordering_and_unread_summary_fields_pass_through() -> None:
     assert listing.items[0].delivered_at == now
     assert listing.pagination.has_more is True
     assert listing.pagination.next_cursor is not None
-    assert summary.unread_count == 5
+    assert summary.unread_count == _EXPECTED_UNREAD_COUNT
     assert summary.last_notification_at == now
 
 
 def test_service_new_user_default_empty_subscriptions() -> None:
     """New users with no subscriptions should receive contract-valid empty payload."""
-
     service, repo = _service_and_repo()
     repo.subscription_rows = []
 

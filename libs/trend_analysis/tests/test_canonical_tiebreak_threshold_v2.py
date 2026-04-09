@@ -8,6 +8,7 @@ from trend_analysis import evaluate_multi_lookbacks
 
 
 def test_tiebreak_threshold_prefers_shorter_lookback_on_close_scores() -> None:
+    """Prefer a shorter lookback when weighted scores are effectively tied."""
     observations = [
         (date(2026, 1, 1), 100.0),
         (date(2026, 1, 2), 103.0),

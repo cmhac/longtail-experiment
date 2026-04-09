@@ -1,5 +1,7 @@
 """Shared backend payload fixtures for spec 050 trend descriptor v2 contracts."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 

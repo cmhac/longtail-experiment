@@ -12,6 +12,7 @@ def _build_points(values: list[float], *, start: date, step_days: int) -> list[t
 
 
 def noisy_near_flat_monthly() -> list[tuple[date, float]]:
+    """Return monthly points that oscillate around a near-flat baseline."""
     return _build_points(
         [
             100.0,
@@ -33,6 +34,7 @@ def noisy_near_flat_monthly() -> list[tuple[date, float]]:
 
 
 def smooth_up_monthly() -> list[tuple[date, float]]:
+    """Return a smooth monthly upward-trending series."""
     return _build_points(
         [
             90.0,
@@ -54,6 +56,7 @@ def smooth_up_monthly() -> list[tuple[date, float]]:
 
 
 def irregular_gap_series() -> list[tuple[date, float]]:
+    """Return sparse points with irregular date gaps for cadence tests."""
     return [
         (date(2024, 1, 1), 10.0),
         (date(2024, 1, 8), 10.4),
@@ -65,6 +68,7 @@ def irregular_gap_series() -> list[tuple[date, float]]:
 
 
 def regular_subdaily_series() -> list[tuple[date, float]]:
+    """Return evenly spaced daily points for regular-cadence checks."""
     start = date(2024, 1, 1)
     values = [
         10.0,

@@ -6,7 +6,7 @@ import importlib
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
 from .trend_backfill_service import decide_backfill_scope
 from .trend_lifecycle_service import TrendLifecycleService
@@ -34,7 +34,17 @@ _EVALUATE_MULTI_LOOKBACKS, _INFER_CADENCE_DECISION = _load_trend_library_symbols
 MIN_POINTS_FOR_CADENCE_INFERENCE = 3
 
 
-def _serialize_cadence_decision(decision: object) -> dict[str, object]:
+class _CadenceDecisionLike(Protocol):
+    cadence_state: str
+    inferred_cadence: str | None
+    irregular_gap_count: int
+    total_interval_count: int
+    irregular_gap_ratio: float
+    reason_code: str
+    reason_detail: str
+
+
+def _serialize_cadence_decision(decision: _CadenceDecisionLike) -> dict[str, object]:
     """Convert cadence decision objects into JSON-safe runtime payloads."""
     return {
         "cadence_state": decision.cadence_state,
@@ -101,7 +111,7 @@ class TrendRuntimeProcessor:
             )
             for row in rows
         ]
-        series_cadence_decision = _INFER_CADENCE_DECISION(points)
+        series_cadence_decision = cast(_CadenceDecisionLike, _INFER_CADENCE_DECISION(points))
         if series_cadence_decision.cadence_state == "irregular_rejected":
             return {
                 "series_key": series_key,

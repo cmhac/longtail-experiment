@@ -43,11 +43,12 @@ class CanonicalTrendDescriptorV2(BaseModel):
     @model_validator(mode="after")
     def validate_unavailable_payload(self) -> CanonicalTrendDescriptorV2:
         """Unavailable descriptors must not expose directional signal fields."""
-        if self.descriptor_state == "unavailable":
-            if self.direction is not None or self.confidence_score is not None:
-                raise ValueError(
-                    "unavailable canonical descriptors must not include direction/confidence"
-                )
+        if self.descriptor_state == "unavailable" and (
+            self.direction is not None or self.confidence_score is not None
+        ):
+            raise ValueError(
+                "unavailable canonical descriptors must not include direction/confidence"
+            )
         return self
 
 

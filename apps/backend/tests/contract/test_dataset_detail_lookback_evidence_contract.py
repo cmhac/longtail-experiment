@@ -14,6 +14,11 @@ from src.query.dataset_discovery_service import DatasetDiscoveryService
 from tests.fixtures.dataset_discovery_factory import build_discovery_rows
 from tests.fixtures.dataset_discovery_repository import InMemoryDatasetDiscoveryRepository
 
+_EXPECTED_EVIDENCE_COUNT = 2
+_LOOKBACK_SHORT = 10
+_CONFIDENCE_SCORE = 0.72
+_LOOKBACK_LONG = 500
+
 
 def _lookback_row(
     *, lookback_points: int, applicability_state: str, reason_code: str | None
@@ -80,11 +85,11 @@ def test_dataset_detail_includes_lookback_evidence_rows_with_applicability_state
         to_date=None,
     ).model_dump()
 
-    assert len(response["lookback_trend_evidence"]) == 2
-    assert response["lookback_trend_evidence"][0]["lookback_points"] == 10
-    assert response["lookback_trend_evidence"][0]["confidence_score"] == 0.72
+    assert len(response["lookback_trend_evidence"]) == _EXPECTED_EVIDENCE_COUNT
+    assert response["lookback_trend_evidence"][0]["lookback_points"] == _LOOKBACK_SHORT
+    assert response["lookback_trend_evidence"][0]["confidence_score"] == _CONFIDENCE_SCORE
     assert response["lookback_trend_evidence"][0]["dominant_measure_family"] == "theil_sen"
-    assert response["lookback_trend_evidence"][1]["lookback_points"] == 500
+    assert response["lookback_trend_evidence"][1]["lookback_points"] == _LOOKBACK_LONG
     assert response["lookback_trend_evidence"][1]["reason_code"] == "insufficient_history"
 
 
