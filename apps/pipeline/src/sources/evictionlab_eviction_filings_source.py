@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import io
+from calendar import monthrange
 from collections import defaultdict
 from collections.abc import Sequence
 from datetime import UTC, date, datetime, timedelta
@@ -202,6 +203,24 @@ def _parse_month_to_iso(month_str: str) -> str | None:
     return f"{yyyy:04d}-{mm:02d}-01"
 
 
+def _is_incomplete_month(*, iso_date: str, last_updated: str) -> bool:
+    """Return True when month appears to be a partial in-progress period."""
+    if not last_updated:
+        return False
+
+    try:
+        observed_month = date.fromisoformat(iso_date)
+        updated_on = date.fromisoformat(last_updated)
+    except ValueError:
+        return False
+
+    if observed_month.year != updated_on.year or observed_month.month != updated_on.month:
+        return False
+
+    last_day = monthrange(updated_on.year, updated_on.month)[1]
+    return updated_on.day < last_day
+
+
 def _aggregate_site_monthly(
     rows: Sequence[dict[str, str]],
     *,
@@ -258,6 +277,9 @@ def _aggregate_site_monthly(
     result: list[dict[str, Any]] = []
     for iso_date in sorted(month_filings):
         filings_total = month_filings[iso_date]
+        last_updated = month_last_updated[iso_date]
+        if _is_incomplete_month(iso_date=iso_date, last_updated=last_updated):
+            continue
         if filings_total == 0.0:
             continue
         result.append(
@@ -266,7 +288,7 @@ def _aggregate_site_monthly(
                 "filings": filings_total,
                 "filings_avg": month_filings_avg[iso_date],
                 "filings_avg_prepandemic": month_filings_avg_pre[iso_date],
-                "last_updated": month_last_updated[iso_date],
+                "last_updated": last_updated,
             }
         )
     return result

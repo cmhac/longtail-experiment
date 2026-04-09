@@ -25,6 +25,7 @@ from src.sources.evictionlab_eviction_filings_source import (
     SERIES_CONFIGS,
     _aggregate_site_monthly,
     _DefaultEvictionLabClient,
+    _is_incomplete_month,
     _map_records,
     _parse_month_to_iso,
     build_evictionlab_eviction_filings_source_workflow,
@@ -155,7 +156,7 @@ def _make_csv_rows(
     defaults = {
         "filings_avg": "8",
         "filings_avg_prepandemic_baseline": "7",
-        "last_updated": "2026-03-07",
+        "last_updated": "",
     }
     if filing_defaults:
         defaults.update(filing_defaults)
@@ -217,6 +218,22 @@ def test_parse_month_to_iso_strips_whitespace() -> None:
     assert _parse_month_to_iso("  03/2025  ") == "2025-03-01"
 
 
+def test_is_incomplete_month_true_when_updated_mid_month() -> None:
+    assert _is_incomplete_month(iso_date="2026-03-01", last_updated="2026-03-07") is True
+
+
+def test_is_incomplete_month_false_when_updated_end_of_month() -> None:
+    assert _is_incomplete_month(iso_date="2026-03-01", last_updated="2026-03-31") is False
+
+
+def test_is_incomplete_month_false_when_last_updated_missing() -> None:
+    assert _is_incomplete_month(iso_date="2026-03-01", last_updated="") is False
+
+
+def test_is_incomplete_month_false_when_last_updated_not_same_month() -> None:
+    assert _is_incomplete_month(iso_date="2026-03-01", last_updated="2026-04-02") is False
+
+
 # ---------------------------------------------------------------------------
 # _aggregate_site_monthly
 # ---------------------------------------------------------------------------
@@ -271,7 +288,7 @@ def test_aggregate_site_monthly_handles_bad_values() -> None:
             "filings_2020": "bad",
             "filings_avg": "",
             "filings_avg_prepandemic_baseline": "notanumber",
-            "last_updated": "2026-03-07",
+            "last_updated": "",
         },
         {
             "month": "03/2026",
@@ -279,7 +296,7 @@ def test_aggregate_site_monthly_handles_bad_values() -> None:
             "filings_2020": "5",
             "filings_avg": "3",
             "filings_avg_prepandemic_baseline": "2",
-            "last_updated": "2026-03-08",
+            "last_updated": "",
         },
     ]
     result = _aggregate_site_monthly(rows, start_date=None)
@@ -287,7 +304,7 @@ def test_aggregate_site_monthly_handles_bad_values() -> None:
     assert result[0]["filings"] == _EXPECTED_FILINGS_SINGLE
     assert result[0]["filings_avg"] == _EXPECTED_FILINGS_AVG_SINGLE
     assert result[0]["filings_avg_prepandemic"] == _EXPECTED_FILINGS_AVG_PRE_SINGLE
-    assert result[0]["last_updated"] == "2026-03-08"
+    assert result[0]["last_updated"] == ""
 
 
 def test_aggregate_site_monthly_handles_bad_avg_values() -> None:
@@ -299,7 +316,7 @@ def test_aggregate_site_monthly_handles_bad_avg_values() -> None:
             "filings_2020": "10",
             "filings_avg": "bad_avg",
             "filings_avg_prepandemic_baseline": "bad_pre",
-            "last_updated": "2026-03-07",
+            "last_updated": "",
         },
     ]
     result = _aggregate_site_monthly(rows, start_date=None)
@@ -329,24 +346,68 @@ def test_aggregate_site_monthly_last_updated_takes_max() -> None:
     """last_updated should be the maximum across rows in the same month."""
     rows = [
         {
-            "month": "03/2026",
+            "month": "01/2026",
             "GEOID": "A",
             "filings_2020": "5",
             "filings_avg": "3",
             "filings_avg_prepandemic_baseline": "2",
-            "last_updated": "2026-03-01",
+            "last_updated": "2026-01-03",
         },
         {
-            "month": "03/2026",
+            "month": "01/2026",
             "GEOID": "B",
             "filings_2020": "5",
             "filings_avg": "3",
             "filings_avg_prepandemic_baseline": "2",
-            "last_updated": "2026-03-15",
+            "last_updated": "2026-01-31",
         },
     ]
     result = _aggregate_site_monthly(rows, start_date=None)
-    assert result[0]["last_updated"] == "2026-03-15"
+    assert result[0]["last_updated"] == "2026-01-31"
+
+
+def test_aggregate_site_monthly_skips_incomplete_month_when_last_updated_inside_month() -> None:
+    """Monthly bucket with mid-month last_updated should be treated as incomplete."""
+    rows = [
+        {
+            "month": "03/2026",
+            "GEOID": "A",
+            "filings_2020": "9",
+            "filings_avg": "7",
+            "filings_avg_prepandemic_baseline": "6",
+            "last_updated": "2026-03-07",
+        },
+        {
+            "month": "02/2026",
+            "GEOID": "A",
+            "filings_2020": "10",
+            "filings_avg": "8",
+            "filings_avg_prepandemic_baseline": "7",
+            "last_updated": "",
+        },
+    ]
+
+    result = _aggregate_site_monthly(rows, start_date=None)
+    assert len(result) == 1
+    assert result[0]["date"] == "2026-02-01"
+
+
+def test_aggregate_site_monthly_keeps_complete_month_when_last_updated_end_month() -> None:
+    """Monthly bucket with end-of-month last_updated should be retained."""
+    rows = [
+        {
+            "month": "02/2026",
+            "GEOID": "A",
+            "filings_2020": "10",
+            "filings_avg": "8",
+            "filings_avg_prepandemic_baseline": "7",
+            "last_updated": "2026-02-28",
+        },
+    ]
+
+    result = _aggregate_site_monthly(rows, start_date=None)
+    assert len(result) == 1
+    assert result[0]["date"] == "2026-02-01"
 
 
 # ---------------------------------------------------------------------------
@@ -513,7 +574,7 @@ def test_evictionlab_source_maps_series_and_uses_incremental_start_dates() -> No
         filing_defaults={
             "filings_avg": "8",
             "filings_avg_prepandemic_baseline": "7",
-            "last_updated": "2026-03-07",
+            "last_updated": "",
         },
     )
     rows_second = _make_csv_rows(
@@ -523,7 +584,7 @@ def test_evictionlab_source_maps_series_and_uses_incremental_start_dates() -> No
         filing_defaults={
             "filings_avg": "15",
             "filings_avg_prepandemic_baseline": "12",
-            "last_updated": "2026-03-10",
+            "last_updated": "",
         },
     )
 
