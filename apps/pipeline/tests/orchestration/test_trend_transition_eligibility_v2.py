@@ -1,5 +1,7 @@
 """US3 tests for directional-only transition eligibility under v2 semantics."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys

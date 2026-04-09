@@ -157,7 +157,6 @@ class TrendLifecycleService:
         direction: str | None,
     ) -> Literal["up", "down"] | None:
         """Return directional-only notification signal from canonical descriptor fields."""
-
         if descriptor_state != "available":
             return None
         if direction not in {"up", "down"}:

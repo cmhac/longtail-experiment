@@ -235,7 +235,7 @@ def test_repository_covers_foundational_paths() -> None:
     assert by_id is not None
     assert updated_profile is not None
     assert active_session is not None
-    session_payload = cast(dict[str, object], active_session)
+    session_payload = active_session
     assert session_payload["client_metadata"] == {"client_label": "Browser"}
     session_user = cast(dict[str, object], session_payload["user"])
     assert session_user["is_admin"] is True

@@ -1,5 +1,7 @@
 """US1 backend contract tests for current canonical v2 descriptor shape."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys

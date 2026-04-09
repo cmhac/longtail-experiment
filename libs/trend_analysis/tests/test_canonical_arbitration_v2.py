@@ -8,6 +8,7 @@ from trend_analysis import evaluate_multi_lookbacks
 
 
 def test_arbitration_returns_available_for_directional_series() -> None:
+    """Directional inputs should yield an available canonical descriptor."""
     observations = [
         ("2026-01-01", 100.0),
         ("2026-01-02", 102.0),
@@ -23,5 +24,6 @@ def test_arbitration_returns_available_for_directional_series() -> None:
 
 
 def test_arbitration_returns_unavailable_when_no_snapshots() -> None:
+    """Empty input should yield an unavailable canonical descriptor."""
     result = evaluate_multi_lookbacks([])
     assert result.canonical_descriptor.descriptor_state == "unavailable"

@@ -362,6 +362,7 @@ class InMemoryDatasetDiscoveryRepository:
         dataset_id: str,
         observed_on: date,
     ) -> dict[str, Any] | None:
+        """Return pre-seeded canonical descriptor for a specific observation date."""
         payload = self._canonical_trends_by_dataset.get(dataset_id)
         if not isinstance(payload, dict):
             return None
@@ -375,6 +376,7 @@ class InMemoryDatasetDiscoveryRepository:
         dataset_id: str,
         observed_on: date,
     ) -> list[dict[str, Any]]:
+        """Return pre-seeded lookback evidence filtered to a specific observation date."""
         rows = self._lookback_snapshots_by_dataset.get(dataset_id, [])
         return [
             deepcopy(row)

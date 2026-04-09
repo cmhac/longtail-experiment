@@ -1,5 +1,7 @@
 """Integration coverage for repository as-of trend query methods."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys

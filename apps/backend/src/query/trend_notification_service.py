@@ -18,6 +18,8 @@ from src.contract.query.trend_notification_query import (
     SubscriptionResponse,
 )
 
+_MAX_PAGE_SIZE = 100
+
 NOTIFICATION_CONFIDENCE_SCORE_THRESHOLD = 0.70
 
 
@@ -25,7 +27,6 @@ def _format_notification_body(
     *, dataset_id: str, previous: str, current: str, confidence: float | None
 ) -> str:
     """Format direction-first notification copy with optional confidence detail."""
-
     base = f"{dataset_id}: {previous} to {current}"
     if confidence is None or confidence < NOTIFICATION_CONFIDENCE_SCORE_THRESHOLD:
         return base
@@ -95,9 +96,8 @@ class TrendNotificationService:
         unread_only: bool,
     ) -> NotificationListResponse:
         """Return one paginated newest-first notification listing for user."""
-
         resolved_page_size = 25 if page_size is None else page_size
-        if resolved_page_size < 1 or resolved_page_size > 100:
+        if resolved_page_size < 1 or resolved_page_size > _MAX_PAGE_SIZE:
             raise ContractQueryError("page_size must be between 1 and 100")
 
         payload = self.repository.list_notifications(
@@ -135,7 +135,6 @@ class TrendNotificationService:
 
     def get_unread_summary(self, *, user_id: str) -> NotificationSummaryResponse:
         """Return unread summary for shell badge and recent checks."""
-
         payload = self.repository.get_unread_summary(user_id=user_id)
         return NotificationSummaryResponse.model_validate(payload)
 
@@ -146,7 +145,6 @@ class TrendNotificationService:
         notification_id: str,
     ) -> MarkReadResponse:
         """Mark one notification read and return updated unread summary count."""
-
         updated = self.repository.mark_notification_read(
             user_id=user_id,
             notification_id=notification_id,
@@ -170,7 +168,6 @@ class TrendNotificationService:
         notification_id: str,
     ) -> MarkUnreadResponse:
         """Mark one notification unread and return updated unread summary count."""
-
         updated = self.repository.mark_notification_unread(
             user_id=user_id,
             notification_id=notification_id,
@@ -189,13 +186,11 @@ class TrendNotificationService:
 
     def mark_all_notifications_read(self, *, user_id: str) -> MarkAllReadResponse:
         """Mark all unread notifications read for one user."""
-
         updated_count = self.repository.mark_all_notifications_read(user_id=user_id)
         return MarkAllReadResponse(updated_count=updated_count, unread_count=0)
 
     def list_subscriptions(self, *, user_id: str) -> SubscriptionListResponse:
         """Return active subscriptions for one user."""
-
         payload = {"items": self.repository.list_active_subscriptions(user_id=user_id)}
         return SubscriptionListResponse.model_validate(payload)
 
@@ -206,7 +201,6 @@ class TrendNotificationService:
         dataset_id: str,
     ) -> SubscriptionResponse:
         """Create/reactivate one subscription and return result payload."""
-
         normalized_dataset_id = dataset_id.strip()
         if normalized_dataset_id == "":
             raise ContractQueryError("dataset_id must be provided")
@@ -226,7 +220,6 @@ class TrendNotificationService:
         dataset_id: str,
     ) -> DeleteSubscriptionResponse:
         """Remove one active subscription and return removal status."""
-
         normalized_dataset_id = dataset_id.strip()
         if normalized_dataset_id == "":
             raise ContractQueryError("dataset_id must be provided")
@@ -243,5 +236,4 @@ class TrendNotificationService:
     @staticmethod
     def generated_at_iso() -> str:
         """Return UTC timestamp text for response metadata fallbacks."""
-
         return datetime.now(tz=UTC).isoformat()

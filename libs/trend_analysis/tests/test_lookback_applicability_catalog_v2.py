@@ -8,6 +8,7 @@ from trend_analysis import LOOKBACK_CATALOG, evaluate_multi_lookbacks
 
 
 def test_full_lookback_catalog_applicability_is_always_recorded() -> None:
+    """Applicability output should include every configured lookback horizon."""
     observations = [(date(2026, 1, day), float(100 + day)) for day in range(1, 20)]
     result = evaluate_multi_lookbacks(observations)
 

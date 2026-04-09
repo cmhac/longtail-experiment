@@ -16,10 +16,12 @@ describe("UnifiedDatasetRow", () => {
         tagPills={["energy", "retail fuel prices"]}
         title="Editorial Dataset 1"
         trendDescriptor={{
+          descriptor_version: "v2",
           descriptor_state: "available",
           trend_label: "sustained_uptrend",
           direction: "up",
           confidence_score: 0.62,
+          dominant_measure_family: "theil_sen",
           selected_lookback_points: 10,
           observed_on: "2026-03-25",
           reason_code: null,

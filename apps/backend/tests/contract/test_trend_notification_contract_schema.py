@@ -17,10 +17,11 @@ from src.contract.query.trend_notification_query import (
     notification_validation_error,
 )
 
+_EXPECTED_UNREAD_COUNT = 2
+
 
 def test_notification_schema_models_validate_expected_shapes() -> None:
     """Notification request/response contracts should validate expected payloads."""
-
     listing = NotificationListResponse.model_validate(
         {
             "items": [
@@ -105,10 +106,10 @@ def test_notification_schema_models_validate_expected_shapes() -> None:
     )
 
     assert listing.items[0].dataset_id == "PRICE.US.CPI"
-    assert summary.unread_count == 2
+    assert summary.unread_count == _EXPECTED_UNREAD_COUNT
     assert mark_read.updated is True
     assert mark_unread.updated is True
-    assert mark_all.updated_count == 2
+    assert mark_all.updated_count == _EXPECTED_UNREAD_COUNT
     assert request.dataset_id == "PRICE.US.CPI"
     assert subscription.created is True
     assert subscriptions.items[0].dataset_id == "PRICE.US.CPI"
@@ -117,7 +118,6 @@ def test_notification_schema_models_validate_expected_shapes() -> None:
 
 def test_notification_error_envelopes_are_standardized() -> None:
     """Notification error envelopes should expose stable error-code fields."""
-
     unauthorized = notification_unauthorized_error().model_dump()
     not_found = notification_not_found_error("Missing").model_dump()
     invalid = notification_validation_error("bad request").model_dump()

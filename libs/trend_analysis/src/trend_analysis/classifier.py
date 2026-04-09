@@ -4,16 +4,16 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import date
-from typing import Literal
+from typing import Literal, cast
 
-from .cadence import CadenceInferenceError, infer_cadence, infer_cadence_decision
 from .arbitration import compute_canonical_descriptor_v2
+from .cadence import CadenceInferenceError, infer_cadence, infer_cadence_decision
 from .models import (
-    OlsDiagnostics,
-    PreprocessingMetadata,
     CanonicalTrendDescriptorResult,
     LookbackTrendSnapshotResult,
     MultiLookbackEvaluationResult,
+    OlsDiagnostics,
+    PreprocessingMetadata,
     TrendAnalysisResult,
     TrendSignature,
     build_cadence_decision_result,
@@ -217,7 +217,7 @@ def _evaluate_lookback(
             reason="change remains below significant threshold",
         )
     else:
-        direction = score.direction
+        direction = cast(Literal["up", "down", "flat"], score.direction)
         magnitude = abs(score.theil_sen_slope)
         strength = "strong" if magnitude >= STRONG_RELATIVE_CHANGE else "mild"
         seasonality = _seasonality_classification(

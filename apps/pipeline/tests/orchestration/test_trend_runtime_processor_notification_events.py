@@ -1,14 +1,20 @@
 """US1 tests for reversal-event detection from canonical trend transitions."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys
 from datetime import date
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.orchestration.jobs.trend_runtime_processor import TrendRuntimeProcessor
+
+_EXPECTED_EVENT_COUNT = 2
+_EXPECTED_FAN_OUT_COUNT = 2
 
 
 class _FakeObservationRepository:
@@ -82,7 +88,7 @@ class _FakeNotificationTrendRepository:
 
 
 def _build_rows_for_direction(direction: str) -> list[dict[str, object]]:
-    base = [
+    base: list[dict[str, object]] = [
         {"observed_on": date(2026, 1, 1), "value": 100.0},
         {"observed_on": date(2026, 1, 2), "value": 101.0},
     ]
@@ -95,11 +101,13 @@ def _build_rows_for_direction(direction: str) -> list[dict[str, object]]:
 
 def test_us1_creates_event_for_up_to_down_transition() -> None:
     repository = _FakeNotificationTrendRepository(previous_by_series={"SERIES.UP_TO_DOWN": "up"})
+    up_to_down_rows: list[dict[str, object]] = _build_rows_for_direction("up") + [
+        cast(dict[str, object], {"observed_on": date(2026, 1, 4), "value": 70.0})
+    ]
     processor = TrendRuntimeProcessor(
         observation_repository=_FakeObservationRepository(
             {
-                "SERIES.UP_TO_DOWN": _build_rows_for_direction("up")
-                + [{"observed_on": date(2026, 1, 4), "value": 70.0}],
+                "SERIES.UP_TO_DOWN": up_to_down_rows,
             }
         ),
         trend_repository=repository,
@@ -119,11 +127,13 @@ def test_us1_creates_event_for_up_to_down_transition() -> None:
 
 def test_us1_creates_event_for_down_to_up_transition() -> None:
     repository = _FakeNotificationTrendRepository(previous_by_series={"SERIES.DOWN_TO_UP": "down"})
+    down_to_up_rows: list[dict[str, object]] = _build_rows_for_direction("down") + [
+        cast(dict[str, object], {"observed_on": date(2026, 1, 4), "value": 130.0})
+    ]
     processor = TrendRuntimeProcessor(
         observation_repository=_FakeObservationRepository(
             {
-                "SERIES.DOWN_TO_UP": _build_rows_for_direction("down")
-                + [{"observed_on": date(2026, 1, 4), "value": 130.0}],
+                "SERIES.DOWN_TO_UP": down_to_up_rows,
             }
         ),
         trend_repository=repository,
@@ -208,8 +218,8 @@ def test_us2_subscription_fan_out_eligibility_uses_active_subscribers_only() -> 
 
     assert subscribed["execution_state"] in {"applied", "partial_applied"}
     assert unsubscribed["execution_state"] in {"applied", "partial_applied"}
-    assert len(repository.events) == 2
-    assert len(repository.fan_out_calls) == 2
+    assert len(repository.events) == _EXPECTED_EVENT_COUNT
+    assert len(repository.fan_out_calls) == _EXPECTED_FAN_OUT_COUNT
     assert sorted(repository.fan_out_results) == [0, 2]
 
 

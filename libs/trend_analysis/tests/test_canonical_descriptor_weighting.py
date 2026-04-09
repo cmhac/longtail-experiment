@@ -9,6 +9,8 @@ from trend_analysis.version import CANONICAL_WEIGHTING_VERSION
 
 from .fixtures.trend_series_fixtures import make_linear_series
 
+_SHORTEST_LOOKBACK_POINTS = 2
+
 
 def _daily_points(values: list[float]) -> list[tuple[date, float]]:
     points = make_linear_series(start=date(2026, 1, 1), values=values)
@@ -22,7 +24,7 @@ def test_canonical_descriptor_prefers_recent_strong_signal() -> None:
 
     canonical = result.canonical_descriptor
     assert canonical.descriptor_state == "available"
-    assert canonical.selected_lookback_points == 2
+    assert canonical.selected_lookback_points == _SHORTEST_LOOKBACK_POINTS
     assert canonical.direction == "up"
     assert canonical.weighting_version == CANONICAL_WEIGHTING_VERSION
 

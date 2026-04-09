@@ -13,10 +13,12 @@ describe("ObservationsChartTooltip unavailable as-of trend", () => {
           {
             payload: {
               asOfTrendDescriptor: {
+                descriptor_version: "v2",
                 descriptor_state: "unavailable",
                 trend_label: null,
                 direction: null,
                 confidence_score: null,
+                dominant_measure_family: "none",
                 selected_lookback_points: null,
                 observed_on: null,
                 reason_code: "no_historical_candidate",

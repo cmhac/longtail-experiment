@@ -214,7 +214,7 @@ def _normalize_lookback_evidence(
 
     try:
         return [
-            LookbackTrendEvidenceV2.model_validate(dict(snapshot)).model_dump()
+            LookbackTrendEvidenceV2.model_validate(snapshot).model_dump()
             for snapshot in raw_lookbacks
         ]
     except (ValidationError, TypeError, ValueError) as exc:

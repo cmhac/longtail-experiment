@@ -13,10 +13,12 @@ export const makeEditorialFeedItem = (index: number): DatasetRecentItem => {
     latest_update_at: `2026-03-${String(25 - index).padStart(2, "0")}T00:00:00Z`,
     has_recent_notification: index % 2 === 1,
     canonical_trend_descriptor: {
+      descriptor_version: "v2",
       descriptor_state: "available",
       trend_label: "sustained_uptrend",
       direction: "up",
       confidence_score: 0.62,
+      dominant_measure_family: "theil_sen",
       selected_lookback_points: 25,
       observed_on: "2026-03-01",
       reason_code: null,

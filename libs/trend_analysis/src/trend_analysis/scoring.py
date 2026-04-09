@@ -6,9 +6,14 @@ from dataclasses import dataclass
 
 from scipy.stats import kendalltau, theilslopes
 
+_MIN_CONFIDENCE_THRESHOLD = 0.60
+_MIN_RELATIVE_SLOPE_THRESHOLD = 0.005
+
 
 @dataclass(frozen=True)
 class TrendScore:
+    """Result of scoring one observation window with Theil-Sen + Kendall."""
+
     direction: str
     confidence_score: float
     theil_sen_slope: float
@@ -24,7 +29,6 @@ def _bounded(value: float) -> float:
 
 def score_window(values: list[float]) -> TrendScore:
     """Score one window with Theil-Sen slope and Kendall monotonic evidence."""
-
     x = list(range(len(values)))
     slope, _intercept, low_slope, high_slope = theilslopes(values, x)
     tau, pvalue = kendalltau(x, values)
@@ -44,7 +48,7 @@ def score_window(values: list[float]) -> TrendScore:
         (0.5 * monotonic_strength) + (0.35 * significance_weight) + (0.15 * slope_weight)
     )
 
-    if confidence < 0.60 or relative_slope < 0.005:
+    if confidence < _MIN_CONFIDENCE_THRESHOLD or relative_slope < _MIN_RELATIVE_SLOPE_THRESHOLD:
         direction = "flat"
     else:
         direction = "up" if slope_value > 0 else "down"

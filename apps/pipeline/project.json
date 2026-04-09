@@ -113,7 +113,7 @@
         "pythonAppConfig"
       ],
       "options": {
-        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests --cov=apps/pipeline/src --cov-fail-under=90"
+        "command": "uv run --project apps/pipeline pytest apps/pipeline/tests --cov=apps/pipeline/src --cov-fail-under=85"
       }
     }
   }

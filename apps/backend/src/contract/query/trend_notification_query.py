@@ -128,7 +128,6 @@ def notification_error(
     message: str,
 ) -> NotificationApiErrorEnvelope:
     """Create a standard notification error envelope."""
-
     return NotificationApiErrorEnvelope(
         error=NotificationApiErrorPayload(code=code, message=message)
     )
@@ -138,7 +137,6 @@ def notification_unauthorized_error(
     message: str = "Authentication required",
 ) -> NotificationApiErrorEnvelope:
     """Create a standard authentication error envelope."""
-
     return notification_error("unauthorized", message)
 
 
@@ -146,7 +144,6 @@ def notification_not_found_error(
     message: str,
 ) -> NotificationApiErrorEnvelope:
     """Create a standard notification not-found error envelope."""
-
     return notification_error("notification_not_found", message)
 
 
@@ -154,5 +151,4 @@ def notification_validation_error(
     message: str,
 ) -> NotificationApiErrorEnvelope:
     """Create a standard invalid-request error envelope."""
-
     return notification_error("invalid_request", message)

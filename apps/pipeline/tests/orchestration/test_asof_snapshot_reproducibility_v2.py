@@ -1,5 +1,7 @@
 """US2 as-of snapshot reproducibility checks for v2 payload ordering."""
 
+# ruff: noqa: D103
+
 from __future__ import annotations
 
 import sys
@@ -46,7 +48,6 @@ class _TrendRepo:
 
     def get_previous_canonical_direction(self, *, series_key: str, observed_on: date):
         del series_key, observed_on
-        return None
 
     def append_trend_change_event(self, payload):
         del payload
