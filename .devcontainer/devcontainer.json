@@ -1,0 +1,51 @@
+{
+    "name": "longtail-experiment",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "init": true,
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2.14.0": {},
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "22"
+        }
+    },
+    "remoteUser": "devcontainer-user",
+    "updateRemoteUserUID": true,
+    "runArgs": [
+        "--privileged"
+    ],
+    "mounts": [
+        "source=longtail-experiment-docker-lib,target=/var/lib/docker,type=volume",
+        "source=longtail-experiment-tailscale-state,target=/var/lib/tailscale,type=volume"
+    ],
+    "containerEnv": {
+        "OPENCODE_SERVER_HOSTNAME": "0.0.0.0",
+        "OPENCODE_SERVER_PORT": "4096"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python3.12",
+                "python.terminal.activateEnvironment": true,
+                "ruff.nativeServer": true
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "charliermarsh.ruff",
+                "ms-toolsai.jupyter",
+                "ms-azuretools.vscode-docker",
+                "nrwl.angular-console",
+                "biomejs.biome"
+            ]
+        }
+    },
+    "hostRequirements": {
+        "cpus": 4,
+        "memory": "8gb"
+    },
+    "postCreateCommand": "bash .devcontainer/postCreate.sh",
+    "postStartCommand": "bash .devcontainer/postStart.sh"
+}
