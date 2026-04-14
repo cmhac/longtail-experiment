@@ -32,6 +32,7 @@ RUN set -eux; \
 RUN set -eux; \
   curl -LsSf https://astral.sh/uv/install.sh | sh; \
   install -m 0755 /root/.local/bin/uv /usr/local/bin/uv; \
+  if [ -f /root/.local/bin/uvx ]; then install -m 0755 /root/.local/bin/uvx /usr/local/bin/uvx; fi; \
   rm -rf /root/.local; \
   uv python install 3.12 --install-dir "${UV_PYTHON_INSTALL_DIR}"; \
   python_bin="$(find "${UV_PYTHON_INSTALL_DIR}" -type f -path '*/bin/python3.12' | head -n 1)"; \

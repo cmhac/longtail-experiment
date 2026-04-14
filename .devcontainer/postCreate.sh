@@ -52,6 +52,11 @@ for pyproject in "${pyprojects[@]}"; do
 done
 
 echo "Installing pre-commit hooks (best effort)..."
-uvx --from pre-commit pre-commit install --install-hooks || true
+if command -v uvx >/dev/null 2>&1; then
+  uvx --from pre-commit pre-commit install --install-hooks || true
+else
+  echo "uvx not found; falling back to 'uv tool run' for pre-commit install."
+  uv tool run --from pre-commit pre-commit install --install-hooks || true
+fi
 
 echo "Devcontainer bootstrap complete."
