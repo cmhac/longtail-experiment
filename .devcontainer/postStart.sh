@@ -61,7 +61,6 @@ if [[ "${tailscale_available}" == "true" ]]; then
 
   echo "To authenticate manually, run: sudo tailscale up --auth-key=<tskey-...>"
 fi
-
 if ! command -v opencode >/dev/null 2>&1; then
   echo "opencode CLI is not installed yet. Rebuild the devcontainer or run: sudo npm install -g opencode-ai" >&2
   exit 0
